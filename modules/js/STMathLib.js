@@ -3,7 +3,15 @@ define([], function () {
         createVector2D: function(x, y) {
             return {
                 x: x,
-                y: y
+                y: y,
+
+                toString: function () {
+                    return '(' + x + ', ' + y + ')';
+                },
+
+                equals: function (other) {
+                    return this.x === other.x && this.y === other.y;
+                },
             }
         },
 
@@ -23,19 +31,19 @@ define([], function () {
             if (this.vectorSize(lineDir) === 0)
                 return 0;
             else
-                return this.vectorSize(this.crossProduct(lineDir, this.vectorSubtract(point, lineStart))) / this.vectorSize(lineDir);
+                return Math.abs(this.crossProduct2D(lineDir, this.vectorSubtract(point, lineStart))) / this.vectorSize(lineDir);
         },
 
         vectorSubtract: function (a, b) {
-            return createVector2D(a.x - b.x, a.y - b.y);
+            return this.createVector2D(a.x - b.x, a.y - b.y);
         },
 
         vectorAdd: function (a, b) {
-            return createVector2D(a.x + b.x, a.y + b.y);
+            return this.createVector2D(a.x + b.x, a.y + b.y);
         },
 
         vectorScale: function (vector, scale) {
-            return createVector2D(vector.x * scale, vector.y * scale);
+            return this.createVector2D(vector.x * scale, vector.y * scale);
         },
 
         pointOntoLineProjection: function (point, lineStart, lineDir) {
