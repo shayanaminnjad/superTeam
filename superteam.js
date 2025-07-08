@@ -149,7 +149,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
             this.hexLogicalSize = HEX_LOGICAL_WIDTH * 0.5;
 
             const HEX_LOGICAL_HEIGHT = STUIConstants.HEX_LOGICAL_HEIGHT_PERCENT * BOARD_HEIGHT;
-            this.hexIrradius = HEX_LOGICAL_HEIGHT * 0.5;
+            this.hexInradius = HEX_LOGICAL_HEIGHT * 0.5;
 
             for (let x = 0; x < STUIConstants.COLUMNS; x++)
             {
@@ -198,8 +198,13 @@ function (dojo, declare, STUIConstants, STHexLib) {
             let leftHexRect = this.getHexPixelCoordinate(this.LeftGoalKeeperHex);
             let rightHexRect = this.getHexPixelCoordinate(this.RightGoalKeeperHex);
 
+            let ballHexRect = this.getHexPixelCoordinate(this.CenterOfAreaHex);
+
+            console.log(this.hexInradius);
+
             MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='orange_goalie' class="piece goalie fresh" style='left:${leftHexRect.left}px; top:${leftHexRect.top}px;'></div>`);
             MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='blue_goalie' class="piece goalie fresh" style='left:${rightHexRect.left}px; top:${rightHexRect.top}px;'></div>`);
+            MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='ball' class="ball" style='left:${ballHexRect.left}px; top:${ballHexRect.top + this.hexInradius}px;'></div>`);
 
             this.initHexClickListener();
         },
