@@ -223,7 +223,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
             for (let i = 0; i < hexesInPath.length; ++i) 
             {
-                let hexId = this.convertCubicCoordToHexId(key.cubic)
+                let hexId = this.convertCubicCoordToHexId(hexesInPath[i].cubic)
 
                 let el = document.getElementById(hexId);
 
