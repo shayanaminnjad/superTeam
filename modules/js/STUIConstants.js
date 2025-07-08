@@ -9,8 +9,8 @@ define([], function(){
         HEX_VERTICAL_SPACE_PERCENT: 0.00865,
         HEX_HORIZONTAL_SPACE_PERCENT: 0.0472,
         
-        HEX_LOGICAL_WIDTH_PERCENT: 0.0607,//hex width without any space.
-        HEX_LOGICAL_HEIGHT_PERCENT: 0.0673,
+        HEX_LOGICAL_WIDTH_PERCENT: 0.0630769,//hex width without any space.
+        HEX_LOGICAL_HEIGHT_PERCENT: 0.0693,
 
         ODD_COLUMN_ROWS: 10, //odd columns have less hexes
         EVEN_COLUMN_ROWS: 11,
