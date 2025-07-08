@@ -133,7 +133,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
             const MAIN_BOARD_EL = document.getElementById('mainBoard');
             const BOARD_WIDTH = parseFloat(getComputedStyle(MAIN_BOARD_EL).width);
             const BOARD_HEIGHT = parseFloat(getComputedStyle(MAIN_BOARD_EL).height);
-            
+
             this.LEFT_MARGIN = STUIConstants.HORIZONTAL_MARGIN_PERCENT * BOARD_WIDTH;
             this.TOP_MARGIN_ODD = STUIConstants.TOP_MARGIN_ODD_PERCENT * BOARD_HEIGHT;
             const TOP_MARGIN_EVEN = STUIConstants.TOP_MARGIN_EVEN_PERCENT * BOARD_HEIGHT;
@@ -244,7 +244,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
             if (this.startHex == null || this.endHex == null)
                 return;
 
-            var hexesInPath = STHexLib.getHexsInPath(this.startHex, this.endHex, this.hexLogicalSize, this.allHexes);
+            var hexesInPath = STHexLib.getHexsInPath(this.startHex, this.endHex, 1.4 * this.hexLogicalSize, this.allHexes);
 
             document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
 
