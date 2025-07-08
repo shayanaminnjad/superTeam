@@ -12,8 +12,8 @@ define([], function(){
         HEX_LOGICAL_WIDTH_PERCENT: 0.0607,//hex width without any space.
         HEX_LOGICAL_HEIGHT_PERCENT: 0.0673,
 
-        ODD_COLUMN_ROWS: 11, //odd columns have more hexes
-        EVEN_COLUMN_ROWS: 10,
+        ODD_COLUMN_ROWS: 10, //odd columns have less hexes
+        EVEN_COLUMN_ROWS: 11,
         COLUMNS: 17,
     };
 });

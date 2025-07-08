@@ -41,6 +41,71 @@
     76% 100%, 23% 100%, 0% 50%);
 }
 
+.piece.normal.blue.fresh {
+    width: 25px;
+    height: 31px;
+    position: absolute;
+    background-image: url('img/peices.jpg');
+    background-size: auto 100%;
+}
+
+.piece.normal.blue.exhausted {
+    
+}
+
+.piece.captain.blue.fresh {
+
+}
+
+.piece.captain.blue.exhausted {
+
+}
+
+.piece.normal.orange.fresh{
+    width: 26px;
+    height: 37px;
+    position: absolute;
+    background-image: url('img/peices.png');
+    background-size: auto 100%;
+    background-position: 8%;
+}
+
+.piece.normal.orange.exhausted {
+    width: 26px;
+    height: 37px;
+    position: absolute;
+    background-image: url('img/peices.png');
+    background-size: auto 100%;
+    background-position: 16%;
+}
+
+.piece.captain.orange.fresh {
+    width: 26px;
+    height: 37px;
+    position: absolute;
+    background-image: url('img/peices.png');
+    background-size: auto 100%;
+    background-position: 24%;
+}
+
+.piece.captain.orange.exhausted {
+    width: 31px;
+    height: 37px;
+    position: absolute;
+    background-image: url('img/peices.png');
+    background-size: auto 100%;
+    background-position: 37%;
+}
+
+.piece.goalie{
+    width: 26px;
+    height: 37px;
+    position: absolute;
+    background-image: url('img/peices.png');
+    background-repeat: no-repeat;
+    background-position: 0 -6px;
+}
+
 /*TODO: This one contradicts with the ones below, maybe I should have more than one clip path?*/
 .hex:hover{
 background-color: white;

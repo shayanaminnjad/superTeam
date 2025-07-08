@@ -134,8 +134,8 @@ function (dojo, declare, STUIConstants, STHexLib) {
             const BOARD_WIDTH = parseFloat(getComputedStyle(MAIN_BOARD_EL).width);
             const BOARD_HEIGHT = parseFloat(getComputedStyle(MAIN_BOARD_EL).height);
             
-            const LEFT_MARGIN = STUIConstants.HORIZONTAL_MARGIN_PERCENT * BOARD_WIDTH;
-            const TOP_MARGIN_ODD = STUIConstants.TOP_MARGIN_ODD_PERCENT * BOARD_HEIGHT;
+            this.LEFT_MARGIN = STUIConstants.HORIZONTAL_MARGIN_PERCENT * BOARD_WIDTH;
+            this.TOP_MARGIN_ODD = STUIConstants.TOP_MARGIN_ODD_PERCENT * BOARD_HEIGHT;
             const TOP_MARGIN_EVEN = STUIConstants.TOP_MARGIN_EVEN_PERCENT * BOARD_HEIGHT;
 
             const HEX_WIDTH = BOARD_WIDTH * STUIConstants.HEX_WIDTH_PERCENT;
@@ -143,7 +143,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
             const HEX_WIDTH_ROUND = Math.round(HEX_WIDTH);
             const HEX_HEIGHT_ROUND = Math.round(HEX_HEIGHT);
             const HEX_VERTICAL_SPACE = STUIConstants.HEX_VERTICAL_SPACE_PERCENT * BOARD_HEIGHT;
-            const HEX_HORIZONTAL_SPACE = STUIConstants.HEX_HORIZONTAL_SPACE_PERCENT * BOARD_WIDTH;
+            this.HEX_HORIZONTAL_SPACE = STUIConstants.HEX_HORIZONTAL_SPACE_PERCENT * BOARD_WIDTH;
 
             const HEX_LOGICAL_WIDTH = STUIConstants.HEX_LOGICAL_WIDTH_PERCENT * BOARD_WIDTH;
             this.hexLogicalSize = HEX_LOGICAL_WIDTH * 0.5;
@@ -153,9 +153,9 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
             for (let x = 0; x < STUIConstants.COLUMNS; x++)
             {
-                let hexInColumn = (x + 1) % 2 == 1 ? STUIConstants.ODD_COLUMN_ROWS : STUIConstants.EVEN_COLUMN_ROWS;
-                let left = Math.round(LEFT_MARGIN + (HEX_HORIZONTAL_SPACE) * x);
-                let currentTopMargin = (x + 1) % 2 == 1 ? TOP_MARGIN_ODD : TOP_MARGIN_EVEN;
+                let hexInColumn = (x + 1) % 2 == 1 ? STUIConstants.EVEN_COLUMN_ROWS : STUIConstants.ODD_COLUMN_ROWS;
+                let left = Math.round(this.LEFT_MARGIN + (this.HEX_HORIZONTAL_SPACE) * x);
+                let currentTopMargin = (x + 1) % 2 == 1 ? this.TOP_MARGIN_ODD : TOP_MARGIN_EVEN;
 
                 for (let y = 0; y < hexInColumn; y++) 
                 {
@@ -163,16 +163,43 @@ function (dojo, declare, STUIConstants, STHexLib) {
                     
                     let offsetCoord = this.convertHexIdToOffsetCoord(hexId);
                     
+                    let top = Math.round(currentTopMargin + (y * (HEX_HEIGHT + HEX_VERTICAL_SPACE)));
+
                     this.allHexes.push({
                         cubic: STHexLib.oddqToCubic(offsetCoord),
-                        cartesian: STHexLib.oddqToCartesian(offsetCoord, this.hexLogicalSize)
+                        cartesian: STHexLib.oddqToCartesian(offsetCoord, this.hexLogicalSize),
+                        pixelPos: {left: left, top: top}
                     });
-                    
-                    let top = Math.round(currentTopMargin + (y * (HEX_HEIGHT + HEX_VERTICAL_SPACE)));
 
                     MAIN_BOARD_EL.insertAdjacentHTML('afterbegin', `<div id='${hexId}' class="hex" style='left:${left}px; top:${top}px; width: ${HEX_WIDTH_ROUND}px; height: ${HEX_HEIGHT_ROUND}px;'></div>`);
                 }
             }
+
+            this.CenterOfAreaHex = STHexLib.createOffsetCoord(5,8);
+
+            this.LeftPlayerInitialHexes.push(STHexLib.createOffsetCoord(3,4));
+            this.LeftPlayerInitialHexes.push(STHexLib.createOffsetCoord(5,4));
+            this.LeftPlayerInitialHexes.push(STHexLib.createOffsetCoord(7,4));
+            this.LeftPlayerInitialHexes.push(STHexLib.createOffsetCoord(2,6));
+            this.LeftPlayerInitialHexes.push(STHexLib.createOffsetCoord(5,6));
+            this.LeftPlayerInitialHexes.push(STHexLib.createOffsetCoord(8,6));
+
+            this.RightPlayerInitialHexes.push(STHexLib.createOffsetCoord(3,12));
+            this.RightPlayerInitialHexes.push(STHexLib.createOffsetCoord(5,12));
+            this.RightPlayerInitialHexes.push(STHexLib.createOffsetCoord(7,12));
+            this.RightPlayerInitialHexes.push(STHexLib.createOffsetCoord(2,10));
+            this.RightPlayerInitialHexes.push(STHexLib.createOffsetCoord(5,10));
+            this.RightPlayerInitialHexes.push(STHexLib.createOffsetCoord(8, 0));
+
+            
+            this.LeftGoalKeeperHex = STHexLib.createOffsetCoord(5, 0);
+            this.RightGoalKeeperHex = STHexLib.createOffsetCoord(5, 16);
+
+            let leftHexRect = this.getHexPixelCoordinate(this.LeftGoalKeeperHex);
+            let rightHexRect = this.getHexPixelCoordinate(this.RightGoalKeeperHex);
+
+            MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='orange_goalie' class="piece goalie fresh" style='left:${leftHexRect.left}px; top:${leftHexRect.top}px;'></div>`);
+            MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='blue_goalie' class="piece goalie fresh" style='left:${rightHexRect.left}px; top:${rightHexRect.top}px;'></div>`);
 
             this.initHexClickListener();
         },
@@ -270,7 +297,12 @@ function (dojo, declare, STUIConstants, STHexLib) {
         {
             let offsetHex = STHexLib.cubicToOddq(cubicCoord);
 
-            return 'hex_' + offsetHex.r + '_' + offsetHex.c;
+            return this.convertOffsetCoordToHexId(offsetHex);
+        },
+
+        convertOffsetCoordToHexId: function(offsetCoord)
+        {
+            return 'hex_' + offsetCoord.r + '_' + offsetCoord.c;   
         },
 
         getBoardOffsetExtent: function()
@@ -279,6 +311,19 @@ function (dojo, declare, STUIConstants, STHexLib) {
             return STHexLib.createOffsetExtent(0, 16, 0, 9, 0, 10);
         },
 
+        getHexPixelCoordinate: function(offsetCoord)
+        {
+            let hexData = this.getHexData(offsetCoord);
+            return hexData.pixelPos;
+        },
+
+        getHexData: function(offsetCoord)
+        {
+            let evenColumnsCount = Math.floor((offsetCoord.c + 1) * 0.5);
+            let oddColumnsCount = offsetCoord.c - evenColumnsCount;
+            
+            return this.allHexes[STUIConstants.EVEN_COLUMN_ROWS * evenColumnsCount + oddColumnsCount * STUIConstants.ODD_COLUMN_ROWS + offsetCoord.r];;
+        },
 
         ///////////////////////////////////////////////////
         //// Player's action
@@ -370,16 +415,37 @@ function (dojo, declare, STUIConstants, STHexLib) {
             })
         },
 
-        startHex: null,
+        ///////////////////////////////////////////////////
+        //// Private data
 
-        endHex: null,
+        //------------------------ board info
+
+        CenterOfAreaHex: null,
+
+        LeftPlayerInitialHexes: [],
+
+        RightPlayerInitialHexes: [],
+
+        LeftGoalKeeperHex: null,
+
+        RightGoalKeeperHex: null,
 
         hexLogicalSize: 0,
 
         hexInradius: 0,
 
-        ///////////////////////////////////////////////////
-        //// Private data
         allHexes: [],
+
+        LEFT_MARGIN: 0, 
+
+        TOP_MARGIN_ODD: 0,
+
+        HEX_HORIZONTAL_SPACE: 0,
+
+        //----------------------- general variables
+
+        startHex: null,
+
+        endHex: null,
    });             
 });
