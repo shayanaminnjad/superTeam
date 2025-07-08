@@ -1,13 +1,12 @@
 define([], function () {
-
-    function createVector2D(x, y) {
-        return {
-            x : x,
-            y : y
-        }
-    }
-
     return {
+        createVector2D: function(x, y) {
+            return {
+                x: x,
+                y: y
+            }
+        },
+
         crossProduct2D: function (a, b) {
             return a.x * b.y - a.y * b.x;
         },
