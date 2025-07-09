@@ -175,6 +175,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
                 }
             }
 
+            //TODO: These can become another file named STGameplayData.
             this.CenterOfAreaHex = STHexLib.createOffsetCoord(5,8);
 
             this.LeftPlayerInitialHexes.push(STHexLib.createOffsetCoord(3,4));
@@ -189,22 +190,15 @@ function (dojo, declare, STUIConstants, STHexLib) {
             this.RightPlayerInitialHexes.push(STHexLib.createOffsetCoord(7,12));
             this.RightPlayerInitialHexes.push(STHexLib.createOffsetCoord(2,10));
             this.RightPlayerInitialHexes.push(STHexLib.createOffsetCoord(5,10));
-            this.RightPlayerInitialHexes.push(STHexLib.createOffsetCoord(8, 0));
+            this.RightPlayerInitialHexes.push(STHexLib.createOffsetCoord(8, 10));
 
-            
             this.LeftGoalKeeperHex = STHexLib.createOffsetCoord(5, 0);
             this.RightGoalKeeperHex = STHexLib.createOffsetCoord(5, 16);
 
-            let leftHexRect = this.getHexPixelCoordinate(this.LeftGoalKeeperHex);
-            let rightHexRect = this.getHexPixelCoordinate(this.RightGoalKeeperHex);
+            this.placePlayers();
 
             let ballHexRect = this.getHexPixelCoordinate(this.CenterOfAreaHex);
-
-            console.log(this.hexInradius);
-
-            MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='orange_goalie' class="piece goalie fresh" style='left:${leftHexRect.left}px; top:${leftHexRect.top}px;'></div>`);
-            MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='blue_goalie' class="piece goalie fresh" style='left:${rightHexRect.left}px; top:${rightHexRect.top}px;'></div>`);
-            MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='ball' class="ball" style='left:${ballHexRect.left}px; top:${ballHexRect.top + this.hexInradius}px;'></div>`);
+            MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='ball' class="ball" style='left:${ballHexRect.left - 5}px; top:${ballHexRect.top + this.hexInradius * 0.9}px;'></div>`);
 
             this.initHexClickListener();
         },
@@ -223,61 +217,28 @@ function (dojo, declare, STUIConstants, STHexLib) {
             evt.preventDefault();
             evt.stopPropagation();
 
-            if (this.startHex == null || this.startHex != null && this.endHex != null)
+            document.querySelectorAll('.moveableRange').forEach(div=> div.classList.remove('moveableRange'));
+
+            if (this.doesHexHaveMovablePeice(evt.currentTarget.id))
             {
-                document.querySelectorAll('.lineStart').forEach(el=>el.classList.remove('lineStart'));
+                var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
+                let cubeCoord = STHexLib.oddqToCubic(offsetCoord);
 
-                var el = document.getElementById(evt.currentTarget.id)
-                el.classList.add('lineStart');
+                let neighbors = STHexLib.getNeighbours(cubeCoord, 2, this.getBoardOffsetExtent());
 
-                let offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
-                this.startHex = STHexLib.oddqToCartesian(offsetCoord, this.hexLogicalSize);
+                for (let i = 0; i < neighbors.length; i++) {
+                    let hexId = this.convertCubicCoordToHexId(neighbors[i]);
 
-                this.endHex = null;
-            }
-            else if (this.endHex == null)
-            {
-                document.querySelectorAll('.lineEnd').forEach(el=>el.classList.remove('lineEnd'));
+                    let hexEl = document.getElementById(hexId);
 
-                var el = document.getElementById(evt.currentTarget.id)
-                el.classList.add('lineEnd');
-
-                let offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
-                this.endHex = STHexLib.oddqToCartesian(offsetCoord, this.hexLogicalSize);
-            }
-
-            if (this.startHex == null || this.endHex == null)
-                return;
-
-            var hexesInPath = STHexLib.getHexsInPath(this.startHex, this.endHex, 1.4 * this.hexLogicalSize, this.allHexes);
-
-            document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
-
-            for (let i = 0; i < hexesInPath.length; ++i) 
-            {
-                let hexId = this.convertCubicCoordToHexId(hexesInPath[i].cubic)
-
-                let el = document.getElementById(hexId);
-
-                el.classList.add('inPath');
+                    hexEl.classList.add('moveableRange');
+                }
             }
         },
 
         onHexMouseEnter: function(evt)
         {
-            var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
-            let cubeCoord = STHexLib.oddqToCubic(offsetCoord);
-
-            let neighbors = STHexLib.getNeighbours(cubeCoord, 2, this.getBoardOffsetExtent());
-
-            for (let i = 0; i < neighbors.length; i++)
-            {
-                let hexId = this.convertCubicCoordToHexId(neighbors[i]);
-
-                let hexEl = document.getElementById(hexId);
-
-                hexEl.classList.add('nearPlayerInRange');
-            }
+            
         },
 
         onHexMouseLeave: function(evt)
@@ -330,6 +291,121 @@ function (dojo, declare, STUIConstants, STHexLib) {
             return this.allHexes[STUIConstants.EVEN_COLUMN_ROWS * evenColumnsCount + oddColumnsCount * STUIConstants.ODD_COLUMN_ROWS + offsetCoord.r];;
         },
 
+        getHexesWithPlayer: function(teamId)
+        {
+            //TODO: This will be filled by the server
+            //TODO: also this is not complete, since players might switch side, we should know what color and which side we are at.
+            let result = [];
+
+            if (teamId == 0)
+            {
+                result.push({ hex: this.LeftGoalKeeperHex, peice: this.createPlayerPeice(teamId, true, 0)});
+                result.push({ hex: this.LeftPlayerInitialHexes[3], peice: this.createPlayerPeice(teamId, true, 2)});
+                result.push({ hex: this.LeftPlayerInitialHexes[4], peice: this.createPlayerPeice(teamId, true, 3)});
+                result.push({ hex: this.LeftPlayerInitialHexes[5], peice: this.createPlayerPeice(teamId, true, 4)});
+                result.push({ hex: this.LeftPlayerInitialHexes[1], peice: this.createPlayerPeice(teamId, true, 5)});
+                result.push({ hex: this.CenterOfAreaHex, peice: this.createPlayerPeice(teamId, true, 1)});
+            }
+            else if (teamId == 1)
+            {
+                result.push({ hex: this.RightGoalKeeperHex, peice: this.createPlayerPeice(teamId, true, 0)});
+                result.push({ hex: this.RightPlayerInitialHexes[3], peice: this.createPlayerPeice(teamId, true, 2)});
+                result.push({ hex: this.RightPlayerInitialHexes[4], peice: this.createPlayerPeice(teamId, true, 3)});
+                result.push({ hex: this.RightPlayerInitialHexes[5], peice: this.createPlayerPeice(teamId, true, 1)});
+                result.push({ hex: this.RightPlayerInitialHexes[0], peice: this.createPlayerPeice(teamId, true, 4)});
+                result.push({ hex: this.RightPlayerInitialHexes[2], peice: this.createPlayerPeice(teamId, true, 5)});
+            }
+
+            return result;
+        },
+
+        getHexWithBall: function()
+        {
+            //TODO: This will be filled by the server
+            return this.CenterOfAreaHex;
+        },
+
+        placePlayers: function()
+        {
+            document.querySelectorAll('.hasPeice').forEach(el=>el.classList.remove('hasPeice'));
+
+            this.placeTeamPlayer(0);
+            this.placeTeamPlayer(1);
+        },
+
+        placeTeamPlayer: function(playerColorId)
+        {
+            const MAIN_BOARD_EL = document.getElementById('mainBoard');
+
+            let playerPeices = this.getHexesWithPlayer(playerColorId);
+
+            for (let i = 0; i < playerPeices.length; ++i) {
+                let hex = playerPeices[i].hex;
+
+                if (playerColorId === this.myTeam) 
+                {
+                    let hexId = this.convertOffsetCoordToHexId(hex);
+                    let hexEl = document.getElementById(hexId);
+                    hexEl.classList.add('hasPeice');
+                }
+                
+                let hexCoordinate = this.getHexPixelCoordinate(hex);
+                let peice = playerPeices[i].peice;
+                let color = peice.colorId == 0 ? 'orange' : 'blue';
+                let status = peice.isFresh ? 'fresh' : 'exhuasted';
+                let type = peice.isCaptain() ? 'captain' : (peice.isGoalie() ? 'goalie' : 'normal');
+
+                MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='${color}_${playerPeices[i].peiceId}' class="piece ${status} ${type} ${color}" style='left:${hexCoordinate.left}px; top:${hexCoordinate.top}px;'>${type[0]}_${status[0]}</div>`);
+            }
+        },
+
+        doesHexHaveMovablePeice: function(hexId)
+        {
+            let result = false;
+
+            let hexCoord = this.convertHexIdToOffsetCoord(hexId);
+            let myTeamPeices = this.getHexesWithPlayer(this.myTeam);
+
+            for (let i = 0; i < myTeamPeices.length; ++i) 
+            {
+                if (myTeamPeices[i].hex.equals(hexCoord)) 
+                {
+                    let peice = myTeamPeices[i].peice;
+                    if (!peice.isGoalie()) 
+                    {
+                        result = true;
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        },
+
+        createPlayerPeice: function(playerColorId, isFresh, pieceId)
+        {
+            return {
+                colorId: playerColorId,
+                isFresh: isFresh,
+                id : pieceId,
+
+                isGoalie: function()
+                {
+                    return this.id == 0;
+                },
+
+                isCaptain: function()
+                {
+                    return this.id == 1;
+                }
+            }
+        },
+
+        assert: function (condition, message = "Assertion failed") {
+            if (!condition) {
+                throw new Error(message);
+            }
+        },
         ///////////////////////////////////////////////////
         //// Player's action
         
@@ -446,6 +522,8 @@ function (dojo, declare, STUIConstants, STHexLib) {
         TOP_MARGIN_ODD: 0,
 
         HEX_HORIZONTAL_SPACE: 0,
+
+        myTeam: 0, // 0 for orange team, 1 for blue team
 
         //----------------------- general variables
 
