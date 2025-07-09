@@ -219,7 +219,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
             document.querySelectorAll('.moveableRange').forEach(div=> div.classList.remove('moveableRange'));
 
-            if (this.doesHexHaveMovablePeice(evt.currentTarget.id))
+            if (this.doesHexHasMovablePeice(evt.currentTarget.id))
             {
                 var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
                 let cubeCoord = STHexLib.oddqToCubic(offsetCoord);
@@ -227,11 +227,14 @@ function (dojo, declare, STUIConstants, STHexLib) {
                 let neighbors = STHexLib.getNeighbours(cubeCoord, 2, this.getBoardOffsetExtent());
 
                 for (let i = 0; i < neighbors.length; i++) {
+
                     let hexId = this.convertCubicCoordToHexId(neighbors[i]);
+                    if (!this.doesHexHasBlockingPeice(hexId))
+                    {
+                        let hexEl = document.getElementById(hexId);
 
-                    let hexEl = document.getElementById(hexId);
-
-                    hexEl.classList.add('moveableRange');
+                        hexEl.classList.add('moveableRange');
+                    }
                 }
             }
         },
@@ -359,7 +362,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
             }
         },
 
-        doesHexHaveMovablePeice: function(hexId)
+        doesHexHasMovablePeice: function(hexId)
         {
             let result = false;
 
@@ -376,6 +379,28 @@ function (dojo, declare, STUIConstants, STHexLib) {
                         result = true;
                         break;
                     }
+                }
+            }
+
+            return result;
+        },
+
+        doesHexHasBlockingPeice: function(hexId)
+        {
+            let result = false;
+
+            let hexCoord = this.convertHexIdToOffsetCoord(hexId);
+            let myTeamPeices = this.getHexesWithPlayer(this.myTeam);
+            let otherTeamPeices = this.getHexesWithPlayer(this.myTeam == 0 ? 1 : 0);
+
+            let allPeices = myTeamPeices.concat(otherTeamPeices);
+
+            for (let i = 0; i < allPeices.length; ++i) 
+            {
+                if (allPeices[i].hex.equals(hexCoord)) 
+                {
+                    result = true;
+                    break;
                 }
             }
 
