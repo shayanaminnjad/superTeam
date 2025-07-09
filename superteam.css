@@ -17,7 +17,8 @@
 :root {
     --main-bg-ratio-x: 5;
     --main-bg-ratio-y: 4;
-    --main-bg-scale: 148px; /*260px for the original size, however board game arena doesn't encourage size above 740px*/
+    --main-bg-scale: 148px;
+    /*260px for the original size, however board game arena doesn't encourage size above 740px*/
 }
 
 #mainBoard {
@@ -30,118 +31,159 @@
 }
 
 .hex {
-    font-size: xx-small; 
+    font-size: xx-small;
     text-align: center;
     color: black;
     overflow: visible;
     white-space: pre-wrap;
     position: absolute;
-    clip-path: polygon(
-    23% 0%, 76% 0%, 100% 50%, 
-    76% 100%, 23% 100%, 0% 50%);
+    clip-path: polygon(23% 0%, 76% 0%, 100% 50%,
+            76% 100%, 23% 100%, 0% 50%);
 }
 
 .piece.normal.blue.fresh {
-    width: 25px;
-    height: 31px;
+    width: 26px;
+    height: 26px;
     position: absolute;
-    background-image: url('img/peices.jpg');
-    background-size: auto 100%;
+    background-color: rgb(0, 204, 255);
+    border-color: white;
+    border-width: 2px;
+    border-style: solid;
+    pointer-events: none;
 }
 
 .piece.normal.blue.exhausted {
-    
+    width: 26px;
+    height: 26px;
+    position: absolute;
+    background-color: rgb(0, 204, 255);
+    border-color: white;
+    border-width: 2px;
+    border-style: solid;
+    pointer-events: none;
 }
 
 .piece.captain.blue.fresh {
-
+    width: 26px;
+    height: 26px;
+    position: absolute;
+    background-color: rgb(0, 204, 255);
+    border-color: white;
+    border-width: 2px;
+    border-style: solid;
+    pointer-events: none;
 }
 
 .piece.captain.blue.exhausted {
-
+    width: 26px;
+    height: 26px;
+    position: absolute;
+    background-color: rgb(0, 204, 255);
+    border-color: white;
+    border-width: 2px;
+    border-style: solid;
+    pointer-events: none;
 }
 
-.piece.normal.orange.fresh{
+.piece.normal.orange.fresh {
     width: 26px;
-    height: 37px;
+    height: 26px;
     position: absolute;
-    background-image: url('img/peices.png');
+    background-color: orangered;
+    border-color: white;
+    border-width: 2px;
+    border-style: solid;
+    pointer-events: none;
+        /*background-image: url('img/peices.png');
     background-size: auto 100%;
-    background-position: 8%;
+    background-position: 8%;*/
 }
 
 .piece.normal.orange.exhausted {
     width: 26px;
-    height: 37px;
+    height: 26px;
     position: absolute;
-    background-image: url('img/peices.png');
+    background-color: orangered;
+    border-color: white;
+    border-width: 2px;
+    border-style: solid;
+    pointer-events: none;
+    /*background-image: url('img/peices.png');
     background-size: auto 100%;
-    background-position: 16%;
+    background-position: 16%;*/
 }
 
 .piece.captain.orange.fresh {
     width: 26px;
-    height: 37px;
+    height: 26px;
     position: absolute;
-    background-image: url('img/peices.png');
+    background-color: orangered;
+    border-color: white;
+    border-width: 2px;
+    border-style: solid;
+    pointer-events: none;
+        /*background-image: url('img/peices.png');
     background-size: auto 100%;
-    background-position: 24%;
+    background-position: 24%;*/
 }
 
 .piece.captain.orange.exhausted {
-    width: 31px;
-    height: 37px;
-    position: absolute;
-    background-image: url('img/peices.png');
-    background-size: auto 100%;
-    background-position: 37%;
-}
-
-.piece.goalie{
     width: 26px;
-    height: 37px;
+    height: 26px;
     position: absolute;
-    background-image: url('img/peices.png');
-    background-repeat: no-repeat;
-    background-position: 0 -6px;
+    background-color: orangered;
+    border-color: white;
+    pointer-events: none;
+    /*background-image: url('img/peices.png');
+    background-size: auto 100%;
+    background-position: 37%;*/
 }
 
-.ball{
+.piece.goalie {
+    width: 26px;
+    height: 26px;
+    position: absolute;
+    background-color: black;
+    border-color: white;
+    border-width: 2px;
+    border-style: solid;
+    color: red;
+    pointer-events: none;
+}
+
+.ball {
     width: 18px;
     height: 18px;
     position: absolute;
     background-image: url('img/peices.png');
     background-repeat: no-repeat;
     background-position: 100% -19px;
+    pointer-events: none;
 }
 
-/*TODO: This one contradicts with the ones below, maybe I should have more than one clip path?*/
-.hex:hover{
-background-color: white;
+.hex.hasPeice:hover {
+    background-color: white;
     opacity: 0.4;
+    cursor: pointer;
 }
 
 .freeInRange {
     background-color: white;
 }
 
-.nearPlayerInRange{
+.moveableRange {
     background-color: red;
+    opacity: 0.4;
 }
 
-.inPath{
+.inPath {
     background-color: chocolate;
 }
 
-.lineStart{
+.lineStart {
     background-color: aquamarine;
 }
 
-.lineEnd{
+.lineEnd {
     background-color: chartreuse;
 }
-
-
-
-
-
