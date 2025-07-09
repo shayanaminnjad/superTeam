@@ -189,7 +189,7 @@ define([
             //------------------------------------------------------------------------------------
 
             isInsideExtent: function (offsetHex, offsetHexExtent) {
-                let isEvenColumn = offsetHex.c & 1 === 0;
+                let isEvenColumn = (offsetHex.c & 1) === 0;
 
                 return offsetHex.c <= offsetHexExtent.cMax && offsetHex.c >= offsetHexExtent.cMin &&
                     offsetHex.r <= (isEvenColumn ? offsetHexExtent.rEvenMax : offsetHexExtent.rOddMax) &&
