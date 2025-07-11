@@ -124,7 +124,7 @@ define([
 
                         let distance = STMathLib.pointFromLineDistance(hexArray[i].cartesian, startPoint, lineDir);
 
-                        if (distance < pathDistExtent) {
+                            if (distance < pathDistExtent) {
                             result.push(hexArray[i]);
                         }
                     }

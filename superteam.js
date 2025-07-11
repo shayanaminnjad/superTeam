@@ -407,21 +407,28 @@ function (dojo, declare, STUIConstants, STHexLib) {
             return result;
         },
 
-        createPlayerPeice: function(playerColorId, isFresh, pieceId)
+        createPlayerPeice: function(playerColorId, isFresh, pieceId, pieceRole)
         {
             return {
                 colorId: playerColorId,
                 isFresh: isFresh,
                 id : pieceId,
+                role: pieceRole,
+
+                playerRoles: {
+                    Goalie: 0,
+                    Captain: 1,
+                    Regular: 2
+                },
 
                 isGoalie: function()
                 {
-                    return this.id == 0;
+                    return this.role === this.playerRoles.Goalie;
                 },
 
                 isCaptain: function()
                 {
-                    return this.id == 1;
+                    return this.role === this.playerRoles.Captain;
                 }
             }
         },
