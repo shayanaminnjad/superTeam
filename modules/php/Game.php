@@ -20,9 +20,58 @@ namespace Bga\Games\SuperTeam;
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
+
+enum PlayerRole: int
+{
+    case None = 0;
+    case GoalKeeper = 1;
+    case Captain = 2;
+    case Regular = 3;
+}
+
+enum PlayerSide : int
+{
+    case None = 0;
+    case Left = 1;
+    case Right = 2;
+}
+
+class HexID
+{
+    private int $column;
+    private int $row;
+
+    public function __construct(int $column, int $row)
+    {
+        $this->column = $column;
+        $this->row = $row;
+    }
+
+    public function getRow() : int
+    {
+        return $this->row;
+    }
+
+    public function getColumn(): int
+    {
+        return $this->column;
+    }
+}
+
 class Game extends \Table
 {
     private static array $CARD_TYPES;
+
+    //(sha) THESE are board specific logic and should be inside their own class.
+    private readonly HexID $BALL_STARTING_POSITION;
+    private readonly array $LEFT_PLAYER_STARTING_POSITIONS;
+    private readonly HEXID $LEFT_PLAYER_GOALIE_POSITION;
+    private readonly array $RIGHT_PLAYER_STARTING_POSITIONS;
+    private readonly HEXID $RIGHT_PLAYER_GOALIE_POSITION;
+
+    private readonly int $BOARD_COLUMNS;
+    private readonly int $BOARD_EVEN_COLS_ROWS;
+    private readonly int $BOARD_ODD_COLS_ROWS;
 
     /**
      * Your global variables labels:
@@ -54,6 +103,16 @@ class Game extends \Table
             ],
             // ...
         ];
+
+        $this->BALL_STARTING_POSITION = new HexID(8, 5);
+        $this->LEFT_PLAYER_STARTING_POSITIONS = [new HexID(4, 3), new HexID(4, 5), new HexID(4, 7), new HexID(6, 2), new HexID(6, 5), new HexID(6, 8)];
+        $this->LEFT_PLAYER_GOALIE_POSITION = new HexID(0, 5);
+        $this->RIGHT_PLAYER_STARTING_POSITIONS = [new HexID(12, 3), new HexID(12, 5), new HexID(12, 7), new HexID(10, 2), new HexID(10, 5), new HexID(10, 8)];
+        $this->RIGHT_PLAYER_GOALIE_POSITION = new HexID(5, 16);
+
+        $this->BOARD_COLUMNS = 17;
+        $this->BOARD_EVEN_COLS_ROWS = 11;
+        $this->BOARD_ODD_COLS_ROWS = 10;
 
         /* example of notification decorator.
         // automatically complete notification args when needed
@@ -226,7 +285,7 @@ class Game extends \Table
             "SELECT `player_id` `id`, `player_score` `score` FROM `player`"
         );
 
-        // TODO: Gather all information about current game situation (visible by player $current_player_id).
+        $result["board"] = $this->getObjectListFromDB("SELECT `hex_column`, `hex_row`, `team_id`, `player_id`, `has_ball` FROM `board` WHERE `player_id` IS NOT NULL OR `has_ball` IS TRUE ");
 
         return $result;
     }
@@ -249,8 +308,7 @@ class Game extends \Table
     {
         // Set the colors of the players with HTML color code. The default below is red/green/blue/orange/brown. The
         // number of colors defined here must correspond to the maximum number of players allowed for the gams.
-        $gameinfos = $this->getGameinfos();
-        $default_colors = $gameinfos['player_colors'];
+        $default_colors = ['FC5414', '00A3E5'];
 
         foreach ($players as $player_id => $player) {
             // Now you can access both $player_id and $player array
@@ -274,22 +332,19 @@ class Game extends \Table
             )
         );
 
-        $this->reattributeColorsBasedOnPreferences($players, $gameinfos["player_colors"]);
         $this->reloadPlayersBasicInfos();
-
-        // Init global values with their initial values.
-        
-        $this->InitBoard();
 
         // Init game statistics.
         //
         // NOTE: statistics used in this file must be defined in your `stats.inc.php` file.
-
+        
         // Dummy content.
         // $this->initStat("table", "table_teststat1", 0);
         // $this->initStat("player", "player_teststat1", 0);
+        
+        $this->initGameState($players);
 
-        // TODO: Setup the initial game situation here.
+        //$this->initBoard($players);
 
         // Activate first player once everything has been initialized and ready.
         $this->activeNextPlayer();
@@ -336,84 +391,42 @@ class Game extends \Table
         throw new \feException("Zombie mode not supported at this game state: \"{$state_name}\".");
     }
 
-    private function InitBoard():void
+    private function initGameState(array $players): void
     {
-        //TODO: map initial player_ids to colors of teams;
+        list ($orangePlayer, $bluePlayer) = array_keys($players);
 
-        //TODO: this must be constant probably a global variable)
-        $PLAYER_ID_TO_ROLE = [
-            1 => 'GK',
-            2 => 'CPT',
-            3 => 'N',
-            4 => 'N',
-            5 => 'N',
-            6 => 'N',
+        $stateInitQuery = "INSERT INTO game_state (game_half, user_in_left_id, user_in_right_id) VALUES (1, $orangePlayer, $bluePlayer)";
 
-            101 => 'GK',
-            102 => 'CPT',
-            103 => 'N',
-            104 => 'N',
-            105 => 'N',
-            106 => 'N'
-        ];
+        $this->DbQuery($stateInitQuery);
+    }
 
-        //TODO: Calculate this from the first one!
-        $PLAYER_ROLE_TO_ID = 
-        [
-            'orangeTeam' => 
-            [
-                'GK' => 1,
-                'CPT'=> 2,
-                'N1' => 3,
-                'N2' => 4,
-                'N3' => 5,
-                'N4' => 6
-            ],
-            'blueTeam' =>
-            [
-                'GK' => 101,
-                'CPT'=> 102,
-                'N1' => 103,
-                'N2' => 104,
-                'N3' => 105,
-                'N4' => 106
-            ]
-        ];
-        
-
-
-        $sqlQuery = "INSERT INTO board (hex_x, hex_y, player_id, has_ball) VALUES ";
+    private function initBoard(array $players):void
+    {
+        $sqlQuery = "INSERT INTO board (hex_column, hex_row, team_id, player_id, has_ball) VALUES ";
         $sqlValues = [];
 
-        $BOARD_COLUMNS = 17;
-        $BOARD_EVEN_COLS_ROWS = 10;
-        $BOARD_ODD_COLS_ROWS = 11;
-
-        $BALL_STARTING_POSITION = [8, 5]; 
-        $FIRST_PLAYER_STARTING_POSITIONS = [[4, 3], [4, 5], [4, 7], [6, 2], [6, 5],[6, 8]];
-        $FIRST_PLAYER_GOALE_POSITION = [0, 5];
-        $SECOND_PLAYER_STARTING_POSITIONS = [[12, 3], [12, 5], [12, 7], [10, 2], [10, 5],[10, 8]];
-        $SECOND_PLAYER_GOALE_POSITION = [16, 5];
-
-        for ($i = 0; $i < $BOARD_COLUMNS; $i++)
+        list ($orangePlayer, $bluePlayer) = array_keys($players);
+        
+        /*
+        for ($i = 0; $i < $this->BOARD_COLUMNS; $i++)
         {
-            $rows = ($i + 1) % 2 == 0 ? $BOARD_ODD_COLS_ROWS : $BOARD_EVEN_COLS_ROWS;
+            $rows = ($i + 1) % 2 == 0 ? $this->BOARD_ODD_COLS_ROWS : $this->BOARD_EVEN_COLS_ROWS;
 
             for ($j = 0; $j < $rows; $j++)
             {
                 $hasBall = 'FALSE';
                 $playerId = null;
 
-                if ($i == $BALL_STARTING_POSITION[0] && $j == $BALL_STARTING_POSITION[1])
+                if ($i == $this->BALL_STARTING_POSITION->getColumn() && $j == $this->BALL_STARTING_POSITION->getRow())
                 {
                     $hasBall = 'TRUE';
                 }
 
-                if ($i == $FIRST_PLAYER_GOALE_POSITION[0] && $j == $FIRST_PLAYER_GOALE_POSITION[1])
+                if ($i == $this->LEFT_PLAYER_GOALIE_POSITION->getColumn() && $j == $this->LEFT_PLAYER_GOALIE_POSITION->getRow())
                 {
                     $playerId = $PLAYER_ROLE_TO_ID['orangeTeam']['GK'];
                 }
-                else if ($i == $SECOND_PLAYER_GOALE_POSITION[0] && $j == $SECOND_PLAYER_GOALE_POSITION[1])
+                else if ($i == $this->RIGHT_PLAYER_GOALIE_POSITION->getColumn() && $j == $this->RIGHT_PLAYER_GOALIE_POSITION->getRow())
                 {
                     $playerId = $PLAYER_ROLE_TO_ID['blueTeam']['GK'];
                 }
@@ -423,7 +436,7 @@ class Game extends \Table
                 $playerIdSQL = ($playerId === null) ? 'NULL' : "'$playerId'";
                 $sqlValues[] = "('$i', '$j', $playerIdSQL, $hasBall)";
             }
-        }
+        }*/
 
         $sqlQuery .= implode(',', $sqlValues);
 
