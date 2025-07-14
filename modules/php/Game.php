@@ -107,7 +107,7 @@ class Game extends \Table
         $this->LEFT_PLAYER_STARTING_POSITIONS = [new HexID(4, 3), new HexID(4, 5), new HexID(4, 7), new HexID(6, 2), new HexID(6, 5), new HexID(6, 8)];
         $this->LEFT_PLAYER_GOALIE_POSITION = new HexID(0, 5);
         $this->RIGHT_PLAYER_STARTING_POSITIONS = [new HexID(12, 3), new HexID(12, 5), new HexID(12, 7), new HexID(10, 2), new HexID(10, 5), new HexID(10, 8)];
-        $this->RIGHT_PLAYER_GOALIE_POSITION = new HexID(5, 16);
+        $this->RIGHT_PLAYER_GOALIE_POSITION = new HexID(16, 5);
 
         $this->BOARD_COLUMNS = 17;
         $this->BOARD_EVEN_COLS_ROWS = 11;
@@ -139,8 +139,9 @@ class Game extends \Table
      */
     public function actPlayCard(int $card_id): void
     {
+        /*
         // Retrieve the active player ID.
-        $player_id = (int)$this->getActivePlayerId();
+        //$player_id = (int)$this->getActivePlayerId();
 
         // check input values
         $args = $this->argPlayerTurn();
@@ -162,7 +163,7 @@ class Game extends \Table
         ]);
 
         // at the end of the action, move to the next state
-        $this->gamestate->nextState("playCard");
+        $this->gamestate->nextState("playCard");*/
     }
 
     public function actPass(): void
@@ -180,20 +181,35 @@ class Game extends \Table
         $this->gamestate->nextState("pass");
     }
 
-    /**
-     * Game state arguments, example content.
-     *
-     * This method returns some additional information that is very specific to the `playerTurn` game state.
-     *
-     * @return array
-     * @see ./states.inc.php
-     */
-    public function argPlayerTurn(): array
+    public function argPlayerPieceSetup(): array
     {
-        // Get some values from the current game situation from the database.
+        $board = $this->getBoard();
+        $playerSide = $this->getPlayerSide(strval($this->getActivePlayerId()));
+
+        $playerStartingPositions = $playerSide === PlayerSide::Left ? $this->LEFT_PLAYER_STARTING_POSITIONS : $this->RIGHT_PLAYER_STARTING_POSITIONS;
+
+        
+        $possibleLocations = [];
+        for($i = 0; $i < count($playerStartingPositions); $i++)
+        {
+            $hexData = $board[$playerStartingPositions[$i]->getColumn()][$playerStartingPositions[$i]->getRow()];
+
+            if ($hexData['team_id'] === null && $hexData['player_role'] === null)
+            {
+                $possibleLocations[] = [$playerStartingPositions[$i]->getColumn(), $playerStartingPositions[$i]->getRow()];
+            }
+        }
+        
+        $peiceToPlaceId = PlayerRole::Captain->value;
+
+        if (count($possibleLocations) < 6)
+        {
+            $peiceToPlaceId = PlayerRole::Regular->value;
+        }
 
         return [
-            "playableCardsIds" => [1, 2],
+            "availableStartingPositions" => $possibleLocations,
+            "peiceToPlace"=> $peiceToPlaceId,
         ];
     }
 
@@ -284,7 +300,7 @@ class Game extends \Table
             "SELECT `player_id` `id`, `player_score` `score` FROM `player`"
         );
 
-        $result["board"] = $this->getObjectListFromDB("SELECT `hex_column`, `hex_row`, `team_id`, `player_id`, `has_ball` FROM `board` WHERE `player_id` IS NOT NULL OR `has_ball` IS TRUE ");
+        $result["board"] = $this->getObjectListFromDB("SELECT `hex_column`, `hex_row`, `team_id`, `player_role`, `has_ball` FROM `board` WHERE `player_role` IS NOT NULL OR `has_ball` IS TRUE ");
 
         return $result;
     }
@@ -399,7 +415,7 @@ class Game extends \Table
 
     private function initBoard(array $players):void
     {
-        $sqlQuery = "INSERT INTO board (hex_column, hex_row, team_id, player_id, has_ball) VALUES ";
+        $sqlQuery = "INSERT INTO board (hex_column, hex_row, team_id, player_role, has_ball) VALUES ";
         $sqlValues = [];
 
         list ($orangePlayer, $bluePlayer) = array_keys($players);
@@ -425,13 +441,13 @@ class Game extends \Table
                 {
                     $playerRole = strval(PlayerRole::GoalKeeper->value);
 
-                    $teamId = strval($orangePlayerSide === PlayerSide::Left ? $orangePlayer : $bluePlayer);
+                    $teamId = $orangePlayerSide === PlayerSide::Left ? "'$orangePlayer'" : "'$bluePlayer'";
                 }
                 else if ($i == $this->RIGHT_PLAYER_GOALIE_POSITION->getColumn() && $j == $this->RIGHT_PLAYER_GOALIE_POSITION->getRow())
                 {
                     $playerRole = strval(PlayerRole::GoalKeeper->value);
 
-                    $teamId = strval($orangePlayerSide === PlayerSide::Right ? $orangePlayer : $bluePlayer);
+                    $teamId = $orangePlayerSide === PlayerSide::Right ? "'$orangePlayer'" : "'$bluePlayer'";
                 }
 
                 $sqlValues[] = "('$i', '$j', $teamId, $playerRole, $hasBall)";
@@ -457,5 +473,10 @@ class Game extends \Table
 
             return PlayerSide::Right;
         }
+    }
+
+    private function getBoard(): array
+    {
+        return $this->getDoubleKeyCollectionFromDB("SELECT `hex_column`, `hex_row`, `team_id`, `player_role`, `has_ball` FROM `board`", false);
     }
 }

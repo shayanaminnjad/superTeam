@@ -21,8 +21,8 @@
 CREATE TABLE IF NOT EXISTS `board` (
     `hex_column` SMALLINT unsigned NOT NULL,
     `hex_row` SMALLINT unsigned NOT NULL,
-    `team_id` SMALLINT unsigned DEFAULT NULL,
-    `player_id` SMALLINT unsigned DEFAULT NULL,
+    `team_id` int(10) unsigned DEFAULT NULL,
+    `player_role` SMALLINT unsigned DEFAULT NULL,
     `has_ball` BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (`hex_column`, `hex_row`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
