@@ -88,10 +88,9 @@ class Game extends \Table
         parent::__construct();
 
         $this->initGameStateLabels([
-            "my_first_global_variable" => 10,
-            "my_second_global_variable" => 11,
-            "my_first_game_variant" => 100,
-            "my_second_game_variant" => 101,
+            "game_half" => 10,
+            "user_in_left_id" => 11,
+            "user_in_right_id" => 12,
         ]);        
 
         self::$CARD_TYPES = [
@@ -306,8 +305,6 @@ class Game extends \Table
      */
     protected function setupNewGame($players, $options = [])
     {
-        // Set the colors of the players with HTML color code. The default below is red/green/blue/orange/brown. The
-        // number of colors defined here must correspond to the maximum number of players allowed for the gams.
         $default_colors = ['FC5414', '00A3E5'];
 
         foreach ($players as $player_id => $player) {
@@ -344,7 +341,7 @@ class Game extends \Table
         
         $this->initGameState($players);
 
-        //$this->initBoard($players);
+        $this->initBoard($players);
 
         // Activate first player once everything has been initialized and ready.
         $this->activeNextPlayer();
@@ -395,9 +392,9 @@ class Game extends \Table
     {
         list ($orangePlayer, $bluePlayer) = array_keys($players);
 
-        $stateInitQuery = "INSERT INTO game_state (game_half, user_in_left_id, user_in_right_id) VALUES (1, $orangePlayer, $bluePlayer)";
-
-        $this->DbQuery($stateInitQuery);
+        $this->setGameStateInitialValue('game_half', 1);
+        $this->setGameStateInitialValue('user_in_left_id', $orangePlayer);
+        $this->setGameStateInitialValue('user_in_right_id', $bluePlayer);
     }
 
     private function initBoard(array $players):void
@@ -406,8 +403,9 @@ class Game extends \Table
         $sqlValues = [];
 
         list ($orangePlayer, $bluePlayer) = array_keys($players);
+
+        $orangePlayerSide = $this->getPlayerSide(strval($orangePlayer));
         
-        /*
         for ($i = 0; $i < $this->BOARD_COLUMNS; $i++)
         {
             $rows = ($i + 1) % 2 == 0 ? $this->BOARD_ODD_COLS_ROWS : $this->BOARD_EVEN_COLS_ROWS;
@@ -415,7 +413,8 @@ class Game extends \Table
             for ($j = 0; $j < $rows; $j++)
             {
                 $hasBall = 'FALSE';
-                $playerId = null;
+                $teamId = 'NULL';
+                $playerRole = 'NULL';
 
                 if ($i == $this->BALL_STARTING_POSITION->getColumn() && $j == $this->BALL_STARTING_POSITION->getRow())
                 {
@@ -424,22 +423,39 @@ class Game extends \Table
 
                 if ($i == $this->LEFT_PLAYER_GOALIE_POSITION->getColumn() && $j == $this->LEFT_PLAYER_GOALIE_POSITION->getRow())
                 {
-                    $playerId = $PLAYER_ROLE_TO_ID['orangeTeam']['GK'];
+                    $playerRole = strval(PlayerRole::GoalKeeper->value);
+
+                    $teamId = strval($orangePlayerSide === PlayerSide::Left ? $orangePlayer : $bluePlayer);
                 }
                 else if ($i == $this->RIGHT_PLAYER_GOALIE_POSITION->getColumn() && $j == $this->RIGHT_PLAYER_GOALIE_POSITION->getRow())
                 {
-                    $playerId = $PLAYER_ROLE_TO_ID['blueTeam']['GK'];
+                    $playerRole = strval(PlayerRole::GoalKeeper->value);
+
+                    $teamId = strval($orangePlayerSide === PlayerSide::Right ? $orangePlayer : $bluePlayer);
                 }
 
-                //HERE!
-                //This is for test, player must place his pieces himself, except the player in the middle for the beggining player.
-                $playerIdSQL = ($playerId === null) ? 'NULL' : "'$playerId'";
-                $sqlValues[] = "('$i', '$j', $playerIdSQL, $hasBall)";
+                $sqlValues[] = "('$i', '$j', $teamId, $playerRole, $hasBall)";
             }
-        }*/
+        }
 
         $sqlQuery .= implode(',', $sqlValues);
 
-        $this->DbQuery( $sqlQuery);
+        $this->DbQuery($sqlQuery);
+    }
+
+    private function getPlayerSide(string $userId) : PlayerSide
+    {
+        $userInLeftID = $this->getGameStateValue('user_in_left_id');
+
+        if ($userInLeftID === $userId) 
+        {
+            return PlayerSide::Left;
+        } 
+        else 
+        {
+            assert($this->getGameStateValue('user_in_right_id') === $userId, 'Player side not found! A player must always have a side!');
+
+            return PlayerSide::Right;
+        }
     }
 }

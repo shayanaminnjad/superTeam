@@ -27,12 +27,6 @@ CREATE TABLE IF NOT EXISTS `board` (
     PRIMARY KEY (`hex_column`, `hex_row`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `game_state` (
-    `game_half` SMALLINT unsigned DEFAULT 1,
-    `user_in_left_id` int(10) unsigned DEFAULT NULL,
-    `user_in_right_id` int(10) unsigned DEFAULT NULL
-)ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 -- Example 2: add a custom field to the standard "player" table
 -- ALTER TABLE `player` ADD `player_my_custom_field` INT UNSIGNED NOT NULL DEFAULT '0';
 
