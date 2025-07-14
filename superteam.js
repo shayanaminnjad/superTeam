@@ -305,8 +305,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
                 }
                 else if (el.team_id !== null)
                 {
-                    console.log(el.player_role);
-                    this.peices.push(this.createPlayerPeice(el.team_id, 0, offsetCoord, 1, el.player_role));
+                    this.peices.push(this.createPlayerPeice(el.team_id, 0, offsetCoord, 1, parseInt(el.player_role)));
                 }
                 else
                 {
