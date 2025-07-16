@@ -31,9 +31,7 @@ CREATE TABLE IF NOT EXISTS `board` (
     `hex_row` SMALLINT unsigned NOT NULL,
     `piece_id` INTEGER DEFAULT NULL,
     `has_ball` BOOLEAN DEFAULT FALSE,
-    PRIMARY KEY (`hex_column`, `hex_row`),
-    FOREIGN KEY (`piece_id`)
-        REFERENCES `player_pieces`(`id`)
+    PRIMARY KEY (`hex_column`, `hex_row`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
