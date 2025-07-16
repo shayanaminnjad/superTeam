@@ -18,14 +18,24 @@
 -- Note: The database schema is created from this file when the game starts. If you modify this file,
 --       you have to restart a game to see your changes in database.
 
+
+CREATE TABLE IF NOT EXISTS `player_pieces` (
+    `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+    `owner_id` int (10) unsigned NOT NULL,
+    `piece_role` SMALLINT unsigned NOT NULL,
+    `is_fresh` BOOLEAN DEFAULT TRUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 CREATE TABLE IF NOT EXISTS `board` (
     `hex_column` SMALLINT unsigned NOT NULL,
     `hex_row` SMALLINT unsigned NOT NULL,
-    `team_id` int(10) unsigned DEFAULT NULL,
-    `player_role` SMALLINT unsigned DEFAULT NULL,
+    `piece_id` INTEGER DEFAULT NULL,
     `has_ball` BOOLEAN DEFAULT FALSE,
-    PRIMARY KEY (`hex_column`, `hex_row`)
+    PRIMARY KEY (`hex_column`, `hex_row`),
+    FOREIGN KEY (`piece_id`)
+        REFERENCES `player_pieces`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 -- Example 2: add a custom field to the standard "player" table
 -- ALTER TABLE `player` ADD `player_my_custom_field` INT UNSIGNED NOT NULL DEFAULT '0';
