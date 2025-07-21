@@ -188,7 +188,6 @@ class Game extends \Table
 
         $playerStartingPositions = $playerSide === PlayerSide::Left ? $this->LEFT_PLAYER_STARTING_POSITIONS : $this->RIGHT_PLAYER_STARTING_POSITIONS;
 
-        
         $possibleLocations = [];
         for($i = 0; $i < count($playerStartingPositions); $i++)
         {
@@ -300,7 +299,7 @@ class Game extends \Table
             "SELECT `player_id` `id`, `player_score` `score` FROM `player`"
         );
 
-        $result["board"] = $this->getObjectListFromDB("SELECT `hex_column`, `hex_row`, `piece_id`, `has_ball` FROM `board` WHERE `piece_id` != 0 OR `has_ball` IS TRUE ");
+        $result["board"] = $this->getObjectListFromDB("SELECT `hex_column`, `hex_row`, `piece_id`, `has_ball` FROM `board` WHERE `piece_id` IS NOT NULL OR `has_ball` IS TRUE ");
         $result["player_pieces"] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
 
         return $result;
@@ -428,12 +427,12 @@ class Game extends \Table
     {
         $sqlQuery = "INSERT INTO player_pieces (owner_id, piece_role, is_fresh) VALUES ";
 
-        $sqlValues[] = "('$playerId','" . PlayerRole::GoalKeeper->value . "', 'TRUE')";
-        $sqlValues[] = "('$playerId','" . PlayerRole::Captain->value . "', 'TRUE')";
+        $sqlValues[] = "($playerId," . PlayerRole::GoalKeeper->value . ", 1)";
+        $sqlValues[] = "($playerId," . PlayerRole::Captain->value . ", 1)";
 
         for ($i = 3; $i <= 6; $i++) 
     {
-            $sqlValues[] = "('$playerId', '" . PlayerRole::Regular->value . "', 'TRUE')";
+            $sqlValues[] = "($playerId, " . PlayerRole::Regular->value . ", 1)";
         }
 
         $sqlQuery .= implode(',', $sqlValues);
@@ -456,12 +455,12 @@ class Game extends \Table
 
             for ($j = 0; $j < $rows; $j++)
             {
-                $hasBall = 'FALSE';
+                $hasBall = 0;
                 $pieceId = 'NULL';
 
                 if ($i == $this->BALL_STARTING_POSITION->getColumn() && $j == $this->BALL_STARTING_POSITION->getRow())
                 {
-                    $hasBall = 'TRUE';
+                    $hasBall = 1;
                 }
 
                 if ($i == $this->LEFT_PLAYER_GOALIE_POSITION->getColumn() && $j == $this->LEFT_PLAYER_GOALIE_POSITION->getRow())
@@ -477,7 +476,9 @@ class Game extends \Table
                     $pieceId = $this->getPlayerId($teamId, PlayerRole::GoalKeeper);
                 }
 
-                $sqlValues[] = "('$i', '$j', '$pieceId', $hasBall)";
+                 $pieceIdValue = ($pieceId === 'NULL') ? "NULL" : intval($pieceId);
+
+                $sqlValues[] = "($i, $j, $pieceIdValue, $hasBall)";
             }
         }
 

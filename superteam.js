@@ -91,7 +91,6 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
         // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
         //                        action status bar (ie: the HTML links in the status bar).
-        //        
         onUpdateActionButtons: function( stateName, args )
         {
             console.log( 'onUpdateActionButtons: '+stateName, args );
@@ -110,6 +109,8 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
                     this.statusBar.addActionButton(_('Pass'), () => this.bgaPerformAction("actPass"), { color: 'secondary' }); 
                     break;
+                    case 'playerPeiceSetup':
+                        this.statusBar.addActionButton(_('Confirm placement'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
                 }
             }
         },        
@@ -473,6 +474,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
         //// state response function
         OnPlayerPieceSetup: function(args) 
         {
+            console.log(args);
         },
 
         ///////////////////////////////////////////////////
