@@ -55,8 +55,8 @@ function (dojo, declare, STUIConstants, STHexLib) {
             
             switch( stateName )
             {
-            case 'playerPeiceSetup':
-                this.OnPlayerPeiceSetup(args);
+            case 'playerPieceSetup':
+                this.OnPlayerPieceSetup(args);
                 break;
             case 'dummy':
                 break;
@@ -189,7 +189,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
             document.querySelectorAll('.moveableRange').forEach(div=> div.classList.remove('moveableRange'));
 
-            if (this.doesHexHasMovablePeice(evt.currentTarget.id))
+            if (this.doesHexHasMovablePiece(evt.currentTarget.id))
             {
                 var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
                 let cubeCoord = STHexLib.oddqToCubic(offsetCoord);
@@ -199,7 +199,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
                 for (let i = 0; i < neighbors.length; i++) {
 
                     let hexId = this.convertCubicCoordToHexId(neighbors[i]);
-                    if (!this.doesHexHasBlockingPeice(hexId))
+                    if (!this.doesHexHasBlockingPiece(hexId))
                     {
                         let hexEl = document.getElementById(hexId);
 
@@ -290,6 +290,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
             this.opponentPiecesData = [];
 
             let boardData = gameDatas["board"];
+            this.createPiecesRawDataMap(gameDatas["player_pieces"]);
 
             for (let i = 0; i < boardData.length; ++i)
             {
@@ -303,15 +304,37 @@ function (dojo, declare, STUIConstants, STHexLib) {
                 {
                     hexWithBall = offsetCoord;
                 }
-                else if (el.team_id !== null)
+                else if (el.piece_id !== null)
                 {
-                    this.peices.push(this.createPlayerPeice(el.team_id, 0, offsetCoord, 1, parseInt(el.player_role)));
+                    let peiceId = parseInt(el.piece_id);
+                    let pieceData = this.piecesRawDataMap.get(peiceId);
+
+                    this.assert(pieceData != null, "piece data not found for piece id: " + el.piece_id);
+
+                    this.pieces.push(this.createPlayerPiece(pieceData.owner, peiceId, offsetCoord, pieceData.isFresh, pieceData.pieceRole));
                 }
                 else
                 {
                     console.log(el);
                     this.assert(false, "what is this info? " + el);
                 }
+            }
+        },
+
+        createPiecesRawDataMap: function(piecesData)
+        {
+            this.piecesRawDataMap = new Map();
+
+            for (let i = 0; i < piecesData.length; ++i)
+            {
+                let el = piecesData[i];
+
+                this.piecesRawDataMap.set(parseInt(el.id), 
+                {
+                    owner: el.owner_id,
+                    pieceRole: parseInt(el.piece_role),
+                    isFresh: el.is_fresh === '1',
+                });
             }
         },
 
@@ -322,20 +345,20 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
         placePlayers: function()
         {
-            document.querySelectorAll('.hasPeice').forEach(el=>el.classList.remove('hasPeice'));
+            document.querySelectorAll('.haspiece').forEach(el=>el.classList.remove('haspiece'));
 
             const MAIN_BOARD_EL = document.getElementById('mainBoard');
 
-            for (let i = 0; i < this.peices.length; ++i) 
+            for (let i = 0; i < this.pieces.length; ++i) 
             {
-                let currentPiece = this.peices[i]; 
+                let currentPiece = this.pieces[i]; 
                 let hex = currentPiece.getPosition();
 
                 if (currentPiece.getOwner() === this.player_id) 
                 {
                     let hexId = this.convertOffsetCoordToHexId(hex);
                     let hexEl = document.getElementById(hexId);
-                    hexEl.classList.add('hasPeice');
+                    hexEl.classList.add('haspiece');
                 }
                 
                 let hexCoordinate = this.getHexPixelCoordinate(hex);
@@ -347,19 +370,19 @@ function (dojo, declare, STUIConstants, STHexLib) {
             }
         },
 
-        doesHexHasMovablePeice: function(hexId)
+        doesHexHasMovablePiece: function(hexId)
         {
             let result = false;
 
             let hexCoord = this.convertHexIdToOffsetCoord(hexId);
-            let myTeamPeices = this.getHexesWithPlayer(this.player_id);
+            let myTeamPieces = this.getHexesWithPlayer(this.player_id);
 
-            for (let i = 0; i < myTeamPeices.length; ++i) 
+            for (let i = 0; i < myTeamPieces.length; ++i) 
             {
-                if (myTeamPeices[i].hex.equals(hexCoord)) 
+                if (myTeamPieces[i].hex.equals(hexCoord)) 
                 {
-                    let peice = myTeamPeices[i].peice;
-                    if (!peice.isGoalie()) 
+                    let piece = myTeamPieces[i].piece;
+                    if (!piece.isGoalie()) 
                     {
                         result = true;
                         break;
@@ -370,19 +393,19 @@ function (dojo, declare, STUIConstants, STHexLib) {
             return result;
         },
 
-        doesHexHasBlockingPeice: function(hexId)
+        doesHexHasBlockingPiece: function(hexId)
         {
             let result = false;
 
             let hexCoord = this.convertHexIdToOffsetCoord(hexId);
-            let myTeamPeices = this.getHexesWithPlayer(this.playerId);
-            let otherTeamPeices = this.getHexesWithPlayer(this.opponentId);
+            let myTeamPieces = this.getHexesWithPlayer(this.playerId);
+            let otherTeampieces = this.getHexesWithPlayer(this.opponentId);
 
-            let allPeices = myTeamPeices.concat(otherTeamPeices);
+            let allPieces = myTeamPieces.concat(otherTeampieces);
 
-            for (let i = 0; i < allPeices.length; ++i) 
+            for (let i = 0; i < allPieces.length; ++i) 
             {
-                if (allPeices[i].hex.equals(hexCoord)) 
+                if (allPieces[i].hex.equals(hexCoord)) 
                 {
                     result = true;
                     break;
@@ -392,7 +415,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
             return result;
         },
 
-        createPlayerPeice: function(owner, id, position, isFresh, pieceRole)
+        createPlayerPiece: function(owner, id, position, isFresh, pieceRole)
         {
             return {
                 _owner: owner,
@@ -448,7 +471,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
         ///////////////////////////////////////////////////
         //// state response function
-        OnPlayerPeiceSetup: function(args) 
+        OnPlayerPieceSetup: function(args) 
         {
         },
 
@@ -559,7 +582,9 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
         HEX_HORIZONTAL_SPACE: 0,
 
-        peices: [],
+        pieces: [],
+
+        piecesRawDataMap: null,
 
         hexWithBall: null,
 

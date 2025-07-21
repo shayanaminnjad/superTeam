@@ -194,7 +194,7 @@ class Game extends \Table
         {
             $hexData = $board[$playerStartingPositions[$i]->getColumn()][$playerStartingPositions[$i]->getRow()];
 
-            if ($hexData['team_id'] === null && $hexData['piece_id'] === null)
+            if ($hexData['piece_id'] === null)
             {
                 $possibleLocations[] = [$playerStartingPositions[$i]->getColumn(), $playerStartingPositions[$i]->getRow()];
             }
@@ -300,7 +300,8 @@ class Game extends \Table
             "SELECT `player_id` `id`, `player_score` `score` FROM `player`"
         );
 
-        $result["board"] = $this->getObjectListFromDB("SELECT `hex_column`, `hex_row`, `team_id`, `piece_id`, `has_ball` FROM `board` WHERE `team_id` IS NOT NULL OR `has_ball` IS TRUE ");
+        $result["board"] = $this->getObjectListFromDB("SELECT `hex_column`, `hex_row`, `piece_id`, `has_ball` FROM `board` WHERE `piece_id` != 0 OR `has_ball` IS TRUE ");
+        $result["player_pieces"] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
 
         return $result;
     }
