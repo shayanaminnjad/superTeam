@@ -65,7 +65,7 @@ $machinestates = [
     // Note: ID=2 => your first state
 
     2 => [
-        "name" => "playerPeiceSetup",
+        "name" => "playerPieceSetup",
         "description" => clienttranslate('${actplayer} must place his player pieces'),
         "descriptionmyturn" => clienttranslate('${you} must place the indicated piece'),
         "type" => "activeplayer",
@@ -74,7 +74,7 @@ $machinestates = [
             // these actions are called from the front with bgaPerformAction, and matched to the function on the game.php file
             "actPlacedPiece", 
         ],
-        "transitions" => ["playerPeiceSetup" => 2, "nextPlayer" => 3]
+        "transitions" => ["playerPieceSetup" => 2, "nextPlayer" => 3]
     ],
 
     3 => [

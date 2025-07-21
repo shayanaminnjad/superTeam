@@ -185,6 +185,7 @@ class Game extends \Table
     {
         $board = $this->getBoard();
         $playerSide = $this->getPlayerSide(strval($this->getActivePlayerId()));
+        $placedPieces = [];
 
         $playerStartingPositions = $playerSide === PlayerSide::Left ? $this->LEFT_PLAYER_STARTING_POSITIONS : $this->RIGHT_PLAYER_STARTING_POSITIONS;
 
@@ -192,24 +193,79 @@ class Game extends \Table
         for($i = 0; $i < count($playerStartingPositions); $i++)
         {
             $hexData = $board[$playerStartingPositions[$i]->getColumn()][$playerStartingPositions[$i]->getRow()];
+            $pieceId = $hexData['piece_id'];
 
-            if ($hexData['piece_id'] === null)
+            if ($pieceId === null)
             {
-                $possibleLocations[] = [$playerStartingPositions[$i]->getColumn(), $playerStartingPositions[$i]->getRow()];
+                $possibleLocations[] = ['hex_column' => $playerStartingPositions[$i]->getColumn(), 'hex_row' => $playerStartingPositions[$i]->getRow()];
+            }
+            else
+            {
+                $placedPieces[] = $pieceId;
             }
         }
-        
-        $peiceToPlaceId = PlayerRole::Captain->value;
 
-        if (count($possibleLocations) < 6)
+        $playerPiecesData = $this->getPlayerPiecesData();
+        $availablePieces = array_filter($playerPiecesData, function ($piece) use ($placedPieces) 
         {
-            $peiceToPlaceId = PlayerRole::Regular->value;
+            return !in_array($piece['id'], $placedPieces) && $piece['owner_id'] === $this->getActivePlayerId() && $piece['piece_role'] != PlayerRole::GoalKeeper->value;
+        });
+
+        usort($availablePieces, function ($a, $b)
+        {
+            return $a['id'] <=> $b['id'];
+        });
+
+
+        $pieceToPlaceId = 0;
+
+        if (count($availablePieces) != 0)
+        {
+            $pieceToPlaceId = $availablePieces[0]['id'];
+        }
+        else
+        {
+            //Go to next state!
         }
 
         return [
             "availableStartingPositions" => $possibleLocations,
-            "peiceToPlace"=> $peiceToPlaceId,
+            "pieceToPlace"=> $pieceToPlaceId
         ];
+    }
+
+    public function actPlacedPiece(int $placedPiece, int $hexColumn, int $hexRow): void
+    {
+        $playerId = (int)$this->getActivePlayerId();
+
+        $board = $this->getBoard();
+        $playerSide = $this->getPlayerSide(strval($playerId));
+
+        $playerStartingPositions = $playerSide === PlayerSide::Left ? $this->LEFT_PLAYER_STARTING_POSITIONS : $this->RIGHT_PLAYER_STARTING_POSITIONS;
+        
+        if (!in_array(new HexID($hexColumn, $hexRow), $playerStartingPositions)) 
+        {
+            throw new \BgaUserException("Invalid hex position for placing a piece! (" . $hexColumn . ", " . $hexRow . ")");
+        }
+
+        if ($board[$hexColumn][$hexRow]['piece_id'] !== null) 
+        {
+            throw new \BgaUserException("There is already a piece placed in this hex!");
+        }
+
+        //TODO: piece id also must be the same Id that we sent to the client side.
+
+        $this->DbQuery("UPDATE `board` SET `piece_id` = $placedPiece WHERE `hex_column` = $hexColumn AND `hex_row` = $hexRow");
+
+        $this->notify->all("placedPiece", clienttranslate('${player_name} places a piece'), [
+            "player_id" => $playerId,
+            "player_name" => $this->getActivePlayerName(), // remove this line if you uncomment notification decorator
+            "placed_piece" => $placedPiece,
+            "hex_column" => $hexColumn,
+            "hex_row" => $hexRow,
+        ]);
+
+        $this->gamestate->nextState("playerPieceSetup");
     }
 
     /**
@@ -519,5 +575,10 @@ class Game extends \Table
     private function getBoard(): array
     {
         return $this->getDoubleKeyCollectionFromDB("SELECT `hex_column`, `hex_row`, `piece_id`, `has_ball` FROM `board`", false);
+    }
+
+    private function getPlayerPiecesData(): array
+    {
+        return $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
     }
 }

@@ -167,6 +167,12 @@
     cursor: pointer;
 }
 
+.hex.availableToPlacePiece
+{
+    background-color: white;
+    opacity: 0.7;
+}
+
 .freeInRange {
     background-color: white;
 }

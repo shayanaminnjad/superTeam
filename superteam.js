@@ -36,7 +36,6 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
             this.setupMainBoard(gamedatas);
             
-            // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
             console.log('end setup');
@@ -52,6 +51,8 @@ function (dojo, declare, STUIConstants, STHexLib) {
         onEnteringState: function( stateName, args )
         {
             console.log( 'Entering state: '+stateName, args );
+
+            this.currentStateData = args;
             
             switch( stateName )
             {
@@ -109,7 +110,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
                     this.statusBar.addActionButton(_('Pass'), () => this.bgaPerformAction("actPass"), { color: 'secondary' }); 
                     break;
-                    case 'playerPeiceSetup':
+                    case 'playerPieceSetup':
                         this.statusBar.addActionButton(_('Confirm placement'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
                 }
             }
@@ -188,6 +189,18 @@ function (dojo, declare, STUIConstants, STHexLib) {
             evt.preventDefault();
             evt.stopPropagation();
 
+            if (this.currentStateData.name === 'playerPieceSetup')
+            {
+                if (evt.currentTarget.classList.contains('availableToPlacePiece'))
+                {
+                    var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
+
+                    //TODO: Actually this should not automatically confirm!
+                    this.bgaPerformAction("actPlacedPiece", {placedPiece: this.currentStateData.args.pieceToPlace, hexColumn: offsetCoord.c, hexRow: offsetCoord.r});
+                }
+            }
+
+            /*
             document.querySelectorAll('.moveableRange').forEach(div=> div.classList.remove('moveableRange'));
 
             if (this.doesHexHasMovablePiece(evt.currentTarget.id))
@@ -208,6 +221,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
                     }
                 }
             }
+                */
         },
 
         onHexMouseEnter: function(evt)
@@ -472,9 +486,24 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
         ///////////////////////////////////////////////////
         //// state response function
-        OnPlayerPieceSetup: function(args) 
+        OnPlayerPieceSetup: function(stateData) 
         {
-            console.log(args);
+            document.querySelectorAll('.availableToPlacePiece').forEach(div=> div.classList.remove('availableToPlacePiece'));
+
+            let availableStartingPositions = stateData.args.availableStartingPositions;
+
+            for (let i = 0; i < availableStartingPositions.length; ++i) 
+            {
+                let el =  availableStartingPositions[i];
+
+                let hexColumn = el.hex_column;
+                let hexRow = el.hex_row;
+
+                let hexId = this.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(hexRow, hexColumn));
+                let hexEl = document.getElementById(hexId);
+
+                hexEl.classList.add('availableToPlacePiece');
+            }
         },
 
         ///////////////////////////////////////////////////
@@ -508,34 +537,23 @@ function (dojo, declare, STUIConstants, STHexLib) {
             console.log( 'notifications subscriptions setup' );
             
             // TODO: here, associate your game notifications with local methods
-            
-            // Example 1: standard notification handling
-            // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-            
+            //dojo.subscribe( 'placedPiece', this, "notif_placedPiece" );
+
             // Example 2: standard notification handling + tell the user interface to wait
             //            during 3 seconds after calling the method in order to let the players
             //            see what is happening in the game.
             // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
             // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
-            // 
+
+            this.bgaSetupPromiseNotifications();
         },  
         
-        // TODO: from this point and below, you can write your game notifications handling methods
-        
-        /*
-        Example:
-        
-        notif_cardPlayed: function( notif )
+
+        notif_placedPiece : function(notif)
         {
-            console.log( 'notif_cardPlayed' );
-            console.log( notif );
-            
-            // Note: notif.args contains the arguments specified during you "notifyAllPlayers" / "notifyPlayer" PHP call
-            
-            // TODO: play the card in the user interface.
-        },    
-        
-        */
+            console.log(notif);
+        },
+
 
         ///////////////////////////////////////////////////
         //// Debugging features
@@ -595,5 +613,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
         startHex: null,
 
         endHex: null,
+
+        currentStateData: null,
    });             
 });
