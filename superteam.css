@@ -28,6 +28,7 @@
     background-repeat: no-repeat;
     width: calc(var(--main-bg-ratio-x) * var(--main-bg-scale));
     height: calc(var(--main-bg-ratio-y) * var(--main-bg-scale));
+    overflow: visible;
 }
 
 .hex {
@@ -41,10 +42,15 @@
             76% 100%, 23% 100%, 0% 50%);
 }
 
-.piece.normal.blue.fresh {
+.piece{
+    position: absolute;
+    overflow: visible;
+    z-index: 999;
+}
+
+.piece.regular.blue.fresh {
     width: 26px;
     height: 26px;
-    position: absolute;
     background-color: rgb(0, 204, 255);
     border-color: white;
     border-width: 2px;
@@ -52,10 +58,9 @@
     pointer-events: none;
 }
 
-.piece.normal.blue.exhausted {
+.piece.regular.blue.exhausted {
     width: 26px;
     height: 26px;
-    position: absolute;
     background-color: rgb(0, 204, 255);
     border-color: white;
     border-width: 2px;
@@ -66,7 +71,6 @@
 .piece.captain.blue.fresh {
     width: 26px;
     height: 26px;
-    position: absolute;
     background-color: rgb(0, 204, 255);
     border-color: white;
     border-width: 2px;
@@ -77,7 +81,6 @@
 .piece.captain.blue.exhausted {
     width: 26px;
     height: 26px;
-    position: absolute;
     background-color: rgb(0, 204, 255);
     border-color: white;
     border-width: 2px;
@@ -85,10 +88,9 @@
     pointer-events: none;
 }
 
-.piece.normal.orange.fresh {
+.piece.regular.orange.fresh {
     width: 26px;
     height: 26px;
-    position: absolute;
     background-color: orangered;
     border-color: white;
     border-width: 2px;
@@ -99,10 +101,9 @@
     background-position: 8%;*/
 }
 
-.piece.normal.orange.exhausted {
+.piece.regular.orange.exhausted {
     width: 26px;
     height: 26px;
-    position: absolute;
     background-color: orangered;
     border-color: white;
     border-width: 2px;
@@ -116,7 +117,6 @@
 .piece.captain.orange.fresh {
     width: 26px;
     height: 26px;
-    position: absolute;
     background-color: orangered;
     border-color: white;
     border-width: 2px;
@@ -130,7 +130,6 @@
 .piece.captain.orange.exhausted {
     width: 26px;
     height: 26px;
-    position: absolute;
     background-color: orangered;
     border-color: white;
     pointer-events: none;
@@ -142,7 +141,6 @@
 .piece.goalie {
     width: 26px;
     height: 26px;
-    position: absolute;
     background-color: black;
     border-color: white;
     border-width: 2px;
@@ -159,12 +157,6 @@
     background-repeat: no-repeat;
     background-position: 100% -19px;
     pointer-events: none;
-}
-
-.hex.hasPeice:hover {
-    background-color: white;
-    opacity: 0.4;
-    cursor: pointer;
 }
 
 .hex.availableToPlacePiece

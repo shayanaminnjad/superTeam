@@ -57,7 +57,10 @@ function (dojo, declare, STUIConstants, STHexLib) {
             switch( stateName )
             {
             case 'playerPieceSetup':
-                this.OnPlayerPieceSetup(args);
+                if (this.isCurrentPlayerActive())
+                {
+                    this.OnPlayerPieceSetup(args);
+                }
                 break;
             case 'dummy':
                 break;
@@ -168,9 +171,11 @@ function (dojo, declare, STUIConstants, STHexLib) {
                 }
             }
 
+            MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='pieces'></div>`);
+
             this.setPiecesData(gamedatas);
 
-            this.placePlayers();
+            this.placePieces(gamedatas);
 
             this.initHexClickListener();
         },
@@ -301,11 +306,28 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
         setPiecesData: function(gameDatas)
         {
-            this.myPiecesData = [];
-            this.opponentPiecesData = [];
+            this.piecesDataMap = new Map();
 
+            let piecesData = gameDatas["player_pieces"];
+
+            for (let i = 0; i < piecesData.length; ++i)
+            {
+                let el = piecesData[i];
+                this.piecesDataMap.set(
+                    parseInt(el.id),
+                    this.createPlayerPiece(el.owner_id, parseInt(el.id), null, el.is_fresh === '1', parseInt(el.piece_role))
+                );
+            }
+        },
+
+        getHexWithBall: function()
+        {
+            return this.hexWithBall;
+        },
+
+        placePieces: function(gameDatas)
+        {
             let boardData = gameDatas["board"];
-            this.createPiecesRawDataMap(gameDatas["player_pieces"]);
 
             for (let i = 0; i < boardData.length; ++i)
             {
@@ -321,12 +343,11 @@ function (dojo, declare, STUIConstants, STHexLib) {
                 }
                 else if (el.piece_id !== null)
                 {
-                    let peiceId = parseInt(el.piece_id);
-                    let pieceData = this.piecesRawDataMap.get(peiceId);
+                    let pieceData = this.piecesDataMap.get(parseInt(el.piece_id));
 
                     this.assert(pieceData != null, "piece data not found for piece id: " + el.piece_id);
 
-                    this.pieces.push(this.createPlayerPiece(pieceData.owner, peiceId, offsetCoord, pieceData.isFresh, pieceData.pieceRole));
+                    this.addPieceToBoard(pieceData.getOwner(), offsetCoord, pieceData);
                 }
                 else
                 {
@@ -336,53 +357,23 @@ function (dojo, declare, STUIConstants, STHexLib) {
             }
         },
 
-        createPiecesRawDataMap: function(piecesData)
+        addPieceToBoard: async function(player, offsetCoord, pieceData)
         {
-            this.piecesRawDataMap = new Map();
+            const PIECE_DOM_ID = `piece_${pieceData.getId()}`;
+            
+            let color = pieceData.getOwner() == this.player_id ? 'orange' : 'blue'; //this has to change!
+            let status = pieceData.isFresh() ? 'fresh' : 'exhuasted';
+            let type = this.pieceRoleToString(pieceData.getRole());
+            
+            document.getElementById('pieces').insertAdjacentHTML('beforeend', `<div id="${PIECE_DOM_ID}" class="piece ${status} ${type} ${color}" >${type[0]}_${status[0]}</div>`);
+            pieceData.setPosition(offsetCoord);
 
-            for (let i = 0; i < piecesData.length; ++i)
-            {
-                let el = piecesData[i];
-
-                this.piecesRawDataMap.set(parseInt(el.id), 
-                {
-                    owner: el.owner_id,
-                    pieceRole: parseInt(el.piece_role),
-                    isFresh: el.is_fresh === '1',
-                });
-            }
-        },
-
-        getHexWithBall: function()
-        {
-            return this.hexWithBall;
-        },
-
-        placePlayers: function()
-        {
-            document.querySelectorAll('.haspiece').forEach(el=>el.classList.remove('haspiece'));
-
-            const MAIN_BOARD_EL = document.getElementById('mainBoard');
-
-            for (let i = 0; i < this.pieces.length; ++i) 
-            {
-                let currentPiece = this.pieces[i]; 
-                let hex = currentPiece.getPosition();
-
-                if (currentPiece.getOwner() === this.player_id) 
-                {
-                    let hexId = this.convertOffsetCoordToHexId(hex);
-                    let hexEl = document.getElementById(hexId);
-                    hexEl.classList.add('haspiece');
-                }
-                
-                let hexCoordinate = this.getHexPixelCoordinate(hex);
-                let color = currentPiece.getOwner() == this.player_id ? 'orange' : 'blue'; //this has to change!
-                let status = currentPiece.isFresh() ? 'fresh' : 'exhuasted';
-                let type = currentPiece.isCaptain() ? 'captain' : (currentPiece.isGoalie() ? 'goalie' : 'normal');
-
-                MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='${color}_${currentPiece.id}' class="piece ${status} ${type} ${color}" style='left:${hexCoordinate.left}px; top:${hexCoordinate.top}px;'>${type[0]}_${status[0]}</div>`);
-            }
+            this.placeOnObject( PIECE_DOM_ID, 'overall_player_board_'+player );
+            
+            const HEX_ID = `hex_${offsetCoord.r}_${offsetCoord.c}`;
+            const anim = this.slideToObject( PIECE_DOM_ID, HEX_ID );
+            
+            await this.bgaPlayDojoAnimation(anim);
         },
 
         doesHexHasMovablePiece: function(hexId)
@@ -474,7 +465,32 @@ function (dojo, declare, STUIConstants, STHexLib) {
                 getPosition: function()
                 {
                     return this._position;
+                },
+
+                setPosition: function(offsetPos)
+                {
+                    this._position = offsetPos;
+                },
+
+                getId: function()
+                {
+                    return this._id;
                 }
+            }
+        },
+
+        pieceRoleToString : function(role)
+        {
+            switch (role)
+            {
+                case 1:
+                    return 'goalie';
+                case 2:
+                    return 'captain';
+                case 3:
+                    return "regular";
+                default:
+                    this.assert(false, "invalid role id!");
             }
         },
 
@@ -549,11 +565,13 @@ function (dojo, declare, STUIConstants, STHexLib) {
         },  
         
 
-        notif_placedPiece : function(notif)
+        notif_placedPiece : async function(notifData)
         {
-            console.log(notif);
-        },
+            let pieceData = this.piecesDataMap.get(notifData.placed_piece);
+            let hex = STHexLib.createOffsetCoord( notifData.hex_row, notifData.hex_column);
 
+            await this.addPieceToBoard(notifData.player_id, hex, pieceData);
+        },
 
         ///////////////////////////////////////////////////
         //// Debugging features
@@ -602,9 +620,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
         HEX_HORIZONTAL_SPACE: 0,
 
-        pieces: [],
-
-        piecesRawDataMap: null,
+        piecesDataMap: null,
 
         hexWithBall: null,
 
