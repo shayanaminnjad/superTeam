@@ -52,6 +52,8 @@ function (dojo, declare, STUIConstants, STHexLib) {
         {
             console.log( 'Entering state: '+stateName, args );
 
+            console.log("active player id " + this.getActivePlayerId());
+
             this.currentStateData = args;
             
             switch( stateName )
@@ -61,6 +63,8 @@ function (dojo, declare, STUIConstants, STHexLib) {
                 {
                     this.OnPlayerPieceSetup(args);
                 }
+            case 'doAction':
+                console.log("in do action");
                 break;
             case 'dummy':
                 break;
@@ -76,18 +80,11 @@ function (dojo, declare, STUIConstants, STHexLib) {
             
             switch( stateName )
             {
-            
-            /* Example:
-            
-            case 'myGameState':
-            
-                // Hide the HTML block we are displaying only during this game state
-                dojo.style( 'my_html_block_id', 'display', 'none' );
-                
-                break;
-           */
-           
-           
+                case 'playerPieceSetup':
+                    if (this.isCurrentPlayerActive()) 
+                    {
+                        document.querySelectorAll('.availableToPlacePiece').forEach(div=> div.classList.remove('availableToPlacePiece'));      
+                    }
             case 'dummy':
                 break;
             }               
@@ -98,6 +95,8 @@ function (dojo, declare, STUIConstants, STHexLib) {
         onUpdateActionButtons: function( stateName, args )
         {
             console.log( 'onUpdateActionButtons: '+stateName, args );
+
+            console.log("active player id " + this.getActivePlayerId());
                       
             if( this.isCurrentPlayerActive() )
             {            
@@ -115,6 +114,13 @@ function (dojo, declare, STUIConstants, STHexLib) {
                     break;
                     case 'playerPieceSetup':
                         this.statusBar.addActionButton(_('Confirm placement'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
+                        break;
+                    case 'doAction':
+                        this.statusBar.addActionButton(_('move'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
+                        this.statusBar.addActionButton(_('pass'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
+                        this.statusBar.addActionButton(_('play card'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
+                        break;
+
                 }
             }
         },        

@@ -74,16 +74,39 @@ $machinestates = [
             // these actions are called from the front with bgaPerformAction, and matched to the function on the game.php file
             "actPlacedPiece", 
         ],
-        "transitions" => ["playerPieceSetup" => 2, "nextPlayer" => 3]
+        "transitions" => ["playerPieceSetup" => 2, "setupComplete" => 3]
     ],
 
     3 => [
+        "name" => "setupComplete",
+        "description" => '',
+        "type" => "game",
+        "action" => "stSetupComplete",
+        "updateGameProgression" => true,
+        "transitions" => ["doAction" => 5, "playerPieceSetup" => 2]
+    ],
+    
+    4 => [
         "name" => "nextPlayer",
         "description" => '',
         "type" => "game",
         "action" => "stNextPlayer",
         "updateGameProgression" => true,
         "transitions" => ["endGame" => 99, "nextPlayer" => 2]
+    ],
+
+    5 => [
+        "name" => "doAction",
+        "description" => clienttranslate('${actplayer} must choose an action'),
+        "descriptionmyturn" => clienttranslate('${you} must choose an action'),
+        "type" => "activePlayer",
+        "args" => "argDoAction",
+        "possibleActions" => [
+            //(sha) TODO: I can have multiple actions, or a single action with a multiple parameters, I should see
+            //which one fits better
+            "actActionSelected",
+        ],
+        "transitions" => ['doAction' => 5, 'nextPlayer' => 4]
     ],
 
     // Final state.

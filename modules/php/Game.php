@@ -18,6 +18,9 @@ declare(strict_types=1);
 
 namespace Bga\Games\SuperTeam;
 
+use BgaUserException;
+use Exception;
+
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
 
@@ -181,6 +184,50 @@ class Game extends \Table
         $this->gamestate->nextState("pass");
     }
 
+    public function actPlacedPiece(int $placedPiece, int $hexColumn, int $hexRow): void
+    {
+        $playerId = (int)$this->getActivePlayerId();
+
+        $board = $this->getBoard();
+        $playerSide = $this->getPlayerSide(strval($playerId));
+
+        $playerStartingPositions = $playerSide === PlayerSide::Left ? $this->LEFT_PLAYER_STARTING_POSITIONS : $this->RIGHT_PLAYER_STARTING_POSITIONS;
+        
+        if (!in_array(new HexID($hexColumn, $hexRow), $playerStartingPositions)) 
+        {
+            throw new \BgaUserException("Invalid hex position for placing a piece! (" . $hexColumn . ", " . $hexRow . ")");
+        }
+
+        if ($board[$hexColumn][$hexRow]['piece_id'] !== null) 
+        {
+            throw new \BgaUserException("There is already a piece placed in this hex!");
+        }
+
+        //TODO: piece id also must be the same Id that we sent to the client side.
+
+        $this->DbQuery("UPDATE `board` SET `piece_id` = $placedPiece WHERE `hex_column` = $hexColumn AND `hex_row` = $hexRow");
+
+        $this->notify->all("placedPiece", clienttranslate('${player_name} places a piece'), [
+            "player_id" => $playerId,
+            "player_name" => $this->getActivePlayerName(), // remove this line if you uncomment notification decorator
+            "placed_piece" => $placedPiece,
+            "hex_column" => $hexColumn,
+            "hex_row" => $hexRow,
+        ]);
+
+        if (!$this->isPlayerSetupComplete($playerId))
+        {
+            $this->gamestate->nextState("playerPieceSetup");
+        }
+        else
+        {
+            $this->gamestate->nextState("setupComplete");
+        }
+    }
+
+    public function actActionSelected() : void
+    {}
+
     public function argPlayerPieceSetup(): array
     {
         $board = $this->getBoard();
@@ -216,16 +263,10 @@ class Game extends \Table
             return $a['id'] <=> $b['id'];
         });
 
-
         $pieceToPlaceId = 0;
-
-        if (count($availablePieces) != 0)
+        if (count($availablePieces) > 0)
         {
             $pieceToPlaceId = $availablePieces[0]['id'];
-        }
-        else
-        {
-            //Go to next state!
         }
 
         return [
@@ -234,38 +275,27 @@ class Game extends \Table
         ];
     }
 
-    public function actPlacedPiece(int $placedPiece, int $hexColumn, int $hexRow): void
+    public function argDoAction() : array
     {
-        $playerId = (int)$this->getActivePlayerId();
+        return ['possibleActions' => [1, 2, 3, 4]];
+    }
 
-        $board = $this->getBoard();
-        $playerSide = $this->getPlayerSide(strval($playerId));
+    public function stSetupComplete() : void
+    {
+        $previousPlayerstr = $this->getActivePlayerId();
+        $previousPlayerId = (int)$this->getActivePlayerId();
+        $this->giveExtraTime($previousPlayerId);
+               
+        $playerId = intval($this->activeNextPlayer());
 
-        $playerStartingPositions = $playerSide === PlayerSide::Left ? $this->LEFT_PLAYER_STARTING_POSITIONS : $this->RIGHT_PLAYER_STARTING_POSITIONS;
-        
-        if (!in_array(new HexID($hexColumn, $hexRow), $playerStartingPositions)) 
+        if (!$this->isPlayerSetupComplete($playerId)) 
         {
-            throw new \BgaUserException("Invalid hex position for placing a piece! (" . $hexColumn . ", " . $hexRow . ")");
-        }
-
-        if ($board[$hexColumn][$hexRow]['piece_id'] !== null) 
+            $this->gamestate->nextState("playerPieceSetup");
+        } 
+        else 
         {
-            throw new \BgaUserException("There is already a piece placed in this hex!");
+            $this->gamestate->nextState("doAction");
         }
-
-        //TODO: piece id also must be the same Id that we sent to the client side.
-
-        $this->DbQuery("UPDATE `board` SET `piece_id` = $placedPiece WHERE `hex_column` = $hexColumn AND `hex_row` = $hexRow");
-
-        $this->notify->all("placedPiece", clienttranslate('${player_name} places a piece'), [
-            "player_id" => $playerId,
-            "player_name" => $this->getActivePlayerName(), // remove this line if you uncomment notification decorator
-            "placed_piece" => $placedPiece,
-            "hex_column" => $hexColumn,
-            "hex_row" => $hexRow,
-        ]);
-
-        $this->gamestate->nextState("playerPieceSetup");
     }
 
     /**
@@ -580,5 +610,15 @@ class Game extends \Table
     private function getPlayerPiecesData(): array
     {
         return $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
+    }
+
+    private function isPlayerSetupComplete(int $playerId) : bool
+    {
+        $queryResult = $this->getObjectListFromDB(
+            "SELECT board.piece_id, player_pieces.owner_id 
+            FROM `board` JOIN `player_pieces` ON board.piece_id = player_pieces.id 
+            WHERE board.piece_id IS NOT NULL AND player_pieces.owner_id =" . $playerId);
+
+        return count($queryResult) == 6;
     }
 }
