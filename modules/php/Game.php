@@ -294,7 +294,7 @@ class Game extends \Table
         } 
         else 
         {
-            $this->gamestate->nextState("doAction");
+            $this->gamestate->nextState("playerTurn");
         }
     }
 

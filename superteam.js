@@ -55,8 +55,6 @@ function (dojo, declare, STUIConstants, STHexLib) {
         {
             console.log( 'Entering state: '+stateName, args );
 
-            console.log("active player id " + this.getActivePlayerId());
-
             this.currentStateData = args;
             
             switch( stateName )
@@ -66,8 +64,8 @@ function (dojo, declare, STUIConstants, STHexLib) {
                 {
                     this.OnPlayerPieceSetup(args);
                 }
-            case 'doAction':
-                console.log("in do action");
+            case 'playerTurn':
+                console.log("in playerTurn");
                 break;
             case 'dummy':
                 break;
@@ -106,24 +104,20 @@ function (dojo, declare, STUIConstants, STHexLib) {
                 switch( stateName )
                 {
                  case 'playerTurn':    
-                    const playableCardsIds = args.playableCardsIds; // returned by the argPlayerTurn
+                        this.statusBar.addActionButton(_('player card'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
+                        this.statusBar.addActionButton(_('do auxilary'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
+                        this.statusBar.addActionButton(_('pass'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'secondary' });
+                        break;
+                    /*const playableCardsIds = args.playableCardsIds; // returned by the argPlayerTurn
 
                     // Add test action buttons in the action status bar, simulating a card click:
                     playableCardsIds.forEach(
                         cardId => this.statusBar.addActionButton(_('Play card with id ${card_id}').replace('${card_id}', cardId), () => this.onCardClick(cardId))
                     ); 
-
-                    this.statusBar.addActionButton(_('Pass'), () => this.bgaPerformAction("actPass"), { color: 'secondary' }); 
-                    break;
+                    */
                     case 'playerPieceSetup':
                         this.statusBar.addActionButton(_('Confirm placement'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
                         break;
-                    case 'doAction':
-                        this.statusBar.addActionButton(_('move'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
-                        this.statusBar.addActionButton(_('pass'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
-                        this.statusBar.addActionButton(_('play card'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
-                        break;
-
                 }
             }
         },        
