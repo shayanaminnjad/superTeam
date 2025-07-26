@@ -34,6 +34,9 @@ function (dojo, declare, STUIConstants, STHexLib) {
         {
             console.log('begin setup');
 
+            this.myColor = gamedatas.players[this.player_id].color === 'FC5414' ? 'orange' : 'blue';
+            this.opponentColor = this.myColor === 'orange' ? 'blue' : 'orange';
+
             this.setupMainBoard(gamedatas);
             
             this.setupNotifications();
@@ -367,7 +370,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
         {
             const PIECE_DOM_ID = `piece_${pieceData.getId()}`;
             
-            let color = pieceData.getOwner() == this.player_id ? 'orange' : 'blue'; //this has to change!
+            let color = parseInt(player) === this.player_id ? this.myColor : this.opponentColor;
             let status = pieceData.isFresh() ? 'fresh' : 'exhuasted';
             let type = this.pieceRoleToString(pieceData.getRole());
             
@@ -637,5 +640,9 @@ function (dojo, declare, STUIConstants, STHexLib) {
         endHex: null,
 
         currentStateData: null,
+
+        myColor: null,
+
+        opponentColor: null,
    });             
 });
