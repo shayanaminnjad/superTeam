@@ -49,22 +49,21 @@
 
 //    !! It is not a good idea to modify this file when a game is running !!
 
+require_once("modules/php/StateMachineConstants.inc.php");
 
 $machinestates = [
 
     // The initial state. Please do not modify.
 
-    1 => array(
+    ST_BGA_GAME_SETUP => array(
         "name" => "gameSetup",
         "description" => "",
         "type" => "manager",
         "action" => "stGameSetup",
-        "transitions" => ["" => 2]
+        "transitions" => ["" => ST_PLAYER_PIECE_SETUP]
     ),
 
-    // Note: ID=2 => your first state
-
-    2 => [
+    ST_PLAYER_PIECE_SETUP => [
         "name" => "playerPieceSetup",
         "description" => clienttranslate('${actplayer} must place his player pieces'),
         "descriptionmyturn" => clienttranslate('${you} must place the indicated piece'),
@@ -74,17 +73,24 @@ $machinestates = [
             // these actions are called from the front with bgaPerformAction, and matched to the function on the game.php file
             "actPlacedPiece", 
         ],
-        "transitions" => ["playerPieceSetup" => 2, "setupComplete" => 3]
+        "transitions" => ["playerPieceSetup" => ST_PLAYER_PIECE_SETUP, "setupComplete" => ST_SETUP_COMPLETE]
     ],
 
-    3 => [
+    ST_SETUP_COMPLETE => [
         "name" => "setupComplete",
         "type" => "game",
         "action" => "stSetupComplete",
-        "transitions" => ["playerTurn" => 4, "playerPieceSetup" => 2]
+        "transitions" => ["playerTurn" => ST_BEFORE_PLAYER_TURN, "playerPieceSetup" => ST_PLAYER_PIECE_SETUP]
     ],
 
-    4 => [
+    ST_BEFORE_PLAYER_TURN => [
+        "name" => "beforePlayerTurn",
+        "type" => "game",
+        "action" => "stBeforePlayerTurn",
+        "transitions" => [""=>ST_PLAYER_TURN]
+    ],
+
+    ST_PLAYER_TURN => [
         "name" => "playerTurn",
         "description" => clienttranslate('${actplayer} must choose an action'),
         "descriptionmyturn" => clienttranslate('${you} must choose an action'),
@@ -95,21 +101,21 @@ $machinestates = [
             //which one fits better
             "actActionSelected",
         ],
-        "transitions" => ['nextPlayer' => 5, 'playerTurn' => 4]
+        "transitions" => ['nextPlayer' => ST_NEXT_PLAYER_TURN, 'playerTurn' => ST_PLAYER_TURN]
     ],
 
-    5 => [
+    ST_NEXT_PLAYER_TURN => [
         "name" => "nextPlayer",
         "description" => '',
         "type" => "game",
         "action" => "stNextPlayer",
         "updateGameProgression" => true,
-        "transitions" => ["endGame" => 99, "nextPlayer" => 4]
+        "transitions" => ["endGame" => ST_END_GAME, "nextPlayer" => ST_BEFORE_PLAYER_TURN]
     ],
 
     // Final state.
     // Please do not modify (and do not overload action/args methods).
-    99 => [
+    ST_END_GAME => [
         "name" => "gameEnd",
         "description" => clienttranslate("End of game"),
         "type" => "manager",

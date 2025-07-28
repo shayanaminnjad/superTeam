@@ -308,7 +308,6 @@ class Game extends \Table
 
     public function stSetupComplete() : void
     {
-        $previousPlayerstr = $this->getActivePlayerId();
         $previousPlayerId = (int)$this->getActivePlayerId();
         $this->giveExtraTime($previousPlayerId);
                
@@ -322,6 +321,13 @@ class Game extends \Table
         {
             $this->gamestate->nextState("playerTurn");
         }
+    }
+
+    public function stBeforePlayerTurn() : void
+    {
+        //TODO: fresh all exhusted players!
+
+        $this->gamestate->nextState("");
     }
 
     /**
