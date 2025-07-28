@@ -9,5 +9,3 @@ const ST_PLAYER_TURN = 5;
 const ST_NEXT_PLAYER_TURN = 6;
 
 const ST_END_GAME = 99; 
-
-?>

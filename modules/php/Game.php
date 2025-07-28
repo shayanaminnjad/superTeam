@@ -23,6 +23,8 @@ use Exception;
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
+use Bga\Games\SuperTeam\Card;
+use Bga\Games\SuperTeam\HexId;
 
 enum PlayerRole: int
 {
@@ -39,32 +41,8 @@ enum PlayerSide : int
     case Right = 2;
 }
 
-class HexID
-{
-    private int $column;
-    private int $row;
-
-    public function __construct(int $column, int $row)
-    {
-        $this->column = $column;
-        $this->row = $row;
-    }
-
-    public function getRow() : int
-    {
-        return $this->row;
-    }
-
-    public function getColumn(): int
-    {
-        return $this->column;
-    }
-}
-
 class Game extends \Table
 {
-    private static array $CARD_TYPES;
-
     //(sha) THESE are board specific logic and should be inside their own class.
     private readonly HexID $CENTER_POSITION;
     private readonly array $LEFT_PLAYER_STARTING_POSITIONS;
@@ -95,16 +73,6 @@ class Game extends \Table
             "user_in_left_id" => 11,
             "user_in_right_id" => 12,
         ]);        
-
-        self::$CARD_TYPES = [
-            1 => [
-                "card_name" => clienttranslate('Troll'), // ...
-            ],
-            2 => [
-                "card_name" => clienttranslate('Goblin'), // ...
-            ],
-            // ...
-        ];
 
         $this->CENTER_POSITION = new HexID(8, 5);
         $this->LEFT_PLAYER_STARTING_POSITIONS = [new HexID(4, 3), new HexID(4, 5), new HexID(4, 7), new HexID(6, 2), new HexID(6, 5), new HexID(6, 8)];
@@ -251,34 +219,36 @@ class Game extends \Table
 
     public function actPlacedPiece(int $placedPiece, int $hexColumn, int $hexRow): void
     {
-        $playerId = (int)$this->getActivePlayerId();
+        $playerPieceSetupArgs = $this->argPlayerPieceSetup();
 
-        $board = $this->getBoard();
-        $playerSide = $this->getPlayerSide(strval($playerId));
-        $IsFirstPlayer = $this->IsCurrentPlayerFirstPlayer();
+        $availablePositions = $playerPieceSetupArgs["availableStartingPositions"];
+        $pieceToPlace = $playerPieceSetupArgs["pieceToPlace"];
 
-        $playerStartingPositions = $playerSide === PlayerSide::Left ? $this->LEFT_PLAYER_STARTING_POSITIONS : $this->RIGHT_PLAYER_STARTING_POSITIONS;
-
-        if ($IsFirstPlayer)
+        $isValidPosition = false;
+        for ($i = 0; $i < count($availablePositions); $i++ )
         {
-            $playerStartingPositions[] = $this->CENTER_POSITION;
+            $currentPosition= $availablePositions[$i];
+
+            if ($currentPosition['hex_column'] === $hexColumn && $currentPosition['hex_row'] === $hexRow)
+            {
+                $isValidPosition = true;
+                break;
+            }
         }
-        
-        if (!in_array(new HexID($hexColumn, $hexRow), $playerStartingPositions)) 
+
+        if (!$isValidPosition) 
         {
             throw new \BgaUserException("Invalid hex position for placing a piece! (" . $hexColumn . ", " . $hexRow . ")");
         }
 
-        if ($board[$hexColumn][$hexRow]['piece_id'] !== null) 
+        if ($placedPiece !== intval($pieceToPlace))
         {
-            throw new \BgaUserException("There is already a piece placed in this hex!");
+            throw new \BgaUserException("peice placed is not valid! piece to be placed id was " .  $pieceToPlace . ", received " . $placedPiece);
         }
 
-        //TODO: if this is the first player, and center is empty, and the piece is the last one, then again issue an error!
-
-        //TODO: piece id also must be the same Id that we sent to the client side.
-
         $this->DbQuery("UPDATE `board` SET `piece_id` = $placedPiece WHERE `hex_column` = $hexColumn AND `hex_row` = $hexRow");
+
+        $playerId = (int)$this->getActivePlayerId();
 
         $this->notify->all("placedPiece", clienttranslate('${player_name} places a piece'), [
             "player_id" => $playerId,
@@ -325,7 +295,9 @@ class Game extends \Table
 
     public function stBeforePlayerTurn() : void
     {
-        //TODO: fresh all exhusted players!
+        //TODO: fresh all exhusted players
+
+        //TODO: restart card played counter
 
         $this->gamestate->nextState("");
     }
