@@ -90,6 +90,10 @@ $machinestates = [
         "transitions" => [""=>ST_PLAYER_TURN]
     ],
 
+    //TODO: add after player turn, here we draw back to player hand size
+
+    //TODO: add half game state. fatigus are removed.
+
     ST_PLAYER_TURN => [
         "name" => "playerTurn",
         "description" => clienttranslate('${actplayer} must choose an action'),

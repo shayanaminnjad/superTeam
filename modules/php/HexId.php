@@ -22,4 +22,14 @@ class HexID
     {
         return $this->column;
     }
+
+    public function convertToArray() : array
+    {
+        return ['hex_column'=> $this->column, 'hex_row' =>$this->row];
+    }
+
+    public function equals(HexID $rhs) : bool
+    {
+        return $this->row == $rhs->row && $this->column == $rhs->column;
+    }
 }

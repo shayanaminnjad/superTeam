@@ -23,17 +23,15 @@ CREATE TABLE IF NOT EXISTS `player_pieces` (
     `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
     `owner_id` int (10) unsigned NOT NULL,
     `piece_role` SMALLINT unsigned NOT NULL,
-    `is_fresh` BOOLEAN DEFAULT TRUE
+    `is_fresh` BOOLEAN DEFAULT TRUE,
+    `hex_column` INT DEFAULT -1,
+    `hex_row` INT DEFAULT -1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `board` (
-    `hex_column` SMALLINT unsigned NOT NULL,
-    `hex_row` SMALLINT unsigned NOT NULL,
-    `piece_id` INTEGER DEFAULT NULL,
-    `has_ball` BOOLEAN DEFAULT FALSE,
-    PRIMARY KEY (`hex_column`, `hex_row`)
+CREATE TABLE IF NOT EXISTS `ball` (
+    `hex_column` INT DEFAULT -1,
+    `hex_row` INT DEFAULT -1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 
 -- Example 2: add a custom field to the standard "player" table
 -- ALTER TABLE `player` ADD `player_my_custom_field` INT UNSIGNED NOT NULL DEFAULT '0';

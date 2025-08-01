@@ -178,7 +178,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
             this.setPiecesData(gamedatas);
 
-            this.placePieces(gamedatas);
+            //TODO: place the ball
 
             this.initHexClickListener();
         },
@@ -313,51 +313,31 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
             let piecesData = gameDatas["player_pieces"];
 
+            console.log(piecesData);
+
             for (let i = 0; i < piecesData.length; ++i)
             {
                 let el = piecesData[i];
+                let pieceData = this.createPlayerPiece(el.owner_id, parseInt(el.id), null, el.is_fresh === '1', parseInt(el.piece_role));
                 this.piecesDataMap.set(
                     parseInt(el.id),
-                    this.createPlayerPiece(el.owner_id, parseInt(el.id), null, el.is_fresh === '1', parseInt(el.piece_role))
+                    pieceData
                 );
+
+                let hexColumn = el.hex_column;
+                let hexRow = el.hex_row;
+
+                if (hexColumn != -1 && hexRow != -1)
+                {
+                    let offsetCoord = STHexLib.createOffsetCoord(hexRow, hexColumn);
+                    this.addPieceToBoard(pieceData.getOwner(), offsetCoord, pieceData);
+                }
             }
         },
 
         getHexWithBall: function()
         {
             return this.hexWithBall;
-        },
-
-        placePieces: function(gameDatas)
-        {
-            let boardData = gameDatas["board"];
-
-            for (let i = 0; i < boardData.length; ++i)
-            {
-                let el = boardData[i];
-
-                let hexColumn = el.hex_column;
-                let hexRow = el.hex_row;
-
-                let offsetCoord = STHexLib.createOffsetCoord(hexRow, hexColumn);
-                if (el.has_ball === '1')
-                {
-                    hexWithBall = offsetCoord;
-                }
-                else if (el.piece_id !== null)
-                {
-                    let pieceData = this.piecesDataMap.get(parseInt(el.piece_id));
-
-                    this.assert(pieceData != null, "piece data not found for piece id: " + el.piece_id);
-
-                    this.addPieceToBoard(pieceData.getOwner(), offsetCoord, pieceData);
-                }
-                else
-                {
-                    console.log(el);
-                    this.assert(false, "what is this info? " + el);
-                }
-            }
         },
 
         addPieceToBoard: async function(player, offsetCoord, pieceData)
@@ -522,6 +502,8 @@ function (dojo, declare, STUIConstants, STHexLib) {
                 let hexEl = document.getElementById(hexId);
 
                 hexEl.classList.add('availableToPlacePiece');
+
+                STHexLib.createOffsetCoord()
             }
         },
 

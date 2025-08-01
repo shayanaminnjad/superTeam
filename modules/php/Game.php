@@ -23,36 +23,10 @@ use Exception;
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
-use Bga\Games\SuperTeam\Card;
-use Bga\Games\SuperTeam\HexId;
-
-enum PlayerRole: int
-{
-    case None = 0;
-    case GoalKeeper = 1;
-    case Captain = 2;
-    case Regular = 3;
-}
-
-enum PlayerSide : int
-{
-    case None = 0;
-    case Left = 1;
-    case Right = 2;
-}
 
 class Game extends \Table
 {
-    //(sha) THESE are board specific logic and should be inside their own class.
-    private readonly HexID $CENTER_POSITION;
-    private readonly array $LEFT_PLAYER_STARTING_POSITIONS;
-    private readonly HEXID $LEFT_PLAYER_GOALIE_POSITION;
-    private readonly array $RIGHT_PLAYER_STARTING_POSITIONS;
-    private readonly HEXID $RIGHT_PLAYER_GOALIE_POSITION;
-
-    private readonly int $BOARD_COLUMNS;
-    private readonly int $BOARD_EVEN_COLS_ROWS;
-    private readonly int $BOARD_ODD_COLS_ROWS;
+    private ?Board $cachedBoard = null;
 
     /**
      * Your global variables labels:
@@ -68,21 +42,14 @@ class Game extends \Table
     {
         parent::__construct();
 
+        BoardInfo::init();
+
         $this->initGameStateLabels([
             "game_half" => 10,
             "user_in_left_id" => 11,
             "user_in_right_id" => 12,
+            "ball_position" => 13,
         ]);        
-
-        $this->CENTER_POSITION = new HexID(8, 5);
-        $this->LEFT_PLAYER_STARTING_POSITIONS = [new HexID(4, 3), new HexID(4, 5), new HexID(4, 7), new HexID(6, 2), new HexID(6, 5), new HexID(6, 8)];
-        $this->LEFT_PLAYER_GOALIE_POSITION = new HexID(0, 5);
-        $this->RIGHT_PLAYER_STARTING_POSITIONS = [new HexID(12, 3), new HexID(12, 5), new HexID(12, 7), new HexID(10, 2), new HexID(10, 5), new HexID(10, 8)];
-        $this->RIGHT_PLAYER_GOALIE_POSITION = new HexID(16, 5);
-
-        $this->BOARD_COLUMNS = 17;
-        $this->BOARD_EVEN_COLS_ROWS = 11;
-        $this->BOARD_ODD_COLS_ROWS = 10;
 
         /* example of notification decorator.
         // automatically complete notification args when needed
@@ -154,66 +121,57 @@ class Game extends \Table
 
     public function argPlayerPieceSetup(): array
     {
+        //get pieces that can be placed.
         $board = $this->getBoard();
-        $playerSide = $this->getPlayerSide(strval($this->getActivePlayerId()));
-        $IsFirstPlayer = $this->IsCurrentPlayerFirstPlayer();
-        $placedPieces = [];
-
-        $playerStartingPositions = $playerSide === PlayerSide::Left ? $this->LEFT_PLAYER_STARTING_POSITIONS : $this->RIGHT_PLAYER_STARTING_POSITIONS;
-
-        if ($IsFirstPlayer)
+        $playerPieces = $board->getPlayerPiecesByOwner(intval($this->getActivePlayerId()));
+        
+        $availablePieces = array_filter($playerPieces, function($piece)
         {
-            $playerStartingPositions[] = $this->CENTER_POSITION;
-        }
-
-        $possibleLocations = [];
-        for($i = 0; $i < count($playerStartingPositions); $i++)
-        {
-            $hexData = $board[$playerStartingPositions[$i]->getColumn()][$playerStartingPositions[$i]->getRow()];
-            $pieceId = $hexData['piece_id'];
-
-            if ($pieceId === null)
-            {
-                $possibleLocations[] = ['hex_column' => $playerStartingPositions[$i]->getColumn(), 'hex_row' => $playerStartingPositions[$i]->getRow()];
-            }
-            else
-            {
-                $placedPieces[] = $pieceId;
-            }
-        }
-
-        $playerPiecesData = $this->getPlayerPiecesData();
-        $availablePieces = array_filter($playerPiecesData, function ($piece) use ($placedPieces) 
-        {
-            return !in_array($piece['id'], $placedPieces) && $piece['owner_id'] === $this->getActivePlayerId() && $piece['piece_role'] != PlayerRole::GoalKeeper->value;
+            return !$piece->hasValidPosition();
         });
-
+        
         usort($availablePieces, function ($a, $b)
         {
-            return $a['id'] <=> $b['id'];
+            return $a->getId() <=> $b->getId();
         });
-
+        
         $pieceToPlaceId = 0;
         if (count($availablePieces) > 0)
         {
-            $pieceToPlaceId = $availablePieces[0]['id'];
+            $pieceToPlaceId = $availablePieces[0]->getId();
         }
+            
+        //get available positions
+        $playerSide = $this->getPlayerSide(intval($this->getActivePlayerId()));
+        $IsFirstPlayer = $this->isCurrentPlayerFirstPlayer();
 
+        $possibleLocations = [];
         //Special case where center is not set by the first player.
-        if ($IsFirstPlayer && count($availablePieces) == 1)
+        if ($IsFirstPlayer && count($availablePieces) == 1 && !$board->hasPlayerInHex(BoardInfo::$CENTER_POSITION))
         {
-            $hexData = $board[$this->CENTER_POSITION->getColumn()][$this->CENTER_POSITION->getRow()];
-            $pieceId = $hexData['piece_id'];
+            $possibleLocations = [BoardInfo::$CENTER_POSITION->convertToArray()];
+        }
+        else
+        {
+            $playerStartingPositions = $playerSide === PlayerSide::Left ? BoardInfo::$LEFT_PLAYER_STARTING_POSITIONS : BoardInfo::$RIGHT_PLAYER_STARTING_POSITIONS;
 
-            if ($pieceId === null)
+            if ($IsFirstPlayer) 
             {
-                $possibleLocations = [['hex_column' => $this->CENTER_POSITION->getColumn(), 'hex_row' => $this->CENTER_POSITION->getRow()]];
+                $playerStartingPositions[] = BoardInfo::$CENTER_POSITION;
+            }
+
+            for ($i = 0; $i < count($playerStartingPositions); $i++) 
+            {
+                if ($board->hasPlayerInHex($playerStartingPositions[$i]) == false) 
+                {
+                    $possibleLocations[] = $playerStartingPositions[$i]->convertToArray();
+                }
             }
         }
 
         return [
             "availableStartingPositions" => $possibleLocations,
-            "pieceToPlace"=> $pieceToPlaceId
+            "pieceToPlace"=> $pieceToPlaceId,
         ];
     }
 
@@ -238,15 +196,15 @@ class Game extends \Table
 
         if (!$isValidPosition) 
         {
-            throw new \BgaUserException("Invalid hex position for placing a piece! (" . $hexColumn . ", " . $hexRow . ")");
+            throw new BgaUserException("Invalid hex position for placing a piece! (" . $hexColumn . ", " . $hexRow . ")");
         }
 
         if ($placedPiece !== intval($pieceToPlace))
         {
-            throw new \BgaUserException("peice placed is not valid! piece to be placed id was " .  $pieceToPlace . ", received " . $placedPiece);
+            throw new BgaUserException("peice placed is not valid! piece to be placed id was " .  $pieceToPlace . ", received " . $placedPiece);
         }
 
-        $this->DbQuery("UPDATE `board` SET `piece_id` = $placedPiece WHERE `hex_column` = $hexColumn AND `hex_row` = $hexRow");
+        $this->DbQuery("UPDATE `player_pieces` SET `hex_column` = $hexColumn, `hex_row` = $hexRow WHERE `id` = $placedPiece ");
 
         $playerId = (int)$this->getActivePlayerId();
 
@@ -269,10 +227,14 @@ class Game extends \Table
     }
 
     public function actActionSelected() : void
-    {}
+    {
+        //TODO: Probably I get the board here, so updateAttacker and defender can work on it.
+        $this->updateAttackerAndDefender();
+    }
 
     public function argDoAction() : array
     {
+        $this->actActionSelected();
         return ['possibleActions' => [1, 2, 3, 4]];
     }
 
@@ -344,7 +306,7 @@ class Game extends \Table
      * You don't have to care about this until your game has been published on BGA. Once your game is on BGA, this
      * method is called everytime the system detects a game running with your old database scheme. In this case, if you
      * change your database scheme, you just have to apply the needed changes in order to update the game database and
-     * allow the game to continue to run with your new version.
+     * allow the to continue to run with your new version.
      *
      * @param int $from_version
      * @return void
@@ -389,8 +351,8 @@ class Game extends \Table
             "SELECT `player_id` `id`, `player_score` `score` FROM `player`"
         );
 
-        $result["board"] = $this->getObjectListFromDB("SELECT `hex_column`, `hex_row`, `piece_id`, `has_ball` FROM `board` WHERE `piece_id` IS NOT NULL OR `has_ball` IS TRUE ");
         $result["player_pieces"] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
+        $result["ball"] = $this->getObjectFromDB("SELECT * FROM `ball`");
 
         return $result;
     }
@@ -500,13 +462,9 @@ class Game extends \Table
 
     private function initBoard(array $players):void
     {
-        $this->initPlayersPieces($players);
+        $centerPos = BoardInfo::$CENTER_POSITION;
+        $this->DbQuery("INSERT INTO ball (hex_column, hex_row) VALUES ({$centerPos->getColumn()},{$centerPos->getRow()})");
 
-        $this->initHexes($players);
-    }
-
-    private function initPlayersPieces(array $players) : void
-    {
         list ($orangePlayer, $bluePlayer) = array_keys($players);
 
         $this->initAPlayerPiece($orangePlayer);
@@ -515,61 +473,17 @@ class Game extends \Table
 
     private function initAPlayerPiece(int $playerId) : void
     {
-        $sqlQuery = "INSERT INTO player_pieces (owner_id, piece_role, is_fresh) VALUES ";
+        $playerSide = $this->getPlayerSide($playerId);
+        $goaliePos = $playerSide === PlayerSide::Left ? BoardInfo::$LEFT_PLAYER_GOALIE_POSITION : BoardInfo::$RIGHT_PLAYER_GOALIE_POSITION;
 
-        $sqlValues[] = "($playerId," . PlayerRole::GoalKeeper->value . ", 1)";
-        $sqlValues[] = "($playerId," . PlayerRole::Captain->value . ", 1)";
+        $sqlQuery = "INSERT INTO player_pieces (owner_id, piece_role, is_fresh, hex_column, hex_row) VALUES ";
+
+        $sqlValues[] = "($playerId," . PlayerRole::GoalKeeper->value . ", 1," . $goaliePos->getColumn() . ", " . $goaliePos->getRow() .")";
+        $sqlValues[] = "($playerId," . PlayerRole::Captain->value . ", 1, -1, -1)";
 
         for ($i = 3; $i <= 6; $i++) 
-    {
-            $sqlValues[] = "($playerId, " . PlayerRole::Regular->value . ", 1)";
-        }
-
-        $sqlQuery .= implode(',', $sqlValues);
-
-        $this->DbQuery($sqlQuery);
-    }
-
-    private function initHexes(array $players) : void
-    {
-        $sqlQuery = "INSERT INTO board (hex_column, hex_row, piece_id, has_ball) VALUES ";
-        $sqlValues = [];
-
-        list ($orangePlayer, $bluePlayer) = array_keys($players);
-
-        $orangePlayerSide = $this->getPlayerSide(strval($orangePlayer));
-        
-        for ($i = 0; $i < $this->BOARD_COLUMNS; $i++)
         {
-            $rows = ($i + 1) % 2 == 0 ? $this->BOARD_ODD_COLS_ROWS : $this->BOARD_EVEN_COLS_ROWS;
-
-            for ($j = 0; $j < $rows; $j++)
-            {
-                $hasBall = 0;
-                $pieceId = 'NULL';
-
-                if ($i == $this->CENTER_POSITION->getColumn() && $j == $this->CENTER_POSITION->getRow())
-                {
-                    $hasBall = 1;
-                }
-
-                if ($i == $this->LEFT_PLAYER_GOALIE_POSITION->getColumn() && $j == $this->LEFT_PLAYER_GOALIE_POSITION->getRow())
-                {
-                    $teamId = $orangePlayerSide === PlayerSide::Left ? $orangePlayer : $bluePlayer;
-
-                    $pieceId = $this->getPlayerId($teamId, PlayerRole::GoalKeeper);
-                }
-                else if ($i == $this->RIGHT_PLAYER_GOALIE_POSITION->getColumn() && $j == $this->RIGHT_PLAYER_GOALIE_POSITION->getRow())
-                {
-                    $teamId = $orangePlayerSide === PlayerSide::Right ? $orangePlayer : $bluePlayer;
-
-                    $pieceId = $this->getPlayerId($teamId, PlayerRole::GoalKeeper);
-                }
-
-                 $pieceIdValue = ($pieceId === 'NULL') ? "NULL" : intval($pieceId);
-
-                $sqlValues[] = "($i, $j, $pieceIdValue, $hasBall)";
-            }
+            $sqlValues[] = "($playerId, " . PlayerRole::Regular->value . ", 1, -1, -1)";
         }
 
         $sqlQuery .= implode(',', $sqlValues);
@@ -577,22 +491,9 @@ class Game extends \Table
         $this->DbQuery($sqlQuery);
     }
 
-    private function getPlayerId(int $ownerId, PlayerRole $pieceRole): int
+    private function getPlayerSide(int $userId) : PlayerSide
     {
-        $query = "SELECT `id` FROM `player_pieces` WHERE `owner_id` = '$ownerId' AND `piece_role` = '" . $pieceRole->value . "'";
-
-        $result = $this->getUniqueValueFromDB($query);
-
-        if ($result === false) {
-            throw new \BgaUserException("Player piece not found for owner ID: $ownerId and role: " . $pieceRole->name);
-        }
-
-        return (int)$result;
-    }
-
-    private function getPlayerSide(string $userId) : PlayerSide
-    {
-        $userInLeftID = $this->getGameStateValue('user_in_left_id');
+        $userInLeftID = intval($this->getGameStateValue('user_in_left_id'));
 
         if ($userInLeftID === $userId) 
         {
@@ -600,23 +501,23 @@ class Game extends \Table
         } 
         else 
         {
-            assert($this->getGameStateValue('user_in_right_id') === $userId, 'Player side not found! A player must always have a side!');
+            assert(intval($this->getGameStateValue('user_in_right_id')) === $userId, 'Player side not found! A player must always have a side!');
 
             return PlayerSide::Right;
         }
     }
 
-    private function getBoard(): array
+    private function getBoard(): Board
     {
-        return $this->getDoubleKeyCollectionFromDB("SELECT `hex_column`, `hex_row`, `piece_id`, `has_ball` FROM `board`", false);
+        $query = PlayerPiecesDBManager::getPiecesDataQuery();
+        $piecesData = $this->getObjectListFromDB($query, false);
+        $ballPosition = $this->getObjectFromDB("SELECT hex_column, hex_row FROM `ball`");
+        $ballHex = new HexID(intval($ballPosition['hex_column']),intval( $ballPosition['hex_row']));
+
+        return new Board($piecesData, $ballHex);
     }
 
-    private function getPlayerPiecesData(): array
-    {
-        return $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
-    }
-
-    private function IsCurrentPlayerFirstPlayer(): bool
+    private function isCurrentPlayerFirstPlayer(): bool
     {
         $firstPlayerId = $this->getUniqueValueFromDB("SELECT `player_id` FROM `player` WHERE `player_no` = 1");
 
@@ -625,11 +526,26 @@ class Game extends \Table
 
     private function isPlayerSetupComplete(int $playerId) : bool
     {
-        $queryResult = $this->getObjectListFromDB(
-            "SELECT board.piece_id, player_pieces.owner_id 
-            FROM `board` JOIN `player_pieces` ON board.piece_id = player_pieces.id 
-            WHERE board.piece_id IS NOT NULL AND player_pieces.owner_id =" . $playerId);
+        $isComplete = true;
 
-        return count($queryResult) == 6;
+        $playerPieces = $this->getBoard()->getPlayerPiecesByOwner($playerId);
+
+        for ($i = 0; $i < count($playerPieces); $i++)
+        {
+            if (!$playerPieces[$i]->hasValidPosition())
+            {
+                $isComplete = false;
+                break;
+            }
+        }
+
+        return $isComplete;
+    }
+
+    private function updateAttackerAndDefender() : void
+    {
+        //Get the hex with the ball
+        //If the hex has a player, then the owner of that player is the attacker.
+        //otherwise do nothing.
     }
 }
