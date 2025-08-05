@@ -4,6 +4,8 @@ namespace Bga\Games\SuperTeam\Cards;
 
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\HexLib\HexLib;
+use Bga\Games\SuperTeam\GameDice\GameDice;
 
 enum CardType : int
 {
@@ -54,8 +56,17 @@ enum PassType : int
 class PassForwardCommand
 {
     private Board $board;
-    private $piecesData;
     private $currentPlayer;
+    private $opponentPlayer;
+    private $dbQueryCallback;
+
+    public function __construct(Board $board, $currentPlayer, $oppoenentPlayer, $dbQueryCallback)
+    {
+        $this->board = $board;
+        $this->currentPlayer = $currentPlayer;
+        $this->opponentPlayer = $oppoenentPlayer;
+        $this->dbQueryCallback = $dbQueryCallback;
+    }
 
     public function canBePlayed() : bool
     {
@@ -75,6 +86,10 @@ class PassForwardCommand
 
     public function getCommandArgs() : array
     {
+        //TODO: In general a pass can be onto any space that is not occupied by your opponent! however this card require us to pass in a certain way.
+
+        $ballHex = $this->board->getBallHex();
+        
         $playerPiecesInForwardColumns = $this->board->getPlayerPiecesInForwardColumns($ballHex->getColumn(), $this->currentPlayer);
         $piecesIds = [];
         for ($i = 0; $i < count($playerPiecesInForwardColumns); $i++)
@@ -90,17 +105,52 @@ class PassForwardCommand
         $passTarget = $actData['target'];
         $spentMorale = $actData['spentMorale'];
 
-        $targetHex = new HexID($passTarget['column'], $passTarget['row']);
+        //TOOD: This should be inside validation function!
+        if (intval($spentMorale) > 3)
+        {
+            throw new \BgaUserException("You cannot spend more than 3 morale on an action!");
+        }
 
-        HexLib::getHexesInPath($board->getBallHex(), )
+        $targetHex = new HexID($passTarget['column'], $passTarget['row']);
+        
         //TODO: This logic for pass must be encapsulated inside another class, it doesn't relate to here.
-        //calculate distance
-        //determine blocking pieces
-        //get required dice number
-        //roll a die to see whether it was successful or not
-        //calculate new ball location.
-        //update ball locatoin.
-        //notify all about all these changes.
+        $passDistance = HexLib::getOffsetDistance($this->board->getBallHex(), $targetHex);
+        
+        $opponentPieces = $this->board->getPlayerPiecesByOwner($this->opponentPlayer);
+        $hexesInPath = HexLib::getHexesInPath($this->board->getBallHex(), $targetHex, 1, $opponentPieces);
+        
+        $powerNeeded = ceil($passDistance * 0.5) + count($hexesInPath);
+
+        $greenRoll = GameDice::greenDie()->roll();
+        $whiteDieRes = [];
+
+        //TODO: get coach markers for pass action.
+        $coachMarkerCount = 1;
+        $whiteRollSum = 0;
+        for ($i = 0; $i < $coachMarkerCount; $i++)
+        {
+            $currentWhiteRollRes = GameDice::whiteDie()->roll();
+            $whiteRollSum += $currentWhiteRollRes;
+            $whiteDieRes[] = $currentWhiteRollRes;
+        }
+
+        $totalPlayerPower = $whiteRollSum + $greenRoll + $spentMorale;
+
+        $finalBallLocation = null;
+
+        if ($totalPlayerPower >= $powerNeeded)
+        {
+            $finalBallLocation = $targetHex;
+        }
+        else
+        {
+            //TODO: if there are opponent pieces on the way, give the ball to them, otherwise calculate half way, and move ball there.
+        }
+
+        //TODO: Store new ball location
+        call_user_func($this->dbQueryCallback, "");
+        
+        //TODO: notify all about all these changes.
     }
 }
 

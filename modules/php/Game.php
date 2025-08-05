@@ -23,7 +23,6 @@ use Exception;
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
-
 class Game extends \Table
 {
     private ?Board $cachedBoard = null;
