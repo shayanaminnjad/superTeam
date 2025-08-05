@@ -2,6 +2,7 @@
 
 namespace Bga\Games\SuperTeam;
 
+use Bga\Games\SuperTeam\HexLib\HexLib;
 use Exception;
 
 class Board
