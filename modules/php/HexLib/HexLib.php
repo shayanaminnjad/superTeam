@@ -70,4 +70,14 @@ class HexLib
 
         return $result;
     }
+
+    public static function getOffsetDistance(HexID $start, HexID $end)
+    {
+        $startCubic = self::offsetToCubic($start);
+        $endCubic = self::offsetToCubic($end);
+
+        $diff = $endCubic->subtract($startCubic);
+
+        return (abs($diff->getQ()) + abs($diff->getR()) + abs($diff->getS())) * 0.5;
+    }
 }
