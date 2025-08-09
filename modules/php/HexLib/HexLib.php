@@ -25,6 +25,41 @@ class HexLib
         return new HexID($c, $r);
     }
 
+    public static function cubicLerp(CubicCoordinate $a, CubicCoordinate $b, float $t) : CubicCoordinate
+    {
+        return new CubicCoordinate(
+            Math::lerp($a->getQ(), $b->getQ(), $t),
+            Math::lerp($a->getR(), $b->getR(), $t),
+            Math::lerp($a->getS(), $b->getS(), $t)
+        );
+    }
+
+    public static function cubicRound(CubicCoordinate $coordinate) : CubicCoordinate
+    {
+        $qRound = round($coordinate->getQ());
+        $rRound = round($coordinate->getR());
+        $sRound = round($coordinate->getS());
+
+        $qDiff = abs($qRound - $coordinate->getQ());
+        $rDiff = abs( $rRound - $coordinate->getR());
+        $sDiff = abs($sRound - $coordinate->getS());
+
+        if ($qDiff > $rDiff && $qDiff > $sDiff)
+        {
+            $qRound = -$rRound - $sRound;
+        }
+        else if ($rDiff > $sDiff)
+        {
+            $rRound = -$qRound - $sRound;
+        }
+        else
+        {
+            $sRound = $qRound - $rRound;
+        }
+
+        return new CubicCoordinate($qRound, $rRound, $sRound);
+    }
+
     public static function HexIDToCartesian(HexID $hexID) : Vector2
     {
         //sha: Since I don't want pixel perfect results, and only care about some relatively correct coordinates, I assume hex size is 1.
@@ -79,5 +114,22 @@ class HexLib
         $diff = $endCubic->subtract($startCubic);
 
         return (abs($diff->getQ()) + abs($diff->getR()) + abs($diff->getS())) * 0.5;
+    }
+
+    public static function getHexesInLine(HexID $start, HexID $end): array
+    {
+        $result = [];
+
+        $startCubic = self::offsetToCubic($start);
+        $endCubic = self::offsetToCubic($end);
+
+        $distance = self::getOffsetDistance($start, $end);
+
+        for ($i = 0; $i <= $distance; $i++)
+        {
+            $result[] = self::cubicRound(self::cubicLerp($startCubic , $endCubic, 1.0 / $distance * $i));
+        }
+
+        return $result;
     }
 }
