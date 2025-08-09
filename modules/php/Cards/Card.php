@@ -111,15 +111,17 @@ class PassForwardCommand
             throw new \BgaUserException("You cannot spend more than 3 morale on an action!");
         }
 
+        //TODO: target can't be current ball location!
+
         $targetHex = new HexID($passTarget['column'], $passTarget['row']);
-        
+        $ballHex = $this->board->getBallHex();
         //TODO: This logic for pass must be encapsulated inside another class, it doesn't relate to here.
-        $passDistance = HexLib::getOffsetDistance($this->board->getBallHex(), $targetHex);
+        $passDistance = HexLib::getOffsetDistance($ballHex, $targetHex);
         
         $opponentPieces = $this->board->getPlayerPiecesByOwner($this->opponentPlayer);
-        $hexesInPath = HexLib::getHexesInPath($this->board->getBallHex(), $targetHex, 1, $opponentPieces);
+        $opponentPiecesInPath = HexLib::getHexesInPath($ballHex, $targetHex, 1, $opponentPieces);
         
-        $powerNeeded = ceil($passDistance * 0.5) + count($hexesInPath);
+        $powerNeeded = ceil($passDistance * 0.5) + count($opponentPiecesInPath);
 
         $greenRoll = GameDice::greenDie()->roll();
         $whiteDieRes = [];
@@ -144,12 +146,35 @@ class PassForwardCommand
         }
         else
         {
-            //TODO: if there are opponent pieces on the way, give the ball to them, otherwise calculate half way, and move ball there.
+            if (count ($opponentPiecesInPath) > 0)
+            {
+                $nearestOpponent = null;
+                $nearestOpponentDistance = 1000; //1000 is way beyond the furthest distance we can have.
+
+                //TODO: asked amir about this, if two opponent pieces have the same distance from the ball, then how should we determine which one will get the ball?
+                //right now I only find the closest one, and don't solve the above edge case.
+                for ($i = 0; $i < count ($opponentPiecesInPath); $i++)
+                {
+                    $currentOpponentDistance = HexLib::getOffsetDistance($ballHex, $opponentPiecesInPath[$i]);
+
+                    if ($currentOpponentDistance < $nearestOpponentDistance)
+                    {
+                        $nearestOpponent = $opponentPiecesInPath[$i];
+                    }
+                }
+
+                $finalBallLocation = $nearestOpponent;
+            }
+            else 
+            {
+                $hexesInLine = HexLib::getHexesInLine($ballHex, $targetHex);
+                $hexInMiddle = ceil((count($hexesInLine) - 1) / 2.0);
+
+                $finalBallLocation = $hexesInLine[$hexInMiddle];
+            }
         }
 
         //TODO: Store new ball location
-        call_user_func($this->dbQueryCallback, "");
-        
         //TODO: notify all about all these changes.
     }
 }
