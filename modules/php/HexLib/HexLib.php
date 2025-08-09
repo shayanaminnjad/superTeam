@@ -120,6 +120,13 @@ class HexLib
     {
         $result = [];
 
+        if ($start->equals($end))
+        {
+            $result[] = $start;
+
+            return $result;
+        }
+
         $startCubic = self::offsetToCubic($start);
         $endCubic = self::offsetToCubic($end);
 
@@ -127,7 +134,9 @@ class HexLib
 
         for ($i = 0; $i <= $distance; $i++)
         {
-            $result[] = self::cubicRound(self::cubicLerp($startCubic , $endCubic, 1.0 / $distance * $i));
+            $cubicCoordinateOnLine = self::cubicRound(self::cubicLerp($startCubic , $endCubic, 1.0 / $distance * $i));
+
+            $result[] = self::cubicToHexID($cubicCoordinateOnLine);
         }
 
         return $result;
