@@ -25,8 +25,6 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
 class Game extends \Table
 {
-    private ?Board $cachedBoard = null;
-
     /**
      * Your global variables labels:
      *
@@ -42,6 +40,10 @@ class Game extends \Table
         parent::__construct();
 
         BoardInfo::init();
+        DBAdapter::getInstance()->init(
+     fn($sql) => $this->getObjectListFromDB($sql),
+      fn($sql)=> $this->getObjectFromDB($sql),
+        fn($sql) => $this->DbQuery($sql));
 
         $this->initGameStateLabels([
             "game_half" => 10,
