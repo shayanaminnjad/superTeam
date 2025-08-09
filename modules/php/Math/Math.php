@@ -26,4 +26,9 @@ class Math
     {
         return $lhs->x * $lhs->y - $lhs->y * $rhs->x;
     }
+
+    public static function lerp(float $a, float $b, float $t) : float
+    {
+        return $a + ($b - $a) * $t;
+    }
 }
