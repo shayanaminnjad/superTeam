@@ -104,9 +104,12 @@ function (dojo, declare, STUIConstants, STHexLib) {
                 switch( stateName )
                 {
                  case 'playerTurn':    
-                        this.statusBar.addActionButton(_('player card'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
-                        this.statusBar.addActionButton(_('do auxilary'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
-                        this.statusBar.addActionButton(_('pass'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'secondary' });
+                        this.statusBar.addActionButton(_('Play a card'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
+                        this.statusBar.addActionButton(_('1 Movement'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
+                        this.statusBar.addActionButton(_('Pass Forward'), () => this.bgaPerformAction("actPassForward"), { color: 'primary' });
+                        this.statusBar.addActionButton(_('Shoot'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
+                        this.statusBar.addActionButton(_('Dribble'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
+                        this.statusBar.addActionButton(_('End Turn'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'secondary' });
                         break;
                     /*const playableCardsIds = args.playableCardsIds; // returned by the argPlayerTurn
 
@@ -115,9 +118,6 @@ function (dojo, declare, STUIConstants, STHexLib) {
                         cardId => this.statusBar.addActionButton(_('Play card with id ${card_id}').replace('${card_id}', cardId), () => this.onCardClick(cardId))
                     ); 
                     */
-                    case 'playerPieceSetup':
-                        this.statusBar.addActionButton(_('Confirm placement'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
-                        break;
                 }
             }
         },        
@@ -192,19 +192,30 @@ function (dojo, declare, STUIConstants, STHexLib) {
             });
         },
 
-        onHexClicked: function(evt)
+        onHexClicked: async function(evt)
         {
             evt.preventDefault();
             evt.stopPropagation();
 
-            if (this.currentStateData.name === 'playerPieceSetup')
+            if (this.currentStateData.name === 'playerPieceSetup' && !this.isWaitingForServerResponse)
             {
                 if (evt.currentTarget.classList.contains('availableToPlacePiece'))
                 {
                     var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
 
-                    //TODO: Actually this should not automatically confirm!
-                    this.bgaPerformAction("actPlacedPiece", {placedPiece: this.currentStateData.args.pieceToPlace, hexColumn: offsetCoord.c, hexRow: offsetCoord.r});
+                    try
+                    {
+                        this.isWaitingForServerResponse = true;
+                        await this.bgaPerformAction("actPlacedPiece", {placedPiece: this.currentStateData.args.pieceToPlace, hexColumn: offsetCoord.c, hexRow: offsetCoord.r}, { lock: true, checkAction: true});
+                    }
+                    catch(error)
+                    {
+                        console.error( "Server action failed, exception caught:", error );
+                    }
+                    finally
+                    {
+                        this.isWaitingForServerResponse = false;
+                    }
                 }
             }
 
@@ -620,5 +631,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
         myColor: null,
 
         opponentColor: null,
+
+        isWaitingForServerResponse: false,
    });             
 });
