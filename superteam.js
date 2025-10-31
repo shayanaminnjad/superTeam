@@ -178,7 +178,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
             this.setPiecesData(gamedatas);
 
-            //TODO: place the ball
+            this.addBallToBoard(gamedatas);
 
             this.initHexClickListener();
         },
@@ -366,6 +366,23 @@ function (dojo, declare, STUIConstants, STHexLib) {
             
             const HEX_ID = `hex_${offsetCoord.r}_${offsetCoord.c}`;
             const anim = this.slideToObject( PIECE_DOM_ID, HEX_ID );
+            
+            await this.bgaPlayDojoAnimation(anim);
+        },
+
+        addBallToBoard: async function(gamedatas)
+        {
+            let ballData = gamedatas['ball'];
+
+            this.hexWithBall = STHexLib.createOffsetCoord(ballData.hex_row, ballData.hex_column);
+
+            console.log("hex with ball is " + this.hexWithBall);
+
+            const MAIN_BOARD_EL = document.getElementById('mainBoard');
+            MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id="ball" class="ball" ></div>`);
+
+            const HEX_ID = `hex_${this.hexWithBall.r}_${this.hexWithBall.c}`;
+            const anim = this.slideToObject('ball', HEX_ID );
             
             await this.bgaPlayDojoAnimation(anim);
         },
