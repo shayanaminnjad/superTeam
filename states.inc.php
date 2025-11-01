@@ -72,6 +72,7 @@ $machinestates = [
         "possibleactions" => [
             // these actions are called from the front with bgaPerformAction, and matched to the function on the game.php file
             "actPlacedPiece", 
+            "actDebugDefaultPlacePieces"
         ],
         "transitions" => ["playerPieceSetup" => ST_PLAYER_PIECE_SETUP, "setupComplete" => ST_SETUP_COMPLETE]
     ],
@@ -99,13 +100,40 @@ $machinestates = [
         "description" => clienttranslate('${actplayer} must choose an action'),
         "descriptionmyturn" => clienttranslate('${you} must choose an action'),
         "type" => "activeplayer",
-        "args" => "argDoAction",
+        "args" => "argActionSelection",
         "possibleactions" => [
             //(sha) TODO: I can have multiple actions, or a single action with a multiple parameters, I should see
             //which one fits better
             "actActionSelected",
+            "actPassForward",
         ],
-        "transitions" => ['nextPlayer' => ST_NEXT_PLAYER_TURN, 'playerTurn' => ST_PLAYER_TURN]
+        "transitions" => ['nextPlayer' => ST_NEXT_PLAYER_TURN, 'playerTurn' => ST_PLAYER_TURN, 'moveAction' => ST_PIECE_SELECTION]
+    ],
+
+    ST_PIECE_SELECTION => [
+        "name" => "pieceSelection",
+        "description" => clienttranslate('${actplayer} is choosing a piece'),
+        "descriptionmyturn" => clienttranslate('${you} must choose a piece'),
+        "type" => "activeplayer",
+        "args" => "argPieceSelection",
+        "possibleactions" => [
+            "actPieceSelected"
+        ],
+
+        "transitions" => ['moveAction' => ST_MOVE_ACTION]
+    ],
+
+    ST_MOVE_ACTION => [
+        "name" => "moveAction",
+        "description" => clienttranslate('${actplayer} is moving a piece'),
+        "descriptionmyturn" => clienttranslate('move the selected piece'),
+        "type" => "activeplayer",
+        "args" => "argMoveAction",
+        "possibleactions" => [
+            "actPieceMoved"
+        ],
+
+        "transitions" => ['moveAction' => ST_MOVE_ACTION, 'moveDone'=> ST_PLAYER_TURN]
     ],
 
     ST_NEXT_PLAYER_TURN => [

@@ -122,7 +122,7 @@
     border-width: 2px;
     border-style: solid;
     pointer-events: none;
-        /*background-image: url('img/peices.png');
+    /*background-image: url('img/peices.png');
     background-size: auto 100%;
     background-position: 24%;*/
 }
@@ -147,6 +147,16 @@
     border-style: solid;
     color: red;
     pointer-events: none;
+}
+
+.piece.clickable {
+    box-shadow: 0 0 8px 4px yellow;
+    pointer-events: auto !important;
+    cursor: pointer;
+}
+
+.piece.clickable:hover{
+    transform: scale(1.1);
 }
 
 .ball {

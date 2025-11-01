@@ -6,8 +6,43 @@ use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\Math\Vector2;
 use Bga\Games\SuperTeam\Math\Math;
 
+enum Direction : int
+{
+    case NORTHEAST = 0;
+    case NORTH = 1;
+    case NORTHWEST = 2;
+    case SOUTHWEST = 3;
+    case SOUTH = 4;
+    case SOUTHEAST = 5;
+    case COUNT = 6;
+}
+
+
+
 class HexLib
 {
+    //TODO: This should be really set from outside, but for now it is ok.
+    private static ?OffsetExtent $offsetExtent = null;
+
+    public static function getOffsetExtent(): OffsetExtent
+    {
+        return self::$offsetExtent ??= new OffsetExtent(0, 16, 0, 9, 0, 10);
+    }
+
+    private static ?array $CUBIC_DIRECTIONS = null;
+
+    public static function getCubicDirections(): array
+    {
+        return self::$CUBIC_DIRECTIONS ??= [
+            new CubicCoordinate(1, -1, 0),
+            new CubicCoordinate(0, -1, 1),
+            new CubicCoordinate(-1, 0, 1),
+            new CubicCoordinate(-1, 1, 0),
+            new CubicCoordinate(0, 1, -1),
+            new CubicCoordinate(1, 0, -1),
+        ];
+    }
+
     public static function offsetToCubic(HexID $hexID) : CubicCoordinate
     {
         $q = $hexID->getColumn();
@@ -137,6 +172,43 @@ class HexLib
             $cubicCoordinateOnLine = self::cubicRound(self::cubicLerp($startCubic , $endCubic, 1.0 / $distance * $i));
 
             $result[] = self::cubicToHexID($cubicCoordinateOnLine);
+        }
+
+        return $result;
+    }
+
+    public static function getNeighbour(CubicCoordinate $cubicCoordinate, CubicCoordinate $direction) : CubicCoordinate
+    {
+        return $cubicCoordinate->add($direction);
+    }
+
+    public static function getNeighbours(CubicCoordinate $cubicCoord, int $dist) : array
+    {
+        $result = [];
+
+        $directions = self::getCubicDirections();
+        $offsetExtent = self::getOffsetExtent();
+
+        for ($currDist = 1; $currDist < $dist; $currDist++)
+        {
+            $currentHex = self::getNeighbour($cubicCoord, $directions[intval(Direction::SOUTH)]->scale($currDist));
+
+            if ($offsetExtent->isInsideExtent(self::cubicToHexID($currentHex)))
+            {
+                $result[] = $currentHex;
+            }
+
+            for ($currDir = 0; $currDir < intval(Direction::COUNT); $currDir++)
+            {
+                for ($i = 0;$i < $currDist; $i++)
+                {
+                    $currentHex = self::getNeighbour($currentHex, $directions[$currDir]);
+                    if ($offsetExtent->isInsideExtent(self::cubicToHexID($currentHex)))
+                    {
+                        $result[] = $currentHex;
+                    }
+                }
+            }
         }
 
         return $result;

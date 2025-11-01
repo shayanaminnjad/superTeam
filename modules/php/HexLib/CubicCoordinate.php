@@ -42,6 +42,11 @@ class CubicCoordinate
         return new CubicCoordinate($this->q - $rhs->q, $this->r - $rhs->r, $this->s - $rhs->s);
     }
 
+    public function scale(int $factor):CubicCoordinate
+    {
+        return new CubicCoordinate($this->q * $factor, $this->r * $factor, $this->s * $factor);
+    }
+
     //====================================
 
     public static function distance(CubicCoordinate $start,CubicCoordinate $end) : int

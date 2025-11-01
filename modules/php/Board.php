@@ -2,6 +2,8 @@
 
 namespace Bga\Games\SuperTeam;
 
+use Bga\Games\SuperTeam\HexLib\HexLib;
+
 class Board
 {
     private array $playerPieces;
@@ -130,5 +132,27 @@ class Board
         }
 
         return $result;
+    }
+
+    public function getPlayerPieceData(int $pieceId) : ?PlayerPiece
+    {
+        return array_find($this->playerPieces, fn($x) => $pieceId === $x->getId());
+    }
+
+    public function getMoveableHexesByPiece(int $pieceId): array
+    {
+        $playerPiece = $this->getPlayerPieceData($pieceId);
+
+        $piecePosition = $playerPiece->getPosition();
+
+        $neighbourHexes = HexLib::getNeighbours(HexLib::offsetToCubic($piecePosition), 1);
+
+        //TODO: filter hexes, goalie rectangles are off limit.
+        /*for ($i = 0; $i < count($neighbourHexes); $i++)
+        {
+
+        }*/
+
+        return $neighbourHexes;
     }
 }

@@ -23,10 +23,10 @@ class OffsetExtent
         $this->rOddMax = $rOddMax;
     }
 
-    public function isInsideExtent(HexID $offsetHex) : bool
+    public function isInsideExtent(HexID $hexID) : bool
     {
-        $column = $offsetHex->getColumn();
-        $row = $offsetHex->getRow();
+        $column = $hexID->getColumn();
+        $row = $hexID->getRow();
 
         $isEvenColumn = ($column & 1) === 0;
 

@@ -18,10 +18,149 @@ declare(strict_types=1);
 
 namespace Bga\Games\SuperTeam;
 
+use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\HexLib\HexLib;
+use Bga\Games\SuperTeam\GameDice\GameDice;
+
+
 use BgaUserException;
 use Exception;
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
+
+enum GameActions : int
+{
+    case Unknown = 0;
+    case Move = 1;
+}
+
+
+class PassForwardCommand
+{
+    private Board $board;
+    private $currentPlayer;
+    private $opponentPlayer;
+
+    public function __construct(Board $board, $currentPlayer, $oppoenentPlayer)
+    {
+        $this->board = $board;
+        $this->currentPlayer = $currentPlayer;
+        $this->opponentPlayer = $oppoenentPlayer;
+    }
+
+    public function canBePlayed() : bool
+    {
+        $ballHex = $this->board->getBallHex();
+        $playerPiece = null;
+        
+        if ($this->board->tryGetPlayerPieceInHex($ballHex, $playerPiece))
+        {
+            if ($playerPiece->getOwner() === $this->currentPlayer)
+            {
+                return count($this->board->getPlayerPiecesInForwardColumns($ballHex->getColumn(), $this->currentPlayer)) > 0;
+            }
+        }
+
+        return false;
+    }
+
+    public function getCommandArgs() : array
+    {
+        //TODO: In general a pass can be onto any space that is not occupied by your opponent! however this card require us to pass in a certain way.
+
+        $ballHex = $this->board->getBallHex();
+        
+        $playerPiecesInForwardColumns = $this->board->getPlayerPiecesInForwardColumns($ballHex->getColumn(), $this->currentPlayer);
+        $piecesIds = [];
+        for ($i = 0; $i < count($playerPiecesInForwardColumns); $i++)
+        {
+            $piecesIds[] = $playerPiecesInForwardColumns[$i]->getId();
+        }
+
+        return ["possibleTargets" => $piecesIds];
+    }
+
+    public function performAct(array $actData) : void
+    {
+        $passTarget = $actData['target'];
+        $spentMorale = $actData['spentMorale'];
+
+        //TOOD: This should be inside validation function!
+        if (intval($spentMorale) > 3)
+        {
+            throw new \BgaUserException("You cannot spend more than 3 morale on an action!");
+        }
+
+        //TODO: target can't be current ball location!
+
+        $targetHex = new HexID($passTarget['column'], $passTarget['row']);
+        $ballHex = $this->board->getBallHex();
+        //TODO: This logic for pass must be encapsulated inside another class, it doesn't relate to here.
+        $passDistance = HexLib::getOffsetDistance($ballHex, $targetHex);
+        
+        $opponentPieces = $this->board->getPlayerPiecesByOwner($this->opponentPlayer);
+        $opponentPiecesInPath = HexLib::getHexesInPath($ballHex, $targetHex, 1, $opponentPieces);
+        
+        $powerNeeded = ceil($passDistance * 0.5) + count($opponentPiecesInPath);
+
+        $greenRoll = GameDice::greenDie()->roll();
+        $whiteDieRes = [];
+
+        //TODO: get coach markers for pass action.
+        $coachMarkerCount = 1;
+        $whiteRollSum = 0;
+        for ($i = 0; $i < $coachMarkerCount; $i++)
+        {
+            $currentWhiteRollRes = GameDice::whiteDie()->roll();
+            $whiteRollSum += $currentWhiteRollRes;
+            $whiteDieRes[] = $currentWhiteRollRes;
+        }
+
+        $totalPlayerPower = $whiteRollSum + $greenRoll + $spentMorale;
+
+        $finalBallLocation = null;
+
+        if ($totalPlayerPower >= $powerNeeded)
+        {
+            $finalBallLocation = $targetHex;
+        }
+        else
+        {
+            if (count ($opponentPiecesInPath) > 0)
+            {
+                $nearestOpponent = null;
+                $nearestOpponentDistance = 1000; //1000 is way beyond the furthest distance we can have.
+
+                //TODO: asked amir about this, if two opponent pieces have the same distance from the ball, then how should we determine which one will get the ball?
+                //right now I only find the closest one, and don't solve the above edge case.
+                for ($i = 0; $i < count ($opponentPiecesInPath); $i++)
+                {
+                    $currentOpponentDistance = HexLib::getOffsetDistance($ballHex, $opponentPiecesInPath[$i]);
+
+                    if ($currentOpponentDistance < $nearestOpponentDistance)
+                    {
+                        $nearestOpponent = $opponentPiecesInPath[$i];
+                    }
+                }
+
+                $finalBallLocation = $nearestOpponent;
+            }
+            else 
+            {
+                $hexesInLine = HexLib::getHexesInLine($ballHex, $targetHex);
+                $hexInMiddle = ceil((count($hexesInLine) - 1) / 2.0);
+
+                $finalBallLocation = $hexesInLine[$hexInMiddle];
+            }
+        }
+
+        DBAdapter::getInstance()->DbQuery("UPDATE ball SET hex_column= {$finalBallLocation->getColumn()}, hex_row= {$finalBallLocation->getRow()}");
+
+        //TODO: notify all about all these changes.
+    }
+}
 
 class Game extends \Table
 {
@@ -49,7 +188,7 @@ class Game extends \Table
             "game_half" => 10,
             "user_in_left_id" => 11,
             "user_in_right_id" => 12,
-            "ball_position" => 13,
+            "selected_piece" => 13,
         ]);        
 
         /* example of notification decorator.
@@ -118,6 +257,22 @@ class Game extends \Table
 
         // at the end of the action, move to the next state
         $this->gamestate->nextState("pass");
+    }
+
+    //TODO: I can have a single entry to player actions, and a dispatcher dispatches each action to it's proper handler.
+    public function actPassForward(): void
+    {
+        $activePlayerID = $this->getActivePlayerId();
+        $Command = new PassForwardCommand($this->getBoard(), $activePlayerID , $this->getInactivePlayerId());
+
+        if ($Command->canBePlayed())
+        {
+            $this->notifyPlayer($activePlayerID, "actionArgs", "", $Command->getCommandArgs());
+        }
+        else
+        {
+            throw new Exception("Pass forward can't be played!");
+        }
     }
 
     public function argPlayerPieceSetup(): array
@@ -227,17 +382,112 @@ class Game extends \Table
         }
     }
 
-    public function actActionSelected() : void
+    public function actActionSelected(int $actionId) : void
     {
+        // TODO: a list of handlers is more proper, however it is ok right now.
+
+        switch($actionId)
+        {
+            case GameActions::Move->value:
+                $this->gamestate->nextState("moveAction");
+                break;
+        }
+
         //TODO: Probably I get the board here, so updateAttacker and defender can work on it.
-        $this->updateAttackerAndDefender();
+        //$this->updateAttackerAndDefender();
     }
 
-    public function argDoAction() : array
+    public function argActionSelection() : array
     {
-        $this->actActionSelected();
-        return ['possibleActions' => [1, 2, 3, 4]];
+        $this->setGameStateValue('selected_piece', -1);
+
+        return ['possibleActions' => [
+            ['name' => 'move', 'id' => GameActions::Move]
+            ]];
     }
+
+    public function argPieceSelection() : array
+    {
+        $board = $this->getBoard();
+
+        $activePlayerPieces = $board->getPlayerPiecesByOwner(intval($this->getActivePlayerId()));
+
+        //TODO: possibly I should remove the goalie, the rules contradict (somewhere it is written that goalie can move, and somewhere else it has written that it does not!)
+
+        $pieceIDs = [];
+
+        for ($i = 0; $i < count($activePlayerPieces); $i++)
+        {
+            $pieceIDs[] = $activePlayerPieces[$i]->getId();
+        }
+
+        return ['selectablePieces' => $pieceIDs];
+    }
+
+    public function actPieceSelected(int $pieceId) : void
+    {
+        $selectablePieces = $this->argPieceSelection();
+
+        if (!in_array($pieceId, $selectablePieces['selectablePieces'], true))
+        {
+            throw new BgaUserException("Piece Id {$pieceId} is not selectable.");
+        }
+
+        $this->setGameStateValue('selected_piece', $pieceId);
+
+        $this->gamestate->nextState("moveAction");
+    }
+
+    public function argMoveAction() : array
+    {
+        $selectedPiece = intval($this->getGameStateValue('selected_piece'));
+
+        assert($selectedPiece != -1, "move action must have a valid piece selected, before it gets called!");
+
+        $moveableHexes = $this->getBoard()->getMoveableHexesByPiece($selectedPiece);
+
+        return ["moveableHexes" => $moveableHexes,
+                "selectedPiece" => $selectedPiece];
+    }
+
+    public function actPieceMoved(int $hexColumn, int $hexRow) : void
+    {
+
+    }
+
+    //DEBUG ACTIONS
+    public function actDebugDefaultPlacePieces() : void
+    {
+        $playerId = (int)$this->getActivePlayerId();
+
+        while(!$this->isPlayerSetupComplete($playerId))
+        {
+
+            $playerPieceSetupArgs = $this->argPlayerPieceSetup();
+
+            $availablePositions = $playerPieceSetupArgs["availableStartingPositions"];
+            $pieceToPlace = $playerPieceSetupArgs["pieceToPlace"];
+
+            $firstAvailablePos = $availablePositions[0];
+            $hexColumn = $firstAvailablePos['hex_column'];
+            $hexRow = $firstAvailablePos['hex_row'];
+
+            $this->DbQuery("UPDATE `player_pieces` SET `hex_column` = $hexColumn, `hex_row` = $hexRow WHERE `id` = $pieceToPlace ");
+
+
+            $this->notify->all("placedPiece", clienttranslate('${player_name} places a piece'), [
+                "player_id" => $playerId,
+                "player_name" => $this->getActivePlayerName(), // remove this line if you uncomment notification decorator
+                "placed_piece" => $pieceToPlace,
+                "hex_column" => $hexColumn,
+                "hex_row" => $hexRow,
+            ]);
+        }
+    
+        $this->gamestate->nextState("setupComplete");
+    }
+
+    //=======================================
 
     public function stSetupComplete() : void
     {
@@ -456,6 +706,7 @@ class Game extends \Table
     {
         list ($orangePlayer, $bluePlayer) = array_keys($players);
 
+        $this->setGameStateInitialValue('selected_piece', -1);
         $this->setGameStateInitialValue('game_half', 1);
         $this->setGameStateInitialValue('user_in_left_id', $orangePlayer);
         $this->setGameStateInitialValue('user_in_right_id', $bluePlayer);
@@ -505,6 +756,20 @@ class Game extends \Table
             assert(intval($this->getGameStateValue('user_in_right_id')) === $userId, 'Player side not found! A player must always have a side!');
 
             return PlayerSide::Right;
+        }
+    }
+
+    private function getInactivePlayerId() : int
+    {
+        $userInLeftID = intval($this->getGameStateValue('user_in_left_id'));
+
+        if ($userInLeftID == $this->getActivePlayerId())
+        {
+            return intval($this->getGameStateValue('user_in_right_id'));
+        }
+        else
+        {
+            return $userInLeftID;
         }
     }
 

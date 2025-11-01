@@ -67,6 +67,9 @@ function (dojo, declare, STUIConstants, STHexLib) {
             case 'playerTurn':
                 console.log("in playerTurn");
                 break;
+            case 'pieceSelection':
+                this.MakePiecesSelectable(args.args.selectablePieces);
+                break;
             case 'dummy':
                 break;
             }
@@ -103,13 +106,15 @@ function (dojo, declare, STUIConstants, STHexLib) {
             {            
                 switch( stateName )
                 {
-                 case 'playerTurn':    
-                        this.statusBar.addActionButton(_('Play a card'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
-                        this.statusBar.addActionButton(_('1 Movement'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
-                        this.statusBar.addActionButton(_('Pass Forward'), () => this.bgaPerformAction("actPassForward"), { color: 'primary' });
-                        this.statusBar.addActionButton(_('Shoot'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
-                        this.statusBar.addActionButton(_('Dribble'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'primary' });
-                        this.statusBar.addActionButton(_('End Turn'), () => this.bgaPerformAction("actPlacedPiece"), { color: 'secondary' });
+                 case 'playerTurn':
+                    let possibleActions = args['possibleActions'];
+
+                    for (let i = 0; i < possibleActions.length; i++)
+                    {
+                        let action = possibleActions[i];
+                        let id = parseInt(action['id'])
+                        this.statusBar.addActionButton(action['name'], () => {console.log('action id was: ' + id); this.bgaPerformAction("actActionSelected", {actionId: id})}, { color: 'primary' });
+                    }
                         break;
                     /*const playableCardsIds = args.playableCardsIds; // returned by the argPlayerTurn
 
@@ -192,15 +197,20 @@ function (dojo, declare, STUIConstants, STHexLib) {
             });
         },
 
+        setPieceClickEvent: function(pieceId)
+        {
+            document.getElementById(pieceId).addEventListener('click', e=>this.onPieceClicked(e));
+        },
+
         onHexClicked: async function(evt)
         {
-            evt.preventDefault();
-            evt.stopPropagation();
-
             if (this.currentStateData.name === 'playerPieceSetup' && !this.isWaitingForServerResponse)
             {
                 if (evt.currentTarget.classList.contains('availableToPlacePiece'))
                 {
+                    evt.preventDefault();
+                    evt.stopPropagation();
+
                     var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
 
                     try
@@ -251,6 +261,36 @@ function (dojo, declare, STUIConstants, STHexLib) {
         onHexMouseLeave: function(evt)
         {
             document.querySelectorAll('.nearPlayerInRange').forEach(div=> div.classList.remove('nearPlayerInRange'));
+        },
+
+        onPieceClicked: async function(evt)
+        {
+            if (!this.isWaitingForServerResponse)
+            {
+                if (evt.currentTarget.classList.contains('clickable'))
+                {
+                    evt.preventDefault();
+                    evt.stopPropagation();
+
+                    try
+                    {
+                        this.isWaitingForServerResponse = true;
+                        let pieceDOMId = evt.currentTarget.id;
+                        let numericId = parseInt(pieceDOMId.replace("piece_", ""));
+
+                        await this.bgaPerformAction("actPieceSelected", {pieceId: numericId}, { lock: true, checkAction: true});
+                    }
+                    catch(error)
+                    {
+                        console.error( "Server action failed, exception caught:", error );
+                    }
+                    finally
+                    {
+                        document.querySelectorAll('.piece').forEach((e)=>e.classList.remove('clickable'));
+                        this.isWaitingForServerResponse = false;
+                    }
+                }
+            }
         },
 
         parseHexId: function(hexId)
@@ -363,6 +403,8 @@ function (dojo, declare, STUIConstants, STHexLib) {
             pieceData.setPosition(offsetCoord);
 
             this.placeOnObject( PIECE_DOM_ID, 'overall_player_board_'+player );
+
+            this.setPieceClickEvent(PIECE_DOM_ID);
             
             const HEX_ID = `hex_${offsetCoord.r}_${offsetCoord.c}`;
             const anim = this.slideToObject( PIECE_DOM_ID, HEX_ID );
@@ -385,6 +427,16 @@ function (dojo, declare, STUIConstants, STHexLib) {
             const anim = this.slideToObject('ball', HEX_ID );
             
             await this.bgaPlayDojoAnimation(anim);
+        },
+
+        MakePiecesSelectable: function(pieceIds)
+        {
+            for (let i = 0; i < pieceIds.length; i++)
+            {
+                let DOMId = "piece_" + pieceIds[i];
+
+                document.getElementById(DOMId).classList.add('clickable');
+            }
         },
 
         doesHexHasMovablePiece: function(hexId)
@@ -595,7 +647,26 @@ function (dojo, declare, STUIConstants, STHexLib) {
             if (!isDev)
                 return;
 
+            console.log("Debug mode is active, to see options type: help");
+
+            window.help = function()
+            {
+                console.log("debug.showCoords: shows the coordinates of the hexes.")
+                console.log("debug.defaultSetup: sets up pieces for both sides.");
+            }
+
+ 
             window.debug = {};
+            Object.defineProperty(window.debug, 'defaultSetup', {
+                get: function () {
+                    return this._val;
+                },
+                set: function (value) {
+                    console.log('calling actDebugDefaultPlacePieces');
+                    this.bgaPerformAction("actDebugDefaultPlacePieces");
+                }.bind(this)
+            })
+
             Object.defineProperty(window.debug, 'showCoords', {
                 get: function () {
                     return this._val;
