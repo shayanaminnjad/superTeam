@@ -130,7 +130,8 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argMoveAction",
         "possibleactions" => [
-            "actPieceMoved"
+            "actPieceMoved",
+            "actFinishedMove"
         ],
 
         "transitions" => ['moveAction' => ST_MOVE_ACTION, 'moveDone'=> ST_PLAYER_TURN]
