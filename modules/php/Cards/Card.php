@@ -3,6 +3,7 @@
 namespace Bga\Games\SuperTeam\Cards;
 
 use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\GameDice\GameDice;
@@ -58,14 +59,12 @@ class PassForwardCommand
     private Board $board;
     private $currentPlayer;
     private $opponentPlayer;
-    private $dbQueryCallback;
 
-    public function __construct(Board $board, $currentPlayer, $oppoenentPlayer, $dbQueryCallback)
+    public function __construct(Board $board, $currentPlayer, $oppoenentPlayer)
     {
         $this->board = $board;
         $this->currentPlayer = $currentPlayer;
         $this->opponentPlayer = $oppoenentPlayer;
-        $this->dbQueryCallback = $dbQueryCallback;
     }
 
     public function canBePlayed() : bool
@@ -174,7 +173,8 @@ class PassForwardCommand
             }
         }
 
-        //TODO: Store new ball location
+        DBAdapter::getInstance()->DbQuery("UPDATE ball SET hex_column= {$finalBallLocation->getColumn()}, hex_row= {$finalBallLocation->getRow()}");
+
         //TODO: notify all about all these changes.
     }
 }
