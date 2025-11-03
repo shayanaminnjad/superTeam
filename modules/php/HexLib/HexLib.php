@@ -18,7 +18,6 @@ enum Direction : int
 }
 
 
-
 class HexLib
 {
     //TODO: This should be really set from outside, but for now it is ok.
@@ -189,16 +188,11 @@ class HexLib
         $directions = self::getCubicDirections();
         $offsetExtent = self::getOffsetExtent();
 
-        for ($currDist = 1; $currDist < $dist; $currDist++)
+        for ($currDist = 1; $currDist <= $dist; $currDist++)
         {
-            $currentHex = self::getNeighbour($cubicCoord, $directions[intval(Direction::SOUTH)]->scale($currDist));
+            $currentHex = self::getNeighbour($cubicCoord, $directions[Direction::SOUTH->value]->scale($currDist));
 
-            if ($offsetExtent->isInsideExtent(self::cubicToHexID($currentHex)))
-            {
-                $result[] = $currentHex;
-            }
-
-            for ($currDir = 0; $currDir < intval(Direction::COUNT); $currDir++)
+            for ($currDir = 0; $currDir < Direction::COUNT->value; $currDir++)
             {
                 for ($i = 0;$i < $currDist; $i++)
                 {
