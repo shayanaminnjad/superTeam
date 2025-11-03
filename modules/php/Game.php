@@ -412,13 +412,14 @@ class Game extends \Table
 
         $activePlayerPieces = $board->getPlayerPiecesByOwner(intval($this->getActivePlayerId()));
 
-        //TODO: possibly I should remove the goalie, the rules contradict (somewhere it is written that goalie can move, and somewhere else it has written that it does not!)
-
         $pieceIDs = [];
 
         for ($i = 0; $i < count($activePlayerPieces); $i++)
         {
-            $pieceIDs[] = $activePlayerPieces[$i]->getId();
+            if( $activePlayerPieces[$i]->getRole() != PlayerRole::GoalKeeper->value)
+            {
+                $pieceIDs[] = $activePlayerPieces[$i]->getId();
+            }
         }
 
         return ['selectablePieces' => $pieceIDs];
