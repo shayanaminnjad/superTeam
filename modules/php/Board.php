@@ -141,18 +141,58 @@ class Board
 
     public function getMoveableHexesByPiece(int $pieceId): array
     {
+        $result = [];
+
         $playerPiece = $this->getPlayerPieceData($pieceId);
 
         $piecePosition = $playerPiece->getPosition();
 
         $neighbourHexes = HexLib::getNeighbours(HexLib::offsetToCubic($piecePosition), 1);
 
-        //TODO: filter hexes, goalie rectangles are off limit.
-        /*for ($i = 0; $i < count($neighbourHexes); $i++)
+        for ($i = 0; $i < count($neighbourHexes); $i++)
         {
+            $hexId = HexLib::cubicToHexID($neighbourHexes[$i]);
 
-        }*/
+            //TODO: I might be able to show this by red!
+            if ($this->canMoveToHex($hexId))
+            {
+                $result[] = $hexId->convertToArray();
+            }
+        }
 
-        return $neighbourHexes;
+        return $result;
+    }
+
+    public function doesOpponentExistInNeighbours(HexID $reference, int $currentPlayer): bool
+    {
+        $neighbourHexes = HexLib::getNeighbours(HexLib::offsetToCubic($reference), 1);
+
+        for ($i = 0; $i < count($neighbourHexes); $i++)
+        {
+            $playerPiece = null;
+            if ($this->tryGetPlayerPieceInHex(HexLib::cubicToHexID($neighbourHexes[$i]), $playerPiece))
+            {
+                if ($playerPiece->getOwner() != $currentPlayer)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function canMoveToHex(HexID $hexID):bool
+    {
+        return !$this->hasPlayerInHex($hexID) && !$this->isGoalieSpecificSpace($hexID);
+    }
+
+    private function isGoalieSpecificSpace(HexID $hexID): bool
+    {
+        if ($hexID->getColumn() === 0 || $hexID->getColumn() === 16)
+            if ($hexID->getRow() >= 4 && $hexID->getRow() <= 6)
+                return true;
+
+        return false;
     }
 }
