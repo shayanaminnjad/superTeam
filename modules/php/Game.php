@@ -34,6 +34,7 @@ enum GameActions : int
 {
     case Unknown = 0;
     case Move = 1;
+    case FinishMove = 2;
 }
 
 
@@ -189,6 +190,7 @@ class Game extends \Table
             "user_in_left_id" => 11,
             "user_in_right_id" => 12,
             "selected_piece" => 13,
+            "number_of_moves" => 14
         ]);        
 
         /* example of notification decorator.
@@ -399,7 +401,9 @@ class Game extends \Table
 
     public function argActionSelection() : array
     {
+        //TODO: I am not sure if this a proper place to do house cleaning, research to see if there is proper way (maybe onEnter, or another intermediate state helps)
         $this->setGameStateValue('selected_piece', -1);
+        $this->setGameStateValue('number_of_moves', 0);
 
         return ['possibleActions' => [
             ['name' => 'move', 'id' => GameActions::Move]
@@ -408,6 +412,9 @@ class Game extends \Table
 
     public function argPieceSelection() : array
     {
+        //TODO: if we are selecting pieces for movement we must show a morale token beside them, if they are exhusted also we should check if the player has morale at all!
+        //TODO: we can have a factory, which takes function names, and return arbitrary criteria for pieces, and also we should have functions that can add elements to the returned array!
+
         $board = $this->getBoard();
 
         $activePlayerPieces = $board->getPlayerPiecesByOwner(intval($this->getActivePlayerId()));
@@ -447,11 +454,86 @@ class Game extends \Table
 
         $moveableHexes = $this->getBoard()->getMoveableHexesByPiece($selectedPiece);
 
+        $possibleActions = [];
+        $numberOfMoves = intval($this->getGameStateValue('number_of_moves'));
+
+        if ($numberOfMoves > 0)
+            $possibleActions[] = ['name' => 'Finish Movement', 'id' => GameActions::FinishMove];
+
         return ["moveableHexes" => $moveableHexes,
-                "selectedPiece" => $selectedPiece];
+                "selectedPiece" => $selectedPiece,
+                "possibleActions" => $possibleActions
+            ];
     }
 
     public function actPieceMoved(int $hexColumn, int $hexRow) : void
+    {
+        //TODO: check if the moved location is valid.
+
+        $selectedPiece = intval($this->getGameStateValue('selected_piece'));
+
+        $ballLocation = $this->getObjectFromDB("SELECT `hex_column`, `hex_row` FROM `ball`");
+        $pieceOldData = $this->getObjectFromDB("SELECT `hex_column`, `hex_row`, is_fresh FROM `player_pieces` WHERE `id` = $selectedPiece");
+        $oldPieceHexRow = intval($pieceOldData['hex_row']);
+        $oldPieceHexCol = intval($pieceOldData['hex_column']);
+
+        $ballMoved = 0;
+
+        if (intval($ballLocation['hex_column']) === $oldPieceHexCol && intval($ballLocation['hex_row']) === $oldPieceHexRow)
+        {
+            $ballMoved = 1;
+            $this->DbQuery("UPDATE `ball` SET `hex_column` = $hexColumn, `hex_row` = $hexRow ");
+            //TODO: this will probably change attacker and defender (I am not sure however if it happens right now?)
+        }
+
+        $isFresh = boolval($pieceOldData['is_fresh']);
+        $numberOfMoves = intval($this->getGameStateValue('number_of_moves'));
+
+        $shouldEndMovement = false;
+
+        if ($numberOfMoves === 1)
+        {
+            $shouldEndMovement = true;
+        }
+
+        if(!$isFresh && $numberOfMoves === 0) //player has moved an exhusted piece.
+        {
+            //TODO: spend one morale.
+            $shouldEndMovement = true;
+        }
+
+        $board = $this->getBoard();
+
+        if ($ballMoved === 1 &&
+            ($board->doesOpponentExistInNeighbours(new HexID($oldPieceHexCol, $oldPieceHexRow), intval($this->getActivePlayerId())) ||
+            $board->doesOpponentExistInNeighbours(new HexID($hexColumn, $hexRow), intval($this->getActivePlayerId()))))
+        {
+            $shouldEndMovement = true;
+        }
+
+        $this->DbQuery("UPDATE `player_pieces` SET `hex_column` = $hexColumn, `hex_row` = $hexRow WHERE `id` = $selectedPiece ");
+        $this->setGameStateValue('number_of_moves', $numberOfMoves + 1);
+
+        $this->notify->all("movedPiece", \clienttranslate('${player_name} moves a piece'), array(
+            "player_name" => $this->getActivePlayerName(),
+            "movedPiece" => $selectedPiece,
+            "hex_column" => $hexColumn,
+            "hex_row" => $hexRow,
+            "ballMoved" => $ballMoved
+        ));
+
+        if ($shouldEndMovement)
+        {
+            $this->gamestate->nextState("moveDone");
+            //TODO: moveDone, should transition into an intermediate state, where it resets variables, and also exhust the moved piece.
+        }
+        else
+        {
+            $this->gamestate->nextState("moveAction");
+        }
+    }
+
+    public function actFinishedMove() : void
     {
 
     }
@@ -707,6 +789,7 @@ class Game extends \Table
     {
         list ($orangePlayer, $bluePlayer) = array_keys($players);
 
+        $this->setGameStateInitialValue('number_of_moves', 0);
         $this->setGameStateInitialValue('selected_piece', -1);
         $this->setGameStateInitialValue('game_half', 1);
         $this->setGameStateInitialValue('user_in_left_id', $orangePlayer);

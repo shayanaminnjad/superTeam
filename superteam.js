@@ -15,6 +15,8 @@
  *
  */
 
+//TODO: animations must account for auto replay (they should not play see reverse.js)
+
 define([
     "dojo","dojo/_base/declare",
     g_gamethemeurl + "modules/js/STUIConstants.js",
@@ -56,20 +58,26 @@ function (dojo, declare, STUIConstants, STHexLib) {
             console.log( 'Entering state: '+stateName, args );
 
             this.currentStateData = args;
+
+            if (this.isCurrentPlayerActive() == false)
+                return;
             
             switch( stateName )
             {
             case 'playerPieceSetup':
-                if (this.isCurrentPlayerActive())
-                {
-                    this.OnPlayerPieceSetup(args);
-                }
+                this.onPlayerPieceSetup(args);
             case 'playerTurn':
                 console.log("in playerTurn");
                 break;
             case 'pieceSelection':
-                this.MakePiecesSelectable(args.args.selectablePieces);
+                this.makePiecesSelectable(args.args.selectablePieces);
                 break;
+            case 'moveAction':
+                if (this.isCurrentPlayerActive()) 
+                {
+                    document.querySelectorAll('.freeInRange').forEach(div=> div.classList.remove('freeInRange'));      
+                }
+                this.onMoveAction(args.args);
             case 'dummy':
                 break;
             }
@@ -81,13 +89,26 @@ function (dojo, declare, STUIConstants, STHexLib) {
         onLeavingState: function( stateName )
         {
             console.log( 'Leaving state: '+stateName );
-            
+
             switch( stateName )
             {
                 case 'playerPieceSetup':
                     if (this.isCurrentPlayerActive()) 
                     {
                         document.querySelectorAll('.availableToPlacePiece').forEach(div=> div.classList.remove('availableToPlacePiece'));      
+                    }
+                    break;
+                case 'pieceSelection':
+                    if (this.isCurrentPlayerActive()) 
+                    {
+                        document.querySelectorAll('.piece').forEach((e)=>e.classList.remove('clickable'));
+                    }
+                    break;
+                case 'moveAction':
+                    if (this.isCurrentPlayerActive()) 
+                    {
+                        document.querySelectorAll('.freeInRange').forEach(div=> div.classList.remove('freeInRange'));
+                        document.querySelector('.selected').classList.remove('selected');
                     }
             case 'dummy':
                 break;
@@ -98,31 +119,34 @@ function (dojo, declare, STUIConstants, STHexLib) {
         //                        action status bar (ie: the HTML links in the status bar).
         onUpdateActionButtons: function( stateName, args )
         {
-            console.log( 'onUpdateActionButtons: '+stateName, args );
+            console.log('onUpdateActionButtons: ' + stateName, args);
 
             console.log("active player id " + this.getActivePlayerId());
-                      
-            if( this.isCurrentPlayerActive() )
-            {            
-                switch( stateName )
-                {
-                 case 'playerTurn':
-                    let possibleActions = args['possibleActions'];
 
-                    for (let i = 0; i < possibleActions.length; i++)
-                    {
-                        let action = possibleActions[i];
-                        let id = parseInt(action['id'])
-                        this.statusBar.addActionButton(action['name'], () => {console.log('action id was: ' + id); this.bgaPerformAction("actActionSelected", {actionId: id})}, { color: 'primary' });
-                    }
+            if (this.isCurrentPlayerActive()) {
+                switch (stateName) {
+                    case 'playerTurn':
+                        {
+                            let possibleActions = args['possibleActions'];
+
+                            for (let i = 0; i < possibleActions.length; i++) {
+                                let action = possibleActions[i];
+                                let id = parseInt(action['id'])
+                                this.statusBar.addActionButton(action['name'], () => { console.log('action id was: ' + id); this.bgaPerformAction("actActionSelected", { actionId: id }) }, { color: 'primary' });
+                            }
+                        }
                         break;
-                    /*const playableCardsIds = args.playableCardsIds; // returned by the argPlayerTurn
+                    case 'moveAction':
+                        {
+                            let possibleActions = args['possibleActions'];
 
-                    // Add test action buttons in the action status bar, simulating a card click:
-                    playableCardsIds.forEach(
-                        cardId => this.statusBar.addActionButton(_('Play card with id ${card_id}').replace('${card_id}', cardId), () => this.onCardClick(cardId))
-                    ); 
-                    */
+                            for (let i = 0; i < possibleActions.length; i++) {
+                                let action = possibleActions[i];
+                                let id = parseInt(action['id'])
+                                this.statusBar.addActionButton(action['name'], () => { console.log('action id was: ' + id); this.bgaPerformAction("actActionSelected", { actionId: id }) }, { color: 'primary' });
+                            }
+                        }
+                        break;
                 }
             }
         },        
@@ -204,56 +228,50 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
         onHexClicked: async function(evt)
         {
-            if (this.currentStateData.name === 'playerPieceSetup' && !this.isWaitingForServerResponse)
+            //TODO: I should have handlers for it, this design is not flexible. each state can register a handler for click event.
+
+            if (this.isWaitingForServerResponse)
+                return;
+
+            try 
             {
-                if (evt.currentTarget.classList.contains('availableToPlacePiece'))
+                if (this.currentStateData.name === 'playerPieceSetup') 
                 {
-                    evt.preventDefault();
-                    evt.stopPropagation();
-
-                    var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
-
-                    try
+                    if (evt.currentTarget.classList.contains('availableToPlacePiece')) 
                     {
+                        evt.preventDefault();
+                        evt.stopPropagation();
+
+                        var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
+
                         this.isWaitingForServerResponse = true;
-                        await this.bgaPerformAction("actPlacedPiece", {placedPiece: this.currentStateData.args.pieceToPlace, hexColumn: offsetCoord.c, hexRow: offsetCoord.r}, { lock: true, checkAction: true});
+                        await this.bgaPerformAction("actPlacedPiece", { placedPiece: this.currentStateData.args.pieceToPlace, hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
                     }
-                    catch(error)
+                }
+                else if (this.currentStateData.name === 'moveAction')
+                {
+                    if (evt.currentTarget.classList.contains('freeInRange'))
                     {
-                        console.error( "Server action failed, exception caught:", error );
-                    }
-                    finally
-                    {
-                        this.isWaitingForServerResponse = false;
+                        evt.preventDefault();
+                        evt.stopPropagation();
+
+                        var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
+
+                        this.isWaitingForServerResponse = true;
+                        await this.bgaPerformAction("actPieceMoved", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
                     }
                 }
             }
-
-            /*
-            document.querySelectorAll('.moveableRange').forEach(div=> div.classList.remove('moveableRange'));
-
-            if (this.doesHexHasMovablePiece(evt.currentTarget.id))
-            {
-                var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
-                let cubeCoord = STHexLib.oddqToCubic(offsetCoord);
-
-                let neighbors = STHexLib.getNeighbours(cubeCoord, 2, this.getBoardOffsetExtent());
-
-                for (let i = 0; i < neighbors.length; i++) {
-
-                    let hexId = this.convertCubicCoordToHexId(neighbors[i]);
-                    if (!this.doesHexHasBlockingPiece(hexId))
-                    {
-                        let hexEl = document.getElementById(hexId);
-
-                        hexEl.classList.add('moveableRange');
-                    }
-                }
+            catch (error) {
+                console.error("Server action failed, exception caught:", error);
             }
-                */
+            finally {
+                this.isWaitingForServerResponse = false;
+
+            }
         },
-
-        onHexMouseEnter: function(evt)
+            
+            onHexMouseEnter: function(evt)
         {
             
         },
@@ -286,11 +304,15 @@ function (dojo, declare, STUIConstants, STHexLib) {
                     }
                     finally
                     {
-                        document.querySelectorAll('.piece').forEach((e)=>e.classList.remove('clickable'));
                         this.isWaitingForServerResponse = false;
                     }
                 }
             }
+        },
+
+        getPieceDOMId : function(integerId)
+        {
+            return "piece_" + integerId;
         },
 
         parseHexId: function(hexId)
@@ -393,7 +415,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
         addPieceToBoard: async function(player, offsetCoord, pieceData)
         {
-            const PIECE_DOM_ID = `piece_${pieceData.getId()}`;
+            const PIECE_DOM_ID = this.getPieceDOMId(pieceData.getId());
             
             let color = parseInt(player) === this.player_id ? this.myColor : this.opponentColor;
             let status = pieceData.isFresh() ? 'fresh' : 'exhuasted';
@@ -406,7 +428,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
             this.setPieceClickEvent(PIECE_DOM_ID);
             
-            const HEX_ID = `hex_${offsetCoord.r}_${offsetCoord.c}`;
+            const HEX_ID = this.convertOffsetCoordToHexId(offsetCoord);
             const anim = this.slideToObject( PIECE_DOM_ID, HEX_ID );
             
             await this.bgaPlayDojoAnimation(anim);
@@ -423,19 +445,37 @@ function (dojo, declare, STUIConstants, STHexLib) {
             const MAIN_BOARD_EL = document.getElementById('mainBoard');
             MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id="ball" class="ball" ></div>`);
 
-            const HEX_ID = `hex_${this.hexWithBall.r}_${this.hexWithBall.c}`;
+            const HEX_ID = this.convertOffsetCoordToHexId(this.hexWithBall);
             const anim = this.slideToObject('ball', HEX_ID );
             
             await this.bgaPlayDojoAnimation(anim);
         },
 
-        MakePiecesSelectable: function(pieceIds)
+        makePiecesSelectable: function(pieceIds)
         {
             for (let i = 0; i < pieceIds.length; i++)
             {
-                let DOMId = "piece_" + pieceIds[i];
+                let DOMId = this.getPieceDOMId(pieceIds[i]);
 
                 document.getElementById(DOMId).classList.add('clickable');
+            }
+        },
+
+        onMoveAction: function(args)
+        {
+            let selectedPiece = args.selectedPiece;
+            let moveableHexes = args.moveableHexes;
+
+            let PieceDOMId = this.getPieceDOMId(selectedPiece);
+
+            document.getElementById(PieceDOMId).classList.add('selected');
+
+            for (let i = 0; i < moveableHexes.length; i++)
+            {
+                let hex = moveableHexes[i];
+                let DOMHexId = this.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(hex.hex_row, hex.hex_column));
+
+                document.getElementById(DOMHexId).classList.add('freeInRange');
             }
         },
 
@@ -565,7 +605,7 @@ function (dojo, declare, STUIConstants, STHexLib) {
 
         ///////////////////////////////////////////////////
         //// state response function
-        OnPlayerPieceSetup: function(stateData) 
+        onPlayerPieceSetup: function(stateData) 
         {
             document.querySelectorAll('.availableToPlacePiece').forEach(div=> div.classList.remove('availableToPlacePiece'));
 
@@ -636,6 +676,29 @@ function (dojo, declare, STUIConstants, STHexLib) {
             let hex = STHexLib.createOffsetCoord( notifData.hex_row, notifData.hex_column);
 
             await this.addPieceToBoard(notifData.player_id, hex, pieceData);
+        },
+
+        
+        notif_movedPiece: async function(notifData)
+        {
+            let destHex = STHexLib.createOffsetCoord( notifData.hex_row, notifData.hex_column);
+            let pieceData = this.piecesDataMap.get(notifData.movedPiece);
+
+            pieceData.setPosition(destHex);
+
+            let animations = [];
+
+            const PIECE_DOM_ID = this.getPieceDOMId(pieceData.getId());
+            const DEST_HEX_ID = this.convertOffsetCoordToHexId(destHex);
+            animations.push(this.slideToObject( PIECE_DOM_ID, DEST_HEX_ID ));
+
+            if (parseInt(notifData.ballMoved))
+            {
+                this.hexWithBall = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);
+                animations.push(this.slideToObject('ball', DEST_HEX_ID ));
+            }
+
+            await this.bgaPlayDojoAnimation(dojo.fx.combine(animations));
         },
 
         ///////////////////////////////////////////////////
