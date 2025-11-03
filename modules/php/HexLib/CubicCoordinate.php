@@ -12,9 +12,9 @@ class CubicCoordinate
 
     public function __construct(int $q, int $r, int $s)
     {
-        $this->$q = $q;
-        $this->$r = $r;
-        $this->$s = $s;
+        $this->q = $q;
+        $this->r = $r;
+        $this->s = $s;
     }
 
     public function getQ() : int
