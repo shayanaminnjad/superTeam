@@ -175,6 +175,7 @@ class Game extends \Table
      * NOTE: afterward, you can get/set the global variables with `getGameStateValue`, `setGameStateInitialValue` or
      * `setGameStateValue` functions.
      */
+
     public function __construct()
     {
         parent::__construct();
@@ -682,7 +683,7 @@ class Game extends \Table
         // Get information about players.
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
         $result["players"] = $this->getCollectionFromDb(
-            "SELECT `player_id` `id`, `player_score` `score` FROM `player`"
+            "SELECT `player_id` `id`, `player_score` `score`, `resource_morale` `morale` FROM `player`"
         );
 
         $result["player_pieces"] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");

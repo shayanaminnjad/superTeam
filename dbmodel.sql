@@ -18,6 +18,7 @@
 -- Note: The database schema is created from this file when the game starts. If you modify this file,
 --       you have to restart a game to see your changes in database.
 
+ALTER TABLE `player` ADD `resource_morale` int(10) NOT NULL DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS `player_pieces` (
     `id` INTEGER PRIMARY KEY AUTO_INCREMENT,

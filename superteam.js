@@ -36,8 +36,12 @@ function (dojo, declare, STUIConstants, STHexLib) {
         {
             console.log('begin setup');
 
+            console.log(gamedatas);
+
             this.myColor = gamedatas.players[this.player_id].color === 'FC5414' ? 'orange' : 'blue';
             this.opponentColor = this.myColor === 'orange' ? 'blue' : 'orange';
+
+            this.setupPlayerArea(gamedatas);
 
             this.setupMainBoard(gamedatas);
             
@@ -154,6 +158,18 @@ function (dojo, declare, STUIConstants, STHexLib) {
         ///////////////////////////////////////////////////
         //// Utility methods
         
+        setupPlayerArea: function(gamedatas)
+        {
+            for (const playerId of Object.keys(gamedatas.players))
+            {
+                let currentMorale = gamedatas.players[playerId].morale;
+                
+                this.getPlayerPanelElement(playerId).insertAdjacentHTML('beforeend', `
+                    <div id="resources"></div> 
+                    <span id="playerMorale${playerId}">${_("Morale")}: ${currentMorale}</span>`);
+                }
+        },
+
         setupMainBoard: function(gamedatas)
         {
             this.getGameAreaElement().insertAdjacentHTML('beforeend', `<div id="mainBoard"></div>`);
@@ -210,6 +226,12 @@ function (dojo, declare, STUIConstants, STHexLib) {
             this.addBallToBoard(gamedatas);
 
             this.initHexClickListener();
+        },
+
+        updatePlayerMorale: function(playerId, newValue)
+        {
+            let el = this.document.getElementById(`playerMorale${playerId}`);
+            el.innerHTML = `${_("Morale")}: ${newValue}`;
         },
 
         initHexClickListener: function()
