@@ -198,6 +198,27 @@
     background-color: chocolate;
 }
 
+.resources {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.resources .moraleIcon {
+    width: 16px;
+    height: 16px;
+    background-image: url('img/morale.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    flex-shrink: 0;
+}
+
+.resources .moraleLabel{
+    line-height: 1;
+}
+
 .lineStart {
     background-color: aquamarine;
 }

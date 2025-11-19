@@ -155,8 +155,10 @@ define([
                     let currentMorale = gamedatas.players[playerId].morale;
 
                     this.getPlayerPanelElement(playerId).insertAdjacentHTML('beforeend', `
-                    <div id="resources"></div> 
-                    <span id="playerMorale${playerId}">${_("Morale")}: ${currentMorale}</span>`);
+                    <div class ="resources">
+                    <span class = "moraleIcon"></span>
+                    <span id="playerMorale${playerId}" class= "moraleLabel">${currentMorale}</span>
+                    </div>`);
                 }
             },
 
