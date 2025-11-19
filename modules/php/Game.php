@@ -418,21 +418,29 @@ class Game extends \Table
 
         $currentPlayerMorale = $this->getCurrentPlayerMorale();
 
-        $pieceIDs = [];
+        $freshPieceIDs = [];
+        $exhaustedSelectablePieceIds = [];
 
         for ($i = 0; $i < count($activePlayerPieces); $i++)
         {
             $currentPiece = $activePlayerPieces[$i];
             if( $currentPiece->getRole() != PlayerRole::GoalKeeper->value)
             {
-                if ($currentPiece->isFresh() || (!$currentPiece->isFresh() && $currentPlayerMorale > 0))
+                if ($currentPiece->isFresh())
                 {
-                    $pieceIDs[] = $currentPiece->getId();
+                    $freshPieceIDs[] = $currentPiece->getId();
+                }
+                else if (!$currentPiece->isFresh() && $currentPlayerMorale > 0)
+                {
+                    $exhaustedSelectablePieceIds[] = $currentPiece->getId();
                 }
             }
         }
 
-        return ['selectablePieces' => $pieceIDs];
+        return [
+            'selectablePieces' => $freshPieceIDs,
+            'selectableExhaustedPieces' => $exhaustedSelectablePieceIds
+        ];
     }
 
     public function actPieceSelected(int $pieceId) : void
@@ -570,6 +578,12 @@ class Game extends \Table
         }
     
         $this->gamestate->nextState("setupComplete");
+    }
+
+    public function actDebugAddMorale($amount)  
+    {
+        if($amount >= 0)
+            $this->setCurrentPlayerMorale($amount);
     }
 
     //=======================================
@@ -906,6 +920,17 @@ class Game extends \Table
         assert($result >= 0, "morale must be always equal or greater than 0!");
 
         return $result;
+    }
+
+    private function setCurrentPlayerMorale(int $amount) : void
+    {
+        assert($amount >= 0, "morale should always be greater or equal to zero!");
+        
+        $current_player_id = (int) $this->getCurrentPlayerId();
+
+        $this->DbQuery(
+            "UPDATE `player` SET resource_morale = {$amount} WHERE player_id = {$current_player_id}"
+        );
     }
 
     private function isCurrentPlayerFirstPlayer(): bool

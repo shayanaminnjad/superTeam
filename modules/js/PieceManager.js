@@ -3,6 +3,7 @@ define([
 ],
 function (Piece) {
 
+    //TODO: it would be good if this also managed the ball!
     function getPieceManager() {
         return {
             //Public functions
@@ -27,15 +28,32 @@ function (Piece) {
 
             makePieceListSelectable: function(pieces)
             {
-                for(let piece in pieces)
+                for(let piece of pieces)
                 {
                     this.makePieceSelectable(piece);
                 }
             },
 
+            addMoraleTokenToPieces: function(pieces)
+            {
+                for(let piece of pieces)
+                {
+                    let el = this.getPiece(piece).getDOMElement();
+
+                    el.insertAdjacentHTML('beforeend', `<div class="moraleIcon pieceAttachment"></div>`);
+                }
+            },
+
+            removeAllMoraleTokens: function()
+            {
+                document.querySelectorAll('.moraleIcon.pieceAttachment').forEach(el => el.remove());
+            },
+
             makePieceSelectable: function(pieceId)
             {
+                console.log(pieceId);
                 let piece = this.getPiece(pieceId);
+                console.log(piece);
                 piece.getDOMElement().classList.add('clickable')
             },
 
@@ -48,7 +66,6 @@ function (Piece) {
             {
                 let piece = this.getPiece(pieceId);
                 let ownerPlayer = piece.getOwner();
-                const PIECE_ID = this.getPiece(pieceId).getId();
 
                 this._animator.placeOnObject(piece.getDOMElement(), 'overall_player_board_' + ownerPlayer);
 

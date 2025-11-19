@@ -20,9 +20,12 @@ function (STHexLib) {
                 this._role = parseInt(initData.piece_role);
                 this._color = color;
 
+                this._addToDOM();
+                this.getDOMElement().style.display = "none";
+
                 const hexColumn = initData.hex_column;
                 const hexRow = initData.hex_row;
-
+                
                 if (hexColumn != -1 && hexRow != -1) {
                     let offsetCoord = STHexLib.createOffsetCoord(hexRow, hexColumn);
                     this.setPosition(offsetCoord);
@@ -76,7 +79,7 @@ function (STHexLib) {
 
             setPosition: function (offsetPos) {
                 if (this._position === null) {
-                    this._addToDOM();
+                    this.getDOMElement().style.display = "block";
                 }
 
                 this._position = offsetPos;

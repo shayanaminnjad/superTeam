@@ -219,6 +219,20 @@
     line-height: 1;
 }
 
+.moraleIcon.pieceAttachment{
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    bottom: -10px;
+    left: -5px;
+    background-image: url('img/morale.png');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: visible;
+    pointer-events: none;
+}
+
 .lineStart {
     background-color: aquamarine;
 }

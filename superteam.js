@@ -74,6 +74,8 @@ define([
                         break;
                     case 'pieceSelection':
                         this.pieceManager.makePieceListSelectable(args.args.selectablePieces);
+                        this.pieceManager.makePieceListSelectable(args.args.selectableExhaustedPieces);
+                        this.pieceManager.addMoraleTokenToPieces(args.args.selectableExhaustedPieces);
                         break;
                     case 'moveAction':
                         if (this.isCurrentPlayerActive()) {
@@ -230,8 +232,8 @@ define([
                 });
             },
 
-            setPieceClickEvent: function (pieceId) {
-                document.getElementById(pieceId).addEventListener('click', e => this.onPieceClicked(e));
+            setPieceClickEvent: function (piece) {
+                piece.addEventListener('click', e => this.onPieceClicked(e));
             },
 
             onHexClicked: async function (evt) {
@@ -348,6 +350,7 @@ define([
 
                     let color = parseInt(el.owner_id) === this.player_id ? this.myColor : this.opponentColor;
                     let piece = this.pieceManager.createNewPiece(parseInt(el.id), el, color);
+                    this.setPieceClickEvent(piece.getDOMElement());
 
                     if (piece.getPosition() != null) {
                         let offsetCoord = this.convertOffsetCoordToHexId(piece.getPosition());
@@ -484,8 +487,9 @@ define([
                 await this.bgaPlayDojoAnimation(dojo.fx.combine(animations));
             },
 
-            notif_pieceExhaust: async function (notifData) {
-                let pieceData = this.pieceManager.getPiece(notifData.exhaustedPiece);
+            notif_pieceExhausted: async function (notifData) {
+                console.log(notifData);
+                let pieceData = this.pieceManager.getPiece(parseInt(notifData.pieceId));
                 pieceData.setFreshness(false);
             },
 
