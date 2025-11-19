@@ -402,10 +402,6 @@ class Game extends \Table
 
     public function argActionSelection() : array
     {
-        //TODO: I am not sure if this a proper place to do house cleaning, research to see if there is proper way (maybe onEnter, or another intermediate state helps)
-        $this->setGameStateValue('selected_piece', -1);
-        $this->setGameStateValue('number_of_moves', 0);
-
         return ['possibleActions' => [
             ['name' => 'move', 'id' => GameActions::Move]
             ]];
@@ -420,13 +416,19 @@ class Game extends \Table
 
         $activePlayerPieces = $board->getPlayerPiecesByOwner(intval($this->getActivePlayerId()));
 
+        $currentPlayerMorale = $this->getCurrentPlayerMorale();
+
         $pieceIDs = [];
 
         for ($i = 0; $i < count($activePlayerPieces); $i++)
         {
-            if( $activePlayerPieces[$i]->getRole() != PlayerRole::GoalKeeper->value)
+            $currentPiece = $activePlayerPieces[$i];
+            if( $currentPiece->getRole() != PlayerRole::GoalKeeper->value)
             {
-                $pieceIDs[] = $activePlayerPieces[$i]->getId();
+                if ($currentPiece->isFresh() || (!$currentPiece->isFresh() && $currentPlayerMorale > 0))
+                {
+                    $pieceIDs[] = $currentPiece->getId();
+                }
             }
         }
 
@@ -526,7 +528,6 @@ class Game extends \Table
         if ($shouldEndMovement)
         {
             $this->gamestate->nextState("moveDone");
-            //TODO: moveDone, should transition into an intermediate state, where it resets variables, and also exhust the moved piece.
         }
         else
         {
@@ -588,6 +589,21 @@ class Game extends \Table
         {
             $this->gamestate->nextState("playerTurn");
         }
+    }
+
+    public function stMoveFinished() : void
+    {    
+        $selectedPiece = $this->getGameStateValue('selected_piece');
+        $this->DbQuery("UPDATE player_pieces SET is_fresh = FALSE  WHERE `id` = $selectedPiece");
+
+        $this->setGameStateValue('selected_piece', -1);
+        $this->setGameStateValue('number_of_moves', 0);
+
+        $this->notify->all("pieceExhausted", \clienttranslate('piece was exhausted'), array(
+            "pieceId" => $selectedPiece,
+        ));
+
+        $this->gamestate->nextState("moveDone");
     }
 
     public function stBeforePlayerTurn() : void
@@ -866,6 +882,30 @@ class Game extends \Table
         $ballHex = new HexID(intval($ballPosition['hex_column']),intval( $ballPosition['hex_row']));
 
         return new Board($piecesData, $ballHex);
+    }
+
+    private function getCurrentPlayerMorale() : int
+    {
+        $current_player_id = (int) $this->getCurrentPlayerId();
+
+        $playersMorale = $this->getCollectionFromDb(
+            "SELECT `player_id` `id`, `resource_morale` `morale` FROM `player`"
+        );
+
+        $result = -1;
+
+        foreach($playersMorale as $playerMorale)
+        {
+            if ($playerMorale['id'] == $current_player_id)
+            {
+                $result = intval($playerMorale['morale']);
+                break;
+            }
+        }
+
+        assert($result >= 0, "morale must be always equal or greater than 0!");
+
+        return $result;
     }
 
     private function isCurrentPlayerFirstPlayer(): bool

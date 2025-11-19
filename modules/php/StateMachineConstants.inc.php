@@ -9,5 +9,6 @@ const ST_PLAYER_TURN = 5;
 const ST_NEXT_PLAYER_TURN = 6;
 const ST_PIECE_SELECTION = 7;
 const ST_MOVE_ACTION = 8;
+const ST_MOVE_FINISHED = 9;
 
 const ST_END_GAME = 99; 

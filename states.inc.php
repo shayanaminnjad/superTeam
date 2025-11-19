@@ -134,7 +134,15 @@ $machinestates = [
             "actFinishedMove"
         ],
 
-        "transitions" => ['moveAction' => ST_MOVE_ACTION, 'moveDone'=> ST_PLAYER_TURN]
+        "transitions" => ['moveAction' => ST_MOVE_ACTION, 'moveDone'=> ST_MOVE_FINISHED]
+    ],
+
+    ST_MOVE_FINISHED=> [
+        "name" => "moveFinished",
+        "description" => '',
+        "type" => "game",
+        "action" => "stMoveFinished",
+        "transitions" => ["moveDone" => ST_PLAYER_TURN]
     ],
 
     ST_NEXT_PLAYER_TURN => [
