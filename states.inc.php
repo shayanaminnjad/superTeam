@@ -72,7 +72,7 @@ $machinestates = [
         "possibleactions" => [
             // these actions are called from the front with bgaPerformAction, and matched to the function on the game.php file
             "actPlacedPiece", 
-            "actDebugDefaultPlacePieces"
+            "actDebugDefaultPlacePieces",
         ],
         "transitions" => ["playerPieceSetup" => ST_PLAYER_PIECE_SETUP, "setupComplete" => ST_SETUP_COMPLETE]
     ],
@@ -106,6 +106,7 @@ $machinestates = [
             //which one fits better
             "actActionSelected",
             "actPassForward",
+            "actDebugAddMorale"
         ],
         "transitions" => ['nextPlayer' => ST_NEXT_PLAYER_TURN, 'playerTurn' => ST_PLAYER_TURN, 'moveAction' => ST_PIECE_SELECTION]
     ],
@@ -131,7 +132,7 @@ $machinestates = [
         "args" => "argMoveAction",
         "possibleactions" => [
             "actPieceMoved",
-            "actFinishedMove"
+            "actActionSelected"
         ],
 
         "transitions" => ['moveAction' => ST_MOVE_ACTION, 'moveDone'=> ST_MOVE_FINISHED]

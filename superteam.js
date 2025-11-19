@@ -102,6 +102,7 @@ define([
                     case 'pieceSelection':
                         if (this.isCurrentPlayerActive()) {
                             this.pieceManager.makeAllPiecesNonSelectable();
+                            this.pieceManager.removeAllMoraleTokens();
                         }
                         break;
                     case 'moveAction':
@@ -161,7 +162,45 @@ define([
                     <span class = "moraleIcon"></span>
                     <span id="playerMorale${playerId}" class= "moraleLabel">${currentMorale}</span>
                     </div>`);
+
+                    this.setPlayerMorale(playerId, currentMorale);
                 }
+            },
+
+            setPlayerMorale: function(playerId, amount)
+            {
+                let moraleEl = document.getElementById(`playerMorale${playerId}`);
+                moraleEl.innerHTML = amount;
+            },
+            
+            getPlayerMorale: function(playerId)
+            {
+                let moraleEl = document.getElementById(`playerMorale${playerId}`);
+                return parseInt(moraleEl.innerHTML);
+            },
+
+            reducePlayerMorale: async function(amount, PlaceSpentOn)
+            {
+                let activePlayer = this.getActivePlayerId();
+                let currentMorale = this.getPlayerMorale(activePlayer);
+                this.setPlayerMorale( activePlayer, currentMorale - amount);
+
+                for (let i = 0; i < amount; i++)
+                {
+                    let tempEl = document.createElement("div");
+                    tempEl.innerHTML = `<div class="spentMorale"></div>`;
+                    let moraleEl = tempEl.firstElementChild;
+                    this.getGameAreaElement().appendChild(moraleEl);
+                    let playerMoraleEl = document.getElementById(`playerMorale${activePlayer}`);
+
+                    this.placeOnObject(moraleEl, playerMoraleEl);
+
+                    const anim = this.slideToObject(moraleEl, PlaceSpentOn);
+
+                    await this.bgaPlayDojoAnimation(anim);
+                }
+
+                document.querySelectorAll(".spentMorale").forEach(el=> el.remove());
             },
 
             setupMainBoard: function (gamedatas) {
@@ -354,7 +393,7 @@ define([
 
                     if (piece.getPosition() != null) {
                         let offsetCoord = this.convertOffsetCoordToHexId(piece.getPosition());
-                        this.pieceManager.animatePieceFromPlayerBoardToHex(piece.getId(), offsetCoord);7
+                        this.pieceManager.animatePieceFromPlayerBoardToHex(piece.getId(), offsetCoord); 7
                     }
                 }
             },
@@ -471,14 +510,19 @@ define([
             notif_movedPiece: async function (notifData) {
                 let destHex = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);
                 let piece = this.pieceManager.getPiece(notifData.movedPiece);
-
+                
+                if (parseInt(notifData.spentMorale) === 1)
+                {
+                    await this.reducePlayerMorale(1, piece.getDOMID());
+                }
+                
                 piece.setPosition(destHex);
-
+                
                 let animations = [];
-
+                
                 const DEST_HEX_ID = this.convertOffsetCoordToHexId(destHex);
                 animations.push(this.slideToObject(piece.getDOMID(), DEST_HEX_ID));
-
+                
                 if (parseInt(notifData.ballMoved)) {
                     this.hexWithBall = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);
                     animations.push(this.slideToObject('ball', DEST_HEX_ID));
@@ -487,10 +531,15 @@ define([
                 await this.bgaPlayDojoAnimation(dojo.fx.combine(animations));
             },
 
-            notif_pieceExhausted: async function (notifData) {
-                console.log(notifData);
+            notif_pieceExhausted: function (notifData) {
                 let pieceData = this.pieceManager.getPiece(parseInt(notifData.pieceId));
                 pieceData.setFreshness(false);
+            },
+
+            notif_moraleChanged: function (notifyData) { 
+                
+                let moraleEl = document.getElementById(`playerMorale${notifyData.playerId}`);
+                moraleEl.innerHTML = notifyData.amount;
             },
 
             ///////////////////////////////////////////////////
@@ -535,6 +584,18 @@ define([
 
                             hex.innerHTML = val ? offsetCoord + '<br>' + cubeCoord : "";
                         });
+                    }.bind(this)
+                })
+
+                Object.defineProperty(window.debug, 'setMorale', {
+                    get: function () {
+                        return this._val;
+                    },
+                    set: function (val) {
+                        this._val = val;
+
+                        console.log('calling actDebugAddMorale');
+                        this.bgaPerformAction("actDebugAddMorale", { amount: val });
                     }.bind(this)
                 })
             },

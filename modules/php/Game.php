@@ -394,6 +394,9 @@ class Game extends \Table
             case GameActions::Move->value:
                 $this->gamestate->nextState("moveAction");
                 break;
+            case GameActions::FinishMove->value:
+                $this->FinishedMove();
+                break;
         }
 
         //TODO: Probably I get the board here, so updateAttacker and defender can work on it.
@@ -402,6 +405,8 @@ class Game extends \Table
 
     public function argActionSelection() : array
     {
+        //TODO: can only move if there is a fresh piece, or we have morale!
+        
         return ['possibleActions' => [
             ['name' => 'move', 'id' => GameActions::Move]
             ]];
@@ -447,7 +452,8 @@ class Game extends \Table
     {
         $selectablePieces = $this->argPieceSelection();
 
-        if (!in_array($pieceId, $selectablePieces['selectablePieces'], true))
+        if (!in_array($pieceId, $selectablePieces['selectablePieces'], true) &&
+            !in_array($pieceId, $selectablePieces['selectableExhaustedPieces'], true))
         {
             throw new BgaUserException("Piece Id {$pieceId} is not selectable.");
         }
@@ -507,9 +513,13 @@ class Game extends \Table
             $shouldEndMovement = true;
         }
 
+        $spentMorale = 0;
         if(!$isFresh && $numberOfMoves === 0) //player has moved an exhusted piece.
         {
-            //TODO: spend one morale.
+            $currentMorale = $this->getCurrentPlayerMorale();
+            $this->setCurrentPlayerMorale($currentMorale - 1, false);
+
+            $spentMorale = 1;
             $shouldEndMovement = true;
         }
 
@@ -530,7 +540,8 @@ class Game extends \Table
             "movedPiece" => $selectedPiece,
             "hex_column" => $hexColumn,
             "hex_row" => $hexRow,
-            "ballMoved" => $ballMoved
+            "ballMoved" => $ballMoved,
+            "spentMorale"=> $spentMorale
         ));
 
         if ($shouldEndMovement)
@@ -543,9 +554,9 @@ class Game extends \Table
         }
     }
 
-    public function actFinishedMove() : void
+    private function FinishedMove() : void
     {
-
+        $this->gamestate->nextState("moveDone");
     }
 
     //DEBUG ACTIONS
@@ -580,10 +591,12 @@ class Game extends \Table
         $this->gamestate->nextState("setupComplete");
     }
 
-    public function actDebugAddMorale($amount)  
+    public function actDebugAddMorale(int $amount)  
     {
         if($amount >= 0)
-            $this->setCurrentPlayerMorale($amount);
+        {
+            $this->setCurrentPlayerMorale($amount, true);
+        }
     }
 
     //=======================================
@@ -922,7 +935,7 @@ class Game extends \Table
         return $result;
     }
 
-    private function setCurrentPlayerMorale(int $amount) : void
+    private function setCurrentPlayerMorale(int $amount, bool $notify) : void
     {
         assert($amount >= 0, "morale should always be greater or equal to zero!");
         
@@ -931,6 +944,13 @@ class Game extends \Table
         $this->DbQuery(
             "UPDATE `player` SET resource_morale = {$amount} WHERE player_id = {$current_player_id}"
         );
+
+        if ($notify)
+        {
+            $this->notify->all("moraleChanged", "morale changed to {$amount}", 
+            ["amount" => $amount, 
+                   "playerId" => $current_player_id]);
+        }
     }
 
     private function isCurrentPlayerFirstPlayer(): bool
