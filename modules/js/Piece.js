@@ -1,4 +1,7 @@
-define([], function () {
+define([
+     g_gamethemeurl + "modules/js/STHexLib.js"
+], 
+function (STHexLib) {
 
     // constant enum-like roles
     const playerRoles = {
@@ -12,13 +15,18 @@ define([], function () {
         return {
             construct: function (initData, color) {
                 this._owner = initData.owner_id;
-                this._position = null;
                 this._isFresh = initData.is_fresh === '1';
                 this._id = parseInt(initData.id);
                 this._role = parseInt(initData.piece_role);
                 this._color = color;
 
-                this._addToDOM();
+                const hexColumn = initData.hex_column;
+                const hexRow = initData.hex_row;
+
+                if (hexColumn != -1 && hexRow != -1) {
+                    let offsetCoord = STHexLib.createOffsetCoord(hexRow, hexColumn);
+                    this.setPosition(offsetCoord);
+                }
             },
 
             isGoalie: function () {
@@ -67,6 +75,10 @@ define([], function () {
             },
 
             setPosition: function (offsetPos) {
+                if (this._position === null) {
+                    this._addToDOM();
+                }
+
                 this._position = offsetPos;
             },
 

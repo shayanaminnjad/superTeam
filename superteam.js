@@ -73,7 +73,7 @@ define([
                         console.log("in playerTurn");
                         break;
                     case 'pieceSelection':
-                        this.makePiecesSelectable(args.args.selectablePieces);
+                        this.pieceManager.makePieceListSelectable(args.args.selectablePieces);
                         break;
                     case 'moveAction':
                         if (this.isCurrentPlayerActive()) {
@@ -99,7 +99,7 @@ define([
                         break;
                     case 'pieceSelection':
                         if (this.isCurrentPlayerActive()) {
-                            document.querySelectorAll('.piece').forEach((e) => e.classList.remove('clickable'));
+                            this.pieceManager.makeAllPiecesNonSelectable();
                         }
                         break;
                     case 'moveAction':
@@ -304,10 +304,6 @@ define([
                 }
             },
 
-            getPieceDOMId: function (integerId) {
-                return "piece_" + integerId;
-            },
-
             parseHexId: function (hexId) {
                 let idEls = hexId.split("_");
 
@@ -329,11 +325,6 @@ define([
                 return 'hex_' + offsetCoord.r + '_' + offsetCoord.c;
             },
 
-            getBoardOffsetExtent: function () {
-                //(sha) TODO: This should be global, we need to calculate it only once.
-                return STHexLib.createOffsetExtent(0, 16, 0, 9, 0, 10);
-            },
-
             getHexPixelCoordinate: function (offsetCoord) {
                 let hexData = this.getHexData(offsetCoord);
                 return hexData.pixelPos;
@@ -346,23 +337,7 @@ define([
                 return this.allHexes[STUIConstants.EVEN_COLUMN_ROWS * evenColumnsCount + oddColumnsCount * STUIConstants.ODD_COLUMN_ROWS + offsetCoord.r];;
             },
 
-            getHexesWithPlayer: function (teamId) {
-                let result = [];
-
-                if (teamId === this.player_id) {
-                    result = this.myPiecesData;
-                }
-                else if (teamId === this.opponentPiecesData) {
-                    result = this.opponentPiecesData;
-                }
-                else {
-                    this.assert(false, "Unknown team id: " + teamId);
-                }
-
-                return result;
-            },
-
-            setPiecesData: function (gameDatas) {
+            setPiecesData: async function (gameDatas) {
                 this.pieceManager = PieceManager.getPieceManager();
                 this.pieceManager.construct(this);
 
@@ -374,32 +349,11 @@ define([
                     let color = parseInt(el.owner_id) === this.player_id ? this.myColor : this.opponentColor;
                     let piece = this.pieceManager.createNewPiece(parseInt(el.id), el, color);
 
-                    let hexColumn = el.hex_column;
-                    let hexRow = el.hex_row;
-
-                    if (hexColumn != -1 && hexRow != -1) {
-                        let offsetCoord = STHexLib.createOffsetCoord(hexRow, hexColumn);
-                        piece.setPosition(offsetCoord);
-                        this.addPieceToBoard(piece.getOwner(), offsetCoord, piece);
+                    if (piece.getPosition() != null) {
+                        let offsetCoord = this.convertOffsetCoordToHexId(piece.getPosition());
+                        this.pieceManager.animatePieceFromPlayerBoardToHex(piece.getId(), offsetCoord);7
                     }
                 }
-            },
-
-            getHexWithBall: function () {
-                return this.hexWithBall;
-            },
-
-            addPieceToBoard: async function (player, offsetCoord, pieceData) {
-                const PIECE_DOM_ID = this.getPieceDOMId(pieceData.getId());
-
-                this.placeOnObject(PIECE_DOM_ID, 'overall_player_board_' + player);
-
-                this.setPieceClickEvent(PIECE_DOM_ID);
-
-                const HEX_ID = this.convertOffsetCoordToHexId(offsetCoord);
-                const anim = this.slideToObject(PIECE_DOM_ID, HEX_ID);
-
-                await this.bgaPlayDojoAnimation(anim);
             },
 
             addBallToBoard: async function (gamedatas) {
@@ -418,21 +372,12 @@ define([
                 await this.bgaPlayDojoAnimation(anim);
             },
 
-            makePiecesSelectable: function (pieceIds) {
-                for (let i = 0; i < pieceIds.length; i++) {
-                    let DOMId = this.getPieceDOMId(pieceIds[i]);
-
-                    document.getElementById(DOMId).classList.add('clickable');
-                }
-            },
-
             onMoveAction: function (args) {
                 let selectedPiece = args.selectedPiece;
                 let moveableHexes = args.moveableHexes;
 
-                let PieceDOMId = this.getPieceDOMId(selectedPiece);
-
-                document.getElementById(PieceDOMId).classList.add('selected');
+                let piece = this.pieceManager.getPiece(selectedPiece);
+                piece.getDOMElement().classList.add('selected');
 
                 for (let i = 0; i < moveableHexes.length; i++) {
                     let hex = moveableHexes[i];
@@ -440,44 +385,6 @@ define([
 
                     document.getElementById(DOMHexId).classList.add('freeInRange');
                 }
-            },
-
-            doesHexHasMovablePiece: function (hexId) {
-                let result = false;
-
-                let hexCoord = this.convertHexIdToOffsetCoord(hexId);
-                let myTeamPieces = this.getHexesWithPlayer(this.player_id);
-
-                for (let i = 0; i < myTeamPieces.length; ++i) {
-                    if (myTeamPieces[i].hex.equals(hexCoord)) {
-                        let piece = myTeamPieces[i].piece;
-                        if (!piece.isGoalie()) {
-                            result = true;
-                            break;
-                        }
-                    }
-                }
-
-                return result;
-            },
-
-            doesHexHasBlockingPiece: function (hexId) {
-                let result = false;
-
-                let hexCoord = this.convertHexIdToOffsetCoord(hexId);
-                let myTeamPieces = this.getHexesWithPlayer(this.playerId);
-                let otherTeampieces = this.getHexesWithPlayer(this.opponentId);
-
-                let allPieces = myTeamPieces.concat(otherTeampieces);
-
-                for (let i = 0; i < allPieces.length; ++i) {
-                    if (allPieces[i].hex.equals(hexCoord)) {
-                        result = true;
-                        break;
-                    }
-                }
-
-                return result;
             },
 
             assert: function (condition, message = "Assertion failed") {
@@ -551,24 +458,23 @@ define([
 
 
             notif_placedPiece: async function (notifData) {
-                let pieceData = this.pieceManager.getPiece(notifData.placed_piece);
                 let hex = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);
+                this.pieceManager.getPiece(notifData.placed_piece).setPosition(hex);
 
-                await this.addPieceToBoard(notifData.player_id, hex, pieceData);
+                await this.pieceManager.animatePieceFromPlayerBoardToHex(notifData.placed_piece, this.convertOffsetCoordToHexId(hex));
             },
 
 
             notif_movedPiece: async function (notifData) {
                 let destHex = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);
-                let pieceData = this.pieceManager.getPiece(notifData.movedPiece);
+                let piece = this.pieceManager.getPiece(notifData.movedPiece);
 
-                pieceData.setPosition(destHex);
+                piece.setPosition(destHex);
 
                 let animations = [];
 
-                const PIECE_DOM_ID = this.getPieceDOMId(pieceData.getId());
                 const DEST_HEX_ID = this.convertOffsetCoordToHexId(destHex);
-                animations.push(this.slideToObject(PIECE_DOM_ID, DEST_HEX_ID));
+                animations.push(this.slideToObject(piece.getDOMID(), DEST_HEX_ID));
 
                 if (parseInt(notifData.ballMoved)) {
                     this.hexWithBall = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);

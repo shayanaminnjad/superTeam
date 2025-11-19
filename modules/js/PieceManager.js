@@ -25,6 +25,38 @@ function (Piece) {
                 }
             },
 
+            makePieceListSelectable: function(pieces)
+            {
+                for(let piece in pieces)
+                {
+                    this.makePieceSelectable(piece);
+                }
+            },
+
+            makePieceSelectable: function(pieceId)
+            {
+                let piece = this.getPiece(pieceId);
+                piece.getDOMElement().classList.add('clickable')
+            },
+
+            makeAllPiecesNonSelectable: function()
+            {
+                document.querySelectorAll('.piece').forEach((e) => e.classList.remove('clickable'));
+            },
+
+            animatePieceFromPlayerBoardToHex: async function(pieceId, destHexId)
+            {
+                let piece = this.getPiece(pieceId);
+                let ownerPlayer = piece.getOwner();
+                const PIECE_ID = this.getPiece(pieceId).getId();
+
+                this._animator.placeOnObject(piece.getDOMElement(), 'overall_player_board_' + ownerPlayer);
+
+                const anim = this._animator.slideToObject(piece.getDOMElement(), destHexId);
+
+                await this._animator.bgaPlayDojoAnimation(anim);
+            },
+
             //Private functions
             _createPiece: function(initializationData, color) {
                 let piece = Piece.getPiece(this._document);
