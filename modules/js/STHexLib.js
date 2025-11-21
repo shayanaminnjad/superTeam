@@ -5,12 +5,12 @@ define([
 
         //------------------------------------------------------------------------------------
 
-        function createCubicCoord(q, r, s) {
-            q = parseInt(q, 10);
-            r = parseInt(r, 10);
-            s = parseInt(s, 10);
+        function createCubicCoord(q, r, s, safe = true) {
+            q = parseFloat(q, 10);
+            r = parseFloat(r, 10);
+            s = parseFloat(s, 10);
 
-            if (q + r + s !== 0) {
+            if (q + r + s !== 0 && safe) {
                 throw `Invalid cube coordinate (${q}, ${r}, ${s}): q + r + s must be 0, it is ${q + r + s}`;
             }
 
@@ -20,7 +20,7 @@ define([
                 s: s,
 
                 toString: function () {
-                    return '(' + q + ', ' + r + ', ' + s + ')';
+                    return '(' + this.q + ', ' + this.r + ', ' + this.s + ')';
                 },
 
                 equals: function (other) {
@@ -28,12 +28,16 @@ define([
                 },
 
                 scale: function (factor) {
-                    return createCubicCoord(q * factor, r * factor, s * factor);
+                    return createCubicCoord(this.q * factor, this.r * factor, this.s * factor);
                 },
 
                 toVector: function () {
-                    return [q, r, s];
+                    return [this.q, this.r, this.s];
                 },
+
+                subtract: function (other) {
+                    return createCubicCoord(this.q - other.q, this.r - other.r, this.s - other.s);
+                }
             };
         }
 
@@ -110,27 +114,101 @@ define([
 
             //------------------------------------------------------------------------------------
 
+            cubicRound: function (cubicCoordinate) {
+                let qRound = Math.round(cubicCoordinate.q);
+                let rRound = Math.round(cubicCoordinate.r);
+                let sRound = Math.round(cubicCoordinate.s);
+
+                let qDiff = Math.abs(qRound - cubicCoordinate.q);
+                let rDiff = Math.abs(rRound - cubicCoordinate.r);
+                let sDiff = Math.abs(sRound - cubicCoordinate.s);
+
+                if (qDiff > rDiff && qDiff > sDiff) {
+                    qRound = -rRound - sRound;
+                }
+                else if (rDiff > sDiff) {
+                    rRound = -qRound - sRound;
+                }
+                else {
+                    sRound = -qRound - rRound;
+                }
+
+                return this.createCubicCoord(qRound, rRound, sRound);
+            },
+
+            //------------------------------------------------------------------------------------
+
+            cubicLerp: function (a, b, t) {
+                return this.createCubicCoord(
+                    STMathLib.lerp(a.q, b.q, t),
+                    STMathLib.lerp(a.r, b.r, t),
+                    STMathLib.lerp(a.s, b.s, t),
+                    false);
+            },
+
+            //------------------------------------------------------------------------------------
+
             getHexsInPath: function (startPoint, endPoint, pathDistExtent, hexArray) {
-                
+
                 let result = [];
 
-                let lineDir = STMathLib.vectorSubtract(endPoint, startPoint);
+                const startAsCartesian = startPoint.toCartesian();
+                const endAsCartesian = endPoint.toCartesian();
+
+                let lineDir = STMathLib.vectorSubtract(endAsCartesian, startAsCartesian);
 
                 for (let i = 0; i < hexArray.length; i++) {
 
-                    let projSize = STMathLib.pointOntoLineProjectionSize(hexArray[i].cartesian, startPoint, lineDir);
+                    let projSize = STMathLib.pointOntoLineProjectionSize(hexArray[i].toCartesian(), startAsCartesian, lineDir);
 
                     if (projSize > 0 && projSize < 1) {
 
-                        let distance = STMathLib.pointFromLineDistance(hexArray[i].cartesian, startPoint, lineDir);
+                        let distance = STMathLib.pointFromLineDistance(hexArray[i].toCartesian(), startAsCartesian, lineDir);
 
-                            if (distance < pathDistExtent) {
+                        if (distance < pathDistExtent) {
                             result.push(hexArray[i]);
                         }
                     }
                 }
 
                 return result;
+            },
+
+            //------------------------------------------------------------------------------------
+
+            getHexesInLine: function (start, end) {
+                let result = [];
+
+                if (start.equals(end)) {
+                    result.push(end);
+
+                    return result;
+                }
+
+                let startCubic = this.oddqToCubic(start);
+                let endCubic = this.oddqToCubic(end);
+
+                let distance = this.getOffsetDistance(start, end);
+
+                startCubic = this.cubicAdd(startCubic, this.createCubicCoord(1e-6, 2e-6, -3e-6, false));
+
+                for (let i = 1; i <= distance; i++) {
+                    let cubicCoordinateOnLine = this.cubicRound(this.cubicLerp(startCubic, endCubic, 1 / distance * i));
+                    result.push(this.cubicToOddq(cubicCoordinateOnLine));
+                }
+
+                return result;
+            },
+
+            //------------------------------------------------------------------------------------
+
+            getOffsetDistance: function (start, end) {
+                let startCubic = this.oddqToCubic(start);
+                let endCubic = this.oddqToCubic(end);
+
+                let diff = endCubic.subtract(startCubic);
+
+                return ((Math.abs(diff.q) + Math.abs(diff.r) + Math.abs(diff.s))) * 0.5;
             },
 
             //------------------------------------------------------------------------------------
@@ -221,6 +299,21 @@ define([
                     toVector: function () {
                         return [r, c, 0];
                     },
+
+                    toCartesian: function (hexSize = 1) {
+                        const horizontalSpacing = 1.5 * hexSize;
+                        const verticalSpacing = 1.73205 * hexSize;
+
+                        const isEvenColumn = (this.c & 1) == 0;
+
+                        if (isEvenColumn) {
+                            return STMathLib.createVector2D(this.c * horizontalSpacing, this.r * verticalSpacing);
+                        }
+                        else { 
+                            const oddOffset = verticalSpacing * 0.5;
+                            return STMathLib.createVector2D(this.c * horizontalSpacing, oddOffset + this.r * verticalSpacing);
+                        }
+                    }
                 };
             },
 
