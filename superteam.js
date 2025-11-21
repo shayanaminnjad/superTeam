@@ -42,6 +42,13 @@ define([
                 this.myColor = gamedatas.players[this.player_id].color === 'FC5414' ? 'orange' : 'blue';
                 this.opponentColor = this.myColor === 'orange' ? 'blue' : 'orange';
 
+                for (const player of Object.keys(gamedatas.players)) {
+                    if (player !== this.getActivePlayerId()) {
+                        this.opponentId = player;
+                        break;
+                    }
+                }
+
                 this.setupPlayerArea(gamedatas);
 
                 this.setupMainBoard(gamedatas);
@@ -79,9 +86,13 @@ define([
                         break;
                     case 'moveAction':
                         if (this.isCurrentPlayerActive()) {
-                            document.querySelectorAll('.freeInRange').forEach(div => div.classList.remove('freeInRange'));
+                            document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
                         }
                         this.onMoveAction(args.args);
+                        break;
+                    case 'passDestinationSelection':
+                        this.onPassDestinationSelection(args.args);
+                        break;
                     case 'dummy':
                         break;
                 }
@@ -107,7 +118,7 @@ define([
                         break;
                     case 'moveAction':
                         if (this.isCurrentPlayerActive()) {
-                            document.querySelectorAll('.freeInRange').forEach(div => div.classList.remove('freeInRange'));
+                            document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
                             document.querySelector('.selected').classList.remove('selected');
                         }
                     case 'dummy':
@@ -123,29 +134,12 @@ define([
                 console.log("active player id " + this.getActivePlayerId());
 
                 if (this.isCurrentPlayerActive()) {
-                    switch (stateName) {
-                        case 'playerTurn':
-                            {
-                                let possibleActions = args['possibleActions'];
+                    let possibleActions = args['possibleActions'];
 
-                                for (let i = 0; i < possibleActions.length; i++) {
-                                    let action = possibleActions[i];
-                                    let id = parseInt(action['id'])
-                                    this.statusBar.addActionButton(action['name'], () => { console.log('action id was: ' + id); this.bgaPerformAction("actActionSelected", { actionId: id }) }, { color: 'primary' });
-                                }
-                            }
-                            break;
-                        case 'moveAction':
-                            {
-                                let possibleActions = args['possibleActions'];
-
-                                for (let i = 0; i < possibleActions.length; i++) {
-                                    let action = possibleActions[i];
-                                    let id = parseInt(action['id'])
-                                    this.statusBar.addActionButton(action['name'], () => { console.log('action id was: ' + id); this.bgaPerformAction("actActionSelected", { actionId: id }) }, { color: 'primary' });
-                                }
-                            }
-                            break;
+                    for (let i = 0; i < possibleActions.length; i++) {
+                        let action = possibleActions[i];
+                        let id = parseInt(action['id'])
+                        this.statusBar.addActionButton(action['name'], () => { console.log('action id was: ' + id); this.bgaPerformAction("actActionSelected", { actionId: id }) }, { color: 'primary' });
                     }
                 }
             },
@@ -167,26 +161,22 @@ define([
                 }
             },
 
-            setPlayerMorale: function(playerId, amount)
-            {
+            setPlayerMorale: function (playerId, amount) {
                 let moraleEl = document.getElementById(`playerMorale${playerId}`);
                 moraleEl.innerHTML = amount;
             },
-            
-            getPlayerMorale: function(playerId)
-            {
+
+            getPlayerMorale: function (playerId) {
                 let moraleEl = document.getElementById(`playerMorale${playerId}`);
                 return parseInt(moraleEl.innerHTML);
             },
 
-            reducePlayerMorale: async function(amount, PlaceSpentOn)
-            {
+            reducePlayerMorale: async function (amount, PlaceSpentOn) {
                 let activePlayer = this.getActivePlayerId();
                 let currentMorale = this.getPlayerMorale(activePlayer);
-                this.setPlayerMorale( activePlayer, currentMorale - amount);
+                this.setPlayerMorale(activePlayer, currentMorale - amount);
 
-                for (let i = 0; i < amount; i++)
-                {
+                for (let i = 0; i < amount; i++) {
                     let tempEl = document.createElement("div");
                     tempEl.innerHTML = `<div class="spentMorale"></div>`;
                     let moraleEl = tempEl.firstElementChild;
@@ -200,7 +190,7 @@ define([
                     await this.bgaPlayDojoAnimation(anim);
                 }
 
-                document.querySelectorAll(".spentMorale").forEach(el=> el.remove());
+                document.querySelectorAll(".spentMorale").forEach(el => el.remove());
             },
 
             setupMainBoard: function (gamedatas) {
@@ -266,7 +256,7 @@ define([
             initHexClickListener: function () {
                 document.querySelectorAll('.hex').forEach(hex => {
                     hex.addEventListener('click', e => this.onHexClicked(e));
-                    //hex.addEventListener('mouseenter', e=>this.onHexMouseEnter(e));
+                    hex.addEventListener('mouseenter', e => this.onHexMouseEnter(e));
                     //hex.addEventListener('mouseleave', e=>this.onHexMouseLeave(e));
                 });
             },
@@ -294,7 +284,7 @@ define([
                         }
                     }
                     else if (this.currentStateData.name === 'moveAction') {
-                        if (evt.currentTarget.classList.contains('freeInRange')) {
+                        if (evt.currentTarget.classList.contains('selectable')) {
                             evt.preventDefault();
                             evt.stopPropagation();
 
@@ -315,7 +305,27 @@ define([
             },
 
             onHexMouseEnter: function (evt) {
+                if (this.currentStateData.name === 'passDestinationSelection') {
+                    if (evt.currentTarget.classList.contains('selectable')) {
 
+                        document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
+
+                        var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
+                        let hexesInLine = STHexLib.getHexesInLine(this.hexWithBall, offsetCoord);
+
+                        let opponentHexes = this.pieceManager.getAllPiecesOwnedBy(this.opponentId);
+                        let blockingPices = STHexLib.getHexsInPath(this.hexWithBall, offsetCoord, 1, opponentHexes)
+
+                        let requiredPower = this.getRequiredPower(hexesInLine.length, blockingPices.length);
+
+                        console.log('required power is: ' + requiredPower);
+
+                        for (let i = 0; i < hexesInLine.length; i++) {
+                            let el = document.getElementById(this.convertOffsetCoordToHexId(hexesInLine[i]));
+                            el.classList.add('inPath');
+                        }
+                    }
+                }
             },
 
             onHexMouseLeave: function (evt) {
@@ -425,8 +435,34 @@ define([
                     let hex = moveableHexes[i];
                     let DOMHexId = this.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(hex.hex_row, hex.hex_column));
 
-                    document.getElementById(DOMHexId).classList.add('freeInRange');
+                    document.getElementById(DOMHexId).classList.add('selectable');
                 }
+            },
+
+            onPassDestinationSelection: function (args) {
+
+                let allBlockedSpaces = [];
+
+                for (const space of args.blockedSpaces) {
+                    allBlockedSpaces.push(this.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(space.hex_row, space.hex_column)));
+                }
+
+                this.hexWithBall = STHexLib.createOffsetCoord(args.hexWithBall.hex_row, args.hexWithBall.hex_column)
+                allBlockedSpaces.push(this.convertOffsetCoordToHexId(this.hexWithBall));
+
+                this.makeAllHexesSelectableExcept(allBlockedSpaces);
+            },
+
+            makeAllHexesSelectableExcept: function (hexesToExclude) {
+                document.querySelectorAll('.hex').forEach(el => el.classList.add('selectable'));
+
+                for (let i = 0; i < hexesToExclude.length; i++) {
+                    document.getElementById(hexesToExclude[i]).classList.remove('selectable');
+                }
+            },
+
+            getRequiredPower(distance, blockingPiecesCount) {
+                return Math.ceil(distance / 2) + blockingPiecesCount;
             },
 
             assert: function (condition, message = "Assertion failed") {
@@ -510,19 +546,18 @@ define([
             notif_movedPiece: async function (notifData) {
                 let destHex = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);
                 let piece = this.pieceManager.getPiece(notifData.movedPiece);
-                
-                if (parseInt(notifData.spentMorale) === 1)
-                {
+
+                if (parseInt(notifData.spentMorale) === 1) {
                     await this.reducePlayerMorale(1, piece.getDOMID());
                 }
-                
+
                 piece.setPosition(destHex);
-                
+
                 let animations = [];
-                
+
                 const DEST_HEX_ID = this.convertOffsetCoordToHexId(destHex);
                 animations.push(this.slideToObject(piece.getDOMID(), DEST_HEX_ID));
-                
+
                 if (parseInt(notifData.ballMoved)) {
                     this.hexWithBall = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);
                     animations.push(this.slideToObject('ball', DEST_HEX_ID));
@@ -536,8 +571,8 @@ define([
                 pieceData.setFreshness(false);
             },
 
-            notif_moraleChanged: function (notifyData) { 
-                
+            notif_moraleChanged: function (notifyData) {
+
                 let moraleEl = document.getElementById(`playerMorale${notifyData.playerId}`);
                 moraleEl.innerHTML = notifyData.amount;
             },
@@ -621,11 +656,9 @@ define([
 
             hexWithBall: null,
 
+            opponentId: null,
+
             //----------------------- general variables
-
-            startHex: null,
-
-            endHex: null,
 
             currentStateData: null,
 

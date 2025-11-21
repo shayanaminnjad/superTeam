@@ -27,14 +27,17 @@ use Bga\Games\SuperTeam\GameDice\GameDice;
 
 use BgaUserException;
 use Exception;
+use LogicException;
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
+require_once(__DIR__ . '/StateMachineConstants.inc.php');
 
 enum GameActions : int
 {
     case Unknown = 0;
     case Move = 1;
     case FinishMove = 2;
+    case PassBall = 3;
 }
 
 
@@ -392,10 +395,13 @@ class Game extends \Table
         switch($actionId)
         {
             case GameActions::Move->value:
-                $this->gamestate->nextState("moveAction");
+                $this->gamestate->nextState(TR_MOVE_ACTION);
                 break;
             case GameActions::FinishMove->value:
                 $this->FinishedMove();
+                break;
+            case GameActions::PassBall->value:
+                $this->gamestate->nextState(TR_PASS_BALL_ACTION);
                 break;
         }
 
@@ -405,11 +411,28 @@ class Game extends \Table
 
     public function argActionSelection() : array
     {
-        //TODO: can only move if there is a fresh piece, or we have morale!
-        
-        return ['possibleActions' => [
-            ['name' => 'move', 'id' => GameActions::Move]
-            ]];
+        //TODO: each of these actions must be an object, with predicate, and name and id.
+
+        $possibleActions = [];
+
+        $pieceSelectableForMove = $this->argPieceSelection();
+
+        if(count($pieceSelectableForMove['selectablePieces']) > 0 || count($pieceSelectableForMove['selectableExhaustedPieces']) > 0)
+        {
+            $possibleActions[] = ['name' => 'move', 'id' => GameActions::Move];
+        }
+
+        $board = $this->getBoard();
+        $playerPieceWithBall = null;
+        if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPieceWithBall))
+        {
+            if ($playerPieceWithBall->getOwner() === intval($this->getActivePlayerId()))
+            {
+                $possibleActions[] = ['name' => 'pass ball', 'id' => GameActions::PassBall];
+            }
+        }
+
+        return ['possibleActions' => $possibleActions];
     }
 
     public function argPieceSelection() : array
@@ -460,7 +483,7 @@ class Game extends \Table
 
         $this->setGameStateValue('selected_piece', $pieceId);
 
-        $this->gamestate->nextState("moveAction");
+        $this->gamestate->nextState(TR_MOVE_ACTION);
     }
 
     public function argMoveAction() : array
@@ -499,7 +522,7 @@ class Game extends \Table
         if (intval($ballLocation['hex_column']) === $oldPieceHexCol && intval($ballLocation['hex_row']) === $oldPieceHexRow)
         {
             $ballMoved = 1;
-            $this->DbQuery("UPDATE `ball` SET `hex_column` = $hexColumn, `hex_row` = $hexRow ");
+            $this->DbQuery("UPDATE ball SET `hex_column` = $hexColumn, `hex_row` = $hexRow ");
             //TODO: this will probably change attacker and defender (I am not sure however if it happens right now?)
         }
 
@@ -546,17 +569,63 @@ class Game extends \Table
 
         if ($shouldEndMovement)
         {
-            $this->gamestate->nextState("moveDone");
+            $this->gamestate->nextState(TR_MOVE_DONE);
         }
         else
         {
-            $this->gamestate->nextState("moveAction");
+            $this->gamestate->nextState(TR_MOVE_ACTION);
         }
     }
 
     private function FinishedMove() : void
     {
-        $this->gamestate->nextState("moveDone");
+        $this->gamestate->nextState(TR_MOVE_DONE);
+    }
+
+    public function argPassDestSelection() : array
+    {
+        $board = $this->getBoard();
+        
+        $allPieces = $board->getPieces();
+        
+        $blockedSpaces = [];
+        
+        $currentPlayerId = intval($this->getActivePlayerId());
+
+        foreach ($allPieces as $piece)
+        {
+            if ($piece->getOwner() !== $currentPlayerId && $piece->getRole() !== PlayerRole::GoalKeeper->value)
+            {
+                $piecePos = $piece->getPosition();
+                $blockedSpaces[] = $piecePos->convertToArray();
+            }
+        }
+
+        $playerGoaliePos = $board->getPlayerGoalie($currentPlayerId)->getPosition();
+
+        foreach(BoardInfo::$GOALIE_SPECIFIC_LOCATIONS as $goalieLocation)
+        {
+            if (!$goalieLocation->equals($playerGoaliePos))
+            {
+                $blockedSpaces[] = $goalieLocation->convertToArray();
+            }
+        }
+
+        $hexWithBall = $board->getBallHex();
+        
+        return [
+            "hexWithBall" => $hexWithBall->convertToArray(),
+            "blockedSpaces" => $blockedSpaces];
+    }
+
+    public function actDestSelected($hexColumn, $hexRow) : void
+    {
+
+    }
+
+    public function actCancel() : void
+    {
+        $this->gamestate->nextState(TR_CANCEL);
     }
 
     //DEBUG ACTIONS
@@ -630,7 +699,7 @@ class Game extends \Table
             "pieceId" => $selectedPiece,
         ));
 
-        $this->gamestate->nextState("moveDone");
+        $this->gamestate->nextState(TR_MOVE_DONE);
     }
 
     public function stBeforePlayerTurn() : void
@@ -657,25 +726,6 @@ class Game extends \Table
         // TODO: compute and return the game progression
 
         return 0;
-    }
-
-    /**
-     * Game state action, example content.
-     *
-     * The action method of state `nextPlayer` is called everytime the current game state is set to `nextPlayer`.
-     */
-    public function stNextPlayer(): void {
-        // Retrieve the active player ID.
-        $player_id = (int)$this->getActivePlayerId();
-
-        // Give some extra time to the active player when he completed an action
-        $this->giveExtraTime($player_id);
-        
-        $this->activeNextPlayer();
-
-        // Go to another gamestate
-        // Here, we would detect if the game is over, and in this case use "endGame" transition instead 
-        $this->gamestate->nextState("nextPlayer");
     }
 
     /**
@@ -913,7 +963,7 @@ class Game extends \Table
 
     private function getCurrentPlayerMorale() : int
     {
-        $current_player_id = (int) $this->getCurrentPlayerId();
+        $current_player_id = $this->getActivePlayerId();
 
         $playersMorale = $this->getCollectionFromDb(
             "SELECT `player_id` `id`, `resource_morale` `morale` FROM `player`"
@@ -939,7 +989,7 @@ class Game extends \Table
     {
         assert($amount >= 0, "morale should always be greater or equal to zero!");
         
-        $current_player_id = (int) $this->getCurrentPlayerId();
+        $current_player_id = (int) $this->getActivePlayerId();
 
         $this->DbQuery(
             "UPDATE `player` SET resource_morale = {$amount} WHERE player_id = {$current_player_id}"

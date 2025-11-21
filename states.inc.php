@@ -1,4 +1,5 @@
 <?php
+
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
@@ -71,7 +72,7 @@ $machinestates = [
         "args" => "argPlayerPieceSetup",
         "possibleactions" => [
             // these actions are called from the front with bgaPerformAction, and matched to the function on the game.php file
-            "actPlacedPiece", 
+            "actPlacedPiece",
             "actDebugDefaultPlacePieces",
         ],
         "transitions" => ["playerPieceSetup" => ST_PLAYER_PIECE_SETUP, "setupComplete" => ST_SETUP_COMPLETE]
@@ -88,7 +89,7 @@ $machinestates = [
         "name" => "beforePlayerTurn",
         "type" => "game",
         "action" => "stBeforePlayerTurn",
-        "transitions" => [""=>ST_PLAYER_TURN]
+        "transitions" => ["" => ST_PLAYER_TURN]
     ],
 
     //TODO: add after player turn, here we draw back to player hand size
@@ -102,13 +103,15 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argActionSelection",
         "possibleactions" => [
-            //(sha) TODO: I can have multiple actions, or a single action with a multiple parameters, I should see
-            //which one fits better
             "actActionSelected",
-            "actPassForward",
             "actDebugAddMorale"
         ],
-        "transitions" => ['nextPlayer' => ST_NEXT_PLAYER_TURN, 'playerTurn' => ST_PLAYER_TURN, 'moveAction' => ST_PIECE_SELECTION]
+        "transitions" => [
+            'nextPlayer' => ST_NEXT_PLAYER_TURN,
+            'playerTurn' => ST_PLAYER_TURN,
+            TR_MOVE_ACTION => ST_PIECE_SELECTION,
+            TR_PASS_BALL_ACTION => ST_PASS_DEST_SELECTION
+        ]
     ],
 
     ST_PIECE_SELECTION => [
@@ -118,10 +121,11 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argPieceSelection",
         "possibleactions" => [
+            "actCancel",
             "actPieceSelected"
         ],
 
-        "transitions" => ['moveAction' => ST_MOVE_ACTION]
+        "transitions" => [TR_MOVE_ACTION => ST_MOVE_ACTION, TR_CANCEL=> ST_PLAYER_TURN]
     ],
 
     ST_MOVE_ACTION => [
@@ -135,17 +139,40 @@ $machinestates = [
             "actActionSelected"
         ],
 
-        "transitions" => ['moveAction' => ST_MOVE_ACTION, 'moveDone'=> ST_MOVE_FINISHED]
+        "transitions" => [TR_MOVE_ACTION => ST_MOVE_ACTION, TR_MOVE_DONE => ST_MOVE_FINISHED]
     ],
 
-    ST_MOVE_FINISHED=> [
+    ST_MOVE_FINISHED => [
         "name" => "moveFinished",
         "description" => '',
         "type" => "game",
         "action" => "stMoveFinished",
-        "transitions" => ["moveDone" => ST_PLAYER_TURN]
+        "transitions" => [TR_MOVE_DONE => ST_PLAYER_TURN]
     ],
 
+    ST_PASS_DEST_SELECTION => [
+        "name" => "passDestinationSelection",
+        "description" => clienttranslate('${actplayer} is choosing hex to pass the ball'),
+        "descriptionmyturn" => clienttranslate('choose a hex to pass the ball'),
+        "type" => "activeplayer",
+        "args" => "argPassDestSelection",
+        "possibleactions" => [
+            "actCancel",
+            "actDestSelected"
+        ],
+
+        "transitions" => [TR_CANCEL=> ST_PLAYER_TURN /*, TR_PASS_BALL_ACTION => ST_PASS_CONFIRMATION*/]
+    ],
+
+    /*
+    ST_PASS_CONFIRMATION => [
+
+    ],
+
+    ST_PASS_PERFORM => [
+
+    ],
+*/
     ST_NEXT_PLAYER_TURN => [
         "name" => "nextPlayer",
         "description" => '',
@@ -166,6 +193,3 @@ $machinestates = [
     ],
 
 ];
-
-
-

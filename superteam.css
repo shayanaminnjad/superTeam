@@ -180,12 +180,12 @@
     opacity: 0.7;
 }
 
-.freeInRange {
+.selectable {
     background-color: white;
     opacity: 0.4;
 }
 
-.freeInRange:hover{
+.selectable:hover{
     opacity: 0.7;
 }
 

@@ -15,6 +15,8 @@ class BoardInfo
     public static int $BOARD_EVEN_COLS_ROWS;
     public static int $BOARD_ODD_COLS_ROWS;
 
+    public static array $GOALIE_SPECIFIC_LOCATIONS; 
+
     public static function init() : void
     {
         self::$CENTER_POSITION = new HexID(8,5);
@@ -25,5 +27,7 @@ class BoardInfo
         self::$BOARD_COLUMNS = 17;
         self::$BOARD_EVEN_COLS_ROWS = 11;
         self::$BOARD_ODD_COLS_ROWS = 10;
+
+        self::$GOALIE_SPECIFIC_LOCATIONS = [new HexID(0, 4), new HexID(0, 5), new HexID(0, 6), new HexID(16, 4), new HexID(16, 5), new HexID(16, 6)];
     }
 }
