@@ -43,4 +43,9 @@ class HexID
     {
         return $this->row == $rhs->row && $this->column == $rhs->column;
     }
+
+    public function toString() : string
+    {
+        return "({$this->row}, {$this->column})";
+    }
 }
