@@ -251,6 +251,10 @@
     pointer-events: none;
 }
 
+.powerIndication{
+    position: absolute;
+}
+
 .lineStart {
     background-color: aquamarine;
 }

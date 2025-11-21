@@ -157,7 +157,7 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argPassDestSelection",
         "possibleactions" => [
-            "actCancel",
+            "actActionSelected",
             "actDestSelected"
         ],
 

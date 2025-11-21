@@ -121,6 +121,10 @@ define([
                             document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
                             document.querySelector('.selected').classList.remove('selected');
                         }
+                    case 'passDestinationSelection':
+                        if (this.isCurrentPlayerActive()) {
+                            document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
+                        }
                     case 'dummy':
                         break;
                 }
@@ -260,7 +264,7 @@ define([
                 document.querySelectorAll('.hex').forEach(hex => {
                     hex.addEventListener('click', e => this.onHexClicked(e));
                     hex.addEventListener('mouseenter', e => this.onHexMouseEnter(e));
-                    hex.addEventListener('mouseleave', e=>this.onHexMouseLeave(e));
+                    hex.addEventListener('mouseleave', e => this.onHexMouseLeave(e));
                 });
             },
 
@@ -312,13 +316,14 @@ define([
                     if (evt.currentTarget.classList.contains('selectable')) {
 
                         document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
-                        document.querySelectorAll('.blocking').forEach(el=> el.classList.remove('blocking'));
+                        document.querySelectorAll('.blocking').forEach(el => el.classList.remove('blocking'));
+                        document.querySelectorAll('.powerIndication').forEach(el => el.remove());
 
                         var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
                         let hexesInLine = STHexLib.getHexesInLine(this.hexWithBall, offsetCoord);
 
                         let opponentHexes = this.pieceManager.getAllPiecesOwnedBy(this.opponentId);
-                        let blockingPieces = STHexLib.getHexsInPath(this.hexWithBall, offsetCoord, 1, opponentHexes)
+                        let blockingPieces = STHexLib.getHexsInPath(this.hexWithBall, offsetCoord, 1.3, opponentHexes)
 
                         let requiredPower = this.getRequiredPower(hexesInLine.length, blockingPieces.length);
 
@@ -329,9 +334,17 @@ define([
                             el.classList.add('inPath');
                         }
 
-                        for (let i = 0; i < blockingPieces.length; i++){
+                        for (let i = 0; i < blockingPieces.length; i++) {
                             let el = document.getElementById(this.convertOffsetCoordToHexId(blockingPieces[i]));
                             el.classList.add('blocking');
+
+                            let tempEl = document.createElement("span");
+                            tempEl.innerHTML = `<span class="powerIndication">+1</span>`;
+                            let powerIndicator = tempEl.firstElementChild;
+                            this.getGameAreaElement().appendChild(powerIndicator);
+
+                            this.placeOnObject(powerIndicator, el);
+                            powerIndicator.style.top = (parseInt(powerIndicator.style.top) - 30) + 'px';
                         }
                     }
                 }
@@ -339,9 +352,10 @@ define([
 
             onHexMouseLeave: function (evt) {
                 if (this.currentStateData.name === 'passDestinationSelection') {
-                        document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
-                        document.querySelectorAll('.blocking').forEach(el=> el.classList.remove('blocking'));
-                    }
+                    document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
+                    document.querySelectorAll('.blocking').forEach(el => el.classList.remove('blocking'));
+                    document.querySelectorAll('.powerIndication').forEach(el => el.remove());
+                }
             },
 
             onPieceClicked: async function (evt) {

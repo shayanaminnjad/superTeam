@@ -38,6 +38,7 @@ enum GameActions : int
     case Move = 1;
     case FinishMove = 2;
     case PassBall = 3;
+    case Cancel = 4;
 }
 
 
@@ -403,6 +404,9 @@ class Game extends \Table
             case GameActions::PassBall->value:
                 $this->gamestate->nextState(TR_PASS_BALL_ACTION);
                 break;
+            case GameActions::Cancel->value:
+                $this->gamestate->nextState(TR_CANCEL);
+                break;
         }
 
         //TODO: Probably I get the board here, so updateAttacker and defender can work on it.
@@ -615,17 +619,13 @@ class Game extends \Table
         
         return [
             "hexWithBall" => $hexWithBall->convertToArray(),
-            "blockedSpaces" => $blockedSpaces];
+            "blockedSpaces" => $blockedSpaces,
+            "possibleActions" => [['name' => 'cancel', 'id' => GameActions::Cancel]]];
     }
 
     public function actDestSelected($hexColumn, $hexRow) : void
     {
 
-    }
-
-    public function actCancel() : void
-    {
-        $this->gamestate->nextState(TR_CANCEL);
     }
 
     //DEBUG ACTIONS
