@@ -27,6 +27,11 @@ class Board
         return $this->ballPosition;   
     }
 
+    public function getPieces() : array
+    {
+        return $this->playerPieces;
+    }
+
     public function hasPlayerInHex(HexID $hexID) : bool
     {
         for ($i = 0; $i < count($this->playerPieces); $i++)
@@ -60,6 +65,19 @@ class Board
         }
 
         return $found;
+    }
+
+    public function getPlayerGoalie(int $ownerId): ?PlayerPiece
+    {
+        foreach($this->playerPieces as $piece)
+        {
+            if ($piece->getOwner() === $ownerId && $piece->getRole() === PlayerRole::GoalKeeper->value)
+                return $piece;
+        }
+
+        assert(false, "player must have a goalie!");
+
+        return null;
     }
 
     public function getPlayerPiecesInForwardColumns(int $startColumn, $ownerId) : array //This should be of type playerPiece
@@ -180,6 +198,22 @@ class Board
         }
 
         return false;
+    }
+
+    public function getRequiredPower(HexID $start, HexID $end, int $opponentId, array &$outLineHexes, array &$outBlockingHexes): int
+    {
+        $outLineHexes = HexLib::getHexesInLine($start, $end);
+        $opponentPieces = $this->getPlayerPiecesByOwner($opponentId);
+        $opponentPieceLocations = [];
+
+        for ($i = 0; $i < count($opponentPieces); $i++)
+        {
+            $opponentPieceLocations[] = $opponentPieces[$i]->getPosition();
+        }
+
+        $outBlockingHexes = HexLib::getHexesInPath($start, $end, 1, $opponentPieceLocations);
+
+        return ceil((float)count($outLineHexes) / (float)2) + count($outBlockingHexes);
     }
 
     private function canMoveToHex(HexID $hexID):bool
