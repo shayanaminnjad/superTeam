@@ -136,6 +136,9 @@ define([
                 if (this.isCurrentPlayerActive()) {
                     let possibleActions = args['possibleActions'];
 
+                    if (!possibleActions)
+                        return;
+
                     for (let i = 0; i < possibleActions.length; i++) {
                         let action = possibleActions[i];
                         let id = parseInt(action['id'])
@@ -257,7 +260,7 @@ define([
                 document.querySelectorAll('.hex').forEach(hex => {
                     hex.addEventListener('click', e => this.onHexClicked(e));
                     hex.addEventListener('mouseenter', e => this.onHexMouseEnter(e));
-                    //hex.addEventListener('mouseleave', e=>this.onHexMouseLeave(e));
+                    hex.addEventListener('mouseleave', e=>this.onHexMouseLeave(e));
                 });
             },
 
@@ -309,14 +312,15 @@ define([
                     if (evt.currentTarget.classList.contains('selectable')) {
 
                         document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
+                        document.querySelectorAll('.blocking').forEach(el=> el.classList.remove('blocking'));
 
                         var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
                         let hexesInLine = STHexLib.getHexesInLine(this.hexWithBall, offsetCoord);
 
                         let opponentHexes = this.pieceManager.getAllPiecesOwnedBy(this.opponentId);
-                        let blockingPices = STHexLib.getHexsInPath(this.hexWithBall, offsetCoord, 1, opponentHexes)
+                        let blockingPieces = STHexLib.getHexsInPath(this.hexWithBall, offsetCoord, 1, opponentHexes)
 
-                        let requiredPower = this.getRequiredPower(hexesInLine.length, blockingPices.length);
+                        let requiredPower = this.getRequiredPower(hexesInLine.length, blockingPieces.length);
 
                         console.log('required power is: ' + requiredPower);
 
@@ -324,12 +328,20 @@ define([
                             let el = document.getElementById(this.convertOffsetCoordToHexId(hexesInLine[i]));
                             el.classList.add('inPath');
                         }
+
+                        for (let i = 0; i < blockingPieces.length; i++){
+                            let el = document.getElementById(this.convertOffsetCoordToHexId(blockingPieces[i]));
+                            el.classList.add('blocking');
+                        }
                     }
                 }
             },
 
             onHexMouseLeave: function (evt) {
-                document.querySelectorAll('.nearPlayerInRange').forEach(div => div.classList.remove('nearPlayerInRange'));
+                if (this.currentStateData.name === 'passDestinationSelection') {
+                        document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
+                        document.querySelectorAll('.blocking').forEach(el=> el.classList.remove('blocking'));
+                    }
             },
 
             onPieceClicked: async function (evt) {

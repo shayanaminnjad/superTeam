@@ -195,7 +195,13 @@
 }
 
 .inPath {
-    background-color: chocolate;
+    background-color: rgb(255, 151, 151);
+    opacity: 0.4 !important;
+}
+
+.blocking {
+    background-color: rgb(255, 0, 0);
+    opacity: 0.8 !important;
 }
 
 .resources {
