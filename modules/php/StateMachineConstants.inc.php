@@ -21,4 +21,7 @@ const ST_END_GAME = 99;
 const TR_MOVE_ACTION = 'moveAction';
 const TR_MOVE_DONE = 'moveDone';
 const TR_PASS_BALL_ACTION = 'passBallAction';
+const TR_SETUP_COMPLETE = 'setupComplete';
+const TR_PLAYER_PIECE_SETUP = 'playerPieceSetup';
+const TR_PLAYER_TURN = 'playerTurn';
 const TR_CANCEL = 'cancel';

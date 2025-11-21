@@ -380,11 +380,11 @@ class Game extends \Table
 
         if (!$this->isPlayerSetupComplete($playerId))
         {
-            $this->gamestate->nextState("playerPieceSetup");
+            $this->gamestate->nextState(TR_PLAYER_PIECE_SETUP);
         }
         else
         {
-            $this->gamestate->nextState("setupComplete");
+            $this->gamestate->nextState(TR_SETUP_COMPLETE);
         }
     }
 
@@ -657,7 +657,7 @@ class Game extends \Table
             ]);
         }
     
-        $this->gamestate->nextState("setupComplete");
+        $this->gamestate->nextState(TR_SETUP_COMPLETE);
     }
 
     public function actDebugAddMorale(int $amount)  
@@ -679,11 +679,11 @@ class Game extends \Table
 
         if (!$this->isPlayerSetupComplete($playerId)) 
         {
-            $this->gamestate->nextState("playerPieceSetup");
+            $this->gamestate->nextState(TR_PLAYER_PIECE_SETUP);
         } 
         else 
         {
-            $this->gamestate->nextState("playerTurn");
+            $this->gamestate->nextState(TR_PLAYER_TURN);
         }
     }
 

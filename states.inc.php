@@ -75,14 +75,14 @@ $machinestates = [
             "actPlacedPiece",
             "actDebugDefaultPlacePieces",
         ],
-        "transitions" => ["playerPieceSetup" => ST_PLAYER_PIECE_SETUP, "setupComplete" => ST_SETUP_COMPLETE]
+        "transitions" => [TR_PLAYER_PIECE_SETUP => ST_PLAYER_PIECE_SETUP, TR_SETUP_COMPLETE => ST_SETUP_COMPLETE]
     ],
 
     ST_SETUP_COMPLETE => [
         "name" => "setupComplete",
         "type" => "game",
         "action" => "stSetupComplete",
-        "transitions" => ["playerTurn" => ST_BEFORE_PLAYER_TURN, "playerPieceSetup" => ST_PLAYER_PIECE_SETUP]
+        "transitions" => [TR_PLAYER_TURN => ST_BEFORE_PLAYER_TURN, TR_PLAYER_PIECE_SETUP => ST_PLAYER_PIECE_SETUP]
     ],
 
     ST_BEFORE_PLAYER_TURN => [
@@ -108,7 +108,7 @@ $machinestates = [
         ],
         "transitions" => [
             'nextPlayer' => ST_NEXT_PLAYER_TURN,
-            'playerTurn' => ST_PLAYER_TURN,
+            TR_PLAYER_TURN => ST_PLAYER_TURN,
             TR_MOVE_ACTION => ST_PIECE_SELECTION,
             TR_PASS_BALL_ACTION => ST_PASS_DEST_SELECTION
         ]
