@@ -1,10 +1,15 @@
 define([], function () {
-    
+
     return {
 
         //------------------------------------------------------------------------------------
+        lerp: function (a, b, t) {
+            return a + (b - a) * t;
+        },
+        
+        //------------------------------------------------------------------------------------
 
-        createVector2D: function(x, y) {
+        createVector2D: function (x, y) {
             return {
                 x: x,
                 y: y,
