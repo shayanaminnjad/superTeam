@@ -161,7 +161,7 @@ define([
 
                     let projSize = STMathLib.pointOntoLineProjectionSize(hexArray[i].toCartesian(), startAsCartesian, lineDir);
 
-                    if (projSize > 0 && projSize < 1) {
+                    if (projSize > 0.1 && projSize < 0.9) {
 
                         let distance = STMathLib.pointFromLineDistance(hexArray[i].toCartesian(), startAsCartesian, lineDir);
 

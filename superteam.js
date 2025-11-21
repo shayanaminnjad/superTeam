@@ -323,7 +323,7 @@ define([
                         let hexesInLine = STHexLib.getHexesInLine(this.hexWithBall, offsetCoord);
 
                         let opponentHexes = this.pieceManager.getAllPiecesOwnedBy(this.opponentId);
-                        let blockingPieces = STHexLib.getHexsInPath(this.hexWithBall, offsetCoord, 1.3, opponentHexes)
+                        let blockingPieces = STHexLib.getHexsInPath(this.hexWithBall, offsetCoord, 1.2, opponentHexes)
 
                         let requiredPower = this.getRequiredPower(hexesInLine.length, blockingPieces.length);
 
@@ -344,6 +344,7 @@ define([
                             this.getGameAreaElement().appendChild(powerIndicator);
 
                             this.placeOnObject(powerIndicator, el);
+                            //TODO: sometimes this might be covered by another piece!
                             powerIndicator.style.top = (parseInt(powerIndicator.style.top) - 30) + 'px';
                         }
                     }
