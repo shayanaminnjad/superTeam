@@ -88,7 +88,7 @@ class HexLib
         }
         else
         {
-            $sRound = $qRound - $rRound;
+            $sRound = -$qRound - $rRound;
         }
 
         return new CubicCoordinate($qRound, $rRound, $sRound);
@@ -156,7 +156,7 @@ class HexLib
 
         if ($start->equals($end))
         {
-            $result[] = $start;
+            $result[] = $end;
 
             return $result;
         }
