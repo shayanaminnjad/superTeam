@@ -34,6 +34,11 @@ CREATE TABLE IF NOT EXISTS `ball` (
     `hex_row` INT DEFAULT -1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+
+CREATE TABLE IF NOT EXISTS `st_globals` (
+    `morale_assign_transition` TEXT DEFAULT ''
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 -- Example 2: add a custom field to the standard "player" table
 -- ALTER TABLE `player` ADD `player_my_custom_field` INT UNSIGNED NOT NULL DEFAULT '0';
 
