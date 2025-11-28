@@ -4,6 +4,10 @@ namespace Bga\Games\SuperTeam\Math;
 
 class Math
 {
+    public static function clamp($value, $min, $max)
+    {
+        return max($min, min($value, $max));
+    }
     public static function pointFromLineDistance(Vector2 $point, Vector2 $lineStart, Vector2 $lineDir) : float
     {
         if ($lineDir->size() == 0)
