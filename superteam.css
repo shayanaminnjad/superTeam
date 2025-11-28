@@ -167,9 +167,9 @@
     width: 18px;
     height: 18px;
     position: absolute;
-    background-image: url('img/peices.png');
+    background-image: url('img/ball.png');
+    background-size: contain;
     background-repeat: no-repeat;
-    background-position: 100% -19px;
     pointer-events: none;
     z-index: 101;
 }
