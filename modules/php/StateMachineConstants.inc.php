@@ -15,10 +15,12 @@ const ST_PASS_DEST_SELECTION = 10;
 const ST_PASS_CONFIRMATION = 11;
 const ST_PASS_PERFORM = 12;
 const ST_MORALE_ASSIGMENT = 13;
+const ST_DICE_ROLL = 14;
 
 const ST_END_GAME = 99; 
 
 //transition signals
+const TR_AUTO_NEXT = '';
 const TR_MOVE_ACTION = 'moveAction';
 const TR_MOVE_DONE = 'moveDone';
 const TR_PASS_BALL_ACTION = 'passBallAction';

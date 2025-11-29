@@ -61,6 +61,7 @@ class DBAdapter
         return ($this->queryFn)($sql);
     }
 
+    //TODO: These shouldn't be here, move them to a class named globals!
     public function storeSelectedHex(int $hexColumn, int $hexRow)
     {
         $this->DbQuery("UPDATE `st_globals` SET `selected_hex_column` = $hexColumn, `selected_hex_row` = $hexRow");

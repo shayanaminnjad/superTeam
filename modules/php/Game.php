@@ -22,7 +22,7 @@ use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\HexLib\HexLib;
-use Bga\Games\SuperTeam\GameDice\GameDice;
+use Bga\Games\SuperTeam\Dice\GameDice;
 use Bga\Games\SuperTeam\Math\Math;
 
 
@@ -201,7 +201,8 @@ class Game extends \Table
             "selected_piece" => 13,
             "number_of_moves" => 14,
             "required_power" => 15,
-            "assigned_morale" => 16
+            "assigned_morale" => 16,
+            "dice_result" => 17
         ]);
 
         /* example of notification decorator.
@@ -529,10 +530,12 @@ class Game extends \Table
 
         $ballMoved = 0;
 
+        $board = $this->getBoard();
+
         if (intval($ballLocation['hex_column']) === $oldPieceHexCol && intval($ballLocation['hex_row']) === $oldPieceHexRow)
         {
             $ballMoved = 1;
-            $this->DbQuery("UPDATE ball SET `hex_column` = $hexColumn, `hex_row` = $hexRow ");
+            $board->setBallLocation(new HexID($hexColumn, $hexRow));
             //TODO: this will probably change attacker and defender (I am not sure however if it happens right now?)
         }
 
@@ -556,7 +559,6 @@ class Game extends \Table
             $shouldEndMovement = true;
         }
 
-        $board = $this->getBoard();
 
         if ($ballMoved === 1 &&
             ($board->doesOpponentExistInNeighbours(new HexID($oldPieceHexCol, $oldPieceHexRow), intval($this->getActivePlayerId())) ||
@@ -771,6 +773,57 @@ class Game extends \Table
         $this->gamestate->nextState(TR_MOVE_DONE);
     }
 
+    public function stRollDice() : void
+    {
+        //TODO: Determine number of white dice to roll, and roll them!
+
+        $dieRes = GameDice::greenDie()->roll();
+        $assignedMorale = intval($this->getGameStateValue('assigned_morale'));
+
+        $this->setGameStateValue('dice_result', $dieRes + $assignedMorale);
+        $this->setGameStateValue('assigned_morale', 0);
+
+        $requiredPower = intval($this->getGameStateValue('required_power'));
+
+        $this->notify->all("diceRolled", \clienttranslate('diceRolled'), array(
+            "greenDie" => $dieRes,
+            "assignedMorale" => $assignedMorale,
+            "whiteDice" => [],
+            "requiredPower" => $requiredPower
+        ));
+
+        $this->gamestate->nextState(TR_AUTO_NEXT);
+    }
+
+    public function stPerformPass() : void
+    {
+        $diceRes = $this->getGameStateValue('dice_result' );
+        $powerRequired = $this->getGameStateValue('required_power');
+
+        $selectedHexObj = DBAdapter::getInstance()->getSelectedHex();
+        $selectedHex = new HexID(intval($selectedHexObj['selected_hex_column']), intval($selectedHexObj['selected_hex_row']));
+        
+        $board = $this->getBoard();
+
+        if ($diceRes >= $powerRequired)
+        {
+            $board->setBallLocation($selectedHex);
+            $this->notify->all('successfulPass', "successful pass", [
+                "ballHex" => $selectedHex->convertToArray()
+            ]);
+        }
+        else
+        {
+            $newLocation = $board->getClosetBlockingPieceOrHalfWay($board->getBallHex(), $selectedHex, $this->getInactivePlayerId());
+            $board->setBallLocation($newLocation);
+            $this->notify->all('failedPass', "failed pass", [
+                "ballHex" => $newLocation->convertToArray()
+            ]);
+        }
+
+        $this->gamestate->nextState(TR_AUTO_NEXT);
+    }
+
     public function stBeforePlayerTurn() : void
     {
         //TODO: fresh all exhusted players
@@ -958,6 +1011,7 @@ class Game extends \Table
         $this->setGameStateInitialValue('selected_piece', -1);
         $this->setGameStateInitialValue('required_power', -1);
         $this->setGameStateInitialValue('assigned_morale', 0);
+        $this->setGameStateInitialValue("dice_result", 0);
         $this->setGameStateInitialValue('game_half', 1);
         $this->setGameStateInitialValue('user_in_left_id', $orangePlayer);
         $this->setGameStateInitialValue('user_in_right_id', $bluePlayer);
@@ -1031,7 +1085,7 @@ class Game extends \Table
         $ballPosition = $this->getObjectFromDB("SELECT hex_column, hex_row FROM `ball`");
         $ballHex = new HexID(intval($ballPosition['hex_column']),intval( $ballPosition['hex_row']));
 
-        return new Board($piecesData, $ballHex);
+        return new Board($piecesData, $ballHex, DBAdapter::getInstance());
     }
 
     private function getCurrentPlayerMorale() : int

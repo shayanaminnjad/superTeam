@@ -134,6 +134,7 @@ define([
                         break;
                     case 'moraleAssignment':
                         STHUIHelpers.removeCounter('moraleAssign');
+                        this.cleanupRequiredPowerVisuals();
                         break;
                     case 'dummy':
                         break;
@@ -148,11 +149,10 @@ define([
                 console.log("active player id " + this.getActivePlayerId());
 
                 if (this.isCurrentPlayerActive()) {
-                    if (stateName === 'moraleAssignment')
-                    {
-                        this.statusBar.addActionButton('confirm', () => { 
+                    if (stateName === 'moraleAssignment') {
+                        this.statusBar.addActionButton('confirm', () => {
                             let counterValue = STHUIHelpers.getCounterValue('moraleAssign');
-                            this.bgaPerformAction("actMoraleAssigned", { amount: counterValue }) 
+                            this.bgaPerformAction("actMoraleAssigned", { amount: counterValue })
                         }, { color: 'primary' });
                     }
 
@@ -500,7 +500,7 @@ define([
             visualizePowerRequired: function (start, end) {
 
                 this.cleanupRequiredPowerVisuals();
-                
+
                 let hexesInLine = STHexLib.getHexesInLine(start, end);
 
                 let opponentHexes = this.pieceManager.getAllPiecesOwnedBy(this.opponentId);
@@ -528,11 +528,55 @@ define([
                 }
             },
 
-            cleanupRequiredPowerVisuals: function()
-            {
+            cleanupRequiredPowerVisuals: function () {
                 document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
                 document.querySelectorAll('.blocking').forEach(el => el.classList.remove('blocking'));
                 document.querySelectorAll('.powerIndication').forEach(el => el.remove());
+            },
+
+            showRollResult: async function (greenDie, whiteDice, moraleSpent, requiredPower) {
+
+                totalPower = greenDie + moraleSpent;
+
+                document.getElementById('mainBoard').insertAdjacentHTML('beforeend', `<div id='diceRollArea'></div>`);
+
+                let diceRollAreaEl = document.getElementById('diceRollArea');
+
+                diceRollAreaEl.insertAdjacentHTML('beforeend', `<span class='greenDie'>${greenDie}</span>`);
+
+                /*
+                for (const whiteDie of whiteDice) {
+                    diceRollAreaEl.insertAdjacentHTML('beforeend', `<span class='whiteDie'>${whiteDie}</span>`);
+                    totalPower += whiteDie;
+                }*/
+
+                diceRollAreaEl.insertAdjacentHTML('beforeend', `<span id='moraleColumn'></span>`);
+                let moraleColumnEl = document.getElementById('moraleColumn');
+
+                for (let i = 0; i < moraleSpent; ++i)
+                    moraleColumnEl.insertAdjacentHTML('beforeend', `<span class='moraleSpent'></span>`);
+
+                if (totalPower >= requiredPower) {
+                    diceRollAreaEl.insertAdjacentHTML('beforeend', `<span style='font-size: xx-large;'> >= ${requiredPower}</span>`);
+                }
+                else {
+                    diceRollAreaEl.insertAdjacentHTML('beforeend', `<span style='font-size: xx-large;'> < ${requiredPower}</span>`);
+                }
+
+                const TIMEOUT = 3000;
+                setTimeout(() => {
+                    diceRollAreaEl.remove();
+                }, TIMEOUT);
+
+                return this.wait(TIMEOUT);
+            },
+
+            passBall: async function ($hexOffsetCoord) {
+                console.log("ball passed to " + $hexOffsetCoord);
+                const HEX_ID = this.convertOffsetCoordToHexId($hexOffsetCoord);
+                const anim = this.slideToObject('ball', HEX_ID);
+
+                await this.bgaPlayDojoAnimation(anim);
             },
 
             assert: function (condition, message = "Assertion failed") {
@@ -598,8 +642,8 @@ define([
                 // Example 2: standard notification handling + tell the user interface to wait
                 //            during 3 seconds after calling the method in order to let the players
                 //            see what is happening in the game.
-                // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-                // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
+                //dojo.subscribe( 'diceRolled', this, "notif_diceRolled" );
+                //this.notifqueue.setSynchronous( 'diceRolled', 3000 );
 
                 this.bgaSetupPromiseNotifications();
             },
@@ -641,10 +685,21 @@ define([
                 pieceData.setFreshness(false);
             },
 
-            notif_moraleChanged: function (notifyData) {
+            notif_moraleChanged: function (notifData) {
+                let moraleEl = document.getElementById(`playerMorale${notifData.playerId}`);
+                moraleEl.innerHTML = notifData.amount;
+            },
 
-                let moraleEl = document.getElementById(`playerMorale${notifyData.playerId}`);
-                moraleEl.innerHTML = notifyData.amount;
+            notif_diceRolled: function (notifData) {
+                return this.showRollResult(notifData.greenDie, notifData.whiteDice, notifData.assignedMorale, notifData.requiredPower);
+            },
+
+            notif_successfulPass: function (notifData) {
+                this.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
+            },
+
+            notif_failedPass: function (notifData) {
+                this.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
             ///////////////////////////////////////////////////

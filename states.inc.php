@@ -174,17 +174,26 @@ $machinestates = [
             "actMoraleAssigned",
         ],
 
-        "transitions" => [TR_DICE_ROLL => ST_MORALE_ASSIGMENT] //TODO: ST_DICE_ROLL
+        "transitions" => [TR_DICE_ROLL => ST_DICE_ROLL]
     ],
     
-    /*
     ST_DICE_ROLL => [
+        "name" => "diceRoll",
+        "description" => '',
+        "type" => "game",
+        "action" => "stRollDice",
+        "transitions" => [TR_AUTO_NEXT => ST_PASS_PERFORM]
     ],
 
+    
     ST_PASS_PERFORM => [
-
+        "name" => "passPerform",
+        "description" => '',
+        "type" => "game",
+        "action" => "stPerformPass",
+        "transitions" => [TR_AUTO_NEXT => ST_PLAYER_TURN]
     ],
-*/
+
     ST_NEXT_PLAYER_TURN => [
         "name" => "nextPlayer",
         "description" => '',
