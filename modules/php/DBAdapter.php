@@ -61,15 +61,38 @@ class DBAdapter
         return ($this->queryFn)($sql);
     }
 
-    public function storeGlobalString(string $entry, string $value)
+    public function storeSelectedHex(int $hexColumn, int $hexRow)
     {
-        $this->DbQuery("UPDATE `globals` SET `$entry` = `$value`");
+        $this->DbQuery("UPDATE `st_globals` SET `selected_hex_column` = $hexColumn, `selected_hex_row` = $hexRow");
     }
 
+    public function getSelectedHex(): array
+    {
+        return $this->getObjectFromDB("SELECT selected_hex_column, selected_hex_row FROM st_globals");
+    }
+
+    public function storeGlobalString(string $entry, string $value)
+    {
+        $this->DbQuery("UPDATE `st_globals` SET `$entry` = '$value'");
+    }
+
+    
     public function getGlobalString(string $entry): string
     {
         $row = $this->getObjectFromDB("SELECT `$entry` FROM `st_globals`");
+        
+        return $row[$entry];
+    }
 
+    public function storeGlobalInt(string $entry, int $value)
+    {
+        $this->DbQuery("UPDATE `st_globals` SET `$entry` = $value");
+    }
+
+    public function getGlobalInt(string $entry): int
+    {
+        $row = $this->getObjectFromDB("SELECT `$entry` FROM `st_globals`");
+        
         return $row[$entry];
     }
 }
