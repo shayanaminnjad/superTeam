@@ -10,7 +10,7 @@ class Math
     }
     public static function pointFromLineDistance(Vector2 $point, Vector2 $lineStart, Vector2 $lineDir) : float
     {
-        if ($lineDir->size() == 0)
+        if ($lineDir->size() === 0)
             return 0;
         else
             return abs(self::crossProduct2D($lineDir, Vector2::subtract($point, $lineStart))) / $lineDir->size();
@@ -28,7 +28,7 @@ class Math
 
     public static function crossProduct2D(Vector2 $lhs, Vector2 $rhs) : float
     {
-        return $lhs->x * $lhs->y - $lhs->y * $rhs->x;
+        return $lhs->x * $rhs->y - $lhs->y * $rhs->x;
     }
 
     public static function lerp(float $a, float $b, float $t) : float
