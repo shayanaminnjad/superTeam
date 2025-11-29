@@ -161,12 +161,24 @@ $machinestates = [
             "actDestSelected"
         ],
 
-        "transitions" => [TR_CANCEL=> ST_PLAYER_TURN /*, TR_PASS_BALL_ACTION => ST_PASS_CONFIRMATION*/]
+        "transitions" => [TR_CANCEL=> ST_PLAYER_TURN , TR_MORALE_ASSIGN => ST_MORALE_ASSIGMENT]
     ],
 
-    /*
-    ST_PASS_CONFIRMATION => [
+    ST_MORALE_ASSIGMENT => [
+        "name" => "moraleAssignment",
+        "description" => clienttranslate('${actplayer} is assigning morale'),
+        "descriptionmyturn" => clienttranslate('assign morale (Max ${maxMoraleAssignable})'),
+        "type" => "activeplayer",
+        "args" => "argMoraleAssignment",
+        "possibleactions" => [
+            "actMoraleAssigned",
+        ],
 
+        "transitions" => [TR_DICE_ROLL => ST_MORALE_ASSIGMENT] //TODO: ST_DICE_ROLL
+    ],
+    
+    /*
+    ST_DICE_ROLL => [
     ],
 
     ST_PASS_PERFORM => [
