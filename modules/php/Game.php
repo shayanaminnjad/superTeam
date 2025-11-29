@@ -24,6 +24,7 @@ use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\Dice\GameDice;
 use Bga\Games\SuperTeam\Math\Math;
+use Bga\Games\SuperTeam\Utility\Logger;
 
 
 use BgaUserException;
@@ -189,10 +190,12 @@ class Game extends \Table
 
         BoardInfo::init();
         DBAdapter::getInstance()->init(
-     fn($sql) => $this->getObjectListFromDB($sql),
-      fn($sql)=> $this->getObjectFromDB($sql),
-      fn($sql)=>$this->getUniqueValueFromDB($sql),
-        fn($sql) => $this->DbQuery($sql));
+            fn($sql) => $this->getObjectListFromDB($sql),
+            fn($sql)=> $this->getObjectFromDB($sql),
+            fn($sql)=>$this->getUniqueValueFromDB($sql),
+            fn($sql) => $this->DbQuery($sql));
+            
+        Logger::init(DBAdapter::getInstance(), 'logs');
 
         $this->initGameStateLabels([
             "game_half" => 10,

@@ -41,6 +41,12 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `selected_hex_row` INT DEFAULT -1
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `logs` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `time_stamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `level` ENUM('INFO', 'WARN', 'ERROR') DEFAULT 'INFO',
+    `message` TEXT DEFAULT null
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 -- Example 2: add a custom field to the standard "player" table
 -- ALTER TABLE `player` ADD `player_my_custom_field` INT UNSIGNED NOT NULL DEFAULT '0';
 
