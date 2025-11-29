@@ -126,7 +126,7 @@ class HexLib
 
             $projectionSize = Math::pointOntoLineProjectionSize($currentHex->asCartesian(), $start->asCartesian(), $lineDir);
 
-            if ($projectionSize > 0 && $projectionSize < 1)
+            if ($projectionSize > 0.1 && $projectionSize < 0.9)
             {
                 $distance = Math::pointFromLineDistance($currentHex->asCartesian(), $start->asCartesian(), $lineDir);
 
