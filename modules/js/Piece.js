@@ -120,10 +120,15 @@ function (STHexLib) {
             },
 
             _generateInnerHTML: function () {
-                let status = this._getStatus();
-                let type = this.getStringifiedRole();
-
-                return `${type[0]}_${status[0]}`;
+                if (this.getRole() === playerRoles.Captain)
+                {
+                    let type = this.getStringifiedRole();
+                    return `${type[0]}`;
+                }
+                else
+                {
+                    return '';
+                }
             },
 
             // Private members
