@@ -133,8 +133,10 @@ define([
                         }
                         break;
                     case 'moraleAssignment':
-                        STHUIHelpers.removeCounter('moraleAssign');
-                        this.cleanupRequiredPowerVisuals();
+                        if (this.isCurrentPlayerActive()) {
+                            STHUIHelpers.removeCounter('moraleAssign');
+                            this.cleanupRequiredPowerVisuals();
+                        }
                         break;
                     case 'dummy':
                         break;
