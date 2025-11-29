@@ -23,11 +23,11 @@ use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\GameDice\GameDice;
+use Bga\Games\SuperTeam\Math\Math;
 
 
 use BgaUserException;
 use Exception;
-use LogicException;
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 require_once(__DIR__ . '/StateMachineConstants.inc.php');
@@ -39,6 +39,7 @@ enum GameActions : int
     case FinishMove = 2;
     case PassBall = 3;
     case Cancel = 4;
+    case Confirm = 5;
 }
 
 
@@ -180,6 +181,8 @@ class Game extends \Table
      * `setGameStateValue` functions.
      */
 
+    private const MAX_MORALE_PER_ACTION = 3;
+
     public function __construct()
     {
         parent::__construct();
@@ -188,6 +191,7 @@ class Game extends \Table
         DBAdapter::getInstance()->init(
      fn($sql) => $this->getObjectListFromDB($sql),
       fn($sql)=> $this->getObjectFromDB($sql),
+      fn($sql)=>$this->getUniqueValueFromDB($sql),
         fn($sql) => $this->DbQuery($sql));
 
         $this->initGameStateLabels([
@@ -195,8 +199,10 @@ class Game extends \Table
             "user_in_left_id" => 11,
             "user_in_right_id" => 12,
             "selected_piece" => 13,
-            "number_of_moves" => 14
-        ]);        
+            "number_of_moves" => 14,
+            "required_power" => 15,
+            "assigned_morale" => 16
+        ]);
 
         /* example of notification decorator.
         // automatically complete notification args when needed
@@ -623,9 +629,72 @@ class Game extends \Table
             "possibleActions" => [['name' => 'cancel', 'id' => GameActions::Cancel]]];
     }
 
-    public function actDestSelected($hexColumn, $hexRow) : void
+    public function actDestSelected(int $hexColumn, int $hexRow) : void
     {
+        $selectedHex = new HexID($hexColumn, $hexRow);
 
+        $passDestArgs = $this->argPassDestSelection();
+
+        $blockedSpaces = $passDestArgs["blockedSpaces"];
+        $blockedSpaces[] = $passDestArgs["hexWithBall"];
+
+        foreach($blockedSpaces as $blockedSpace)
+        {
+            $hex = HexID::fromArray($blockedSpace);
+
+            if ($selectedHex->equals($hex))
+                throw new BgaUserException('blocked space selected as pass destination!');
+        }
+
+        $board = $this->getBoard();
+        
+        $hexWithBall = HexID::fromArray($passDestArgs["hexWithBall"]);
+        $dummyinlineHexes = [];
+        $dummyblockingHexes = [];
+        $requiredPower = $board->getRequiredPower($hexWithBall, $selectedHex, $this->getInactivePlayerId(), $dummyinlineHexes, $dummyblockingHexes);
+
+        $this->setGameStateValue('required_power', $requiredPower);
+
+        $dbAdapter = DBAdapter::getInstance();
+        $dbAdapter->storeGlobalString('morale_assign_transition', TR_DICE_ROLL);
+        $dbAdapter->storeSelectedHex($hexColumn, $hexRow);
+
+        $this->gamestate->nextState(TR_MORALE_ASSIGN);
+    }
+
+    public function argMoraleAssignment() : array
+    {
+        $currentPlayerMorale = $this->getCurrentPlayerMorale();
+
+        $maxMoraleAssignable = Math::clamp($currentPlayerMorale, 0, self::MAX_MORALE_PER_ACTION);
+
+        $requiredPower = $this->getGameStateValue('required_power');
+
+        $selectedHexArray = DBAdapter::getInstance()->getSelectedHex();
+
+        return ['maxMoraleAssignable' => $maxMoraleAssignable,
+                'requiredPower' => $requiredPower,
+                'selectedDestination' => $selectedHexArray]; //TODO: this probably must be injected here, as not all actions have a destination!
+    }
+
+    public function actMoraleAssigned(int $amount) : void
+    {
+        $maxMoraleAssignable = $this->argMoraleAssignment()['maxMoraleAssignable'];
+
+        if ($amount > $maxMoraleAssignable || $amount < 0)
+        {
+            throw new BgaUserException("$amount morale assigned, max morale assignable is $maxMoraleAssignable");
+        }
+
+        $this->setCurrentPlayerMorale($this->getCurrentPlayerMorale() - $amount, true);
+
+        $this->setGameStateValue('assigned_morale', $amount);
+        
+        $transition = DBAdapter::getInstance()->getGlobalString('morale_assign_transition');
+        
+        assert(strlen($transition) > 0, "no transition is stored for morale assign finish");
+
+        $this->gamestate->nextState($transition);
     }
 
     //DEBUG ACTIONS
@@ -833,6 +902,8 @@ class Game extends \Table
         
         $this->initGameState($players);
 
+        DBAdapter::getInstance()->initGlobals();
+
         $this->initBoard($players);
 
         $this->activeNextPlayer();
@@ -885,6 +956,8 @@ class Game extends \Table
 
         $this->setGameStateInitialValue('number_of_moves', 0);
         $this->setGameStateInitialValue('selected_piece', -1);
+        $this->setGameStateInitialValue('required_power', -1);
+        $this->setGameStateInitialValue('assigned_morale', 0);
         $this->setGameStateInitialValue('game_half', 1);
         $this->setGameStateInitialValue('user_in_left_id', $orangePlayer);
         $this->setGameStateInitialValue('user_in_right_id', $bluePlayer);

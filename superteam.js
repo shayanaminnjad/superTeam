@@ -23,10 +23,11 @@ define([
     g_gamethemeurl + "modules/js/STHexLib.js",
     g_gamethemeurl + "modules/js/PieceManager.js",
     g_gamethemeurl + "modules/js/Piece.js",
+    g_gamethemeurl + "modules/js/STUIHelpers.js",
     "ebg/core/gamegui",
     "ebg/counter",
 ],
-    function (dojo, declare, STUIConstants, STHexLib, PieceManager, Piece) {
+    function (dojo, declare, STUIConstants, STHexLib, PieceManager, Piece, STHUIHelpers) {
         return declare("bgagame.superteam", ebg.core.gamegui, {
             constructor: function () {
                 console.log('superteam constructor');
@@ -93,6 +94,9 @@ define([
                     case 'passDestinationSelection':
                         this.onPassDestinationSelection(args.args);
                         break;
+                    case 'moraleAssignment':
+                        this.onMoraleAssignment(args.args);
+                        break;
                     case 'dummy':
                         break;
                 }
@@ -121,10 +125,16 @@ define([
                             document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
                             document.querySelector('.selected').classList.remove('selected');
                         }
+                        break;
                     case 'passDestinationSelection':
                         if (this.isCurrentPlayerActive()) {
                             document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
+                            this.cleanupRequiredPowerVisuals();
                         }
+                        break;
+                    case 'moraleAssignment':
+                        STHUIHelpers.removeCounter('moraleAssign');
+                        break;
                     case 'dummy':
                         break;
                 }
@@ -138,6 +148,14 @@ define([
                 console.log("active player id " + this.getActivePlayerId());
 
                 if (this.isCurrentPlayerActive()) {
+                    if (stateName === 'moraleAssignment')
+                    {
+                        this.statusBar.addActionButton('confirm', () => { 
+                            let counterValue = STHUIHelpers.getCounterValue('moraleAssign');
+                            this.bgaPerformAction("actMoraleAssigned", { amount: counterValue }) 
+                        }, { color: 'primary' });
+                    }
+
                     let possibleActions = args['possibleActions'];
 
                     if (!possibleActions)
@@ -301,6 +319,17 @@ define([
                             await this.bgaPerformAction("actPieceMoved", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
                         }
                     }
+                    else if (this.currentStateData.name === 'passDestinationSelection') {
+                        if (evt.currentTarget.classList.contains('selectable')) {
+                            evt.preventDefault();
+                            evt.stopPropagation();
+
+                            var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
+
+                            this.isWaitingForServerResponse = true;
+                            await this.bgaPerformAction("actDestSelected", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
+                        }
+                    }
                 }
                 catch (error) {
                     console.error("Server action failed, exception caught:", error);
@@ -315,38 +344,7 @@ define([
                 if (this.currentStateData.name === 'passDestinationSelection') {
                     if (evt.currentTarget.classList.contains('selectable')) {
 
-                        document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
-                        document.querySelectorAll('.blocking').forEach(el => el.classList.remove('blocking'));
-                        document.querySelectorAll('.powerIndication').forEach(el => el.remove());
-
-                        var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
-                        let hexesInLine = STHexLib.getHexesInLine(this.hexWithBall, offsetCoord);
-
-                        let opponentHexes = this.pieceManager.getAllPiecesOwnedBy(this.opponentId);
-                        let blockingPieces = STHexLib.getHexsInPath(this.hexWithBall, offsetCoord, 1.2, opponentHexes)
-
-                        let requiredPower = this.getRequiredPower(hexesInLine.length, blockingPieces.length);
-
-                        console.log('required power is: ' + requiredPower);
-
-                        for (let i = 0; i < hexesInLine.length; i++) {
-                            let el = document.getElementById(this.convertOffsetCoordToHexId(hexesInLine[i]));
-                            el.classList.add('inPath');
-                        }
-
-                        for (let i = 0; i < blockingPieces.length; i++) {
-                            let el = document.getElementById(this.convertOffsetCoordToHexId(blockingPieces[i]));
-                            el.classList.add('blocking');
-
-                            let tempEl = document.createElement("span");
-                            tempEl.innerHTML = `<span class="powerIndication">+1</span>`;
-                            let powerIndicator = tempEl.firstElementChild;
-                            this.getGameAreaElement().appendChild(powerIndicator);
-
-                            this.placeOnObject(powerIndicator, el);
-                            //TODO: sometimes this might be covered by another piece!
-                            powerIndicator.style.top = (parseInt(powerIndicator.style.top) - 30) + 'px';
-                        }
+                        this.visualizePowerRequired(this.hexWithBall, this.convertHexIdToOffsetCoord(evt.currentTarget.id));
                     }
                 }
             },
@@ -490,6 +488,51 @@ define([
 
             getRequiredPower(distance, blockingPiecesCount) {
                 return Math.ceil(distance / 2) + blockingPiecesCount;
+            },
+
+            onMoraleAssignment(args) {
+                //args.requiredPower
+                STHUIHelpers.createCounter('generalactions', 'moraleAssign', 0, args.maxMoraleAssignable);
+                let selectedHex = STHexLib.createOffsetCoord(args.selectedDestination.selected_hex_row, args.selectedDestination.selected_hex_column);
+                this.visualizePowerRequired(this.hexWithBall, selectedHex);
+            },
+
+            visualizePowerRequired: function (start, end) {
+
+                this.cleanupRequiredPowerVisuals();
+                
+                let hexesInLine = STHexLib.getHexesInLine(start, end);
+
+                let opponentHexes = this.pieceManager.getAllPiecesOwnedBy(this.opponentId);
+                let blockingPieces = STHexLib.getHexsInPath(start, end, 1.2, opponentHexes)
+
+                let requiredPower = this.getRequiredPower(hexesInLine.length, blockingPieces.length);
+
+                for (let i = 0; i < hexesInLine.length; i++) {
+                    let el = document.getElementById(this.convertOffsetCoordToHexId(hexesInLine[i]));
+                    el.classList.add('inPath');
+                }
+
+                for (let i = 0; i < blockingPieces.length; i++) {
+                    let el = document.getElementById(this.convertOffsetCoordToHexId(blockingPieces[i]));
+                    el.classList.add('blocking');
+
+                    let tempEl = document.createElement("span");
+                    tempEl.innerHTML = `<span class="powerIndication">+1</span>`;
+                    let powerIndicator = tempEl.firstElementChild;
+                    this.getGameAreaElement().appendChild(powerIndicator);
+
+                    this.placeOnObject(powerIndicator, el);
+                    //TODO: sometimes this might be covered by another piece!
+                    powerIndicator.style.top = (parseInt(powerIndicator.style.top) - 30) + 'px';
+                }
+            },
+
+            cleanupRequiredPowerVisuals: function()
+            {
+                document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
+                document.querySelectorAll('.blocking').forEach(el => el.classList.remove('blocking'));
+                document.querySelectorAll('.powerIndication').forEach(el => el.remove());
             },
 
             assert: function (condition, message = "Assertion failed") {
