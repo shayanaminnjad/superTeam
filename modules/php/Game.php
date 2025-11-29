@@ -742,6 +742,16 @@ class Game extends \Table
         }
     }
 
+    public function actDebugMoveBall(int $column, int $row)
+    {
+        $selectedHex = new HexID($column, $row);
+        $this->getBoard()->setBallLocation($selectedHex);
+
+        $this->notify->all('successfulPass', "successful pass", [
+                "ballHex" => $selectedHex->convertToArray()
+            ]);
+    }
+
     //=======================================
 
     public function stSetupComplete() : void

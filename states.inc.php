@@ -104,7 +104,8 @@ $machinestates = [
         "args" => "argActionSelection",
         "possibleactions" => [
             "actActionSelected",
-            "actDebugAddMorale"
+            "actDebugAddMorale",
+            "actDebugMoveBall"
         ],
         "transitions" => [
             'nextPlayer' => ST_NEXT_PLAYER_TURN,

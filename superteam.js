@@ -760,6 +760,17 @@ define([
                         this.bgaPerformAction("actDebugAddMorale", { amount: val });
                     }.bind(this)
                 })
+
+                Object.defineProperty(window.debug, 'moveBall', {
+                    get: function () {
+                        return this._val;
+                    },
+                    set: function (input) {
+                        this._val = input;
+                        console.log(`calling actDebugMoveBall with values (${input.column}, ${input.row})`);
+                        this.bgaPerformAction("actDebugMoveBall", { column: input.column, row: input.row });
+                    }.bind(this)
+                })
             },
 
             ///////////////////////////////////////////////////
