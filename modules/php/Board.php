@@ -3,6 +3,7 @@
 namespace Bga\Games\SuperTeam;
 
 use Bga\Games\SuperTeam\HexLib\HexLib;
+use Bga\Games\SuperTeam\DBAdapter;
 
 class Board
 {
@@ -10,9 +11,11 @@ class Board
 
     private HexID $ballPosition;
 
+    private DBAdapter $dbadapter;
+
     //======================================================
 
-    public function __construct($piecesData, HexId $ballPosition)
+    public function __construct(array $piecesData, HexId $ballPosition, DBAdapter $dBAdapter)
     {
         for ($i = 0; $i < count($piecesData); $i++)
         {
@@ -20,6 +23,14 @@ class Board
         }
 
         $this->ballPosition = $ballPosition;
+        $this->dbadapter = $dBAdapter;
+    }
+
+    public function setBallLocation(HexID $location)
+    {
+        $this->dbadapter->DbQuery("UPDATE ball SET `hex_column` = {$location->getColumn()}, `hex_row` = {$location->getRow()} ");
+
+        $this->ballPosition = $location;
     }
 
     public function getBallHex() : HexID
@@ -198,6 +209,43 @@ class Board
         }
 
         return false;
+    }
+
+    public function getClosetBlockingPieceOrHalfWay(HexID $start, HexID $end, int $opponentId): HexID    
+    {
+        $res = null;
+
+        $opponentPieces = $this->getPlayerPiecesByOwner($opponentId);
+        $opponentPieceLocations = [];
+
+        for ($i = 0; $i < count($opponentPieces); $i++)
+        {
+            $opponentPieceLocations[] = $opponentPieces[$i]->getPosition();
+        }
+
+        $outBlockingHexes = HexLib::getHexesInPath($start, $end, 1.2, $opponentPieceLocations);
+
+        if (count($outBlockingHexes) > 0)
+        {
+            $smallestDist = PHP_FLOAT_MAX;
+            foreach($outBlockingHexes as $blockingHex)
+            {
+                $blockingHexDist = HexLib::getOffsetDistance($start, $blockingHex);
+
+                if ($blockingHexDist < $smallestDist)
+                {
+                    $smallestDist = $blockingHexDist;
+                    $res = $blockingHex;
+                }
+            }
+        }
+        else
+        {
+            $hexesInLine = HexLib::getHexesInLine($start, $end);
+            $res = $hexesInLine[ceil((float)count($hexesInLine) / 2.0)];
+        }
+
+        return $res;
     }
 
     public function getRequiredPower(HexID $start, HexID $end, int $opponentId, array &$outLineHexes, array &$outBlockingHexes): int
