@@ -10,7 +10,7 @@ define([
             r = parseFloat(r, 10);
             s = parseFloat(s, 10);
 
-            if (q + r + s !== 0 && safe) {
+            if (Math.abs(q + r + s) > 5 * Number.EPSILON && safe) {
                 throw `Invalid cube coordinate (${q}, ${r}, ${s}): q + r + s must be 0, it is ${q + r + s}`;
             }
 
