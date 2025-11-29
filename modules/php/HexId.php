@@ -34,6 +34,11 @@ class HexID
         return ['hex_column'=> $this->column, 'hex_row' =>$this->row];
     }
 
+    public static function fromArray(array $arrayHexId) : HexID
+    {
+        return new HexID($arrayHexId['hex_column'], $arrayHexId['hex_row']);
+    }
+
     public function asCartesian() : Vector2
     {
         return $this->cartesian;
