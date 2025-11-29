@@ -202,7 +202,7 @@ class Board
 
     public function getRequiredPower(HexID $start, HexID $end, int $opponentId, array &$outLineHexes, array &$outBlockingHexes): int
     {
-        $outLineHexes = HexLib::getHexesInLine($start, $end);
+        $distance = HexLib::getOffsetDistance($start, $end);
         $opponentPieces = $this->getPlayerPiecesByOwner($opponentId);
         $opponentPieceLocations = [];
 
@@ -211,9 +211,9 @@ class Board
             $opponentPieceLocations[] = $opponentPieces[$i]->getPosition();
         }
 
-        $outBlockingHexes = HexLib::getHexesInPath($start, $end, 1, $opponentPieceLocations);
+        $outBlockingHexes = HexLib::getHexesInPath($start, $end, 1.2, $opponentPieceLocations);
 
-        return ceil((float)count($outLineHexes) / (float)2) + count($outBlockingHexes);
+        return ceil($distance / (float)2) + count($outBlockingHexes);
     }
 
     private function canMoveToHex(HexID $hexID):bool
