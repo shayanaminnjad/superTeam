@@ -1,6 +1,6 @@
 <?php
 
-namespace Bga\Games\SuperTeam\GameDice;
+namespace Bga\Games\SuperTeam\Dice;
 
 use Bga\Games\SuperTeam\Dice\Dice;
 
