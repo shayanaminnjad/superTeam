@@ -13,7 +13,7 @@ class Math
         if ($lineDir->size() == 0)
             return 0;
         else
-            return abs(self::crossProduct2D($lineDir, Vector2::subtract($point, $lineStart)));
+            return abs(self::crossProduct2D($lineDir, Vector2::subtract($point, $lineStart))) / $lineDir->size();
     }
 
     public static function pointOntoLineProjectionSize(Vector2 $point, Vector2 $lineStart, Vector2 $lineDir) : float
