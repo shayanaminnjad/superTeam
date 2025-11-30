@@ -23,7 +23,6 @@ use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\Dice\GameDice;
-use Bga\Games\SuperTeam\Math\Math;
 use Bga\Games\SuperTeam\Utility\Logger;
 
 
@@ -182,7 +181,6 @@ class Game extends \Table
      * `setGameStateValue` functions.
      */
 
-    private const MAX_MORALE_PER_ACTION = 3;
 
     public function __construct()
     {
@@ -224,43 +222,6 @@ class Game extends \Table
         });*/
     }
 
-    /**
-     * Player action, example content.
-     *
-     * In this scenario, each time a player plays a card, this method will be called. This method is called directly
-     * by the action trigger on the front side with `bgaPerformAction`.
-     *
-     * @throws BgaUserException
-     */
-    public function actPlayCard(int $card_id): void
-    {
-        /*
-        // Retrieve the active player ID.
-        //$player_id = (int)$this->getActivePlayerId();
-
-        // check input values
-        $args = $this->argPlayerTurn();
-        $playableCardsIds = $args['playableCardsIds'];
-        if (!in_array($card_id, $playableCardsIds)) {
-            throw new \BgaUserException('Invalid card choice');
-        }
-
-        // Add your game logic to play a card here.
-        $card_name = self::$CARD_TYPES[$card_id]['card_name'];
-
-        // Notify all players about the card played.
-        $this->notify->all("cardPlayed", clienttranslate('${player_name} plays ${card_name}'), [
-            "player_id" => $player_id,
-            "player_name" => $this->getActivePlayerName(), // remove this line if you uncomment notification decorator
-            "card_name" => $card_name, // remove this line if you uncomment notification decorator
-            "card_id" => $card_id,
-            "i18n" => ['card_name'], // remove this line if you uncomment notification decorator
-        ]);
-
-        // at the end of the action, move to the next state
-        $this->gamestate->nextState("playCard");*/
-    }
-
     public function actPass(): void
     {
         // Retrieve the active player ID.
@@ -292,168 +253,9 @@ class Game extends \Table
         }
     }
 
-    public function argPlayerPieceSetup(): array
+    //(sha) TODO: probably this must be a part of board? or a piece manager?
+    public function getSelectablePieces(?callable $additionalPredicate) : array
     {
-        //get pieces that can be placed.
-        $board = $this->getBoard();
-        $playerPieces = $board->getPlayerPiecesByOwner(intval($this->getActivePlayerId()));
-        
-        $availablePieces = array_filter($playerPieces, function($piece)
-        {
-            return !$piece->hasValidPosition();
-        });
-        
-        usort($availablePieces, function ($a, $b)
-        {
-            return $a->getId() <=> $b->getId();
-        });
-        
-        $pieceToPlaceId = 0;
-        if (count($availablePieces) > 0)
-        {
-            $pieceToPlaceId = $availablePieces[0]->getId();
-        }
-            
-        //get available positions
-        $playerSide = $this->getPlayerSide(intval($this->getActivePlayerId()));
-        $IsFirstPlayer = $this->isCurrentPlayerFirstPlayer();
-
-        $possibleLocations = [];
-        //Special case where center is not set by the first player.
-        if ($IsFirstPlayer && count($availablePieces) == 1 && !$board->hasPlayerInHex(BoardInfo::$CENTER_POSITION))
-        {
-            $possibleLocations = [BoardInfo::$CENTER_POSITION->convertToArray()];
-        }
-        else
-        {
-            $playerStartingPositions = $playerSide === PlayerSide::Left ? BoardInfo::$LEFT_PLAYER_STARTING_POSITIONS : BoardInfo::$RIGHT_PLAYER_STARTING_POSITIONS;
-
-            if ($IsFirstPlayer) 
-            {
-                $playerStartingPositions[] = BoardInfo::$CENTER_POSITION;
-            }
-
-            for ($i = 0; $i < count($playerStartingPositions); $i++) 
-            {
-                if ($board->hasPlayerInHex($playerStartingPositions[$i]) == false) 
-                {
-                    $possibleLocations[] = $playerStartingPositions[$i]->convertToArray();
-                }
-            }
-        }
-
-        return [
-            "availableStartingPositions" => $possibleLocations,
-            "pieceToPlace"=> $pieceToPlaceId,
-        ];
-    }
-
-    public function actPlacedPiece(int $placedPiece, int $hexColumn, int $hexRow): void
-    {
-        $playerPieceSetupArgs = $this->argPlayerPieceSetup();
-
-        $availablePositions = $playerPieceSetupArgs["availableStartingPositions"];
-        $pieceToPlace = $playerPieceSetupArgs["pieceToPlace"];
-
-        $isValidPosition = false;
-        for ($i = 0; $i < count($availablePositions); $i++ )
-        {
-            $currentPosition= $availablePositions[$i];
-
-            if ($currentPosition['hex_column'] === $hexColumn && $currentPosition['hex_row'] === $hexRow)
-            {
-                $isValidPosition = true;
-                break;
-            }
-        }
-
-        if (!$isValidPosition) 
-        {
-            throw new BgaUserException("Invalid hex position for placing a piece! (" . $hexColumn . ", " . $hexRow . ")");
-        }
-
-        if ($placedPiece !== intval($pieceToPlace))
-        {
-            throw new BgaUserException("peice placed is not valid! piece to be placed id was " .  $pieceToPlace . ", received " . $placedPiece);
-        }
-
-        $this->DbQuery("UPDATE `player_pieces` SET `hex_column` = $hexColumn, `hex_row` = $hexRow WHERE `id` = $placedPiece ");
-
-        $playerId = (int)$this->getActivePlayerId();
-
-        $this->notify->all("placedPiece", clienttranslate('${player_name} places a piece'), [
-            "player_id" => $playerId,
-            "player_name" => $this->getActivePlayerName(), // remove this line if you uncomment notification decorator
-            "placed_piece" => $placedPiece,
-            "hex_column" => $hexColumn,
-            "hex_row" => $hexRow,
-        ]);
-
-        if (!$this->isPlayerSetupComplete($playerId))
-        {
-            $this->gamestate->nextState(TR_PLAYER_PIECE_SETUP);
-        }
-        else
-        {
-            $this->gamestate->nextState(TR_SETUP_COMPLETE);
-        }
-    }
-
-    public function actActionSelected(int $actionId) : void
-    {
-        // TODO: a list of handlers is more proper, however it is ok right now.
-
-        switch($actionId)
-        {
-            case GameActions::Move->value:
-                $this->gamestate->nextState(TR_MOVE_ACTION);
-                break;
-            case GameActions::FinishMove->value:
-                $this->FinishedMove();
-                break;
-            case GameActions::PassBall->value:
-                $this->gamestate->nextState(TR_PASS_BALL_ACTION);
-                break;
-            case GameActions::Cancel->value:
-                $this->gamestate->nextState(TR_CANCEL);
-                break;
-        }
-
-        //TODO: Probably I get the board here, so updateAttacker and defender can work on it.
-        //$this->updateAttackerAndDefender();
-    }
-
-    public function argActionSelection() : array
-    {
-        //TODO: each of these actions must be an object, with predicate, and name and id.
-
-        $possibleActions = [];
-
-        $pieceSelectableForMove = $this->argPieceSelection();
-
-        if(count($pieceSelectableForMove['selectablePieces']) > 0 || count($pieceSelectableForMove['selectableExhaustedPieces']) > 0)
-        {
-            $possibleActions[] = ['name' => 'move', 'id' => GameActions::Move];
-        }
-
-        $board = $this->getBoard();
-        $playerPieceWithBall = null;
-        if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPieceWithBall))
-        {
-            if ($playerPieceWithBall->getOwner() === intval($this->getActivePlayerId()))
-            {
-                $possibleActions[] = ['name' => 'pass ball', 'id' => GameActions::PassBall];
-            }
-        }
-
-        return ['possibleActions' => $possibleActions];
-    }
-
-    public function argPieceSelection() : array
-    {
-        //TODO: if we are selecting pieces for movement we must show a morale token beside them, if they are exhusted also we should check if the player has morale at all!
-        //TODO: we can have a factory, which takes function names, and return arbitrary criteria for pieces, and also we should have functions that can add elements to the returned array!
-
         $board = $this->getBoard();
 
         $activePlayerPieces = $board->getPlayerPiecesByOwner(intval($this->getActivePlayerId()));
@@ -468,11 +270,11 @@ class Game extends \Table
             $currentPiece = $activePlayerPieces[$i];
             if( $currentPiece->getRole() != PlayerRole::GoalKeeper->value)
             {
-                if ($currentPiece->isFresh())
+                if ($currentPiece->isFresh() && (!$additionalPredicate || $additionalPredicate($currentPiece)))
                 {
                     $freshPieceIDs[] = $currentPiece->getId();
                 }
-                else if (!$currentPiece->isFresh() && $currentPlayerMorale > 0)
+                else if (!$currentPiece->isFresh() && $currentPlayerMorale > 0 && (!$additionalPredicate || $additionalPredicate($currentPiece)))
                 {
                     $exhaustedSelectablePieceIds[] = $currentPiece->getId();
                 }
@@ -485,119 +287,7 @@ class Game extends \Table
         ];
     }
 
-    public function actPieceSelected(int $pieceId) : void
-    {
-        $selectablePieces = $this->argPieceSelection();
-
-        if (!in_array($pieceId, $selectablePieces['selectablePieces'], true) &&
-            !in_array($pieceId, $selectablePieces['selectableExhaustedPieces'], true))
-        {
-            throw new BgaUserException("Piece Id {$pieceId} is not selectable.");
-        }
-
-        $this->setGameStateValue('selected_piece', $pieceId);
-
-        $this->gamestate->nextState(TR_MOVE_ACTION);
-    }
-
-    public function argMoveAction() : array
-    {
-        $selectedPiece = intval($this->getGameStateValue('selected_piece'));
-
-        assert($selectedPiece != -1, "move action must have a valid piece selected, before it gets called!");
-
-        $moveableHexes = $this->getBoard()->getMoveableHexesByPiece($selectedPiece);
-
-        $possibleActions = [];
-        $numberOfMoves = intval($this->getGameStateValue('number_of_moves'));
-
-        if ($numberOfMoves > 0)
-            $possibleActions[] = ['name' => 'Finish Movement', 'id' => GameActions::FinishMove];
-
-        return ["moveableHexes" => $moveableHexes,
-                "selectedPiece" => $selectedPiece,
-                "possibleActions" => $possibleActions
-            ];
-    }
-
-    public function actPieceMoved(int $hexColumn, int $hexRow) : void
-    {
-        //TODO: check if the moved location is valid.
-
-        $selectedPiece = intval($this->getGameStateValue('selected_piece'));
-
-        $ballLocation = $this->getObjectFromDB("SELECT `hex_column`, `hex_row` FROM `ball`");
-        $pieceOldData = $this->getObjectFromDB("SELECT `hex_column`, `hex_row`, is_fresh FROM `player_pieces` WHERE `id` = $selectedPiece");
-        $oldPieceHexRow = intval($pieceOldData['hex_row']);
-        $oldPieceHexCol = intval($pieceOldData['hex_column']);
-
-        $ballMoved = 0;
-
-        $board = $this->getBoard();
-
-        if (intval($ballLocation['hex_column']) === $oldPieceHexCol && intval($ballLocation['hex_row']) === $oldPieceHexRow)
-        {
-            $ballMoved = 1;
-            $board->setBallLocation(new HexID($hexColumn, $hexRow));
-            //TODO: this will probably change attacker and defender (I am not sure however if it happens right now?)
-        }
-
-        $isFresh = boolval($pieceOldData['is_fresh']);
-        $numberOfMoves = intval($this->getGameStateValue('number_of_moves'));
-
-        $shouldEndMovement = false;
-
-        if ($numberOfMoves === 1)
-        {
-            $shouldEndMovement = true;
-        }
-
-        $spentMorale = 0;
-        if(!$isFresh && $numberOfMoves === 0) //player has moved an exhusted piece.
-        {
-            $currentMorale = $this->getCurrentPlayerMorale();
-            $this->setCurrentPlayerMorale($currentMorale - 1, false);
-
-            $spentMorale = 1;
-            $shouldEndMovement = true;
-        }
-
-
-        if ($ballMoved === 1 &&
-            ($board->doesOpponentExistInNeighbours(new HexID($oldPieceHexCol, $oldPieceHexRow), intval($this->getActivePlayerId())) ||
-            $board->doesOpponentExistInNeighbours(new HexID($hexColumn, $hexRow), intval($this->getActivePlayerId()))))
-        {
-            $shouldEndMovement = true;
-        }
-
-        $this->DbQuery("UPDATE `player_pieces` SET `hex_column` = $hexColumn, `hex_row` = $hexRow WHERE `id` = $selectedPiece ");
-        $this->setGameStateValue('number_of_moves', $numberOfMoves + 1);
-
-        $this->notify->all("movedPiece", \clienttranslate('${player_name} moves a piece'), array(
-            "player_name" => $this->getActivePlayerName(),
-            "movedPiece" => $selectedPiece,
-            "hex_column" => $hexColumn,
-            "hex_row" => $hexRow,
-            "ballMoved" => $ballMoved,
-            "spentMorale"=> $spentMorale
-        ));
-
-        if ($shouldEndMovement)
-        {
-            $this->gamestate->nextState(TR_MOVE_DONE);
-        }
-        else
-        {
-            $this->gamestate->nextState(TR_MOVE_ACTION);
-        }
-    }
-
-    private function FinishedMove() : void
-    {
-        $this->gamestate->nextState(TR_MOVE_DONE);
-    }
-
-    public function argPassDestSelection() : array
+    public function getValidPassTargets(?callable $additionalCondition) : array
     {
         $board = $this->getBoard();
         
@@ -609,7 +299,7 @@ class Game extends \Table
 
         foreach ($allPieces as $piece)
         {
-            if ($piece->getOwner() !== $currentPlayerId && $piece->getRole() !== PlayerRole::GoalKeeper->value)
+            if ($piece->getOwner() !== $currentPlayerId && $piece->getRole() !== PlayerRole::GoalKeeper->value && (!$additionalCondition || $additionalCondition($piece)))
             {
                 $piecePos = $piece->getPosition();
                 $blockedSpaces[] = $piecePos->convertToArray();
@@ -632,218 +322,6 @@ class Game extends \Table
             "hexWithBall" => $hexWithBall->convertToArray(),
             "blockedSpaces" => $blockedSpaces,
             "possibleActions" => [['name' => 'cancel', 'id' => GameActions::Cancel]]];
-    }
-
-    public function actDestSelected(int $hexColumn, int $hexRow) : void
-    {
-        $selectedHex = new HexID($hexColumn, $hexRow);
-
-        $passDestArgs = $this->argPassDestSelection();
-
-        $blockedSpaces = $passDestArgs["blockedSpaces"];
-        $blockedSpaces[] = $passDestArgs["hexWithBall"];
-
-        foreach($blockedSpaces as $blockedSpace)
-        {
-            $hex = HexID::fromArray($blockedSpace);
-
-            if ($selectedHex->equals($hex))
-                throw new BgaUserException('blocked space selected as pass destination!');
-        }
-
-        $board = $this->getBoard();
-        
-        $hexWithBall = HexID::fromArray($passDestArgs["hexWithBall"]);
-        $dummyinlineHexes = [];
-        $dummyblockingHexes = [];
-        $requiredPower = $board->getRequiredPower($hexWithBall, $selectedHex, $this->getInactivePlayerId(), $dummyinlineHexes, $dummyblockingHexes);
-
-        $this->setGameStateValue('required_power', $requiredPower);
-
-        $dbAdapter = DBAdapter::getInstance();
-        $dbAdapter->storeGlobalString('morale_assign_transition', TR_DICE_ROLL);
-        $dbAdapter->storeSelectedHex($hexColumn, $hexRow);
-
-        $this->gamestate->nextState(TR_MORALE_ASSIGN);
-    }
-
-    public function argMoraleAssignment() : array
-    {
-        $currentPlayerMorale = $this->getCurrentPlayerMorale();
-
-        $maxMoraleAssignable = Math::clamp($currentPlayerMorale, 0, self::MAX_MORALE_PER_ACTION);
-
-        $requiredPower = $this->getGameStateValue('required_power');
-
-        $selectedHexArray = DBAdapter::getInstance()->getSelectedHex();
-
-        return ['maxMoraleAssignable' => $maxMoraleAssignable,
-                'requiredPower' => $requiredPower,
-                'selectedDestination' => $selectedHexArray]; //TODO: this probably must be injected here, as not all actions have a destination!
-    }
-
-    public function actMoraleAssigned(int $amount) : void
-    {
-        $maxMoraleAssignable = $this->argMoraleAssignment()['maxMoraleAssignable'];
-
-        if ($amount > $maxMoraleAssignable || $amount < 0)
-        {
-            throw new BgaUserException("$amount morale assigned, max morale assignable is $maxMoraleAssignable");
-        }
-
-        $this->setCurrentPlayerMorale($this->getCurrentPlayerMorale() - $amount, true);
-
-        $this->setGameStateValue('assigned_morale', $amount);
-        
-        $transition = DBAdapter::getInstance()->getGlobalString('morale_assign_transition');
-        
-        assert(strlen($transition) > 0, "no transition is stored for morale assign finish");
-
-        $this->gamestate->nextState($transition);
-    }
-
-    //DEBUG ACTIONS
-    public function actDebugDefaultPlacePieces() : void
-    {
-        $playerId = (int)$this->getActivePlayerId();
-
-        while(!$this->isPlayerSetupComplete($playerId))
-        {
-
-            $playerPieceSetupArgs = $this->argPlayerPieceSetup();
-
-            $availablePositions = $playerPieceSetupArgs["availableStartingPositions"];
-            $pieceToPlace = $playerPieceSetupArgs["pieceToPlace"];
-
-            $firstAvailablePos = $availablePositions[0];
-            $hexColumn = $firstAvailablePos['hex_column'];
-            $hexRow = $firstAvailablePos['hex_row'];
-
-            $this->DbQuery("UPDATE `player_pieces` SET `hex_column` = $hexColumn, `hex_row` = $hexRow WHERE `id` = $pieceToPlace ");
-
-
-            $this->notify->all("placedPiece", clienttranslate('${player_name} places a piece'), [
-                "player_id" => $playerId,
-                "player_name" => $this->getActivePlayerName(), // remove this line if you uncomment notification decorator
-                "placed_piece" => $pieceToPlace,
-                "hex_column" => $hexColumn,
-                "hex_row" => $hexRow,
-            ]);
-        }
-    
-        $this->gamestate->nextState(TR_SETUP_COMPLETE);
-    }
-
-    public function actDebugAddMorale(int $amount)  
-    {
-        if($amount >= 0)
-        {
-            $this->setCurrentPlayerMorale($amount, true);
-        }
-    }
-
-    public function actDebugMoveBall(int $column, int $row)
-    {
-        $selectedHex = new HexID($column, $row);
-        $this->getBoard()->setBallLocation($selectedHex);
-
-        $this->notify->all('successfulPass', "successful pass", [
-                "ballHex" => $selectedHex->convertToArray()
-            ]);
-    }
-
-    //=======================================
-
-    public function stSetupComplete() : void
-    {
-        $previousPlayerId = (int)$this->getActivePlayerId();
-        $this->giveExtraTime($previousPlayerId);
-               
-        $playerId = intval($this->activeNextPlayer());
-
-        if (!$this->isPlayerSetupComplete($playerId)) 
-        {
-            $this->gamestate->nextState(TR_PLAYER_PIECE_SETUP);
-        } 
-        else 
-        {
-            $this->gamestate->nextState(TR_PLAYER_TURN);
-        }
-    }
-
-    public function stMoveFinished() : void
-    {    
-        $selectedPiece = $this->getGameStateValue('selected_piece');
-        $this->DbQuery("UPDATE player_pieces SET is_fresh = FALSE  WHERE `id` = $selectedPiece");
-
-        $this->setGameStateValue('selected_piece', -1);
-        $this->setGameStateValue('number_of_moves', 0);
-
-        $this->notify->all("pieceExhausted", \clienttranslate('piece was exhausted'), array(
-            "pieceId" => $selectedPiece,
-        ));
-
-        $this->gamestate->nextState(TR_MOVE_DONE);
-    }
-
-    public function stRollDice() : void
-    {
-        //TODO: Determine number of white dice to roll, and roll them!
-
-        $dieRes = GameDice::greenDie()->roll();
-        $assignedMorale = intval($this->getGameStateValue('assigned_morale'));
-
-        $this->setGameStateValue('dice_result', $dieRes + $assignedMorale);
-        $this->setGameStateValue('assigned_morale', 0);
-
-        $requiredPower = intval($this->getGameStateValue('required_power'));
-
-        $this->notify->all("diceRolled", \clienttranslate('diceRolled'), array(
-            "greenDie" => $dieRes,
-            "assignedMorale" => $assignedMorale,
-            "whiteDice" => [],
-            "requiredPower" => $requiredPower
-        ));
-
-        $this->gamestate->nextState(TR_AUTO_NEXT);
-    }
-
-    public function stPerformPass() : void
-    {
-        $diceRes = $this->getGameStateValue('dice_result' );
-        $powerRequired = $this->getGameStateValue('required_power');
-
-        $selectedHexObj = DBAdapter::getInstance()->getSelectedHex();
-        $selectedHex = new HexID(intval($selectedHexObj['selected_hex_column']), intval($selectedHexObj['selected_hex_row']));
-        
-        $board = $this->getBoard();
-
-        if ($diceRes >= $powerRequired)
-        {
-            $board->setBallLocation($selectedHex);
-            $this->notify->all('successfulPass', "successful pass", [
-                "ballHex" => $selectedHex->convertToArray()
-            ]);
-        }
-        else
-        {
-            $newLocation = $board->getClosetBlockingPieceOrHalfWay($board->getBallHex(), $selectedHex, $this->getInactivePlayerId());
-            $board->setBallLocation($newLocation);
-            $this->notify->all('failedPass', "failed pass", [
-                "ballHex" => $newLocation->convertToArray()
-            ]);
-        }
-
-        $this->gamestate->nextState(TR_AUTO_NEXT);
-    }
-
-    public function stBeforePlayerTurn() : void
-    {
-        //TODO: fresh all exhusted players
-
-        //TODO: restart card played counter
-
-        $this->gamestate->nextState("");
     }
 
     /**
@@ -1061,7 +539,7 @@ class Game extends \Table
         $this->DbQuery($sqlQuery);
     }
 
-    private function getPlayerSide(int $userId) : PlayerSide
+    public function getPlayerSide(int $userId) : PlayerSide
     {
         $userInLeftID = intval($this->getGameStateValue('user_in_left_id'));
 
@@ -1077,7 +555,7 @@ class Game extends \Table
         }
     }
 
-    private function getInactivePlayerId() : int
+    public function getInactivePlayerId() : int
     {
         $userInLeftID = intval($this->getGameStateValue('user_in_left_id'));
 
@@ -1091,7 +569,7 @@ class Game extends \Table
         }
     }
 
-    private function getBoard(): Board
+    public function getBoard(): Board
     {
         $query = PlayerPiecesDBManager::getPiecesDataQuery();
         $piecesData = $this->getObjectListFromDB($query, false);
@@ -1101,7 +579,7 @@ class Game extends \Table
         return new Board($piecesData, $ballHex, DBAdapter::getInstance());
     }
 
-    private function getCurrentPlayerMorale() : int
+    public function getCurrentPlayerMorale() : int
     {
         $current_player_id = $this->getActivePlayerId();
 
@@ -1125,7 +603,7 @@ class Game extends \Table
         return $result;
     }
 
-    private function setCurrentPlayerMorale(int $amount, bool $notify) : void
+    public function setCurrentPlayerMorale(int $amount, bool $notify) : void
     {
         assert($amount >= 0, "morale should always be greater or equal to zero!");
         
@@ -1143,14 +621,15 @@ class Game extends \Table
         }
     }
 
-    private function isCurrentPlayerFirstPlayer(): bool
+    public function isCurrentPlayerFirstPlayer(): bool
     {
         $firstPlayerId = $this->getUniqueValueFromDB("SELECT `player_id` FROM `player` WHERE `player_no` = 1");
 
         return $firstPlayerId === $this->getActivePlayerId();
     }
 
-    private function isPlayerSetupComplete(int $playerId) : bool
+    //TODO: This probably must be a private function of player piece setup.
+    public function isPlayerSetupComplete(int $playerId) : bool
     {
         $isComplete = true;
 
