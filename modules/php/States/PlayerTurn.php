@@ -9,16 +9,7 @@ use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
-
-enum GameActions: int
-{
-    case Unknown = 0;
-    case Move = 1;
-    case FinishMove = 2;
-    case PassBall = 3;
-    case Cancel = 4;
-    case Confirm = 5;
-}
+use Bga\Games\SuperTeam\GameActions;
 
 class PlayerTurn extends GameState
 {
