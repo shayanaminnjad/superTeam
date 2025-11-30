@@ -45,9 +45,7 @@ define([
                 },
 
                 makePieceSelectable: function (pieceId) {
-                    console.log(pieceId);
                     let piece = this.getPiece(pieceId);
-                    console.log(piece);
                     piece.getDOMElement().classList.add('clickable')
                 },
 

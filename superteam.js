@@ -84,6 +84,7 @@ define([
                         this.pieceManager.makePieceListSelectable(args.args.selectablePieces);
                         this.pieceManager.makePieceListSelectable(args.args.selectableExhaustedPieces);
                         this.pieceManager.addMoraleTokenToPieces(args.args.selectableExhaustedPieces);
+                        this.highlightPiecesHexes(args.args.selectablePieces.concat(args.args.selectableExhaustedPieces));
                         break;
                     case 'moveAction':
                         if (this.isCurrentPlayerActive()) {
@@ -118,6 +119,7 @@ define([
                         if (this.isCurrentPlayerActive()) {
                             this.pieceManager.makeAllPiecesNonSelectable();
                             this.pieceManager.removeAllMoraleTokens();
+                            this.removeHighlight();
                         }
                         break;
                     case 'moveAction':
@@ -573,12 +575,28 @@ define([
                 return this.wait(TIMEOUT);
             },
 
-            passBall: async function ($hexOffsetCoord) {
-                console.log("ball passed to " + $hexOffsetCoord);
-                const HEX_ID = this.convertOffsetCoordToHexId($hexOffsetCoord);
+            passBall: async function (hexOffsetCoord) {
+                console.log("ball passed to " + hexOffsetCoord);
+                const HEX_ID = this.convertOffsetCoordToHexId(hexOffsetCoord);
                 const anim = this.slideToObject('ball', HEX_ID);
 
                 await this.bgaPlayDojoAnimation(anim);
+            },
+
+            highlightPiecesHexes : function(piecesIds)
+            {
+                for(const pieceId of piecesIds)
+                {
+                    let piece = this.pieceManager.getPiece(pieceId);
+                    let HexId = this.convertOffsetCoordToHexId(piece.getPosition());
+
+                    document.getElementById(HexId).classList.add('highlight');
+                }
+            },
+
+            removeHighlight: function()
+            {
+                document.querySelectorAll('.highlight').forEach(e=> e.classList.remove('highlight'));
             },
 
             assert: function (condition, message = "Assertion failed") {
