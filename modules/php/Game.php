@@ -52,7 +52,8 @@ class PassForwardCommand
         
         if ($this->board->tryGetPlayerPieceInHex($ballHex, $playerPiece))
         {
-            if ($playerPiece->getOwner() === $this->currentPlayer)
+            //PlayerPiece is here to supress a warning.
+            if ($playerPiece && $playerPiece->getOwner() === $this->currentPlayer)
             {
                 return count($this->board->getPlayerPiecesInForwardColumns($ballHex->getColumn(), $this->currentPlayer)) > 0;
             }
@@ -234,7 +235,7 @@ class Game extends \Table
 
         if ($Command->canBePlayed())
         {
-            $this->notifyPlayer($activePlayerID, "actionArgs", "", $Command->getCommandArgs());
+            $this->notify->player(intval($activePlayerID), "actionArgs", "", $Command->getCommandArgs());
         }
         else
         {
