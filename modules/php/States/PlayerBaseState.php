@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
+namespace Bga\Games\SuperTeam\States;
+
 use Bga\Games\SuperTeam\Game;
 use Bga\GameFramework\States\GameState;
-
+use ReflectionMethod;
 
 class ActionDescriptor
 {
@@ -34,7 +38,7 @@ class ActionDescriptor
     }
 }
 
-abstract class STBaseState extends GameState
+abstract class PlayerBaseState extends GameState
 {
     /** @var ActionDescriptor[] */
     private array $possibleActions = [];
@@ -67,16 +71,18 @@ abstract class STBaseState extends GameState
     {
         $res = $this->selfGetArgs();
 
-        $res['possibleActions'] = $this->serializePossibleActions();
+        $res['clientButtons'] = $this->serializePossibleActions();
 
         return $res;
     }
 
     abstract public function selfGetArgs(): array;
 
-    protected function addPossibleAction(string $name, string $action): void
+    protected function addClientButton(string $name, array $func): void
     {
-        $this->possibleActions[] = new ActionDescriptor($name, $action);
+        $ref = new ReflectionMethod($func[0], $func[1]);
+
+        $this->possibleActions[] = new ActionDescriptor($name, $ref->getName());
     }
 
     protected function serializePossibleActions(): array

@@ -5,20 +5,17 @@ declare(strict_types=1);
 namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
-use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
-use Bga\Games\SuperTeam\GameActions;
 
-
-class MoveAction extends GameState
+class MoveAction extends PlayerBaseState
 {
     function __construct(
-        protected Game $game,
+        Game $game,
     ) {
         parent::__construct(
-            $game,
+            game: $game,
             name: 'moveAction',
             id: ST_MOVE_ACTION,
             type: StateType::ACTIVE_PLAYER,
@@ -32,7 +29,7 @@ class MoveAction extends GameState
         );
     }
 
-    public function getArgs(): array
+    public function selfGetArgs(): array
     {
         $selectedPiece = intval($this->game->getGameStateValue('selected_piece'));
 
@@ -40,16 +37,13 @@ class MoveAction extends GameState
 
         $moveableHexes = $this->game->getBoard()->getMoveableHexesByPiece($selectedPiece);
 
-        $possibleActions = [];
         $numberOfMoves = intval($this->game->getGameStateValue('number_of_moves'));
 
         if ($numberOfMoves > 0)
-            $possibleActions[] = ['name' => 'Finish Movement', 'id' => GameActions::FinishMove];
+            $this->addClientButton('Finish Movement', [$this, 'actFinishMove']);
 
         return ["moveableHexes" => $moveableHexes,
-                "selectedPiece" => $selectedPiece,
-                "possibleActions" => $possibleActions
-            ];
+                "selectedPiece" => $selectedPiece];
     }
 
     #[PossibleAction]
@@ -125,14 +119,9 @@ class MoveAction extends GameState
     }
 
     #[PossibleAction]
-    public function actActionSelected(int $actionId): string
+    public function actFinishMove(): string
     {
-        switch ($actionId) {
-            case GameActions::FinishMove->value:
-                return MoveFinished::class;
-            default:
-            throw new \BgaUserException("invalid actionId passed");
-        }
+        return MoveFinished::class;
     }
 
     function zombie(int $playerId): string {

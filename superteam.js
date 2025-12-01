@@ -160,15 +160,14 @@ define([
                         }, { color: 'primary' });
                     }
 
-                    let possibleActions = args['possibleActions'];
+                    let clientButtons = args['clientButtons'];
 
-                    if (!possibleActions)
+                    if (!clientButtons)
                         return;
 
-                    for (let i = 0; i < possibleActions.length; i++) {
-                        let action = possibleActions[i];
-                        let id = parseInt(action['id'])
-                        this.statusBar.addActionButton(action['name'], () => { console.log('action id was: ' + id); this.bgaPerformAction("actActionSelected", { actionId: id }) }, { color: 'primary' });
+                    for (let i = 0; i < clientButtons.length; i++) {
+                        let clientButton = clientButtons[i];
+                        this.statusBar.addActionButton(clientButton['name'], () => { this.bgaPerformAction(clientButton['action'])}, { color: 'primary' });
                     }
                 }
             },
@@ -441,8 +440,6 @@ define([
                 let ballData = gamedatas['ball'];
 
                 this.hexWithBall = STHexLib.createOffsetCoord(ballData.hex_row, ballData.hex_column);
-
-                console.log("hex with ball is " + this.hexWithBall);
 
                 const MAIN_BOARD_EL = document.getElementById('mainBoard');
                 MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id="ball" class="ball" ></div>`);

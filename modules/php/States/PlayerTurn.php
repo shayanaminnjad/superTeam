@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
-use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
-use Bga\Games\SuperTeam\GameActions;
 
-class PlayerTurn extends GameState
+class PlayerTurn extends PlayerBaseState
 {
     function __construct(
         protected Game $game,
@@ -31,41 +29,38 @@ class PlayerTurn extends GameState
         );
     }
 
-    public function getArgs(): array
+    public function selfGetArgs(): array
     {
-        //TODO: each of these actions must be an object, with predicate, and name and id.
-
-        $possibleActions = [];
-
         $pieceSelectableForMove = $this->game->getSelectablePieces(null);
 
-        if (count($pieceSelectableForMove['selectablePieces']) > 0 || count($pieceSelectableForMove['selectableExhaustedPieces']) > 0) {
-            $possibleActions[] = ['name' => 'move', 'id' => GameActions::Move];
+        if (count($pieceSelectableForMove['selectablePieces']) > 0 || count($pieceSelectableForMove['selectableExhaustedPieces']) > 0) 
+        {
+            $this->addClientButton('move', [$this, 'actMove']);
         }
 
         $board = $this->game->getBoard();
         $playerPieceWithBall = null;
-        if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPieceWithBall)) {
-            if ($playerPieceWithBall->getOwner() === intval($this->game->getActivePlayerId())) {
-                $possibleActions[] = ['name' => 'pass ball', 'id' => GameActions::PassBall];
+        if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPieceWithBall)) 
+        {
+            if ($playerPieceWithBall->getOwner() === intval($this->game->getActivePlayerId())) 
+            {
+                $this->addClientButton('pass ball', [$this, 'actPassBall']);
             }
         }
 
-        return ['possibleActions' => $possibleActions];
+        return [];
     }
 
     #[PossibleAction]
-    public function actActionSelected(int $actionId): string
+    public function actMove(): string
     {
-        // TODO: a list of handlers is more proper, however it is ok right now.
-        switch ($actionId) {
-            case GameActions::Move->value:
-                return PieceSelection::class;
-            case GameActions::PassBall->value:
-                return PassDestSelection::class;
-            default:
-                throw new \BgaUserException("invalid id passed");
-        }
+        return PieceSelection::class;
+    }
+
+    #[PossibleAction]
+    public function actPassBall() : string
+    {
+        return PassDestSelection::class;
     }
 
     #[PossibleAction]

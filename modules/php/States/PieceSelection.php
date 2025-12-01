@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
-use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Game;
-use Bga\Games\SuperTeam\GameActions;
 
-class PieceSelection extends GameState
+class PieceSelection extends PlayerBaseState
 {
     function __construct(
         protected Game $game,
@@ -30,13 +28,11 @@ class PieceSelection extends GameState
         );
     }
 
-    public function getArgs(): array
+    public function selfGetArgs(): array
     {
-        $args = $this->game->getSelectablePieces(null);
+        $this->addClientButton('cancel', [$this, 'actCancel']);
 
-        $args['possibleActions'] = [['name' => 'cancel', 'id' => GameActions::Cancel]];
-
-        return $args;
+        return $this->game->getSelectablePieces(null);
     }
 
     #[PossibleAction]
@@ -59,17 +55,6 @@ class PieceSelection extends GameState
         $this->game->setGameStateValue('selected_piece', $pieceId);
 
         return MoveAction::class;
-    }
-
-    #[PossibleAction]
-    public function actActionSelected(int $actionId): string
-    {
-        switch ($actionId) {
-            case GameActions::Cancel->value:
-                return PlayerTurn::class;
-            default:
-                throw new \BgaUserException("invalid id passed");
-        }
     }
 
     function zombie(int $playerId): string {

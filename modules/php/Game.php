@@ -32,17 +32,6 @@ use Exception;
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 require_once(__DIR__ . '/StateMachineConstants.inc.php');
 
-enum GameActions : int
-{
-    case Unknown = 0;
-    case Move = 1;
-    case FinishMove = 2;
-    case PassBall = 3;
-    case Cancel = 4;
-    case Confirm = 5;
-}
-
-
 class PassForwardCommand
 {
     private Board $board;
@@ -320,8 +309,7 @@ class Game extends \Table
         
         return [
             "hexWithBall" => $hexWithBall->convertToArray(),
-            "blockedSpaces" => $blockedSpaces,
-            "possibleActions" => [['name' => 'cancel', 'id' => GameActions::Cancel]]];
+            "blockedSpaces" => $blockedSpaces];
     }
 
     /**

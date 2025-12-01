@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
-use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
@@ -13,7 +12,7 @@ use Bga\Games\SuperTeam\DBAdapter;
 
 use BgaUserException;
 
-class PassDestSelection extends GameState
+class PassDestSelection extends PlayerBaseState
 {
     function __construct(
         protected Game $game,
@@ -33,8 +32,9 @@ class PassDestSelection extends GameState
         );
     }
 
-    public function getArgs(): array
+    public function selfGetArgs(): array
     {
+        $this->addClientButton('Cancel', [$this, 'actCancel']);
         return $this->game->getValidPassTargets(null);
     }
 
@@ -70,6 +70,12 @@ class PassDestSelection extends GameState
         $dbAdapter->storeSelectedHex($hexColumn, $hexRow);
 
         return MoraleAssignment::class;
+    }
+
+    #[PossibleAction]
+    public function actCancel() : string
+    {
+        return PlayerTurn::class;
     }
 
     function zombie(int $playerId): string {
