@@ -42,7 +42,8 @@ class PlayerTurn extends PlayerBaseState
         $playerPieceWithBall = null;
         if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPieceWithBall)) 
         {
-            if ($playerPieceWithBall->getOwner() === intval($this->game->getActivePlayerId())) 
+            //(playerPieceWithball) is here to supress a warning.
+            if ($playerPieceWithBall && $playerPieceWithBall->getOwner() === intval($this->game->getActivePlayerId())) 
             {
                 $this->addClientButton('pass ball', [$this, 'actPassBall']);
             }
