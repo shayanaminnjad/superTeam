@@ -24,10 +24,11 @@ define([
     g_gamethemeurl + "modules/js/Piece.js",
     g_gamethemeurl + "modules/js/STUIHelpers.js",
     g_gamethemeurl + "modules/js/BoardPresentation.js",
+    g_gamethemeurl + "modules/js/DiceUI.js",
     "ebg/core/gamegui",
     "ebg/counter",
 ],
-    function (dojo, declare, STHexLib, PieceManager, Piece, STHUIHelpers, Board) {
+    function (dojo, declare, STHexLib, PieceManager, Piece, STHUIHelpers, Board, DiceUI) {
         return declare("bgagame.superteam", ebg.core.gamegui, {
             constructor: function () {
                 console.log('superteam constructor');
@@ -53,6 +54,8 @@ define([
                 this.setupPlayerArea(gamedatas);
 
                 this.setupMainBoard(gamedatas);
+
+                DiceUI.construct(this);
 
                 this.setupNotifications();
 
@@ -417,42 +420,7 @@ define([
                 Board.visualizePowerRequired(hexesInLine, blockingPieces);
             },
 
-            showRollResult: async function (greenDie, whiteDice, moraleSpent, requiredPower) {
 
-                totalPower = greenDie + moraleSpent;
-
-                document.getElementById('mainBoard').insertAdjacentHTML('beforeend', `<div id='diceRollArea'></div>`);
-
-                let diceRollAreaEl = document.getElementById('diceRollArea');
-
-                diceRollAreaEl.insertAdjacentHTML('beforeend', `<span class='greenDie'>${greenDie}</span>`);
-
-                /*
-                for (const whiteDie of whiteDice) {
-                    diceRollAreaEl.insertAdjacentHTML('beforeend', `<span class='whiteDie'>${whiteDie}</span>`);
-                    totalPower += whiteDie;
-                }*/
-
-                diceRollAreaEl.insertAdjacentHTML('beforeend', `<span id='moraleColumn'></span>`);
-                let moraleColumnEl = document.getElementById('moraleColumn');
-
-                for (let i = 0; i < moraleSpent; ++i)
-                    moraleColumnEl.insertAdjacentHTML('beforeend', `<span class='moraleSpent'></span>`);
-
-                if (totalPower >= requiredPower) {
-                    diceRollAreaEl.insertAdjacentHTML('beforeend', `<span style='font-size: xx-large;'> >= ${requiredPower}</span>`);
-                }
-                else {
-                    diceRollAreaEl.insertAdjacentHTML('beforeend', `<span style='font-size: xx-large;'> < ${requiredPower}</span>`);
-                }
-
-                const TIMEOUT = 3000;
-                setTimeout(() => {
-                    diceRollAreaEl.remove();
-                }, TIMEOUT);
-
-                return this.wait(TIMEOUT);
-            },
 
             highlightPiecesHexes : function(piecesIds)
             {
@@ -555,7 +523,7 @@ define([
             },
 
             notif_diceRolled: function (notifData) {
-                return this.showRollResult(notifData.greenDie, notifData.whiteDice, notifData.assignedMorale, notifData.requiredPower);
+                return DiceUI.showRollAndWait(notifData.greenDie, notifData.whiteDice, notifData.assignedMorale, notifData.requiredPower);
             },
 
             notif_successfulPass: function (notifData) {
