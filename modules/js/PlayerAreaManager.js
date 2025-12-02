@@ -50,7 +50,6 @@ define([], function () {
 
         //Private Function
         _init: function (gamedatas) {
-            console.log('init game datas' + gamedatas);
             for (const playerId of Object.keys(gamedatas.players)) {
                 let currentMorale = gamedatas.players[playerId].morale;
 
