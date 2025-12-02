@@ -1,19 +1,18 @@
-define([
-     g_gamethemeurl + "modules/js/STHexLib.js"
-], 
-function (STHexLib) {
+define(["dojo/_base/declare",
+    g_gamethemeurl + "modules/js/STHexLib.js"
+],
+    function (declare, STHexLib) {
 
-    // constant enum-like roles
-    const playerRoles = {
-        None: 0,
-        Goalie: 1,
-        Captain: 2,
-        Regular: 3
-    };
+        // constant enum-like roles
+        const playerRoles = {
+            None: 0,
+            Goalie: 1,
+            Captain: 2,
+            Regular: 3
+        };
 
-    function getPiece() {
-        return {
-            construct: function (initData, color) {
+        const Piece = declare("st.Piece", null, {
+            constructor: function (initData, color) {
                 this._owner = initData.owner_id;
                 this._isFresh = initData.is_fresh === '1';
                 this._id = parseInt(initData.id);
@@ -25,13 +24,12 @@ function (STHexLib) {
 
                 const hexColumn = initData.hex_column;
                 const hexRow = initData.hex_row;
-                
+
                 if (hexColumn != -1 && hexRow != -1) {
                     let offsetCoord = STHexLib.createOffsetCoord(hexRow, hexColumn);
                     this.setPosition(offsetCoord);
                 }
             },
-
             isGoalie: function () {
                 return this._role === playerRoles.Goalie;
             },
@@ -120,13 +118,11 @@ function (STHexLib) {
             },
 
             _generateInnerHTML: function () {
-                if (this.getRole() === playerRoles.Captain)
-                {
+                if (this.getRole() === playerRoles.Captain) {
                     let type = this.getStringifiedRole();
                     return `${type[0]}`;
                 }
-                else
-                {
+                else {
                     return '';
                 }
             },
@@ -138,11 +134,8 @@ function (STHexLib) {
             _id: null,
             _role: null,
             _color: null
-        };
-    }
+        });
 
-    return {
-        getPiece: getPiece,
-        playerRoles: playerRoles
-    };
-});
+        Piece.playerRoles = playerRoles;
+        return Piece;
+    });

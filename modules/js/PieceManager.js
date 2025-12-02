@@ -18,7 +18,7 @@ define([
 
                 createNewPiece: function (pieceId, initializationData, color) {
                     if (!this._piecesMap.has(pieceId)) {
-                        let piece = this._createPiece(initializationData, color);
+                        let piece = new Piece(initializationData, color);
                         this._piecesMap.set(pieceId, piece);
                         return piece;
                     } else {
@@ -75,13 +75,6 @@ define([
                     }
 
                     return result;
-                },
-
-                //Private functions
-                _createPiece: function (initializationData, color) {
-                    let piece = Piece.getPiece(this._document);
-                    piece.construct(initializationData, color);
-                    return piece;
                 },
 
                 //Private members
