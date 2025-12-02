@@ -25,10 +25,11 @@ define([
     g_gamethemeurl + "modules/js/STUIHelpers.js",
     g_gamethemeurl + "modules/js/BoardPresentation.js",
     g_gamethemeurl + "modules/js/DiceUI.js",
+    g_gamethemeurl + "modules/js/PlayerAreaManager.js",
     "ebg/core/gamegui",
     "ebg/counter",
 ],
-    function (dojo, declare, STHexLib, PieceManager, Piece, STHUIHelpers, Board, DiceUI) {
+    function (dojo, declare, STHexLib, PieceManager, Piece, STHUIHelpers, Board, DiceUI, PlayerAreaManager) {
         return declare("bgagame.superteam", ebg.core.gamegui, {
             constructor: function () {
                 console.log('superteam constructor');
@@ -51,7 +52,7 @@ define([
                     }
                 }
 
-                this.setupPlayerArea(gamedatas);
+                PlayerAreaManager.construct(this, gamedatas);
 
                 this.setupMainBoard(gamedatas);
 
@@ -178,52 +179,6 @@ define([
             ///////////////////////////////////////////////////
             //// Utility methods
 
-            setupPlayerArea: function (gamedatas) {
-                for (const playerId of Object.keys(gamedatas.players)) {
-                    let currentMorale = gamedatas.players[playerId].morale;
-
-                    this.getPlayerPanelElement(playerId).insertAdjacentHTML('beforeend', `
-                    <div class ="resources">
-                    <span class = "moraleIcon"></span>
-                    <span id="playerMorale${playerId}" class= "moraleLabel">${currentMorale}</span>
-                    </div>`);
-
-                    this.setPlayerMorale(playerId, currentMorale);
-                }
-            },
-
-            setPlayerMorale: function (playerId, amount) {
-                let moraleEl = document.getElementById(`playerMorale${playerId}`);
-                moraleEl.innerHTML = amount;
-            },
-
-            getPlayerMorale: function (playerId) {
-                let moraleEl = document.getElementById(`playerMorale${playerId}`);
-                return parseInt(moraleEl.innerHTML);
-            },
-
-            reducePlayerMorale: async function (amount, PlaceSpentOn) {
-                let activePlayer = this.getActivePlayerId();
-                let currentMorale = this.getPlayerMorale(activePlayer);
-                this.setPlayerMorale(activePlayer, currentMorale - amount);
-
-                for (let i = 0; i < amount; i++) {
-                    let tempEl = document.createElement("div");
-                    tempEl.innerHTML = `<div class="spentMorale"></div>`;
-                    let moraleEl = tempEl.firstElementChild;
-                    this.getGameAreaElement().appendChild(moraleEl);
-                    let playerMoraleEl = document.getElementById(`playerMorale${activePlayer}`);
-
-                    this.placeOnObject(moraleEl, playerMoraleEl);
-
-                    const anim = this.slideToObject(moraleEl, PlaceSpentOn);
-
-                    await this.bgaPlayDojoAnimation(anim);
-                }
-
-                document.querySelectorAll(".spentMorale").forEach(el => el.remove());
-            },
-
             setupMainBoard: function (gamedatas) {
 
                 Board.construct(this, gamedatas['ball']);
@@ -231,11 +186,6 @@ define([
                 this.setPiecesData(gamedatas);
 
                 this.initHexClickListener();
-            },
-
-            updatePlayerMorale: function (playerId, newValue) {
-                let el = this.document.getElementById(`playerMorale${playerId}`);
-                el.innerHTML = `${_("Morale")}: ${newValue}`;
             },
 
             initHexClickListener: function () {
@@ -494,7 +444,7 @@ define([
                 let piece = this.pieceManager.getPiece(notifData.movedPiece);
 
                 if (parseInt(notifData.spentMorale) === 1) {
-                    await this.reducePlayerMorale(1, piece.getDOMID());
+                    await PlayerAreaManager.reducePlayerMorale(1, piece.getDOMID());
                 }
 
                 piece.setPosition(destHex);
