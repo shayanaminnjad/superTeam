@@ -19,15 +19,15 @@
 
 define([
     "dojo", "dojo/_base/declare",
-    g_gamethemeurl + "modules/js/STUIConstants.js",
     g_gamethemeurl + "modules/js/STHexLib.js",
     g_gamethemeurl + "modules/js/PieceManager.js",
     g_gamethemeurl + "modules/js/Piece.js",
     g_gamethemeurl + "modules/js/STUIHelpers.js",
+    g_gamethemeurl + "modules/js/BoardPresentation.js",
     "ebg/core/gamegui",
     "ebg/counter",
 ],
-    function (dojo, declare, STUIConstants, STHexLib, PieceManager, Piece, STHUIHelpers) {
+    function (dojo, declare, STHexLib, PieceManager, Piece, STHUIHelpers, Board) {
         return declare("bgagame.superteam", ebg.core.gamegui, {
             constructor: function () {
                 console.log('superteam constructor');
@@ -119,7 +119,7 @@ define([
                         if (this.isCurrentPlayerActive()) {
                             this.pieceManager.makeAllPiecesNonSelectable();
                             this.pieceManager.removeAllMoraleTokens();
-                            this.removeHighlight();
+                            Board.removeHexHighlights();
                         }
                         break;
                     case 'moveAction':
@@ -131,13 +131,13 @@ define([
                     case 'passDestinationSelection':
                         if (this.isCurrentPlayerActive()) {
                             document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
-                            this.cleanupRequiredPowerVisuals();
+                            Board.removeRequiredPowerVisualization();
                         }
                         break;
                     case 'moraleAssignment':
                         if (this.isCurrentPlayerActive()) {
                             STHUIHelpers.removeCounter('moraleAssign');
-                            this.cleanupRequiredPowerVisuals();
+                            Board.removeRequiredPowerVisualization();
                         }
                         break;
                     case 'dummy':
@@ -222,56 +222,10 @@ define([
             },
 
             setupMainBoard: function (gamedatas) {
-                this.getGameAreaElement().insertAdjacentHTML('beforeend', `<div id="mainBoard"></div>`);
 
-                const MAIN_BOARD_EL = document.getElementById('mainBoard');
-                const BOARD_WIDTH = parseFloat(getComputedStyle(MAIN_BOARD_EL).width);
-                const BOARD_HEIGHT = parseFloat(getComputedStyle(MAIN_BOARD_EL).height);
-
-                this.LEFT_MARGIN = STUIConstants.HORIZONTAL_MARGIN_PERCENT * BOARD_WIDTH;
-                this.TOP_MARGIN_ODD = STUIConstants.TOP_MARGIN_ODD_PERCENT * BOARD_HEIGHT;
-                const TOP_MARGIN_EVEN = STUIConstants.TOP_MARGIN_EVEN_PERCENT * BOARD_HEIGHT;
-
-                const HEX_WIDTH = BOARD_WIDTH * STUIConstants.HEX_WIDTH_PERCENT;
-                const HEX_HEIGHT = BOARD_HEIGHT * STUIConstants.HEX_HEIGHT_PERCENT;
-                const HEX_WIDTH_ROUND = Math.round(HEX_WIDTH);
-                const HEX_HEIGHT_ROUND = Math.round(HEX_HEIGHT);
-                const HEX_VERTICAL_SPACE = STUIConstants.HEX_VERTICAL_SPACE_PERCENT * BOARD_HEIGHT;
-                this.HEX_HORIZONTAL_SPACE = STUIConstants.HEX_HORIZONTAL_SPACE_PERCENT * BOARD_WIDTH;
-
-                const HEX_LOGICAL_WIDTH = STUIConstants.HEX_LOGICAL_WIDTH_PERCENT * BOARD_WIDTH;
-                this.hexLogicalSize = HEX_LOGICAL_WIDTH * 0.5;
-
-                const HEX_LOGICAL_HEIGHT = STUIConstants.HEX_LOGICAL_HEIGHT_PERCENT * BOARD_HEIGHT;
-                this.hexInradius = HEX_LOGICAL_HEIGHT * 0.5;
-
-                for (let x = 0; x < STUIConstants.COLUMNS; x++) {
-                    let hexInColumn = (x + 1) % 2 == 1 ? STUIConstants.EVEN_COLUMN_ROWS : STUIConstants.ODD_COLUMN_ROWS;
-                    let left = Math.round(this.LEFT_MARGIN + (this.HEX_HORIZONTAL_SPACE) * x);
-                    let currentTopMargin = (x + 1) % 2 == 1 ? this.TOP_MARGIN_ODD : TOP_MARGIN_EVEN;
-
-                    for (let y = 0; y < hexInColumn; y++) {
-                        let hexId = `hex_${y}_${x}`;
-
-                        let offsetCoord = this.convertHexIdToOffsetCoord(hexId);
-
-                        let top = Math.round(currentTopMargin + (y * (HEX_HEIGHT + HEX_VERTICAL_SPACE)));
-
-                        this.allHexes.push({
-                            cubic: STHexLib.oddqToCubic(offsetCoord),
-                            cartesian: STHexLib.oddqToCartesian(offsetCoord, this.hexLogicalSize),
-                            pixelPos: { left: left, top: top }
-                        });
-
-                        MAIN_BOARD_EL.insertAdjacentHTML('afterbegin', `<div id='${hexId}' class="hex" style='left:${left}px; top:${top}px; width: ${HEX_WIDTH_ROUND}px; height: ${HEX_HEIGHT_ROUND}px;'></div>`);
-                    }
-                }
-
-                MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='pieces'></div>`);
+                Board.construct(this, gamedatas['ball']);
 
                 this.setPiecesData(gamedatas);
-
-                this.addBallToBoard(gamedatas);
 
                 this.initHexClickListener();
             },
@@ -305,7 +259,7 @@ define([
                             evt.preventDefault();
                             evt.stopPropagation();
 
-                            var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
+                            var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
 
                             this.isWaitingForServerResponse = true;
                             await this.bgaPerformAction("actPlacedPiece", { placedPiece: this.currentStateData.args.pieceToPlace, hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
@@ -316,7 +270,7 @@ define([
                             evt.preventDefault();
                             evt.stopPropagation();
 
-                            var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
+                            var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
 
                             this.isWaitingForServerResponse = true;
                             await this.bgaPerformAction("actPieceMoved", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
@@ -327,7 +281,7 @@ define([
                             evt.preventDefault();
                             evt.stopPropagation();
 
-                            var offsetCoord = this.convertHexIdToOffsetCoord(evt.currentTarget.id);
+                            var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
 
                             this.isWaitingForServerResponse = true;
                             await this.bgaPerformAction("actDestSelected", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
@@ -347,7 +301,7 @@ define([
                 if (this.currentStateData.name === 'passDestinationSelection') {
                     if (evt.currentTarget.classList.contains('selectable')) {
 
-                        this.visualizePowerRequired(this.hexWithBall, this.convertHexIdToOffsetCoord(evt.currentTarget.id));
+                        this.visualizePowerRequired(this.hexWithBall, Board.convertHexIdToOffsetCoord(evt.currentTarget.id));
                     }
                 }
             },
@@ -383,39 +337,6 @@ define([
                 }
             },
 
-            parseHexId: function (hexId) {
-                let idEls = hexId.split("_");
-
-                return [idEls[1], idEls[2]];
-            },
-
-            convertHexIdToOffsetCoord: function (hexId) {
-                var parsedHexId = this.parseHexId(hexId);
-                return STHexLib.createOffsetCoord(parsedHexId[0], parsedHexId[1]);
-            },
-
-            convertCubicCoordToHexId: function (cubicCoord) {
-                let offsetHex = STHexLib.cubicToOddq(cubicCoord);
-
-                return this.convertOffsetCoordToHexId(offsetHex);
-            },
-
-            convertOffsetCoordToHexId: function (offsetCoord) {
-                return 'hex_' + offsetCoord.r + '_' + offsetCoord.c;
-            },
-
-            getHexPixelCoordinate: function (offsetCoord) {
-                let hexData = this.getHexData(offsetCoord);
-                return hexData.pixelPos;
-            },
-
-            getHexData: function (offsetCoord) {
-                let evenColumnsCount = Math.floor((offsetCoord.c + 1) * 0.5);
-                let oddColumnsCount = offsetCoord.c - evenColumnsCount;
-
-                return this.allHexes[STUIConstants.EVEN_COLUMN_ROWS * evenColumnsCount + oddColumnsCount * STUIConstants.ODD_COLUMN_ROWS + offsetCoord.r];;
-            },
-
             setPiecesData: async function (gameDatas) {
                 this.pieceManager = PieceManager.getPieceManager();
                 this.pieceManager.construct(this);
@@ -430,24 +351,10 @@ define([
                     this.setPieceClickEvent(piece.getDOMElement());
 
                     if (piece.getPosition() != null) {
-                        let offsetCoord = this.convertOffsetCoordToHexId(piece.getPosition());
+                        let offsetCoord = Board.convertOffsetCoordToHexId(piece.getPosition());
                         this.pieceManager.animatePieceFromPlayerBoardToHex(piece.getId(), offsetCoord); 7
                     }
                 }
-            },
-
-            addBallToBoard: async function (gamedatas) {
-                let ballData = gamedatas['ball'];
-
-                this.hexWithBall = STHexLib.createOffsetCoord(ballData.hex_row, ballData.hex_column);
-
-                const MAIN_BOARD_EL = document.getElementById('mainBoard');
-                MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id="ball" class="ball" ></div>`);
-
-                const HEX_ID = this.convertOffsetCoordToHexId(this.hexWithBall);
-                const anim = this.slideToObject('ball', HEX_ID);
-
-                await this.bgaPlayDojoAnimation(anim);
             },
 
             onMoveAction: function (args) {
@@ -459,7 +366,7 @@ define([
 
                 for (let i = 0; i < moveableHexes.length; i++) {
                     let hex = moveableHexes[i];
-                    let DOMHexId = this.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(hex.hex_row, hex.hex_column));
+                    let DOMHexId = Board.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(hex.hex_row, hex.hex_column));
 
                     document.getElementById(DOMHexId).classList.add('selectable');
                 }
@@ -470,11 +377,11 @@ define([
                 let allBlockedSpaces = [];
 
                 for (const space of args.blockedSpaces) {
-                    allBlockedSpaces.push(this.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(space.hex_row, space.hex_column)));
+                    allBlockedSpaces.push(Board.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(space.hex_row, space.hex_column)));
                 }
 
                 this.hexWithBall = STHexLib.createOffsetCoord(args.hexWithBall.hex_row, args.hexWithBall.hex_column)
-                allBlockedSpaces.push(this.convertOffsetCoordToHexId(this.hexWithBall));
+                allBlockedSpaces.push(Board.convertOffsetCoordToHexId(this.hexWithBall));
 
                 this.makeAllHexesSelectableExcept(allBlockedSpaces);
             },
@@ -495,44 +402,19 @@ define([
                 //args.requiredPower
                 STHUIHelpers.createCounter('generalactions', 'moraleAssign', 0, args.maxMoraleAssignable);
                 let selectedHex = STHexLib.createOffsetCoord(args.selectedDestination.selected_hex_row, args.selectedDestination.selected_hex_column);
-                this.visualizePowerRequired(this.hexWithBall, selectedHex);
+                this.visualizePowerRequired(Board.getHexWithBall(), selectedHex);
             },
 
             visualizePowerRequired: function (start, end) {
 
-                this.cleanupRequiredPowerVisuals();
+                Board.removeRequiredPowerVisualization();
 
                 let hexesInLine = STHexLib.getHexesInLine(start, end);
 
                 let opponentHexes = this.pieceManager.getAllPiecesOwnedBy(this.opponentId);
                 let blockingPieces = STHexLib.getHexsInPath(start, end, 1.2, opponentHexes)
 
-                let requiredPower = this.getRequiredPower(hexesInLine.length, blockingPieces.length);
-
-                for (let i = 0; i < hexesInLine.length; i++) {
-                    let el = document.getElementById(this.convertOffsetCoordToHexId(hexesInLine[i]));
-                    el.classList.add('inPath');
-                }
-
-                for (let i = 0; i < blockingPieces.length; i++) {
-                    let el = document.getElementById(this.convertOffsetCoordToHexId(blockingPieces[i]));
-                    el.classList.add('blocking');
-
-                    let tempEl = document.createElement("span");
-                    tempEl.innerHTML = `<span class="powerIndication">+1</span>`;
-                    let powerIndicator = tempEl.firstElementChild;
-                    this.getGameAreaElement().appendChild(powerIndicator);
-
-                    this.placeOnObject(powerIndicator, el);
-                    //TODO: sometimes this might be covered by another piece!
-                    powerIndicator.style.top = (parseInt(powerIndicator.style.top) - 30) + 'px';
-                }
-            },
-
-            cleanupRequiredPowerVisuals: function () {
-                document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
-                document.querySelectorAll('.blocking').forEach(el => el.classList.remove('blocking'));
-                document.querySelectorAll('.powerIndication').forEach(el => el.remove());
+                Board.visualizePowerRequired(hexesInLine, blockingPieces);
             },
 
             showRollResult: async function (greenDie, whiteDice, moraleSpent, requiredPower) {
@@ -572,28 +454,13 @@ define([
                 return this.wait(TIMEOUT);
             },
 
-            passBall: async function (hexOffsetCoord) {
-                console.log("ball passed to " + hexOffsetCoord);
-                const HEX_ID = this.convertOffsetCoordToHexId(hexOffsetCoord);
-                const anim = this.slideToObject('ball', HEX_ID);
-
-                await this.bgaPlayDojoAnimation(anim);
-            },
-
             highlightPiecesHexes : function(piecesIds)
             {
                 for(const pieceId of piecesIds)
                 {
                     let piece = this.pieceManager.getPiece(pieceId);
-                    let HexId = this.convertOffsetCoordToHexId(piece.getPosition());
-
-                    document.getElementById(HexId).classList.add('highlight');
+                    Board.highlighHex(Board.convertOffsetCoordToHexId(piece.getPosition()));
                 }
-            },
-
-            removeHighlight: function()
-            {
-                document.querySelectorAll('.highlight').forEach(e=> e.classList.remove('highlight'));
             },
 
             assert: function (condition, message = "Assertion failed") {
@@ -615,7 +482,7 @@ define([
                     let hexColumn = el.hex_column;
                     let hexRow = el.hex_row;
 
-                    let hexId = this.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(hexRow, hexColumn));
+                    let hexId = Board.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(hexRow, hexColumn));
                     let hexEl = document.getElementById(hexId);
 
                     hexEl.classList.add('availableToPlacePiece');
@@ -641,27 +508,7 @@ define([
             ///////////////////////////////////////////////////
             //// Reaction to cometD notifications
 
-            /*
-                setupNotifications:
-                
-                In this method, you associate each of your game notifications with your local method to handle it.
-                
-                Note: game notification names correspond to "notifyAllPlayers" and "notifyPlayer" calls in
-                      your superteam.game.php file.
-            
-            */
             setupNotifications: function () {
-                console.log('notifications subscriptions setup');
-
-                // TODO: here, associate your game notifications with local methods
-                //dojo.subscribe( 'placedPiece', this, "notif_placedPiece" );
-
-                // Example 2: standard notification handling + tell the user interface to wait
-                //            during 3 seconds after calling the method in order to let the players
-                //            see what is happening in the game.
-                //dojo.subscribe( 'diceRolled', this, "notif_diceRolled" );
-                //this.notifqueue.setSynchronous( 'diceRolled', 3000 );
-
                 this.bgaSetupPromiseNotifications();
             },
 
@@ -670,7 +517,7 @@ define([
                 let hex = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);
                 this.pieceManager.getPiece(notifData.placed_piece).setPosition(hex);
 
-                await this.pieceManager.animatePieceFromPlayerBoardToHex(notifData.placed_piece, this.convertOffsetCoordToHexId(hex));
+                await this.pieceManager.animatePieceFromPlayerBoardToHex(notifData.placed_piece, Board.convertOffsetCoordToHexId(hex));
             },
 
 
@@ -686,12 +533,12 @@ define([
 
                 let animations = [];
 
-                const DEST_HEX_ID = this.convertOffsetCoordToHexId(destHex);
+                const DEST_HEX_ID = Board.convertOffsetCoordToHexId(destHex);
                 animations.push(this.slideToObject(piece.getDOMID(), DEST_HEX_ID));
 
                 if (parseInt(notifData.ballMoved)) {
-                    this.hexWithBall = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);
-                    animations.push(this.slideToObject('ball', DEST_HEX_ID));
+                    Board.setHexWithBall(STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column));
+                    animations.push(Board.getMoveBallAnimation(DEST_HEX_ID));
                 }
 
                 await this.bgaPlayDojoAnimation(dojo.fx.combine(animations));
@@ -712,11 +559,11 @@ define([
             },
 
             notif_successfulPass: function (notifData) {
-                this.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
+                Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
             notif_failedPass: function (notifData) {
-                this.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
+                Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
             ///////////////////////////////////////////////////
@@ -756,7 +603,7 @@ define([
                         let hexes = document.getElementsByClassName('hex');
 
                         Array.from(hexes).forEach(hex => {
-                            let offsetCoord = this.convertHexIdToOffsetCoord(hex.id);
+                            let offsetCoord = Board.convertHexIdToOffsetCoord(hex.id);
                             let cubeCoord = STHexLib.oddqToCubic(offsetCoord);
 
                             hex.innerHTML = val ? offsetCoord + '<br>' + cubeCoord : "";
@@ -792,18 +639,6 @@ define([
             //// Private data
 
             //------------------------ board info
-
-            hexLogicalSize: 0,
-
-            hexInradius: 0,
-
-            allHexes: [],
-
-            LEFT_MARGIN: 0,
-
-            TOP_MARGIN_ODD: 0,
-
-            HEX_HORIZONTAL_SPACE: 0,
 
             pieceManager: null,
 
