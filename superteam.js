@@ -26,13 +26,16 @@ define([
     g_gamethemeurl + "modules/js/BoardPresentation.js",
     g_gamethemeurl + "modules/js/DiceUI.js",
     g_gamethemeurl + "modules/js/PlayerAreaManager.js",
+    g_gamethemeurl + "modules/js/States/StatesRegistry.js",
     "ebg/core/gamegui",
     "ebg/counter",
 ],
-    function (dojo, declare, STHexLib, PieceManager, Piece, STHUIHelpers, Board, DiceUI, PlayerAreaManager) {
+    function (dojo, declare, STHexLib, PieceManager, Piece, STHUIHelpers, Board, DiceUI, PlayerAreaManager, StatesRegistry) {
         return declare("bgagame.superteam", ebg.core.gamegui, {
             constructor: function () {
                 console.log('superteam constructor');
+
+                this.statesRegistry = new StatesRegistry();
 
                 this.setupDebugFeatures();
             },
@@ -67,86 +70,19 @@ define([
             ///////////////////////////////////////////////////
             //// Game & client states
 
-            // onEnteringState: this method is called each time we are entering into a new game state.
-            //                  You can use this method to perform some user interface changes at this moment.
-            //
             onEnteringState: function (stateName, args) {
                 console.log('Entering state: ' + stateName, args);
 
                 this.currentStateData = args;
+                this.currentState = this.statesRegistry.getState(stateName, this, args);
 
-                if (this.isCurrentPlayerActive() == false)
-                    return;
-
-                switch (stateName) {
-                    case 'playerPieceSetup':
-                        this.onPlayerPieceSetup(args);
-                    case 'playerTurn':
-                        console.log("in playerTurn");
-                        break;
-                    case 'pieceSelection':
-                        this.pieceManager.makePieceListSelectable(args.args.selectablePieces);
-                        this.pieceManager.makePieceListSelectable(args.args.selectableExhaustedPieces);
-                        this.pieceManager.addMoraleTokenToPieces(args.args.selectableExhaustedPieces);
-                        this.highlightPiecesHexes(args.args.selectablePieces.concat(args.args.selectableExhaustedPieces));
-                        break;
-                    case 'moveAction':
-                        if (this.isCurrentPlayerActive()) {
-                            document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
-                        }
-                        this.onMoveAction(args.args);
-                        break;
-                    case 'passDestinationSelection':
-                        this.onPassDestinationSelection(args.args);
-                        break;
-                    case 'moraleAssignment':
-                        this.onMoraleAssignment(args.args);
-                        break;
-                    case 'dummy':
-                        break;
-                }
+                this.currentState.onEnter(args.args);
             },
 
-            // onLeavingState: this method is called each time we are leaving a game state.
-            //                 You can use this method to perform some user interface changes at this moment.
-            //
             onLeavingState: function (stateName) {
                 console.log('Leaving state: ' + stateName);
 
-                switch (stateName) {
-                    case 'playerPieceSetup':
-                        if (this.isCurrentPlayerActive()) {
-                            document.querySelectorAll('.availableToPlacePiece').forEach(div => div.classList.remove('availableToPlacePiece'));
-                        }
-                        break;
-                    case 'pieceSelection':
-                        if (this.isCurrentPlayerActive()) {
-                            this.pieceManager.makeAllPiecesNonSelectable();
-                            this.pieceManager.removeAllMoraleTokens();
-                            Board.removeHexHighlights();
-                        }
-                        break;
-                    case 'moveAction':
-                        if (this.isCurrentPlayerActive()) {
-                            document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
-                            document.querySelector('.selected').classList.remove('selected');
-                        }
-                        break;
-                    case 'passDestinationSelection':
-                        if (this.isCurrentPlayerActive()) {
-                            document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
-                            Board.removeRequiredPowerVisualization();
-                        }
-                        break;
-                    case 'moraleAssignment':
-                        if (this.isCurrentPlayerActive()) {
-                            STHUIHelpers.removeCounter('moraleAssign');
-                            Board.removeRequiredPowerVisualization();
-                        }
-                        break;
-                    case 'dummy':
-                        break;
-                }
+                this.currentState.onLeave();
             },
 
             // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
@@ -171,7 +107,7 @@ define([
 
                     for (let i = 0; i < clientButtons.length; i++) {
                         let clientButton = clientButtons[i];
-                        this.statusBar.addActionButton(clientButton['name'], () => { this.bgaPerformAction(clientButton['action'])}, { color: 'primary' });
+                        this.statusBar.addActionButton(clientButton['name'], () => { this.bgaPerformAction(clientButton['action']) }, { color: 'primary' });
                     }
                 }
             },
@@ -254,7 +190,7 @@ define([
                 if (this.currentStateData.name === 'passDestinationSelection') {
                     if (evt.currentTarget.classList.contains('selectable')) {
 
-                        this.visualizePowerRequired(this.hexWithBall, Board.convertHexIdToOffsetCoord(evt.currentTarget.id));
+                        this.visualizePowerRequired(Board.getHexWithBall(), Board.convertHexIdToOffsetCoord(evt.currentTarget.id));
                     }
                 }
             },
@@ -310,54 +246,11 @@ define([
                 }
             },
 
-            onMoveAction: function (args) {
-                let selectedPiece = args.selectedPiece;
-                let moveableHexes = args.moveableHexes;
-
-                let piece = this.pieceManager.getPiece(selectedPiece);
-                piece.getDOMElement().classList.add('selected');
-
-                for (let i = 0; i < moveableHexes.length; i++) {
-                    let hex = moveableHexes[i];
-                    let DOMHexId = Board.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(hex.hex_row, hex.hex_column));
-
-                    document.getElementById(DOMHexId).classList.add('selectable');
-                }
-            },
-
-            onPassDestinationSelection: function (args) {
-
-                let allBlockedSpaces = [];
-
-                for (const space of args.blockedSpaces) {
-                    allBlockedSpaces.push(Board.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(space.hex_row, space.hex_column)));
-                }
-
-                this.hexWithBall = STHexLib.createOffsetCoord(args.hexWithBall.hex_row, args.hexWithBall.hex_column)
-                allBlockedSpaces.push(Board.convertOffsetCoordToHexId(this.hexWithBall));
-
-                this.makeAllHexesSelectableExcept(allBlockedSpaces);
-            },
-
-            makeAllHexesSelectableExcept: function (hexesToExclude) {
-                document.querySelectorAll('.hex').forEach(el => el.classList.add('selectable'));
-
-                for (let i = 0; i < hexesToExclude.length; i++) {
-                    document.getElementById(hexesToExclude[i]).classList.remove('selectable');
-                }
-            },
-
             getRequiredPower(distance, blockingPiecesCount) {
                 return Math.ceil(distance / 2) + blockingPiecesCount;
             },
 
-            onMoraleAssignment(args) {
-                //args.requiredPower
-                STHUIHelpers.createCounter('generalactions', 'moraleAssign', 0, args.maxMoraleAssignable);
-                let selectedHex = STHexLib.createOffsetCoord(args.selectedDestination.selected_hex_row, args.selectedDestination.selected_hex_column);
-                this.visualizePowerRequired(Board.getHexWithBall(), selectedHex);
-            },
-
+            //(sha) TODO: this function must be inside a file accessible to all the states.
             visualizePowerRequired: function (start, end) {
 
                 Board.removeRequiredPowerVisualization();
@@ -370,12 +263,8 @@ define([
                 Board.visualizePowerRequired(hexesInLine, blockingPieces);
             },
 
-
-
-            highlightPiecesHexes : function(piecesIds)
-            {
-                for(const pieceId of piecesIds)
-                {
+            highlightPiecesHexes: function (piecesIds) {
+                for (const pieceId of piecesIds) {
                     let piece = this.pieceManager.getPiece(pieceId);
                     Board.highlighHex(Board.convertOffsetCoordToHexId(piece.getPosition()));
                 }
@@ -387,29 +276,6 @@ define([
                 }
             },
 
-            ///////////////////////////////////////////////////
-            //// state response function
-            onPlayerPieceSetup: function (stateData) {
-                document.querySelectorAll('.availableToPlacePiece').forEach(div => div.classList.remove('availableToPlacePiece'));
-
-                let availableStartingPositions = stateData.args.availableStartingPositions;
-
-                for (let i = 0; i < availableStartingPositions.length; ++i) {
-                    let el = availableStartingPositions[i];
-
-                    let hexColumn = el.hex_column;
-                    let hexRow = el.hex_row;
-
-                    let hexId = Board.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(hexRow, hexColumn));
-                    let hexEl = document.getElementById(hexId);
-
-                    hexEl.classList.add('availableToPlacePiece');
-
-                    STHexLib.createOffsetCoord()
-                }
-            },
-
-            ///////////////////////////////////////////////////
             //// Player's action
 
             /*
@@ -430,36 +296,12 @@ define([
                 this.bgaSetupPromiseNotifications();
             },
 
-
             notif_placedPiece: async function (notifData) {
-                let hex = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);
-                this.pieceManager.getPiece(notifData.placed_piece).setPosition(hex);
-
-                await this.pieceManager.animatePieceFromPlayerBoardToHex(notifData.placed_piece, Board.convertOffsetCoordToHexId(hex));
+                return this.forwardNotification(this.notif_placedPiece.name, notifData);
             },
 
-
             notif_movedPiece: async function (notifData) {
-                let destHex = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);
-                let piece = this.pieceManager.getPiece(notifData.movedPiece);
-
-                if (parseInt(notifData.spentMorale) === 1) {
-                    await PlayerAreaManager.reducePlayerMorale(1, piece.getDOMID());
-                }
-
-                piece.setPosition(destHex);
-
-                let animations = [];
-
-                const DEST_HEX_ID = Board.convertOffsetCoordToHexId(destHex);
-                animations.push(this.slideToObject(piece.getDOMID(), DEST_HEX_ID));
-
-                if (parseInt(notifData.ballMoved)) {
-                    Board.setHexWithBall(STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column));
-                    animations.push(Board.getMoveBallAnimation(DEST_HEX_ID));
-                }
-
-                await this.bgaPlayDojoAnimation(dojo.fx.combine(animations));
+                return this.forwardNotification(this.notif_movedPiece.name, notifData);
             },
 
             notif_pieceExhausted: function (notifData) {
@@ -482,6 +324,12 @@ define([
 
             notif_failedPass: function (notifData) {
                 Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
+            },
+
+            forwardNotification(funcName, notifData) {
+                this.assert(this.currentState && typeof this.currentState[funcName] === "function", `Server call "${funcName}" not handled in current state`);
+
+                return this.currentState[funcName](notifData);
             },
 
             ///////////////////////////////////////////////////
@@ -556,7 +404,7 @@ define([
             ///////////////////////////////////////////////////
             //// Private data
 
-            //------------------------ board info
+            statesRegistry: null,
 
             pieceManager: null,
 
@@ -564,9 +412,9 @@ define([
 
             opponentId: null,
 
-            //----------------------- general variables
-
             currentStateData: null,
+
+            currentState: null,
 
             myColor: null,
 
