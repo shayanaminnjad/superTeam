@@ -1,4 +1,4 @@
-define(["dojo/_base/declare"], function (declare) {
+define(["dojo/_base/declare", "dojo/topic"], function (declare, topic) {
 
     const BaseState = declare("st.BaseState", null, {
         //Public Methods
@@ -17,6 +17,8 @@ define(["dojo/_base/declare"], function (declare) {
         },
 
         onLeave: function () {
+            this.__removeAllHandles();
+
             if (this._root.isCurrentPlayerActive()) {
                 this._onActivePlayerLeave();
             }
@@ -65,9 +67,23 @@ define(["dojo/_base/declare"], function (declare) {
 
         },
 
+        //TODO: composition is a better suit here.
+        subscribeEvent: function(eventName, handler)
+        {
+            this._eventHandles.push(topic.subscribe(eventName, handler));
+        },
+
+        //Private Methods
+        __removeAllHandles: function()
+        {
+            for(const handle of this._eventHandles)
+                handle.remove();
+        },
+
         //Private Fields
         _root: null,
-        _stateData: null
+        _stateData: null,
+        _eventHandles: []
     });
 
     return BaseState;

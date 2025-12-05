@@ -18,7 +18,7 @@
 //TODO: animations must account for auto replay (they should not play see reverse.js)
 
 define([
-    "dojo", "dojo/_base/declare",
+    "dojo", "dojo/_base/declare", "dojo/topic",
     g_gamethemeurl + "modules/js/STHexLib.js",
     g_gamethemeurl + "modules/js/PieceManager.js",
     g_gamethemeurl + "modules/js/Piece.js",
@@ -30,7 +30,7 @@ define([
     "ebg/core/gamegui",
     "ebg/counter",
 ],
-    function (dojo, declare, STHexLib, PieceManager, Piece, STHUIHelpers, Board, DiceUI, PlayerAreaManager, StatesRegistry) {
+    function (dojo, declare, topic, STHexLib, PieceManager, Piece, STHUIHelpers, Board, DiceUI, PlayerAreaManager, StatesRegistry) {
         return declare("bgagame.superteam", ebg.core.gamegui, {
             constructor: function () {
                 console.log('superteam constructor');
@@ -170,6 +170,7 @@ define([
                         }
                         else {
                             this.statusBar.removeActionButtons();
+                            topic.publish('serverActionRequested', clientButton['name']);
                             this.statusBar.addActionButton('confirm', async () => {
                                 this.performServerAction(clientButton['action']);
                             });
