@@ -15,7 +15,7 @@ define(["dojo/_base/declare",
                 //args.requiredPower
                 STUIHelpers.createCounter('generalactions', 'moraleAssign', 0, args.maxMoraleAssignable);
                 let selectedHex = STHexLib.createOffsetCoord(args.selectedDestination.selected_hex_row, args.selectedDestination.selected_hex_column);
-                this._root.visualizePowerRequired(Board.getHexWithBall(), selectedHex);
+                Board.visualizePowerRequired(Board.getHexWithBall(), selectedHex);
             },
 
             _onInactivePlayerEnter: function (args) {

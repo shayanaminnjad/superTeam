@@ -1,3 +1,5 @@
+//TODO: probably I should separate BoardLogic, from this.
+
 define([
     g_gamethemeurl + "modules/js/STHexLib.js",
     g_gamethemeurl + "modules/js/STUIConstants.js",
@@ -15,13 +17,18 @@ define([
         },
 
         //------------------------------------------------------------------------------------
-        getMainBoardElement: function()
-        {
+        getMainBoardElement: function () {
             return document.getElementById('mainBoard');
         },
         //------------------------------------------------------------------------------------
 
-        visualizePowerRequired: function (hexesInLine, blockingPieces) {
+        visualizePowerRequired: function (start, end) {
+            this.removeRequiredPowerVisualization();
+
+            let hexesInLine = HexLib.getHexesInLine(start, end);
+
+            let opponentHexes = this._root.pieceManager.getAllPiecesOwnedBy(this._root.opponentId);
+            let blockingPieces = HexLib.getHexsInPath(start, end, 1.2, opponentHexes)
 
             for (let i = 0; i < hexesInLine.length; i++) {
                 let el = document.getElementById(this.convertOffsetCoordToHexId(hexesInLine[i]));
@@ -153,7 +160,7 @@ define([
         },
 
         //------------------------------------------------------------------------------------
-        
+
         _parseHexId: function (hexId) {
             let idEls = hexId.split("_");
 
