@@ -385,8 +385,6 @@ define([
 
             pieceManager: null,
 
-            hexWithBall: null,
-
             opponentId: null,
 
             currentStateData: null,
