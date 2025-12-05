@@ -33,6 +33,8 @@ class PlayerTurn extends PlayerBaseState
     {
         $pieceSelectableForMove = $this->game->getSelectablePieces(null);
 
+        //TODO: If the player with ball is the goal keeper, then only pass is possible!
+
         if (count($pieceSelectableForMove['selectablePieces']) > 0 || count($pieceSelectableForMove['selectableExhaustedPieces']) > 0) 
         {
             $this->addClientButton('move', [$this, 'actMove']);
@@ -46,6 +48,7 @@ class PlayerTurn extends PlayerBaseState
             if ($playerPieceWithBall && $playerPieceWithBall->getOwner() === intval($this->game->getActivePlayerId())) 
             {
                 $this->addClientButton('pass ball', [$this, 'actPassBall']);
+                $this->addClientButton('shoot', [$this, 'actShootBall']);
             }
         }
 
@@ -62,6 +65,13 @@ class PlayerTurn extends PlayerBaseState
     public function actPassBall() : string
     {
         return PassDestSelection::class;
+    }
+    
+    #[PossibleAction]
+    public function actShootBall() : string
+    {
+        $this->gamestate->setAllPlayersMultiactive();
+        return ShootTargetSelection::class;
     }
 
     #[PossibleAction]

@@ -7,6 +7,7 @@ define([
     g_gamethemeurl + "modules/js/States/MoveActionState.js",
     g_gamethemeurl + "modules/js/States/MoraleAssignmentState.js",
     g_gamethemeurl + "modules/js/States/NullState.js",
+    g_gamethemeurl + "modules/js/States/ShootTargetSelectionState.js",
 ], function (
     declare,
     PlayerPieceSetupState,
@@ -16,6 +17,7 @@ define([
     MoveActionState,
     MoraleAssignmentState,
     NullState,
+    ShootTargetSelectionState
 ) {
 
     const StateRegistry = declare("st.StateRegistry", null, {
@@ -30,6 +32,7 @@ define([
             this.registerState(PassDestinationSelection);
             this.registerState(MoveActionState);
             this.registerState(MoraleAssignmentState);
+            this.registerState(ShootTargetSelectionState);
         },
 
         getState: function (name, root, stateData) {
