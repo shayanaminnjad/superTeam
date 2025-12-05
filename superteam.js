@@ -85,12 +85,12 @@ define([
                 this.currentState.onLeave();
             },
 
-            // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
-            //                        action status bar (ie: the HTML links in the status bar).
             onUpdateActionButtons: function (stateName, args) {
                 console.log('onUpdateActionButtons: ' + stateName, args);
 
                 console.log("active players are " + this.getActivePlayers());
+
+                this.clientButtonNeedsConfirm = false;
 
                 if (this.isCurrentPlayerActive() || this.getActivePlayers().includes(this.player_id)) {
                     if (stateName === 'moraleAssignment') {
@@ -100,15 +100,7 @@ define([
                         }, { color: 'primary' });
                     }
 
-                    let clientButtons = args['clientButtons'];
-
-                    if (!clientButtons)
-                        return;
-
-                    for (let i = 0; i < clientButtons.length; i++) {
-                        let clientButton = clientButtons[i];
-                        this.statusBar.addActionButton(clientButton['name'], () => { this.bgaPerformAction(clientButton['action']) }, { color: 'primary' });
-                    }
+                    this.configureClientButtons(args['clientButtons']);
                 }
             },
 
@@ -155,6 +147,36 @@ define([
                     document.querySelectorAll('.blocking').forEach(el => el.classList.remove('blocking'));
                     document.querySelectorAll('.powerIndication').forEach(el => el.remove());
                 }
+            },
+
+            configureClientButtons(clientButtons) {
+                if (!clientButtons)
+                    return;
+
+                for (let i = 0; i < clientButtons.length; i++) {
+                    let clientButton = clientButtons[i];
+                    this.statusBar.addActionButton(clientButton['name'], () => {
+                        if (!this.clientButtonNeedsConfirm) {
+                            this.bgaPerformAction(clientButton['action'])
+                        }
+                        else {
+                            this.statusBar.removeActionButtons();
+                            this.statusBar.addActionButton('confirm', () => {
+                                this.bgaPerformAction(clientButton['action']);
+                            });
+
+                            this.statusBar.addActionButton('cancel', () => {
+                                this.statusBar.removeActionButtons();
+                                this.configureClientButtons(clientButtons);
+                            });
+                        }
+                    }, { color: 'primary' });
+                }
+            },
+
+            addConfirmationStepToActionButtons: function()
+            {
+                this.clientButtonNeedsConfirm = true;
             },
 
             onPieceClicked: async function (evt) {
@@ -373,5 +395,7 @@ define([
             myColor: null,
 
             opponentColor: null,
+
+            clientButtonNeedsConfirm: false
         });
     });
