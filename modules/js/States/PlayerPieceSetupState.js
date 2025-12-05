@@ -45,7 +45,7 @@ define([
 
                     var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
 
-                    await this._root.bgaPerformAction("actPlacedPiece", { placedPiece: this._stateData.args.pieceToPlace, hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
+                    await this._root.performServerAction("actPlacedPiece", { placedPiece: this._stateData.args.pieceToPlace, hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
                 }
             },
 

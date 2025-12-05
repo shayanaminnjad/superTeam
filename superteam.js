@@ -96,7 +96,7 @@ define([
                     if (stateName === 'moraleAssignment') {
                         this.statusBar.addActionButton('confirm', () => {
                             let counterValue = STHUIHelpers.getCounterValue('moraleAssign');
-                            this.bgaPerformAction("actMoraleAssigned", { amount: counterValue })
+                            this.performServerAction("actMoraleAssigned", { amount: counterValue })
                         }, { color: 'primary' });
                     }
 
@@ -129,10 +129,16 @@ define([
             },
 
             onHexClicked: async function (evt) {
+                if (this.serverCallInProgress)
+                    return;
+
                 await this.currentState.onHexClicked(evt);
             },
 
             onHexMouseEnter: function (evt) {
+                if (this.serverCallInProgress)
+                    return;
+
                 if (this.currentStateData.name === 'passDestinationSelection') {
                     if (evt.currentTarget.classList.contains('selectable')) {
 
@@ -142,6 +148,9 @@ define([
             },
 
             onHexMouseLeave: function (evt) {
+                if (this.serverCallInProgress)
+                    return;
+
                 if (this.currentStateData.name === 'passDestinationSelection') {
                     document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
                     document.querySelectorAll('.blocking').forEach(el => el.classList.remove('blocking'));
@@ -155,14 +164,14 @@ define([
 
                 for (let i = 0; i < clientButtons.length; i++) {
                     let clientButton = clientButtons[i];
-                    this.statusBar.addActionButton(clientButton['name'], () => {
+                    this.statusBar.addActionButton(clientButton['name'], async () => {
                         if (!this.clientButtonNeedsConfirm) {
-                            this.bgaPerformAction(clientButton['action'])
+                            this.performServerAction(clientButton['action']);
                         }
                         else {
                             this.statusBar.removeActionButtons();
-                            this.statusBar.addActionButton('confirm', () => {
-                                this.bgaPerformAction(clientButton['action']);
+                            this.statusBar.addActionButton('confirm', async () => {
+                                this.performServerAction(clientButton['action']);
                             });
 
                             this.statusBar.addActionButton('cancel', () => {
@@ -174,30 +183,35 @@ define([
                 }
             },
 
-            addConfirmationStepToActionButtons: function()
-            {
+            performServerAction: async function (name, args) {
+                this.assert(this.serverCallInProgress === false, 'user must not be able to call server action while another is in progress!');
+
+                try {
+                    this.serverCallInProgress = true;
+                    await this.bgaPerformAction(name, args);
+                }
+                catch (error) {
+                    console.error("Server action failed, exception caught:", error);
+                }
+                finally {
+                    this.serverCallInProgress = false;
+                }
+            },
+
+            addConfirmationStepToActionButtons: function () {
                 this.clientButtonNeedsConfirm = true;
             },
 
             onPieceClicked: async function (evt) {
-                if (!this.isWaitingForServerResponse) {
+                if (!this.serverCallInProgress) {
                     if (evt.currentTarget.classList.contains('clickable')) {
                         evt.preventDefault();
                         evt.stopPropagation();
 
-                        try {
-                            this.isWaitingForServerResponse = true;
-                            let pieceDOMId = evt.currentTarget.id;
-                            let numericId = parseInt(pieceDOMId.replace("piece_", ""));
+                        let pieceDOMId = evt.currentTarget.id;
+                        let numericId = parseInt(pieceDOMId.replace("piece_", ""));
 
-                            await this.bgaPerformAction("actPieceSelected", { pieceId: numericId }, { lock: true, checkAction: true });
-                        }
-                        catch (error) {
-                            console.error("Server action failed, exception caught:", error);
-                        }
-                        finally {
-                            this.isWaitingForServerResponse = false;
-                        }
+                        await this.performServerAction("actPieceSelected", { pieceId: numericId });
                     }
                 }
             },
@@ -396,6 +410,8 @@ define([
 
             opponentColor: null,
 
-            clientButtonNeedsConfirm: false
+            clientButtonNeedsConfirm: false,
+
+            serverCallInProgress: false,
         });
     });

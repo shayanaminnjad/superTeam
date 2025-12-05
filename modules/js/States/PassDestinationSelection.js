@@ -41,7 +41,7 @@ define(["dojo/_base/declare",
 
                     var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
 
-                    await this._root.bgaPerformAction("actDestSelected", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
+                    await this._root.performServerAction("actDestSelected", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r });
                 }
             },
 
