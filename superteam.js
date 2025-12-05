@@ -90,9 +90,9 @@ define([
             onUpdateActionButtons: function (stateName, args) {
                 console.log('onUpdateActionButtons: ' + stateName, args);
 
-                console.log("active player id " + this.getActivePlayerId());
+                console.log("active players are " + this.getActivePlayers());
 
-                if (this.isCurrentPlayerActive()) {
+                if (this.isCurrentPlayerActive() || this.getActivePlayers().includes(this.player_id)) {
                     if (stateName === 'moraleAssignment') {
                         this.statusBar.addActionButton('confirm', () => {
                             let counterValue = STHUIHelpers.getCounterValue('moraleAssign');
@@ -137,53 +137,7 @@ define([
             },
 
             onHexClicked: async function (evt) {
-                //TODO: I should have handlers for it, this design is not flexible. each state can register a handler for click event.
-
-                if (this.isWaitingForServerResponse)
-                    return;
-
-                try {
-                    if (this.currentStateData.name === 'playerPieceSetup') {
-                        if (evt.currentTarget.classList.contains('availableToPlacePiece')) {
-                            evt.preventDefault();
-                            evt.stopPropagation();
-
-                            var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
-
-                            this.isWaitingForServerResponse = true;
-                            await this.bgaPerformAction("actPlacedPiece", { placedPiece: this.currentStateData.args.pieceToPlace, hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
-                        }
-                    }
-                    else if (this.currentStateData.name === 'moveAction') {
-                        if (evt.currentTarget.classList.contains('selectable')) {
-                            evt.preventDefault();
-                            evt.stopPropagation();
-
-                            var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
-
-                            this.isWaitingForServerResponse = true;
-                            await this.bgaPerformAction("actPieceMoved", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
-                        }
-                    }
-                    else if (this.currentStateData.name === 'passDestinationSelection') {
-                        if (evt.currentTarget.classList.contains('selectable')) {
-                            evt.preventDefault();
-                            evt.stopPropagation();
-
-                            var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
-
-                            this.isWaitingForServerResponse = true;
-                            await this.bgaPerformAction("actDestSelected", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
-                        }
-                    }
-                }
-                catch (error) {
-                    console.error("Server action failed, exception caught:", error);
-                }
-                finally {
-                    this.isWaitingForServerResponse = false;
-
-                }
+                await this.currentState.onHexClicked(evt);
             },
 
             onHexMouseEnter: function (evt) {
@@ -419,7 +373,5 @@ define([
             myColor: null,
 
             opponentColor: null,
-
-            isWaitingForServerResponse: false,
         });
     });
