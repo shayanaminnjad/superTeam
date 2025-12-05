@@ -6,7 +6,7 @@ class PlayerPiece
 {
     private readonly array $data;
 
-    private readonly HexID $position;
+    private HexID $position;
 
     //======================================================
 
@@ -45,5 +45,10 @@ class PlayerPiece
     public function getPosition() : HexID
     {
         return $this->position;
+    }
+
+    public function setPosition(HexID $position)
+    {
+        $this->position = $position;
     }
 }
