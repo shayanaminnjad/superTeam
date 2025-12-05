@@ -32,9 +32,7 @@ define([
             },
 
             _onActivePlayerLeave() {
-                if (this._root.isCurrentPlayerActive()) {
                     document.querySelectorAll('.availableToPlacePiece').forEach(div => div.classList.remove('availableToPlacePiece'));
-                }
             },
 
             _onInactivePlayerLeave() {
