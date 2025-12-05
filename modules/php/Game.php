@@ -1,4 +1,5 @@
 <?php
+
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
@@ -14,6 +15,7 @@
  *
  * In this PHP file, you are going to defines the rules of the game.
  */
+
 declare(strict_types=1);
 
 namespace Bga\Games\SuperTeam;
@@ -45,16 +47,14 @@ class PassForwardCommand
         $this->opponentPlayer = $oppoenentPlayer;
     }
 
-    public function canBePlayed() : bool
+    public function canBePlayed(): bool
     {
         $ballHex = $this->board->getBallHex();
         $playerPiece = null;
-        
-        if ($this->board->tryGetPlayerPieceInHex($ballHex, $playerPiece))
-        {
+
+        if ($this->board->tryGetPlayerPieceInHex($ballHex, $playerPiece)) {
             //PlayerPiece is here to supress a warning.
-            if ($playerPiece && $playerPiece->getOwner() === $this->currentPlayer)
-            {
+            if ($playerPiece && $playerPiece->getOwner() === $this->currentPlayer) {
                 return count($this->board->getPlayerPiecesInForwardColumns($ballHex->getColumn(), $this->currentPlayer)) > 0;
             }
         }
@@ -62,30 +62,28 @@ class PassForwardCommand
         return false;
     }
 
-    public function getCommandArgs() : array
+    public function getCommandArgs(): array
     {
         //TODO: In general a pass can be onto any space that is not occupied by your opponent! however this card require us to pass in a certain way.
 
         $ballHex = $this->board->getBallHex();
-        
+
         $playerPiecesInForwardColumns = $this->board->getPlayerPiecesInForwardColumns($ballHex->getColumn(), $this->currentPlayer);
         $piecesIds = [];
-        for ($i = 0; $i < count($playerPiecesInForwardColumns); $i++)
-        {
+        for ($i = 0; $i < count($playerPiecesInForwardColumns); $i++) {
             $piecesIds[] = $playerPiecesInForwardColumns[$i]->getId();
         }
 
         return ["possibleTargets" => $piecesIds];
     }
 
-    public function performAct(array $actData) : void
+    public function performAct(array $actData): void
     {
         $passTarget = $actData['target'];
         $spentMorale = $actData['spentMorale'];
 
         //TOOD: This should be inside validation function!
-        if (intval($spentMorale) > 3)
-        {
+        if (intval($spentMorale) > 3) {
             throw new \BgaUserException("You cannot spend more than 3 morale on an action!");
         }
 
@@ -95,10 +93,10 @@ class PassForwardCommand
         $ballHex = $this->board->getBallHex();
         //TODO: This logic for pass must be encapsulated inside another class, it doesn't relate to here.
         $passDistance = HexLib::getOffsetDistance($ballHex, $targetHex);
-        
+
         $opponentPieces = $this->board->getPlayerPiecesByOwner($this->opponentPlayer);
         $opponentPiecesInPath = HexLib::getHexesInPath($ballHex, $targetHex, 1, $opponentPieces);
-        
+
         $powerNeeded = ceil($passDistance * 0.5) + count($opponentPiecesInPath);
 
         $greenRoll = GameDice::greenDie()->roll();
@@ -107,8 +105,7 @@ class PassForwardCommand
         //TODO: get coach markers for pass action.
         $coachMarkerCount = 1;
         $whiteRollSum = 0;
-        for ($i = 0; $i < $coachMarkerCount; $i++)
-        {
+        for ($i = 0; $i < $coachMarkerCount; $i++) {
             $currentWhiteRollRes = GameDice::whiteDie()->roll();
             $whiteRollSum += $currentWhiteRollRes;
             $whiteDieRes[] = $currentWhiteRollRes;
@@ -118,33 +115,25 @@ class PassForwardCommand
 
         $finalBallLocation = null;
 
-        if ($totalPlayerPower >= $powerNeeded)
-        {
+        if ($totalPlayerPower >= $powerNeeded) {
             $finalBallLocation = $targetHex;
-        }
-        else
-        {
-            if (count ($opponentPiecesInPath) > 0)
-            {
+        } else {
+            if (count($opponentPiecesInPath) > 0) {
                 $nearestOpponent = null;
                 $nearestOpponentDistance = 1000; //1000 is way beyond the furthest distance we can have.
 
                 //TODO: asked amir about this, if two opponent pieces have the same distance from the ball, then how should we determine which one will get the ball?
                 //right now I only find the closest one, and don't solve the above edge case.
-                for ($i = 0; $i < count ($opponentPiecesInPath); $i++)
-                {
+                for ($i = 0; $i < count($opponentPiecesInPath); $i++) {
                     $currentOpponentDistance = HexLib::getOffsetDistance($ballHex, $opponentPiecesInPath[$i]);
 
-                    if ($currentOpponentDistance < $nearestOpponentDistance)
-                    {
+                    if ($currentOpponentDistance < $nearestOpponentDistance) {
                         $nearestOpponent = $opponentPiecesInPath[$i];
                     }
                 }
 
                 $finalBallLocation = $nearestOpponent;
-            }
-            else 
-            {
+            } else {
                 $hexesInLine = HexLib::getHexesInLine($ballHex, $targetHex);
                 $hexInMiddle = ceil((count($hexesInLine) - 1) / 2.0);
 
@@ -179,10 +168,13 @@ class Game extends \Table
         BoardInfo::init();
         DBAdapter::getInstance()->init(
             fn($sql) => $this->getObjectListFromDB($sql),
-            fn($sql)=> $this->getObjectFromDB($sql),
-            fn($sql)=>$this->getUniqueValueFromDB($sql),
-            fn($sql) => $this->DbQuery($sql));
-            
+            fn($sql) => $this->getObjectFromDB($sql),
+            fn($sql) => $this->getUniqueValueFromDB($sql),
+            fn($sql) => $this->DbQuery($sql),
+            fn($name, $value) => $this->setGameStateValue($name, $value),
+            fn($name) => $this->getGameStateValue($name)
+        );
+
         Logger::init(DBAdapter::getInstance(), 'logs');
 
         $this->initGameStateLabels([
@@ -193,7 +185,9 @@ class Game extends \Table
             "number_of_moves" => 14,
             "required_power" => 15,
             "assigned_morale" => 16,
-            "dice_result" => 17
+            "dice_result" => 17,
+            "attacker" => 18,
+            "defender" => 19,
         ]);
 
         /* example of notification decorator.
@@ -231,20 +225,17 @@ class Game extends \Table
     public function actPassForward(): void
     {
         $activePlayerID = $this->getActivePlayerId();
-        $Command = new PassForwardCommand($this->getBoard(), $activePlayerID , $this->getInactivePlayerId());
+        $Command = new PassForwardCommand($this->getBoard(), $activePlayerID, $this->getInactivePlayerId());
 
-        if ($Command->canBePlayed())
-        {
+        if ($Command->canBePlayed()) {
             $this->notify->player(intval($activePlayerID), "actionArgs", "", $Command->getCommandArgs());
-        }
-        else
-        {
+        } else {
             throw new Exception("Pass forward can't be played!");
         }
     }
 
     //(sha) TODO: probably this must be a part of board? or a piece manager?
-    public function getSelectablePieces(?callable $additionalPredicate) : array
+    public function getSelectablePieces(?callable $additionalPredicate): array
     {
         $board = $this->getBoard();
 
@@ -255,17 +246,12 @@ class Game extends \Table
         $freshPieceIDs = [];
         $exhaustedSelectablePieceIds = [];
 
-        for ($i = 0; $i < count($activePlayerPieces); $i++)
-        {
+        for ($i = 0; $i < count($activePlayerPieces); $i++) {
             $currentPiece = $activePlayerPieces[$i];
-            if( $currentPiece->getRole() != PlayerRole::GoalKeeper->value)
-            {
-                if ($currentPiece->isFresh() && (!$additionalPredicate || $additionalPredicate($currentPiece)))
-                {
+            if ($currentPiece->getRole() != PlayerRole::GoalKeeper->value) {
+                if ($currentPiece->isFresh() && (!$additionalPredicate || $additionalPredicate($currentPiece))) {
                     $freshPieceIDs[] = $currentPiece->getId();
-                }
-                else if (!$currentPiece->isFresh() && $currentPlayerMorale > 0 && (!$additionalPredicate || $additionalPredicate($currentPiece)))
-                {
+                } else if (!$currentPiece->isFresh() && $currentPlayerMorale > 0 && (!$additionalPredicate || $additionalPredicate($currentPiece))) {
                     $exhaustedSelectablePieceIds[] = $currentPiece->getId();
                 }
             }
@@ -277,20 +263,18 @@ class Game extends \Table
         ];
     }
 
-    public function getValidPassTargets(?callable $additionalCondition) : array
+    public function getValidPassTargets(?callable $additionalCondition): array
     {
         $board = $this->getBoard();
-        
+
         $allPieces = $board->getPieces();
-        
+
         $blockedSpaces = [];
-        
+
         $currentPlayerId = intval($this->getActivePlayerId());
 
-        foreach ($allPieces as $piece)
-        {
-            if ($piece->getOwner() !== $currentPlayerId && $piece->getRole() !== PlayerRole::GoalKeeper->value && (!$additionalCondition || $additionalCondition($piece)))
-            {
+        foreach ($allPieces as $piece) {
+            if ($piece->getOwner() !== $currentPlayerId && $piece->getRole() !== PlayerRole::GoalKeeper->value && (!$additionalCondition || $additionalCondition($piece))) {
                 $piecePos = $piece->getPosition();
                 $blockedSpaces[] = $piecePos->convertToArray();
             }
@@ -298,19 +282,18 @@ class Game extends \Table
 
         $playerGoaliePos = $board->getPlayerGoalie($currentPlayerId)->getPosition();
 
-        foreach(BoardInfo::$GOALIE_SPECIFIC_LOCATIONS as $goalieLocation)
-        {
-            if (!$goalieLocation->equals($playerGoaliePos))
-            {
+        foreach (BoardInfo::$GOALIE_SPECIFIC_LOCATIONS as $goalieLocation) {
+            if (!$goalieLocation->equals($playerGoaliePos)) {
                 $blockedSpaces[] = $goalieLocation->convertToArray();
             }
         }
 
         $hexWithBall = $board->getBallHex();
-        
+
         return [
             "hexWithBall" => $hexWithBall->convertToArray(),
-            "blockedSpaces" => $blockedSpaces];
+            "blockedSpaces" => $blockedSpaces
+        ];
     }
 
     /**
@@ -343,21 +326,21 @@ class Game extends \Table
      */
     public function upgradeTableDb($from_version)
     {
-//       if ($from_version <= 1404301345)
-//       {
-//            // ! important ! Use DBPREFIX_<table_name> for all tables
-//
-//            $sql = "ALTER TABLE DBPREFIX_xxxxxxx ....";
-//            $this->applyDbUpgradeToAllDB( $sql );
-//       }
-//
-//       if ($from_version <= 1405061421)
-//       {
-//            // ! important ! Use DBPREFIX_<table_name> for all tables
-//
-//            $sql = "CREATE TABLE DBPREFIX_xxxxxxx ....";
-//            $this->applyDbUpgradeToAllDB( $sql );
-//       }
+        //       if ($from_version <= 1404301345)
+        //       {
+        //            // ! important ! Use DBPREFIX_<table_name> for all tables
+        //
+        //            $sql = "ALTER TABLE DBPREFIX_xxxxxxx ....";
+        //            $this->applyDbUpgradeToAllDB( $sql );
+        //       }
+        //
+        //       if ($from_version <= 1405061421)
+        //       {
+        //            // ! important ! Use DBPREFIX_<table_name> for all tables
+        //
+        //            $sql = "CREATE TABLE DBPREFIX_xxxxxxx ....";
+        //            $this->applyDbUpgradeToAllDB( $sql );
+        //       }
     }
 
     /*
@@ -428,11 +411,11 @@ class Game extends \Table
         // Init game statistics.
         //
         // NOTE: statistics used in this file must be defined in your `stats.inc.php` file.
-        
+
         // Dummy content.
         // $this->initStat("table", "table_teststat1", 0);
         // $this->initStat("player", "player_teststat1", 0);
-        
+
         $this->initGameState($players);
 
         DBAdapter::getInstance()->initGlobals();
@@ -464,11 +447,10 @@ class Game extends \Table
 
         if ($state["type"] === "activeplayer") {
             switch ($state_name) {
-                default:
-                {
-                    $this->gamestate->nextState("zombiePass");
-                    break;
-                }
+                default: {
+                        $this->gamestate->nextState("zombiePass");
+                        break;
+                    }
             }
 
             return;
@@ -485,7 +467,7 @@ class Game extends \Table
 
     private function initGameState(array $players): void
     {
-        list ($orangePlayer, $bluePlayer) = array_keys($players);
+        list($orangePlayer, $bluePlayer) = array_keys($players);
 
         $this->setGameStateInitialValue('number_of_moves', 0);
         $this->setGameStateInitialValue('selected_piece', -1);
@@ -494,32 +476,33 @@ class Game extends \Table
         $this->setGameStateInitialValue("dice_result", 0);
         $this->setGameStateInitialValue('game_half', 1);
         $this->setGameStateInitialValue('user_in_left_id', $orangePlayer);
+        $this->setGameStateInitialValue('attacker', $orangePlayer);
         $this->setGameStateInitialValue('user_in_right_id', $bluePlayer);
+        $this->setGameStateInitialValue('defender', $bluePlayer);
     }
 
-    private function initBoard(array $players):void
+    private function initBoard(array $players): void
     {
         $centerPos = BoardInfo::$CENTER_POSITION;
         $this->DbQuery("INSERT INTO ball (hex_column, hex_row) VALUES ({$centerPos->getColumn()},{$centerPos->getRow()})");
 
-        list ($orangePlayer, $bluePlayer) = array_keys($players);
+        list($orangePlayer, $bluePlayer) = array_keys($players);
 
         $this->initAPlayerPiece($orangePlayer);
         $this->initAPlayerPiece($bluePlayer);
     }
 
-    private function initAPlayerPiece(int $playerId) : void
+    private function initAPlayerPiece(int $playerId): void
     {
         $playerSide = $this->getPlayerSide($playerId);
         $goaliePos = $playerSide === PlayerSide::Left ? BoardInfo::$LEFT_PLAYER_GOALIE_POSITION : BoardInfo::$RIGHT_PLAYER_GOALIE_POSITION;
 
         $sqlQuery = "INSERT INTO player_pieces (owner_id, piece_role, is_fresh, hex_column, hex_row) VALUES ";
 
-        $sqlValues[] = "($playerId," . PlayerRole::GoalKeeper->value . ", 1," . $goaliePos->getColumn() . ", " . $goaliePos->getRow() .")";
+        $sqlValues[] = "($playerId," . PlayerRole::GoalKeeper->value . ", 1," . $goaliePos->getColumn() . ", " . $goaliePos->getRow() . ")";
         $sqlValues[] = "($playerId," . PlayerRole::Captain->value . ", 1, -1, -1)";
 
-        for ($i = 3; $i <= 6; $i++) 
-        {
+        for ($i = 3; $i <= 6; $i++) {
             $sqlValues[] = "($playerId, " . PlayerRole::Regular->value . ", 1, -1, -1)";
         }
 
@@ -528,32 +511,26 @@ class Game extends \Table
         $this->DbQuery($sqlQuery);
     }
 
-    public function getPlayerSide(int $userId) : PlayerSide
+    public function getPlayerSide(int $userId): PlayerSide
     {
         $userInLeftID = intval($this->getGameStateValue('user_in_left_id'));
 
-        if ($userInLeftID === $userId) 
-        {
+        if ($userInLeftID === $userId) {
             return PlayerSide::Left;
-        } 
-        else 
-        {
+        } else {
             assert(intval($this->getGameStateValue('user_in_right_id')) === $userId, 'Player side not found! A player must always have a side!');
 
             return PlayerSide::Right;
         }
     }
 
-    public function getInactivePlayerId() : int
+    public function getInactivePlayerId(): int
     {
         $userInLeftID = intval($this->getGameStateValue('user_in_left_id'));
 
-        if ($userInLeftID == $this->getActivePlayerId())
-        {
+        if ($userInLeftID == $this->getActivePlayerId()) {
             return intval($this->getGameStateValue('user_in_right_id'));
-        }
-        else
-        {
+        } else {
             return $userInLeftID;
         }
     }
@@ -563,12 +540,12 @@ class Game extends \Table
         $query = PlayerPiecesDBManager::getPiecesDataQuery();
         $piecesData = $this->getObjectListFromDB($query, false);
         $ballPosition = $this->getObjectFromDB("SELECT hex_column, hex_row FROM `ball`");
-        $ballHex = new HexID(intval($ballPosition['hex_column']),intval( $ballPosition['hex_row']));
+        $ballHex = new HexID(intval($ballPosition['hex_column']), intval($ballPosition['hex_row']));
 
         return new Board($piecesData, $ballHex, DBAdapter::getInstance());
     }
 
-    public function getCurrentPlayerMorale() : int
+    public function getCurrentPlayerMorale(): int
     {
         $current_player_id = $this->getActivePlayerId();
 
@@ -578,10 +555,8 @@ class Game extends \Table
 
         $result = -1;
 
-        foreach($playersMorale as $playerMorale)
-        {
-            if ($playerMorale['id'] == $current_player_id)
-            {
+        foreach ($playersMorale as $playerMorale) {
+            if ($playerMorale['id'] == $current_player_id) {
                 $result = intval($playerMorale['morale']);
                 break;
             }
@@ -592,21 +567,25 @@ class Game extends \Table
         return $result;
     }
 
-    public function setCurrentPlayerMorale(int $amount, bool $notify) : void
+    public function setCurrentPlayerMorale(int $amount, bool $notify): void
     {
         assert($amount >= 0, "morale should always be greater or equal to zero!");
-        
+
         $current_player_id = (int) $this->getActivePlayerId();
 
         $this->DbQuery(
             "UPDATE `player` SET resource_morale = {$amount} WHERE player_id = {$current_player_id}"
         );
 
-        if ($notify)
-        {
-            $this->notify->all("moraleChanged", "morale changed to {$amount}", 
-            ["amount" => $amount, 
-                   "playerId" => $current_player_id]);
+        if ($notify) {
+            $this->notify->all(
+                "moraleChanged",
+                "morale changed to {$amount}",
+                [
+                    "amount" => $amount,
+                    "playerId" => $current_player_id
+                ]
+            );
         }
     }
 
@@ -618,28 +597,19 @@ class Game extends \Table
     }
 
     //TODO: This probably must be a private function of player piece setup.
-    public function isPlayerSetupComplete(int $playerId) : bool
+    public function isPlayerSetupComplete(int $playerId): bool
     {
         $isComplete = true;
 
         $playerPieces = $this->getBoard()->getPlayerPiecesByOwner($playerId);
 
-        for ($i = 0; $i < count($playerPieces); $i++)
-        {
-            if (!$playerPieces[$i]->hasValidPosition())
-            {
+        for ($i = 0; $i < count($playerPieces); $i++) {
+            if (!$playerPieces[$i]->hasValidPosition()) {
                 $isComplete = false;
                 break;
             }
         }
 
         return $isComplete;
-    }
-
-    private function updateAttackerAndDefender() : void
-    {
-        //Get the hex with the ball
-        //If the hex has a player, then the owner of that player is the attacker.
-        //otherwise do nothing.
     }
 }

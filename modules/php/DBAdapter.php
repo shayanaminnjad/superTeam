@@ -8,6 +8,8 @@ class DBAdapter
     private $getOneFn;
     private $getUniqueFn;
     private $queryFn;
+    private $gameStateSetter;
+    private $gameStateGetter;
 
     private static $instance = null;
 
@@ -22,12 +24,14 @@ class DBAdapter
 
     private function __construct() {}
 
-    public function init(callable $getListFn, callable $getOneFn, callable $getUnique, callable $execFn)
+    public function init(callable $getListFn, callable $getOneFn, callable $getUnique, callable $execFn, callable $gameStateStter, callable $gameStateGetter)
     {
         $this->getListFn = $getListFn;
         $this->getOneFn  = $getOneFn;
         $this->queryFn   = $execFn;
         $this->getUniqueFn = $getUnique;
+        $this->gameStateSetter = $gameStateStter;
+        $this->gameStateGetter = $gameStateGetter;
     }
 
     public function initGlobals(): void
@@ -61,6 +65,17 @@ class DBAdapter
         return ($this->queryFn)($sql);
     }
 
+    public function setGameStateValue(string $name, int $value): void
+    {
+        ($this->gameStateSetter)($name, $value);
+    }
+
+    public function getGameStateValue(string $name): int
+    {
+        return ($this->gameStateGetter)($name);
+    }
+
+
     //TODO: These shouldn't be here, move them to a class named globals!
     public function storeSelectedHex(int $hexColumn, int $hexRow)
     {
@@ -77,11 +92,11 @@ class DBAdapter
         $this->DbQuery("UPDATE `st_globals` SET `$entry` = '$value'");
     }
 
-    
+
     public function getGlobalString(string $entry): string
     {
         $row = $this->getObjectFromDB("SELECT `$entry` FROM `st_globals`");
-        
+
         return $row[$entry];
     }
 
@@ -93,7 +108,7 @@ class DBAdapter
     public function getGlobalInt(string $entry): int
     {
         $row = $this->getObjectFromDB("SELECT `$entry` FROM `st_globals`");
-        
+
         return $row[$entry];
     }
 }
