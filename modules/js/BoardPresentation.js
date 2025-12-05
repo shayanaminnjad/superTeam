@@ -28,7 +28,7 @@ define([
             let hexesInLine = HexLib.getHexesInLine(start, end);
 
             let opponentHexes = this._root.pieceManager.getAllPiecesOwnedBy(this._root.opponentId);
-            let blockingPieces = HexLib.getHexsInPath(start, end, 1.2, opponentHexes)
+            let blockingPieces = HexLib.getHexsInPath(start, end, 1.2, opponentHexes);
 
             for (let i = 0; i < hexesInLine.length; i++) {
                 let el = document.getElementById(this.convertOffsetCoordToHexId(hexesInLine[i]));
