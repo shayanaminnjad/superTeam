@@ -169,6 +169,10 @@ define([
                             result.push(hexArray[i]);
                         }
                     }
+                    else if (hexArray[i].equals(endPoint))
+                    {
+                        result.push(hexArray[i]);
+                    }
                 }
 
                 return result;

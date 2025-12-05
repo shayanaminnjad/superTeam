@@ -135,6 +135,10 @@ class HexLib
                     $result[] = $currentHex;
                 }
             }
+            else if ($currentHex->equals($end))
+            {
+                $result[] = $currentHex;
+            }
         }
 
         return $result;
