@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\PlayerPiecesDBManager;
 
 class MoveAction extends PlayerBaseState
 {
@@ -96,7 +97,7 @@ class MoveAction extends PlayerBaseState
             $shouldEndMovement = true;
         }
 
-        $this->game->DbQuery("UPDATE `player_pieces` SET `hex_column` = $hexColumn, `hex_row` = $hexRow WHERE `id` = $selectedPiece ");
+        $board->movePieceToHex($selectedPiece, new HexID($hexColumn, $hexRow));
         $this->game->setGameStateValue('number_of_moves', $numberOfMoves + 1);
 
         $this->notify->all("movedPiece", \clienttranslate('${player_name} moves a piece'), array(
