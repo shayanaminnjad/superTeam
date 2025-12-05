@@ -49,7 +49,7 @@ define([
                 this.opponentColor = this.myColor === 'orange' ? 'blue' : 'orange';
 
                 for (const player of Object.keys(gamedatas.players)) {
-                    if (player !== this.getActivePlayerId()) {
+                    if (parseInt(player) !== this.getActivePlayerId()) {
                         this.opponentId = player;
                         break;
                     }
@@ -141,8 +141,7 @@ define([
 
                 if (this.currentStateData.name === 'passDestinationSelection') {
                     if (evt.currentTarget.classList.contains('selectable')) {
-
-                        this.visualizePowerRequired(Board.getHexWithBall(), Board.convertHexIdToOffsetCoord(evt.currentTarget.id));
+                        Board.visualizePowerRequired(Board.getHexWithBall(), Board.convertHexIdToOffsetCoord(evt.currentTarget.id));
                     }
                 }
             },
@@ -239,19 +238,6 @@ define([
 
             getRequiredPower(distance, blockingPiecesCount) {
                 return Math.ceil(distance / 2) + blockingPiecesCount;
-            },
-
-            //(sha) TODO: this function must be inside a file accessible to all the states.
-            visualizePowerRequired: function (start, end) {
-
-                Board.removeRequiredPowerVisualization();
-
-                let hexesInLine = STHexLib.getHexesInLine(start, end);
-
-                let opponentHexes = this.pieceManager.getAllPiecesOwnedBy(this.opponentId);
-                let blockingPieces = STHexLib.getHexsInPath(start, end, 1.2, opponentHexes)
-
-                Board.visualizePowerRequired(hexesInLine, blockingPieces);
             },
 
             highlightPiecesHexes: function (piecesIds) {
