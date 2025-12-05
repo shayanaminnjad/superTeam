@@ -69,12 +69,21 @@ define([
                     let result = [];
 
                     for (const [key, value] of this._piecesMap) {
-                        
+
                         if (value.getOwner() === owner)
                             result.push(value.getPosition());
                     }
 
                     return result;
+                },
+
+                getPlayerGoalie: function (playerId) {
+
+                    for (const [key, value] of this._piecesMap) {
+
+                        if (value.getOwner() === playerId && value.isGoalie())
+                            return value;
+                    }
                 },
 
                 //Private members
