@@ -25,6 +25,21 @@ define(["dojo/_base/declare"], function (declare) {
             }
         },
 
+        onHexClicked: async function (evt) {
+            try {
+                this._selfOnHexClicked(evt);
+            }
+            catch (error) {
+                console.error("click action failed, exception caught:", error);
+            }
+        },
+
+        onHexEnter: function (evt) {
+        },
+
+        onHexLeave: function (evt) {
+        },
+
         getName: function () {
             throw new Error("getName() not implemented!");
         },
@@ -44,6 +59,10 @@ define(["dojo/_base/declare"], function (declare) {
 
         _onInactivePlayerLeave() {
             throw new Error("_onInactivePlayerLeave() not implemented!");
+        },
+
+        _selfOnHexClicked: async function (evt) {
+
         },
 
         //Private Fields

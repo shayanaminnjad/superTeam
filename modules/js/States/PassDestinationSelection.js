@@ -34,6 +34,17 @@ define(["dojo/_base/declare",
             _onInactivePlayerLeave: function () {
             },
 
+            _selfOnHexClicked: async function (evt) {
+                if (evt.currentTarget.classList.contains('selectable')) {
+                    evt.preventDefault();
+                    evt.stopPropagation();
+
+                    var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
+
+                    await this._root.bgaPerformAction("actDestSelected", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
+                }
+            },
+
             getName: function () {
                 return this.constructor.getName();
             },
