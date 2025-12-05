@@ -93,8 +93,6 @@ define([
 
                 console.log("active players are " + this.getActivePlayers());
 
-                this.clientButtonNeedsConfirm = false;
-
                 if (this.isCurrentPlayerActive() || this.getActivePlayers().includes(this.player_id)) {
                     if (stateName === 'moraleAssignment') {
                         this.statusBar.addActionButton('confirm', () => {
@@ -305,6 +303,22 @@ define([
 
             notif_failedPass: function (notifData) {
                 Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
+            },
+
+            notif_shootTargetReveal: async function (notifData) {
+                let destHex = STHexLib.createOffsetCoord(notifData.goalieHex.hex_row, notifData.goalieHex.hex_column);
+                let piece = this.pieceManager.getPlayerGoalie(parseInt(notifData.defender));
+
+                piece.setPosition(destHex);
+
+                const DEST_HEX_ID = Board.convertOffsetCoordToHexId(destHex);
+                await this.bgaPlayDojoAnimation(this.slideToObject(piece.getDOMID(), DEST_HEX_ID));
+
+                /*
+                                    'defenderTarget' => $defenderTarget,
+                                        'attackerTarget' => $attackerTarget,
+                                            'powerRequired' => $requiredPower
+                                            */
             },
 
             forwardNotification(funcName, notifData) {

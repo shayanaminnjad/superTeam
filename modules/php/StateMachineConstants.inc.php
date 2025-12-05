@@ -17,17 +17,7 @@ const ST_PASS_PERFORM = 12;
 const ST_MORALE_ASSIGMENT = 13;
 const ST_DICE_ROLL = 14;
 const ST_SHOOT_TARGET_SELECTION = 15;
+const ST_SHOOT_TARGET_REVEAL = 16;
+const ST_SHOOT_PERFORM = 17;
 
 const ST_END_GAME = 99; 
-
-//transition signals
-const TR_AUTO_NEXT = '';
-const TR_MOVE_ACTION = 'moveAction';
-const TR_MOVE_DONE = 'moveDone';
-const TR_PASS_BALL_ACTION = 'passBallAction';
-const TR_SETUP_COMPLETE = 'setupComplete';
-const TR_MORALE_ASSIGN = 'moraleAssign';
-const TR_DICE_ROLL = 'rollDice';
-const TR_PLAYER_PIECE_SETUP = 'playerPieceSetup';
-const TR_PLAYER_TURN = 'playerTurn';
-const TR_CANCEL = 'cancel';

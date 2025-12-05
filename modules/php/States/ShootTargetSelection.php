@@ -6,6 +6,7 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 
 class ShootTargetSelection extends PlayerBaseState
@@ -69,7 +70,16 @@ class ShootTargetSelection extends PlayerBaseState
 
     private function onTargetSelected(int $target)
     {
+        if ($target < -1 || $target > 1)
+            throw new \BgaUserException("Invalid target value sent!");
+
         $player_id = intval($this->game->getCurrentPlayerId());
-        $this->gamestate->setPlayerNonMultiactive($player_id, PlayerTurn::class);
+        $board = $this->game->getBoard();
+
+        $label = $board->getAttacker() === $player_id ? "attackerShootTarget" : "defenderShootTarget";
+
+        DBAdapter::getInstance()->setGameStateValue($label, $target);
+
+        $this->gamestate->setPlayerNonMultiactive($player_id, ShootTargetReveal::class);
     }
 }

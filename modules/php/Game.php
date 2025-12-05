@@ -188,6 +188,8 @@ class Game extends \Table
             "dice_result" => 17,
             "attacker" => 18,
             "defender" => 19,
+            "defenderShootTarget" => 20,
+            "attackerShootTarget" => 21,
         ]);
 
         /* example of notification decorator.
@@ -481,6 +483,8 @@ class Game extends \Table
         $this->setGameStateInitialValue('attacker', $orangePlayer);
         $this->setGameStateInitialValue('user_in_right_id', $bluePlayer);
         $this->setGameStateInitialValue('defender', $bluePlayer);
+        $this->setGameStateInitialValue('defenderShootTarget', 0);
+        $this->setGameStateInitialValue('attackerShootTarget', 0);
     }
 
     private function initBoard(array $players): void
