@@ -366,6 +366,8 @@ class Game extends \Table
 
         $result["player_pieces"] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
         $result["ball"] = $this->getObjectFromDB("SELECT * FROM `ball`");
+        $result['user_in_right_id'] = $this->getGameStateValue('user_in_right_id');
+        $result['user_in_left_id'] = $this->getGameStateValue('user_in_left_id');
 
         return $result;
     }

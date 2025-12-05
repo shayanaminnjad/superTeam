@@ -49,11 +49,14 @@ define([
                 this.opponentColor = this.myColor === 'orange' ? 'blue' : 'orange';
 
                 for (const player of Object.keys(gamedatas.players)) {
-                    if (parseInt(player) !== this.getActivePlayerId()) {
-                        this.opponentId = player;
+                    if (parseInt(player) !== this.player_id) {
+                        this.opponentId = parseInt(player);
                         break;
                     }
                 }
+
+                this.userInLeftId = parseInt(gamedatas['user_in_left_id']);
+                this.userInRightId = parseInt(gamedatas['user_in_right_id']);
 
                 PlayerAreaManager.construct(this, gamedatas);
 
@@ -176,6 +179,7 @@ define([
 
                             this.statusBar.addActionButton('cancel', () => {
                                 this.statusBar.removeActionButtons();
+                                topic.publish('requestedActionCanceled', clientButton['name']);
                                 this.configureClientButtons(clientButtons);
                             });
                         }
@@ -386,6 +390,10 @@ define([
             pieceManager: null,
 
             opponentId: null,
+
+            userInLeftId: null,
+
+            userInRightId: null,
 
             currentStateData: null,
 
