@@ -13,7 +13,7 @@ define(["dojo/_base/declare",
 
         const Piece = declare("st.Piece", null, {
             constructor: function (initData, color) {
-                this._owner = initData.owner_id;
+                this._owner = parseInt(initData.owner_id);
                 this._isFresh = initData.is_fresh === '1';
                 this._id = parseInt(initData.id);
                 this._role = parseInt(initData.piece_role);
