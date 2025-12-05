@@ -266,6 +266,13 @@ class Board
         }
     }
 
+    public function movePieceToHex(int $pieceId, HexID $hex)
+    {
+        $this->dbadapter->DbQuery("UPDATE `player_pieces` SET `hex_column` = {$hex->getColumn()}, `hex_row` = {$hex->getRow()} WHERE `id` = $pieceId ");
+        $piece = $this->getPlayerPieceData($pieceId);
+        $piece->setPosition($hex);
+    }
+
     private function canMoveToHex(HexID $hexID): bool
     {
         return !$this->hasPlayerInHex($hexID) && !$this->isGoalieSpecificSpace($hexID);
