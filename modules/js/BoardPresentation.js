@@ -83,6 +83,7 @@ define([
         //------------------------------------------------------------------------------------
 
         passBall: async function (OffsetCoord) {
+            this.setHexWithBall(OffsetCoord);
 
             const HEX_ID = this.convertOffsetCoordToHexId(OffsetCoord);
             const anim = this._root.slideToObject('ball', HEX_ID);
