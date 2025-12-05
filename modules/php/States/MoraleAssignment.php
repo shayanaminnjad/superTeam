@@ -36,7 +36,7 @@ class MoraleAssignment extends GameState
 
     public function getArgs(): array
     {
-            $currentPlayerMorale = $this->game->getCurrentPlayerMorale();
+        $currentPlayerMorale = $this->game->getCurrentPlayerMorale();
 
         $maxMoraleAssignable = Math::clamp($currentPlayerMorale, 0, self::MAX_MORALE_PER_ACTION);
 
@@ -44,33 +44,35 @@ class MoraleAssignment extends GameState
 
         $selectedHexArray = DBAdapter::getInstance()->getSelectedHex();
 
-        return ['maxMoraleAssignable' => $maxMoraleAssignable,
-                'requiredPower' => $requiredPower,
-                'selectedDestination' => $selectedHexArray]; //TODO: this probably must be injected here, as not all actions have a destination!
+        return [
+            'maxMoraleAssignable' => $maxMoraleAssignable,
+            'requiredPower' => $requiredPower,
+            'selectedDestination' => $selectedHexArray
+        ]; //TODO: this probably must be injected here, as not all actions have a destination!
     }
 
     #[PossibleAction]
-    public function actMoraleAssigned(int $amount) : string
+    public function actMoraleAssigned(int $amount): string
     {
         $maxMoraleAssignable = $this->getArgs()['maxMoraleAssignable'];
 
-        if ($amount > $maxMoraleAssignable || $amount < 0)
-        {
+        if ($amount > $maxMoraleAssignable || $amount < 0) {
             throw new \BgaUserException("$amount morale assigned, max morale assignable is $maxMoraleAssignable");
         }
 
         $this->game->setCurrentPlayerMorale($this->game->getCurrentPlayerMorale() - $amount, true);
 
         $this->game->setGameStateValue('assigned_morale', $amount);
-        
+
         $transition = DBAdapter::getInstance()->getGlobalString('morale_assign_transition');
-        
+
         assert(strlen($transition) > 0, "no transition is stored for morale assign finish");
 
-        return DiceRoll::class;
+        return $transition;
     }
 
-    function zombie(int $playerId): string {
+    function zombie(int $playerId): string
+    {
         // the code to run when the player is a Zombie
         return '';
     }

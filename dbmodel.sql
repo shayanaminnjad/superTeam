@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS `ball` (
 
 CREATE TABLE IF NOT EXISTS `st_globals` (
     `morale_assign_transition` TEXT DEFAULT '',
+    `dice_roll_transition` TEXT DEFAULT '',
     `selected_hex_column` INT DEFAULT -1,
     `selected_hex_row` INT DEFAULT -1
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

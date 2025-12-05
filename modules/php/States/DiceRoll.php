@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Dice\GameDice;
+use Bga\Games\SuperTeam\States\Utils\DiceRollData;
 
 class DiceRoll extends GameState
 {
@@ -27,15 +28,17 @@ class DiceRoll extends GameState
 
     function onEnteringState(int $activePlayerId): string
     {
-         //TODO: Determine number of white dice to roll, and roll them!
+        //TODO: Determine number of white dice to roll, and roll them!
+
+        DiceRollData::load();
 
         $dieRes = GameDice::greenDie()->roll();
-        $assignedMorale = intval($this->game->getGameStateValue('assigned_morale'));
+        $assignedMorale = DiceRollData::$assignedMorale;
 
         $this->game->setGameStateValue('dice_result', $dieRes + $assignedMorale);
         $this->game->setGameStateValue('assigned_morale', 0);
 
-        $requiredPower = intval($this->game->getGameStateValue('required_power'));
+        $requiredPower = DiceRollData::$requiredPower;
 
         $this->notify->all("diceRolled", \clienttranslate('diceRolled'), array(
             "greenDie" => $dieRes,
@@ -44,6 +47,8 @@ class DiceRoll extends GameState
             "requiredPower" => $requiredPower
         ));
 
-        return PassPerform::class;
+        assert(strlen(DiceRollData::$finishTransition) > 0, "no transition is stored for dice roll finish");
+
+        return DiceRollData::$finishTransition;
     }
 }
