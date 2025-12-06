@@ -9,7 +9,6 @@ use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexID;
-use Bga\Games\SuperTeam\States\Utils\DiceRollData;
 
 class ShootTargetReveal extends GameState
 {

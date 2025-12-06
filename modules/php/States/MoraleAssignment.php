@@ -66,16 +66,13 @@ class MoraleAssignment extends GameState
 
         $this->game->setCurrentPlayerMorale($this->game->getCurrentPlayerMorale() - $amount, true);
 
-        //TODO: This must be broadcasted to both players in a bold manner!
+        //TODO: this is an important data to the current turn player! make sure that it is shown to him boldly!
 
-        DBAdapter::getInstance()->storePlayerTempInt(intval($this->game->getActivePlayerId()),'assigned_morale', $amount);
+        DBAdapter::getInstance()->storePlayerTempInt(intval($this->game->getActivePlayerId()), 'assigned_morale', $amount);
 
-        if ($assignData->moraleAssignRemaining - 1 > 0) 
-        {
+        if ($assignData->moraleAssignRemaining - 1 > 0) {
             return ActiveNextGoMorale::class;
-        } 
-        else 
-        {
+        } else {
             assert(strlen($assignData->finishTransition) > 0, "no transition is stored for morale assign finish");
 
             return $assignData->finishTransition;
@@ -87,13 +84,19 @@ class MoraleAssignment extends GameState
         // the code to run when the player is a Zombie
         return '';
     }
-
+    
+    //TODO: these function can be inside another file named morale assign services
     public static function storeMoraleAssignData(string $finishTransition, bool $bothPlayers)
     {
         //I can package all these into a single json entry!
         $dbAdapter = DBAdapter::getInstance();
         $dbAdapter->setGameStateValue('moraleAssignRemaining', $bothPlayers ? 2 : 1);
         $dbAdapter->storeGlobalString('morale_assign_transition', $finishTransition);
+    }
+
+    public static function getMoraleAssigned(int $playerId): int
+    {
+        return DBAdapter::getInstance()->getPlayerTempInt($playerId, 'assigned_morale');
     }
 
     private function getAssignmentData(): MoraleAssignData

@@ -40,4 +40,9 @@ class DiceRollResult
 
         return $this->result["assignedMorale"] + $this->result["greenDie"] + $whiteTotal;
     }
+
+    public function getData()
+    {
+        return $this->result;
+    }
 }

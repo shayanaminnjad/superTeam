@@ -29,37 +29,48 @@ class DiceRoll extends GameState
 
     function onEnteringState(int $activePlayerId): string
     {
+        $rollData = $this->getRollData();
+
+        $playersToRollFor = [$activePlayerId];
+
+        if ($rollData->rollForBoth) {
+            $playersToRollFor[] = $this->game->getInactivePlayerId();
+        }
+
+        $notifData = [];
+        foreach ($playersToRollFor as $player) 
+        {
+            $rollResult = $this->rollForPlayer($player);
+            $this->storeRollResult($player, $rollResult);
+            $notifData[$player] = $rollResult->getData();
+        }
+
+        $notifData["requiredPower"] = $rollData->requiredPower;
+
+        //IMMEDIATE: I should check whether I should roll for both players or only a single player, then save the result below per player.
+        $this->notify->all("diceRolled", \clienttranslate('diceRolled'), $notifData);
+
+        assert(strlen($rollData->finishTransition) > 0, "no transition is stored for dice roll finish");
+
+        return $rollData->finishTransition;
+    }
+
+    private function rollForPlayer(int $playerId): DiceRollResult
+    {
         //TODO: Determine number of white dice to roll, and roll them!
-
-        $DirceRollData = $this->getRollData();
-
         $dieRes = GameDice::greenDie()->roll();
-        $assignedMorale = $DirceRollData->assignedMorale;
+        $assignedMorale = MoraleAssignment::getMoraleAssigned($playerId);
 
-        $this->storeRollResult($activePlayerId, new DiceRollResult($assignedMorale, $dieRes, []));
-
-        $requiredPower = $DirceRollData->requiredPower;
-
-        //TODO: change here, dice roll result must be returned!
-        $this->notify->all("diceRolled", \clienttranslate('diceRolled'), array(
-            "greenDie" => $dieRes,
-            "assignedMorale" => $assignedMorale,
-            "whiteDice" => [],
-            "requiredPower" => $requiredPower
-        ));
-
-        assert(strlen($DirceRollData->finishTransition) > 0, "no transition is stored for dice roll finish");
-
-        return $DirceRollData->finishTransition;
+        return new DiceRollResult($assignedMorale, $dieRes, []);
     }
 
     //TODO: move this to a class named dice roll serivces.
     private function storeRollResult(int $player_id, DiceRollResult $rollRes)
     {
-        DBAdapter::getInstance()->storePlayerTempStr($player_id, 'dice_result',$rollRes->toJson());
+        DBAdapter::getInstance()->storePlayerTempStr($player_id, 'dice_result', $rollRes->toJson());
     }
-    
-    public static function getRollResult(int $player_id) : DiceRollResult
+
+    public static function getRollResult(int $player_id): DiceRollResult
     {
         $json = DBAdapter::getInstance()->getPlayerTempStr($player_id, 'dice_result');
 
@@ -78,23 +89,21 @@ class DiceRoll extends GameState
         $dbAdapter->setGameStateValue("shouldRollForBoth", $bothPlayers ? 1 : 0);
     }
 
-    private function getRollData() : DiceRollData
+    private function getRollData(): DiceRollData
     {
-        return new DiceRollData(intval($this->game->getActivePlayerId()));
+        return new DiceRollData();
     }
 }
 
 class DiceRollData
 {
     public bool $rollForBoth;
-    public int $assignedMorale;
     public int $requiredPower;
     public string $finishTransition;
 
-    public function __construct(int $currentPlayerId)
+    public function __construct()
     {
         $dbAdapter = DBAdapter::getInstance();
-        $this->assignedMorale = $dbAdapter->getPlayerTempInt($currentPlayerId, "assigned_morale");
         $this->requiredPower = $dbAdapter->getGameStateValue('required_power');
         $this->finishTransition = $dbAdapter->getGlobalString('dice_roll_transition');
         $this->rollForBoth = $dbAdapter->getGameStateValue("shouldRollForBoth") === 1;
