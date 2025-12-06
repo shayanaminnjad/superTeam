@@ -47,7 +47,6 @@ class DiceRoll extends GameState
 
         $notifData["requiredPower"] = $rollData->requiredPower;
 
-        //IMMEDIATE: I should check whether I should roll for both players or only a single player, then save the result below per player.
         $this->notify->all("diceRolled", \clienttranslate('diceRolled'), $notifData);
 
         assert(strlen($rollData->finishTransition) > 0, "no transition is stored for dice roll finish");
