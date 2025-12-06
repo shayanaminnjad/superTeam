@@ -76,7 +76,7 @@ class DBAdapter
     }
 
 
-    //TODO: These shouldn't be here, move them to a class named globals!
+    //TODO: These shouldn't be here, these are utils on data base.
     public function storeSelectedHex(int $hexColumn, int $hexRow)
     {
         $this->DbQuery("UPDATE `st_globals` SET `selected_hex_column` = $hexColumn, `selected_hex_row` = $hexRow");
@@ -85,6 +85,29 @@ class DBAdapter
     public function getSelectedHex(): array
     {
         return $this->getObjectFromDB("SELECT selected_hex_column, selected_hex_row FROM st_globals");
+    }
+
+    public function storePlayerTempStr(int $playerId, string $entry, string $value): void
+    {
+        $value = addslashes($value);
+        $this->DbQuery("UPDATE `player_temp_data` SET `$entry` = '$value' WHERE `player_id` = $playerId");
+    }
+
+    public function storePlayerTempInt(int $playerId, string $entry, int $value): void
+    {
+        $this->DbQuery("UPDATE `player_temp_data` SET `$entry` = $value WHERE `player_id` = $playerId");
+    }
+
+    public function getPlayerTempStr(int $playerId, string $entry): string
+    {
+        $row = $this->getObjectFromDB("SELECT `$entry` FROM `player_temp_data` WHERE `player_id` = $playerId");
+        return $row[$entry];
+    }
+
+    public function getPlayerTempInt(int $playerId, string $entry): int
+    {
+        $row = $this->getObjectFromDB("SELECT `$entry` FROM `player_temp_data` WHERE `player_id` = $playerId");
+        return (int)$row[$entry];
     }
 
     public function storeGlobalString(string $entry, string $value)
