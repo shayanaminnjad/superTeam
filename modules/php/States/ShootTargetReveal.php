@@ -46,7 +46,8 @@ class ShootTargetReveal extends GameState
         $dummyblockingHexes = [];
         $requiredPower = $board->getRequiredPower($board->getBallHex(), $attackerTargetHex, $board->getDefender(), $dummyinlineHexes, $dummyblockingHexes);
 
-        DiceRollData::store($requiredPower, addslashes(ShootPerform::class));
+        DiceRoll::storeRollData($requiredPower, addslashes(ShootPerform::class), true);
+        MoraleAssignment::storeMoraleAssignData(addslashes(DiceRoll::class), true);
         $db->storeSelectedHex($attackerTargetHex->getColumn(), $attackerTargetHex->getRow());
 
         $this->game->notify->all(
@@ -62,8 +63,6 @@ class ShootTargetReveal extends GameState
             ]
         );
 
-        $db->storeGlobalString('morale_assign_transition', addslashes(DiceRoll::class));
-
-        return MoraleAssignment::class;
+        return ActiveNextGoMorale::class;
     }
 }

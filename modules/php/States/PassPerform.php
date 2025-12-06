@@ -28,15 +28,15 @@ class PassPerform extends GameState
 
     function onEnteringState(int $activePlayerId)
     {
-        $diceRes = $this->game->getGameStateValue('dice_result' );
         $powerRequired = $this->game->getGameStateValue('required_power');
-
+        
         $selectedHexObj = DBAdapter::getInstance()->getSelectedHex();
         $selectedHex = new HexID(intval($selectedHexObj['selected_hex_column']), intval($selectedHexObj['selected_hex_row']));
         
+        $diceRes = DiceRoll::getRollResult($activePlayerId);
         $board = $this->game->getBoard();
-
-        if ($diceRes >= $powerRequired)
+        
+        if ($diceRes->getTotal() >= $powerRequired)
         {
             $board->setBallLocation($selectedHex);
             $this->notify->all('successfulPass', "successful pass", [

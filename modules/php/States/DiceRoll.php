@@ -8,7 +8,8 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Dice\GameDice;
-use Bga\Games\SuperTeam\States\Utils\DiceRollData;
+use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\Dice\DiceRollResult;
 
 class DiceRoll extends GameState
 {
@@ -30,16 +31,16 @@ class DiceRoll extends GameState
     {
         //TODO: Determine number of white dice to roll, and roll them!
 
-        DiceRollData::load();
+        $DirceRollData = $this->getRollData();
 
         $dieRes = GameDice::greenDie()->roll();
-        $assignedMorale = DiceRollData::$assignedMorale;
+        $assignedMorale = $DirceRollData->assignedMorale;
 
-        $this->game->setGameStateValue('dice_result', $dieRes + $assignedMorale);
-        $this->game->setGameStateValue('assigned_morale', 0);
+        $this->storeRollResult($activePlayerId, new DiceRollResult($assignedMorale, $dieRes, []));
 
-        $requiredPower = DiceRollData::$requiredPower;
+        $requiredPower = $DirceRollData->requiredPower;
 
+        //TODO: change here, dice roll result must be returned!
         $this->notify->all("diceRolled", \clienttranslate('diceRolled'), array(
             "greenDie" => $dieRes,
             "assignedMorale" => $assignedMorale,
@@ -47,8 +48,55 @@ class DiceRoll extends GameState
             "requiredPower" => $requiredPower
         ));
 
-        assert(strlen(DiceRollData::$finishTransition) > 0, "no transition is stored for dice roll finish");
+        assert(strlen($DirceRollData->finishTransition) > 0, "no transition is stored for dice roll finish");
 
-        return DiceRollData::$finishTransition;
+        return $DirceRollData->finishTransition;
+    }
+
+    //TODO: move this to a class named dice roll serivces.
+    private function storeRollResult(int $player_id, DiceRollResult $rollRes)
+    {
+        DBAdapter::getInstance()->storePlayerTempStr($player_id, 'dice_result',$rollRes->toJson());
+    }
+    
+    public static function getRollResult(int $player_id) : DiceRollResult
+    {
+        $json = DBAdapter::getInstance()->getPlayerTempStr($player_id, 'dice_result');
+
+        $result = new DiceRollResult();
+        $result->fromJson($json);
+
+        return $result;
+    }
+
+    public static function storeRollData(int $requiredPower, string $finishTransition, bool $bothPlayers)
+    {
+        //TODO: I should package this into a single json entry!
+        $dbAdapter = DBAdapter::getInstance();
+        $dbAdapter->setGameStateValue('required_power', $requiredPower);
+        $dbAdapter->storeGlobalString('dice_roll_transition', $finishTransition);
+        $dbAdapter->setGameStateValue("shouldRollForBoth", $bothPlayers ? 1 : 0);
+    }
+
+    private function getRollData() : DiceRollData
+    {
+        return new DiceRollData(intval($this->game->getActivePlayerId()));
+    }
+}
+
+class DiceRollData
+{
+    public bool $rollForBoth;
+    public int $assignedMorale;
+    public int $requiredPower;
+    public string $finishTransition;
+
+    public function __construct(int $currentPlayerId)
+    {
+        $dbAdapter = DBAdapter::getInstance();
+        $this->assignedMorale = $dbAdapter->getPlayerTempInt($currentPlayerId, "assigned_morale");
+        $this->requiredPower = $dbAdapter->getGameStateValue('required_power');
+        $this->finishTransition = $dbAdapter->getGlobalString('dice_roll_transition');
+        $this->rollForBoth = $dbAdapter->getGameStateValue("shouldRollForBoth") === 1;
     }
 }

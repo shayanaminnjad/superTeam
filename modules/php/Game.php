@@ -184,12 +184,12 @@ class Game extends \Table
             "selected_piece" => 13,
             "number_of_moves" => 14,
             "required_power" => 15,
-            "assigned_morale" => 16,
-            "dice_result" => 17,
-            "attacker" => 18,
-            "defender" => 19,
-            "defenderShootTarget" => 20,
-            "attackerShootTarget" => 21,
+            "attacker" => 16,
+            "defender" => 17,
+            "defenderShootTarget" => 18,
+            "attackerShootTarget" => 19,
+            "moraleAssignRemaining" => 20,
+            "shouldRollForBoth" => 21
         ]);
 
         /* example of notification decorator.
@@ -410,6 +410,9 @@ class Game extends \Table
             )
         );
 
+        list($firstPlayer, $secondPlayer) = array_keys($players);
+        static::DbQuery("INSERT INTO player_temp_data (player_id) VALUES ($firstPlayer), ($secondPlayer)");
+
         $this->reloadPlayersBasicInfos();
 
         // Init game statistics.
@@ -476,8 +479,6 @@ class Game extends \Table
         $this->setGameStateInitialValue('number_of_moves', 0);
         $this->setGameStateInitialValue('selected_piece', -1);
         $this->setGameStateInitialValue('required_power', -1);
-        $this->setGameStateInitialValue('assigned_morale', 0);
-        $this->setGameStateInitialValue("dice_result", 0);
         $this->setGameStateInitialValue('game_half', 1);
         $this->setGameStateInitialValue('user_in_left_id', $orangePlayer);
         $this->setGameStateInitialValue('attacker', $orangePlayer);
@@ -485,6 +486,8 @@ class Game extends \Table
         $this->setGameStateInitialValue('defender', $bluePlayer);
         $this->setGameStateInitialValue('defenderShootTarget', 0);
         $this->setGameStateInitialValue('attackerShootTarget', 0);
+        $this->setGameStateInitialValue("moraleAssignRemaining", 0);
+        $this->setGameStateInitialValue("shouldRollForBoth", 0);
     }
 
     private function initBoard(array $players): void

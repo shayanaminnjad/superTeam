@@ -60,20 +60,59 @@ class MoraleAssignment extends GameState
             throw new \BgaUserException("$amount morale assigned, max morale assignable is $maxMoraleAssignable");
         }
 
+        $assignData = $this->getAssignmentData();
+
+        DBAdapter::getInstance()->setGameStateValue('moraleAssignRemaining', $assignData->moraleAssignRemaining - 1);
+
         $this->game->setCurrentPlayerMorale($this->game->getCurrentPlayerMorale() - $amount, true);
 
-        $this->game->setGameStateValue('assigned_morale', $amount);
+        //TODO: This must be broadcasted to both players in a bold manner!
 
-        $transition = DBAdapter::getInstance()->getGlobalString('morale_assign_transition');
+        DBAdapter::getInstance()->storePlayerTempInt(intval($this->game->getActivePlayerId()),'assigned_morale', $amount);
 
-        assert(strlen($transition) > 0, "no transition is stored for morale assign finish");
+        if ($assignData->moraleAssignRemaining - 1 > 0) 
+        {
+            return ActiveNextGoMorale::class;
+        } 
+        else 
+        {
+            assert(strlen($assignData->finishTransition) > 0, "no transition is stored for morale assign finish");
 
-        return $transition;
+            return $assignData->finishTransition;
+        }
     }
 
     function zombie(int $playerId): string
     {
         // the code to run when the player is a Zombie
         return '';
+    }
+
+    public static function storeMoraleAssignData(string $finishTransition, bool $bothPlayers)
+    {
+        //I can package all these into a single json entry!
+        $dbAdapter = DBAdapter::getInstance();
+        $dbAdapter->setGameStateValue('moraleAssignRemaining', $bothPlayers ? 2 : 1);
+        $dbAdapter->storeGlobalString('morale_assign_transition', $finishTransition);
+    }
+
+    private function getAssignmentData(): MoraleAssignData
+    {
+        return new MoraleAssignData();
+    }
+}
+
+class MoraleAssignData
+{
+    public int $moraleAssignRemaining;
+    public int $requiredPower;
+    public string $finishTransition;
+
+    public function __construct()
+    {
+        $dbAdapter = DBAdapter::getInstance();
+        $this->moraleAssignRemaining = $dbAdapter->getGameStateValue("moraleAssignRemaining");
+        $this->requiredPower = $dbAdapter->getGameStateValue('required_power');
+        $this->finishTransition = $dbAdapter->getGlobalString('morale_assign_transition');
     }
 }

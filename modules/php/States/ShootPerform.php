@@ -26,5 +26,6 @@ class ShootPerform extends GameState
 
     function onEnteringState(int $activePlayerId)
     {
+        
     }
 }
