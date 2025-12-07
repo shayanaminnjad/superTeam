@@ -170,25 +170,43 @@
     opacity: 0.8 !important;
 }
 
-.resources {
+.resourcesParent {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.resource {
     display: flex;
     align-items: center;
     gap: 3px;
 }
 
-.resources .moraleIcon {
+.resourceIcon
+{
     width: 16px;
     height: 16px;
-    background-image: url('img/morale.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     pointer-events: none;
     flex-shrink: 0;
+    display: inline-block;
 }
 
-.resources .moraleLabel{
+.resources .label{
     line-height: 1;
+}
+
+
+.resourceIcon.goalsIcon {
+    background-image: url('img/ball.png');
+}
+
+.resourceIcon.moraleIcon {
+    background-image: url('img/morale.png');
 }
 
 .moraleIcon.pieceAttachment{

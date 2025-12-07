@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\HexID;
 
 class ShootTargetSelection extends PlayerBaseState
 {
@@ -81,5 +82,20 @@ class ShootTargetSelection extends PlayerBaseState
         DBAdapter::getInstance()->setGameStateValue($label, $target);
 
         $this->gamestate->setPlayerNonMultiactive($player_id, ShootTargetReveal::class);
+    }
+
+    public static function getDefenderShootTarget(): int
+    {
+        return DBAdapter::getInstance()->getGameStateValue("defenderShootTarget");
+    }
+
+    public static function getShootTargetHex(int $goalieCol, int $target): HexID
+    {
+        return new HexID($goalieCol, 5 + $target);
+    }
+
+    public static function getAttackShootTarget(): int
+    {
+        return DBAdapter::getInstance()->getGameStateValue("attackerShootTarget");
     }
 }

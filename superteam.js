@@ -45,7 +45,7 @@ define([
 
                 console.log(gamedatas);
 
-                this.myColor = gamedatas.players[this.player_id].color === 'FC5414' ? 'orange' : 'blue';
+                this.myColor = gamedatas.players[this.player_id].color === 'DD4720' ? 'orange' : 'blue';
                 this.opponentColor = this.myColor === 'orange' ? 'blue' : 'orange';
 
                 for (const player of Object.keys(gamedatas.players)) {
@@ -324,6 +324,14 @@ define([
                                         'attackerTarget' => $attackerTarget,
                                             'powerRequired' => $requiredPower
                                             */
+            },
+
+            notif_shootFailed: async function (notifData) {
+                return Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
+            },
+
+            notif_goalScored: async function (notifData) {
+                return PlayerAreaManager.setPlayerScoredGoals(notifData.playerId, notifData.goals);
             },
 
             forwardNotification(funcName, notifData) {

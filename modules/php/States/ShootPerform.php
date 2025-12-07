@@ -26,6 +26,37 @@ class ShootPerform extends GameState
 
     function onEnteringState(int $activePlayerId)
     {
-        
+        $board = $this->game->getBoard();
+
+        $attackerRollResult = DiceRoll::getRollResult($board->getAttacker());
+        $defenderRollResult = DiceRoll::getRollResult($board->getDefender());
+        $powerRequired = $this->game->getGameStateValue('required_power');
+
+        if ($attackerRollResult->getTotal() >= $defenderRollResult->getTotal() + $powerRequired) 
+        {
+            $playerGoals = $this->game->AddOneGoal($board->getAttacker());
+
+            $this->notify->all('goalScored', 'goal scored!', array(
+                "playerId" => $board->getAttacker(),
+                "goals" => $playerGoals
+            ));
+
+            $this->game->activeNextPlayer();
+
+            return playerTurn::class;
+        } 
+        else 
+        {
+            $defenderGoalie = $board->getPlayerGoalie($board->getDefender());
+            $selectedHex = ShootTargetSelection::getShootTargetHex( $defenderGoalie->getPosition()->getColumn(),ShootTargetSelection::getAttackShootTarget());
+
+            $newLocation = $board->getClosetBlockingPieceOrHalfWay($board->getBallHex(), $selectedHex, $this->game->getInactivePlayerId());
+            $board->setBallLocation($newLocation);
+            $this->notify->all('shootFailed', "failed shoot", [
+                "ballHex" => $newLocation->convertToArray()
+            ]);
+
+            return playerTurn::class;
+        }
     }
 }

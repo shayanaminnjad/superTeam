@@ -46,20 +46,38 @@ define([], function () {
             document.querySelectorAll(".spentMorale").forEach(el => el.remove());
         },
 
+        setPlayerScoredGoals: function (playerId, amount) {
+            let scoredGoalsEl = document.getElementById(`playerGoals${playerId}`);
+            scoredGoalsEl.innerHTML = amount;
+        },
+
         //------------------------------------------------------------------------------------
 
         //Private Function
         _init: function (gamedatas) {
             for (const playerId of Object.keys(gamedatas.players)) {
+                this._root.getPlayerPanelElement(playerId).insertAdjacentHTML('beforeend',
+                    `<div id="${playerId}Resources" class ="resourcesParent"></div>`);
+
+                let playerResources = document.getElementById(`${playerId}Resources`);
+
                 let currentMorale = gamedatas.players[playerId].morale;
 
-                this._root.getPlayerPanelElement(playerId).insertAdjacentHTML('beforeend', `
-                    <div class ="resources">
-                    <span class = "moraleIcon"></span>
-                    <span id="playerMorale${playerId}" class= "moraleLabel">${currentMorale}</span>
-                    </div>`);
+                playerResources.insertAdjacentHTML('beforeend', `
+                    <div class = "resource">
+                    <span class = "moraleIcon resourceIcon"></span>
+                    <span id="playerMorale${playerId}" class= "label">${currentMorale}</span></div>`);
 
                 this.setPlayerMorale(playerId, currentMorale);
+
+                let scoredGoals = gamedatas.players[playerId].goals;
+
+                playerResources.insertAdjacentHTML('beforeend', `
+                    <div class ="resource">
+                    <span class = "goalsIcon resourceIcon"></span>
+                    <span id="playerGoals${playerId}" class= "label">${scoredGoals}</span></div>`);
+
+                this.setPlayerScoredGoals(playerId, scoredGoals);
             }
         },
 

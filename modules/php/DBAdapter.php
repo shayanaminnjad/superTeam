@@ -84,6 +84,7 @@ class DBAdapter
 
     public function getSelectedHex(): array
     {
+        //These has to merged into a single json field!
         return $this->getObjectFromDB("SELECT selected_hex_column, selected_hex_row FROM st_globals");
     }
 

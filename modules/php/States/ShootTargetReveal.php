@@ -31,15 +31,15 @@ class ShootTargetReveal extends GameState
         $board = $this->game->getBoard();
 
         $db = DBAdapter::getInstance();
-        $defenderTarget = $db->getGameStateValue("defenderShootTarget");
+        $defenderTarget = ShootTargetSelection::getDefenderShootTarget();
 
         $defenderGoalie = $board->getPlayerGoalie($board->getDefender());
         $defenderGoalieOldPos = $defenderGoalie->getPosition();
-        $goalieNewPos = new HexID($defenderGoalieOldPos->getColumn(), 5 + $defenderTarget);
+        $goalieNewPos = ShootTargetSelection::getShootTargetHex($defenderGoalieOldPos->getColumn(), $defenderTarget);
         $board->movePieceToHex($defenderGoalie->getId(), $goalieNewPos);
 
-        $attackerTarget = $db->getGameStateValue("attackerShootTarget");
-        $attackerTargetHex = new HexID($goalieNewPos->getColumn(), 5 + $attackerTarget);
+        $attackerTarget = ShootTargetSelection::getAttackShootTarget();
+        $attackerTargetHex = ShootTargetSelection::getShootTargetHex($goalieNewPos->getColumn(), $attackerTarget);
 
         $dummyinlineHexes = [];
         $dummyblockingHexes = [];

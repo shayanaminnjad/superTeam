@@ -363,7 +363,7 @@ class Game extends \Table
         // Get information about players.
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
         $result["players"] = $this->getCollectionFromDb(
-            "SELECT `player_id` `id`, `player_score` `score`, `resource_morale` `morale` FROM `player`"
+            "SELECT `player_id` `id`, `player_score` `score`, `resource_morale` `morale`, `goals_scored` `goals` FROM `player`"
         );
 
         $result["player_pieces"] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
@@ -390,7 +390,7 @@ class Game extends \Table
      */
     protected function setupNewGame($players, $options = [])
     {
-        $default_colors = ['FC5414', '00A3E5'];
+        $default_colors = ['DD4720', '479ADA'];
 
         foreach ($players as $player_id => $player) {
             // Now you can access both $player_id and $player array
@@ -520,6 +520,70 @@ class Game extends \Table
         $this->DbQuery($sqlQuery);
     }
 
+    public function getBoard(): Board
+    {
+        $query = PlayerPiecesDBManager::getPiecesDataQuery();
+        $piecesData = $this->getObjectListFromDB($query, false);
+        $ballPosition = $this->getObjectFromDB("SELECT hex_column, hex_row FROM `ball`");
+        $ballHex = new HexID(intval($ballPosition['hex_column']), intval($ballPosition['hex_row']));
+
+        return new Board($piecesData, $ballHex, DBAdapter::getInstance());
+    }
+
+    //TODO: Move this functions to player class, when implemented. 
+    public function getCurrentPlayerMorale(): int
+    {
+        $current_player_id = $this->getActivePlayerId();
+
+        $playerMorale = $this->getUniqueValueFromDB(
+            "SELECT `resource_morale` FROM `player` WHERE `player_id` = {$current_player_id}"
+        );
+
+        $result = intval($playerMorale);
+
+        assert($result >= 0, "morale must be always equal or greater than 0!");
+
+        return $result;
+    }
+
+    public function setCurrentPlayerMorale(int $amount, bool $notify): void
+    {
+        assert($amount >= 0, "morale should always be greater or equal to zero!");
+
+        $current_player_id = (int) $this->getActivePlayerId();
+
+        $this->DbQuery(
+            "UPDATE `player` SET `resource_morale` = {$amount} WHERE `player_id` = {$current_player_id}"
+        );
+
+        if ($notify) {
+            $this->notify->all(
+                "moraleChanged",
+                "morale changed to {$amount}",
+                [
+                    "amount" => $amount,
+                    "playerId" => $current_player_id
+                ]
+            );
+        }
+    }
+
+    public function AddOneGoal(int $playerId) : int
+    {
+        $goalsScored = $this->getUniqueValueFromDB(
+            "SELECT `goals_scored` FROM `player` WHERE `player_id` = {$playerId}"
+        );
+
+        $goalsScored = intval($goalsScored);
+        $goalsScored += 1;
+
+        $this->DbQuery(
+            "UPDATE `player` SET `goals_scored` = {$goalsScored} WHERE player_id = {$playerId}"
+        );
+
+        return $goalsScored;
+    }
+
     public function getPlayerSide(int $userId): PlayerSide
     {
         $userInLeftID = intval($this->getGameStateValue('user_in_left_id'));
@@ -541,60 +605,6 @@ class Game extends \Table
             return intval($this->getGameStateValue('user_in_right_id'));
         } else {
             return $userInLeftID;
-        }
-    }
-
-    public function getBoard(): Board
-    {
-        $query = PlayerPiecesDBManager::getPiecesDataQuery();
-        $piecesData = $this->getObjectListFromDB($query, false);
-        $ballPosition = $this->getObjectFromDB("SELECT hex_column, hex_row FROM `ball`");
-        $ballHex = new HexID(intval($ballPosition['hex_column']), intval($ballPosition['hex_row']));
-
-        return new Board($piecesData, $ballHex, DBAdapter::getInstance());
-    }
-
-    public function getCurrentPlayerMorale(): int
-    {
-        $current_player_id = $this->getActivePlayerId();
-
-        $playersMorale = $this->getCollectionFromDb(
-            "SELECT `player_id` `id`, `resource_morale` `morale` FROM `player`"
-        );
-
-        $result = -1;
-
-        foreach ($playersMorale as $playerMorale) {
-            if ($playerMorale['id'] == $current_player_id) {
-                $result = intval($playerMorale['morale']);
-                break;
-            }
-        }
-
-        assert($result >= 0, "morale must be always equal or greater than 0!");
-
-        return $result;
-    }
-
-    public function setCurrentPlayerMorale(int $amount, bool $notify): void
-    {
-        assert($amount >= 0, "morale should always be greater or equal to zero!");
-
-        $current_player_id = (int) $this->getActivePlayerId();
-
-        $this->DbQuery(
-            "UPDATE `player` SET resource_morale = {$amount} WHERE player_id = {$current_player_id}"
-        );
-
-        if ($notify) {
-            $this->notify->all(
-                "moraleChanged",
-                "morale changed to {$amount}",
-                [
-                    "amount" => $amount,
-                    "playerId" => $current_player_id
-                ]
-            );
         }
     }
 

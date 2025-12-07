@@ -19,6 +19,7 @@
 --       you have to restart a game to see your changes in database.
 
 ALTER TABLE `player` ADD `resource_morale` int(10) NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD `goals_scored` int(10) NOT NULL DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS `player_pieces` (
     `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
