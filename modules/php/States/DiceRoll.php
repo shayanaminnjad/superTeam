@@ -33,18 +33,21 @@ class DiceRoll extends GameState
 
         $playersToRollFor = [$activePlayerId];
 
-        if ($rollData->rollForBoth) {
+        if ($rollData->rollForBoth) 
+        {
             $playersToRollFor[] = $this->game->getInactivePlayerId();
         }
 
-        $notifData = [];
+        $rollNotifData = [];
         foreach ($playersToRollFor as $player) 
         {
             $rollResult = $this->rollForPlayer($player);
             $this->storeRollResult($player, $rollResult);
-            $notifData[$player] = $rollResult->getData();
+            $rollNotifData[$player] = $rollResult->getData();
         }
 
+        $notifData = [];
+        $notifData["rollResult"] = $rollNotifData;
         $notifData["requiredPower"] = $rollData->requiredPower;
 
         $this->notify->all("diceRolled", \clienttranslate('diceRolled'), $notifData);

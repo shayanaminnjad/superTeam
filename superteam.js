@@ -294,7 +294,12 @@ define([
             },
 
             notif_diceRolled: function (notifData) {
-                return DiceUI.showRollAndWait(notifData.greenDie, notifData.whiteDice, notifData.assignedMorale, notifData.requiredPower);
+                let rollResults = [];
+                for (const player of Object.keys(notifData["rollResult"])) {
+                    rollResults.push(DiceUI.createRollResult(parseInt(player), notifData["rollResult"][player]));
+                }
+
+                return DiceUI.showRollAndWait(rollResults, notifData.requiredPower);
             },
 
             notif_successfulPass: function (notifData) {
