@@ -1,14 +1,16 @@
 define([
-    g_gamethemeurl + "modules/js/Piece.js"
+    g_gamethemeurl + "modules/js/Piece.js",
+    g_gamethemeurl + "modules/js/STHexLib.js",
+    g_gamethemeurl + "modules/js/BoardPresentation.js"
 ],
-    function (Piece) {
+    function (Piece, HexLib, Board) {
 
         //TODO: it would be good if this also managed the ball!
         function getPieceManager() {
             return {
                 //Public functions
-                construct: function (animator) {
-                    this._animator = animator;
+                construct: function (root) {
+                    this._root = root;
                     this._piecesMap = new Map();
                 },
 
@@ -57,11 +59,45 @@ define([
                     let piece = this.getPiece(pieceId);
                     let ownerPlayer = piece.getOwner();
 
-                    this._animator.placeOnObject(piece.getDOMElement(), 'overall_player_board_' + ownerPlayer);
+                    this._root.placeOnObject(piece.getDOMElement(), this._root.getPlayerPanelElement(ownerPlayer));
 
-                    const anim = this._animator.slideToObject(piece.getDOMElement(), destHexId);
+                    const anim = this._root.slideToObject(piece.getDOMElement(), destHexId);
 
-                    await this._animator.bgaPlayDojoAnimation(anim);
+                    await this._root.bgaPlayDojoAnimation(anim);
+                },
+
+                animateResetPieces: async function (goalieRow) {
+                    let animations = [];
+
+                    for (const piece of this._piecesMap.values()) {
+                        if (!piece.isGoalie()) {
+                            animations.push(this._root.slideToObject(piece.getDOMElement(), this._root.getPlayerPanelElement(piece.getOwner())));
+                        }
+                        else {
+                            let goaliePos = piece.getPosition();
+
+                            if (goaliePos.r !== goalieRow) {
+                                let goalieNewPos = HexLib.createOffsetCoord(goalieRow, goaliePos.c);
+                                piece.setPosition(goalieNewPos);
+
+                                const DEST_HEX_ID = Board.convertOffsetCoordToHexId(goalieNewPos);
+                                animations.push(this._root.slideToObject(piece.getDOMID(), DEST_HEX_ID));
+                            }
+                        }
+                    }
+
+                    var animation_id = dojo.fx.combine(animations);
+                    dojo.connect(animation_id, 'onEnd', () => {
+
+                        for (let piece of this._piecesMap.values()) {
+                            if (!piece.isGoalie()) {
+                                piece.setPosition(null);
+                                piece.setFreshness(true);
+                            }
+                        }
+                    });
+
+                    return this._root.bgaPlayDojoAnimation(animation_id);
                 },
 
                 getAllPiecesOwnedBy: function (owner) {
@@ -88,7 +124,7 @@ define([
 
                 //Private members
                 _piecesMap: null,
-                _animator: null
+                _root: null
             };
         }
 
