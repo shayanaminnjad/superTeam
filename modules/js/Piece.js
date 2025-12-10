@@ -50,6 +50,7 @@ define(["dojo/_base/declare",
 
                 let el = this.getDOMElement();
                 this._removeStatus(el);
+
                 el.classList.add(this._getStatus());
                 el.innerHTML = this._generateInnerHTML();
             },
@@ -76,8 +77,11 @@ define(["dojo/_base/declare",
             },
 
             setPosition: function (offsetPos) {
-                if (this._position === null) {
+                if (this._position === null && offsetPos !== null) {
                     this.getDOMElement().style.display = "block";
+                }
+                else if (offsetPos === null) {
+                    this.getDOMElement().style.display = "none";
                 }
 
                 this._position = offsetPos;
