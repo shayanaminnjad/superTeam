@@ -25,6 +25,9 @@ define(["dojo/_base/declare",
             },
 
             _onActivePlayerLeave: function () {
+                if (isAttacker) {
+                    this._root.removeConfirmationStepFromActionButton();
+                }
             },
 
             _onInactivePlayerLeave: function () {
@@ -59,8 +62,7 @@ define(["dojo/_base/declare",
                 Board.visualizePowerRequired(Board.getHexWithBall(), targetHex);
             },
 
-            onAttackerCanceledTarget: function(data)
-            {
+            onAttackerCanceledTarget: function (data) {
                 Board.removeRequiredPowerVisualization();
             }
         });
