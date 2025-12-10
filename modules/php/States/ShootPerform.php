@@ -43,7 +43,7 @@ class ShootPerform extends GameState
 
             $this->game->activeNextPlayer();
 
-            return playerTurn::class;
+            return BoardReset::class;
         } 
         else 
         {

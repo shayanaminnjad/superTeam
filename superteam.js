@@ -204,6 +204,10 @@ define([
                 this.clientButtonNeedsConfirm = true;
             },
 
+            removeConfirmationStepFromActionButton: function() {
+                this.clientButtonNeedsConfirm = false;
+            },
+
             onPieceClicked: async function (evt) {
                 if (!this.serverCallInProgress) {
                     if (evt.currentTarget.classList.contains('clickable')) {
@@ -332,6 +336,12 @@ define([
 
             notif_goalScored: async function (notifData) {
                 return PlayerAreaManager.setPlayerScoredGoals(notifData.playerId, notifData.goals);
+            },
+
+            notif_resetBoard: async function (notifData)
+            {
+                Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
+                return this.pieceManager.animateResetPieces(parseInt(notifData.goalieRow));
             },
 
             forwardNotification(funcName, notifData) {
