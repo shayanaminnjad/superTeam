@@ -100,6 +100,25 @@ define([
                     return this._root.bgaPlayDojoAnimation(animation_id);
                 },
 
+                swapPeicesAndGetAnimation: function (lhsHex, rhsHex) {
+                    let animations = [];
+
+                    let lhsPiece = this._root.pieceManager.getPieceAtPosition(lhsHex);
+                    let rhsPiece = this._root.pieceManager.getPieceAtPosition(rhsHex);
+
+                    const LHS_DEST_HEX_ID = Board.convertOffsetCoordToHexId(rhsPiece.getPosition());
+                    const RHS_DEST_HEX_ID = Board.convertOffsetCoordToHexId(lhsPiece.getPosition());
+
+                    let rhsOldPos = rhsPiece.getPosition();
+                    rhsPiece.setPosition(lhsPiece.getPosition());
+                    lhsPiece.setPosition(rhsOldPos);
+
+                    animations.push(this._root.slideToObject(lhsPiece.getDOMID(), LHS_DEST_HEX_ID));
+                    animations.push(this._root.slideToObject(rhsPiece.getDOMID(), RHS_DEST_HEX_ID));
+
+                    return animations;
+                },
+
                 getAllPiecesOwnedBy: function (owner) {
 
                     let result = [];
