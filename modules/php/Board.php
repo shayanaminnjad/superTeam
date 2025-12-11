@@ -204,7 +204,7 @@ class Board
         return \count($this->getAdjacentOpponentPieces($reference, $currentPlayer, $includeGoalie)) > 0;
     }
 
-    public function swapHexesContent(HexID $lhs, HexID $rhs)
+    public function swapHexesContent(HexID $lhs, HexID $rhs, bool $swapBall)
     {
         $lhsPlayerPiece = null;
         $this->tryGetPlayerPieceInHex($lhs, $lhsPlayerPiece);
@@ -228,13 +228,24 @@ class Board
         $lhsPlayerPiece->setPosition($rhsPos);
         $rhsPlayerPiece->setPosition($lhsPos);
 
-        if ($this->getBallHex()->equals($lhs)) 
+        if ($swapBall) 
         {
-            $this->setBallLocation($rhs);
-        } 
-        else if ($this->getBallHex()->equals($rhs)) 
+            if ($this->getBallHex()->equals($lhs)) 
+            {
+                $this->setBallLocation($rhs);
+            } 
+            else if ($this->getBallHex()->equals($rhs)) 
+            {
+                $this->setBallLocation($lhs);
+            }
+            else 
+            {
+                assert(false, "when swap ball is enabled, ball should be in one of the hexes!");
+            }
+        }
+        else
         {
-            $this->setBallLocation($lhs);
+            $this->updateAttackerAndDefender();
         }
     }
 
@@ -315,6 +326,8 @@ class Board
         $this->dbadapter->DbQuery("UPDATE `player_pieces` SET `hex_column` = {$hex->getColumn()}, `hex_row` = {$hex->getRow()} WHERE `id` = $pieceId ");
         $piece = $this->getPlayerPieceData($pieceId);
         $piece->setPosition($hex);
+        
+        $this->updateAttackerAndDefender();
     }
 
     private function canMoveToHex(HexID $hexID): bool
