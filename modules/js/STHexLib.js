@@ -161,6 +161,10 @@ define([
 
                     let projSize = STMathLib.pointOntoLineProjectionSize(hexArray[i].toCartesian(), startAsCartesian, lineDir);
 
+                    //TODO: this is not correct, since proj size of 0.1 becomes much larger in when the distance is bigger!
+                    //instead of proj size, I can determine perpendicular cubic components, and if a piece is on that line, I can rule it out!
+                    //what remains is the distance!
+
                     if (projSize > 0.1 && projSize < 0.9) {
 
                         let distance = STMathLib.pointFromLineDistance(hexArray[i].toCartesian(), startAsCartesian, lineDir);
