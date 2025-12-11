@@ -8,6 +8,8 @@ define([
     g_gamethemeurl + "modules/js/States/MoraleAssignmentState.js",
     g_gamethemeurl + "modules/js/States/NullState.js",
     g_gamethemeurl + "modules/js/States/ShootTargetSelectionState.js",
+    g_gamethemeurl + "modules/js/States/DribbleTargetSelection.js",
+    g_gamethemeurl + "modules/js/States/PerformDribble.js",
 ], function (
     declare,
     PlayerPieceSetupState,
@@ -17,7 +19,9 @@ define([
     MoveActionState,
     MoraleAssignmentState,
     NullState,
-    ShootTargetSelectionState
+    ShootTargetSelectionState,
+    DribbleTargetSelection,
+    PerformDribble,
 ) {
 
     const StateRegistry = declare("st.StateRegistry", null, {
@@ -33,6 +37,8 @@ define([
             this.registerState(MoveActionState);
             this.registerState(MoraleAssignmentState);
             this.registerState(ShootTargetSelectionState);
+            this.registerState(DribbleTargetSelection);
+            this.registerState(PerformDribble);
         },
 
         getState: function (name, root, stateData) {

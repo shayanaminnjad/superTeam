@@ -25,4 +25,19 @@ class PlayerPiecesDBManager
                 END,
     `is_fresh` = TRUE";
     }
+    
+    static public function swapPiecesQuery(int $lhsId, int $lhsSwapToRow, $lhsSwapToColumn, int $rhsId, int $rhsSwapToRow, int $rhsSwapToColumn) : string
+    {
+        return "UPDATE `player_pieces` SET 
+        `hex_column` = CASE 
+                           WHEN `id` = $lhsId THEN $lhsSwapToColumn
+                           WHEN `id` = $rhsId THEN $rhsSwapToColumn
+                           ELSE `hex_column`
+                       END,
+        `hex_row` = CASE 
+                        WHEN `id` = $lhsId THEN $lhsSwapToRow
+                        WHEN `id` = $rhsId THEN $rhsSwapToRow
+                        ELSE `hex_row`
+                    END";
+    }
 }

@@ -91,8 +91,8 @@ class MoveAction extends PlayerBaseState
 
 
         if ($ballMoved === 1 &&
-            ($board->doesOpponentExistInNeighbours(new HexID($oldPieceHexCol, $oldPieceHexRow), intval($this->game->getActivePlayerId())) ||
-            $board->doesOpponentExistInNeighbours(new HexID($hexColumn, $hexRow), intval($this->game->getActivePlayerId()))))
+            ($board->doesOpponentExistInNeighbours(new HexID($oldPieceHexCol, $oldPieceHexRow), \intval($this->game->getActivePlayerId()), true) ||
+            $board->doesOpponentExistInNeighbours(new HexID($hexColumn, $hexRow), \intval($this->game->getActivePlayerId()), true)))
         {
             $shouldEndMovement = true;
         }

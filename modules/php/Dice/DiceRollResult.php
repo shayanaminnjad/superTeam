@@ -35,7 +35,7 @@ class DiceRollResult
 
         $whiteDice = $this->result["whiteDice"];
 
-        for ($i = 0; $i < count($whiteDice) ;$i++)
+        for ($i = 0; $i < \count($whiteDice) ;$i++)
             $whiteTotal += $whiteDice[$i];
 
         return $this->result["assignedMorale"] + $this->result["greenDie"] + $whiteTotal;

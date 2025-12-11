@@ -42,12 +42,12 @@ class MoraleAssignment extends GameState
 
         $requiredPower = $this->game->getGameStateValue('required_power');
 
-        $selectedHexArray = DBAdapter::getInstance()->getSelectedHex();
+        $selectedHex = DBAdapter::getInstance()->getSelectedHexAsHexID();
 
         return [
             'maxMoraleAssignable' => $maxMoraleAssignable,
             'requiredPower' => $requiredPower,
-            'selectedDestination' => $selectedHexArray
+            'selectedDestination' => $selectedHex->convertToArray()
         ]; //TODO: this probably must be injected here, as not all actions have a destination!
     }
 

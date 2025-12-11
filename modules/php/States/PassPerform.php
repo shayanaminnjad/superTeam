@@ -30,8 +30,7 @@ class PassPerform extends GameState
     {
         $powerRequired = $this->game->getGameStateValue('required_power');
         
-        $selectedHexObj = DBAdapter::getInstance()->getSelectedHex();
-        $selectedHex = new HexID(intval($selectedHexObj['selected_hex_column']), intval($selectedHexObj['selected_hex_row']));
+        $selectedHex = DBAdapter::getInstance()->getSelectedHexAsHexID();
         
         $diceRes = DiceRoll::getRollResult($activePlayerId);
         $board = $this->game->getBoard();

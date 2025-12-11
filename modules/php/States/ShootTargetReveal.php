@@ -8,7 +8,6 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\DBAdapter;
-use Bga\Games\SuperTeam\HexID;
 
 class ShootTargetReveal extends GameState
 {

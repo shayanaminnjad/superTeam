@@ -249,7 +249,7 @@ define([
             highlightPiecesHexes: function (piecesIds) {
                 for (const pieceId of piecesIds) {
                     let piece = this.pieceManager.getPiece(pieceId);
-                    Board.highlighHex(Board.convertOffsetCoordToHexId(piece.getPosition()));
+                    Board.highlightHex(Board.convertOffsetCoordToHexId(piece.getPosition()));
                 }
             },
 
@@ -285,6 +285,11 @@ define([
 
             notif_movedPiece: async function (notifData) {
                 return this.forwardNotification(this.notif_movedPiece.name, notifData);
+            },
+
+            notif_dribblePerformed: async function(notifData)
+            {
+                return this.forwardNotification(this.notif_dribblePerformed.name, notifData);
             },
 
             notif_pieceExhausted: function (notifData) {

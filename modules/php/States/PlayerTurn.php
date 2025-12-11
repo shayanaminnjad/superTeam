@@ -8,6 +8,8 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\Utility\Logger;
+
 
 class PlayerTurn extends PlayerBaseState
 {
@@ -49,6 +51,11 @@ class PlayerTurn extends PlayerBaseState
             {
                 $this->addClientButton('pass ball', [$this, 'actPassBall']);
                 $this->addClientButton('shoot', [$this, 'actShootBall']);
+
+                if($board->doesOpponentExistInNeighbours($board->getBallHex(), \intval($this->game->getActivePlayerId()), false))
+                {
+                    $this->addClientButton('dribble', [$this, 'actDribble']);
+                }
             }
         }
 
@@ -72,6 +79,12 @@ class PlayerTurn extends PlayerBaseState
     {
         $this->gamestate->setAllPlayersMultiactive();
         return ShootTargetSelection::class;
+    }
+
+    #[PossibleAction]
+    public function actDribble() : string
+    {
+        return DribbleTargetSelection::class;
     }
 
     #[PossibleAction]
