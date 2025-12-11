@@ -20,14 +20,14 @@ define(["dojo/_base/declare",
                 this.hexWithBall = STHexLib.createOffsetCoord(args.hexWithBall.hex_row, args.hexWithBall.hex_column)
                 allBlockedSpaces.push(Board.convertOffsetCoordToHexId(this.hexWithBall));
 
-                this._makeAllHexesSelectableExcept(allBlockedSpaces);
+                Board.makeAllHexesSelectableExcept(allBlockedSpaces);
             },
 
             _onInactivePlayerEnter: function (args) {
             },
 
             _onActivePlayerLeave: function () {
-                document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
+                Board.makeAllHexesNonSelectable();
                 Board.removeRequiredPowerVisualization();
             },
 
@@ -47,19 +47,7 @@ define(["dojo/_base/declare",
 
             getName: function () {
                 return this.constructor.getName();
-            },
-
-            //Notifications
-
-            //Private Methods
-            _makeAllHexesSelectableExcept: function (hexesToExclude) {
-                document.querySelectorAll('.hex').forEach(el => el.classList.add('selectable'));
-
-                for (let i = 0; i < hexesToExclude.length; i++) {
-                    document.getElementById(hexesToExclude[i]).classList.remove('selectable');
-                }
-            },
-
+            }
         });
 
         PassDestinationSelection.getName = function () {

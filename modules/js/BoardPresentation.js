@@ -60,7 +60,7 @@ define([
 
         //------------------------------------------------------------------------------------
 
-        highlighHex: function (hexId) {
+        highlightHex: function (hexId) {
             document.getElementById(hexId).classList.add('highlight');
         },
 
@@ -109,6 +109,26 @@ define([
             return HexLib.createOffsetCoord(parsedHexId[0], parsedHexId[1]);
         },
 
+        //------------------------------------------------------------------------------------
+        makeAllHexesSelectableExcept: function (hexesToExclude) {
+            document.querySelectorAll('.hex').forEach(el => el.classList.add('selectable'));
+
+            for (let i = 0; i < hexesToExclude.length; i++) {
+                document.getElementById(hexesToExclude[i]).classList.remove('selectable');
+            }
+
+        },
+        //------------------------------------------------------------------------------------
+        makeHexesSelectable: function (hexes) {
+            for (const hex of hexes) {
+                document.getElementById(hex).classList.add('selectable');
+            }
+        },
+        //------------------------------------------------------------------------------------
+        makeAllHexesNonSelectable: function() {
+            document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
+        },
+        
         //------------------------------------------------------------------------------------
 
         //Private Functions
