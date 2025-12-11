@@ -1,7 +1,7 @@
 define(["dojo/_base/declare",
     g_gamethemeurl + "modules/js/States/BaseState.js",
     g_gamethemeurl + "modules/js/BoardPresentation.js",
-    g_gamethemeurl + "modules/js/STHexLib.js",],
+    g_gamethemeurl + "modules/js/STHexLib.js"],
     function (declare, BaseState, Board, HexLib) {
 
         const ShootTargetSelectionState = declare("st.ShootTargetSelectionState", BaseState, {
@@ -25,7 +25,7 @@ define(["dojo/_base/declare",
             },
 
             _onActivePlayerLeave: function () {
-                if (isAttacker) {
+                if (this._args.isAttacker) {
                     this._root.removeConfirmationStepFromActionButton();
                 }
             },
