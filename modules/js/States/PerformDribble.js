@@ -29,9 +29,6 @@ define(["dojo/_base/declare",
             //Notifications
 
             notif_dribblePerformed: function (notifData) {
-                console.log(notifData);
-                console.log(notifData.swappedHexes[0]);
-                console.log(notifData.swappedHexes[1]);
                 let lhsHex = HexLib.createOffsetCoord(notifData.swappedHexes[0].hex_row, notifData.swappedHexes[0].hex_column);
                 let rhsHex = HexLib.createOffsetCoord(notifData.swappedHexes[1].hex_row, notifData.swappedHexes[1].hex_column);
 
@@ -39,31 +36,15 @@ define(["dojo/_base/declare",
             },
 
             _swapAnimated: function(lhsHex, rhsHex) {
-                
-                let lhsPiece = this._root.pieceManager.getPieceAtPosition(lhsHex);
-                let rhsPiece = this._root.pieceManager.getPieceAtPosition(rhsHex);
-
-                const LHS_DEST_HEX = Board.convertOffsetCoordToHexId(rhsPiece.getPosition());
-                const RHS_DEST_HEX = Board.convertOffsetCoordToHexId(lhsPiece.getPosition());
-
-                let rhsOldPos = rhsPiece.getPosition();
-                rhsPiece.setPosition(lhsPiece.getPosition());
-                lhsPiece.setPosition(rhsOldPos);
-
-                console.log("lhs piece is "  + lhsPiece.getDOMID()  + " rhs piece is " + rhsPiece.getDOMID());
-
-                let animations = [];
-
-                animations.push(this._root.slideToObject(lhsPiece.getDOMID(), LHS_DEST_HEX));
-                animations.push(this._root.slideToObject(rhsPiece.getDOMID(), RHS_DEST_HEX));
+                let animations = this._root.pieceManager.swapPeicesAndGetAnimation(lhsHex, rhsHex);
 
                 if (Board.getHexWithBall().equals(lhsHex)) {
-                    animations.push(this._root.slideToObject('ball', LHS_DEST_HEX));
-                    Board.setHexWithBall(lhsPiece.getPosition());
+                    animations.push(this._root.slideToObject('ball', LHS_DEST_HEX_ID));
+                    Board.setHexWithBall(rhsHex);
                 }
                 else {
-                    animations.push(this._root.slideToObject('ball', RHS_DEST_HEX));
-                    Board.setHexWithBall(rhsPiece.getPosition());
+                    animations.push(this._root.slideToObject('ball', RHS_DEST_HEX_ID));
+                    Board.setHexWithBall(lhsHex);
                 }
 
                 return this._root.bgaPlayDojoAnimation(dojo.fx.combine(animations));
