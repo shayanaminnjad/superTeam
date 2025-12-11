@@ -18,7 +18,7 @@ class PlayerPiece
 
         $this->position = new HexID($playerPieceData['hex_column'], $playerPieceData['hex_row']);
 
-        $this->canTackle = $playerPieceData['can_tackle'];
+        $this->canTackle = $playerPieceData['can_tackle'] === '1';
     }
 
     public function getId(): int
@@ -56,7 +56,8 @@ class PlayerPiece
         if ($updateDb) 
         {
             $myId = $this->getId();
-            DBAdapter::getInstance()->DbQuery("UPDATE `player_pieces` SET `can_tackle` = $canTackle WHERE `id` = $myId");
+            $tackleInput = $canTackle ? 'TRUE' : 'FALSE';
+            DBAdapter::getInstance()->DbQuery("UPDATE `player_pieces` SET `can_tackle` = $tackleInput WHERE `id` = $myId");
         }
     }
 
