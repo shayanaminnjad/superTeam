@@ -12,10 +12,15 @@ define(["dojo/_base/declare",
 
             //State Overrides
             _onActivePlayerEnter: function (args) {
-                //args.requiredPower
                 STUIHelpers.createCounter('generalactions', 'moraleAssign', 0, args.maxMoraleAssignable);
-                let selectedHex = STHexLib.createOffsetCoord(args.selectedDestination.selected_hex_row, args.selectedDestination.selected_hex_column);
-                Board.visualizePowerRequired(Board.getHexWithBall(), selectedHex);
+                let selectedHex = STHexLib.createOffsetCoord(args.selectedDestination.hex_row, args.selectedDestination.hex_column);
+
+                if (parseInt(args.requiredPower) > 0) {
+                    Board.visualizePowerRequired(Board.getHexWithBall(), selectedHex);
+                }
+                else {
+                    Board.highlightHex(Board.convertOffsetCoordToHexId(selectedHex));
+                }
             },
 
             _onInactivePlayerEnter: function (args) {
@@ -24,6 +29,7 @@ define(["dojo/_base/declare",
             _onActivePlayerLeave: function () {
                 STUIHelpers.removeCounter('moraleAssign');
                 Board.removeRequiredPowerVisualization();
+                Board.removeHexHighlights();
             },
 
             _onInactivePlayerLeave: function () {
