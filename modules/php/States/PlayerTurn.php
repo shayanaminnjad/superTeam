@@ -8,8 +8,6 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
-use Bga\Games\SuperTeam\Utility\Logger;
-
 
 class PlayerTurn extends PlayerBaseState
 {
@@ -46,8 +44,9 @@ class PlayerTurn extends PlayerBaseState
         $playerPieceWithBall = null;
         if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPieceWithBall)) 
         {
-            //(playerPieceWithball) is here to supress a warning.
-            if ($playerPieceWithBall && $playerPieceWithBall->getOwner() === intval($this->game->getActivePlayerId())) 
+            assert($playerPieceWithBall !== null); // useless, juse supress a warning.
+
+            if ($playerPieceWithBall->getOwner() === \intval($this->game->getActivePlayerId())) 
             {
                 $this->addClientButton('pass ball', [$this, 'actPassBall']);
                 $this->addClientButton('shoot', [$this, 'actShootBall']);
@@ -55,6 +54,15 @@ class PlayerTurn extends PlayerBaseState
                 if($board->doesOpponentExistInNeighbours($board->getBallHex(), \intval($this->game->getActivePlayerId()), false))
                 {
                     $this->addClientButton('dribble', [$this, 'actDribble']);
+                }
+            }
+            else //so opponent has the ball!
+            {
+                $anyoneCanTackle = \count($board->getPiecesThatCanTackle(\intval($this->game->getActivePlayerId()), $this->game->getInactivePlayerId())) > 0;
+
+                if ($anyoneCanTackle)
+                {
+                    $this->addClientButton('tackle', [$this, 'actTackle']);
                 }
             }
         }
@@ -85,6 +93,12 @@ class PlayerTurn extends PlayerBaseState
     public function actDribble() : string
     {
         return DribbleTargetSelection::class;
+    }
+
+    #[PossibleAction]
+    public function actTackle() : string
+    {
+        return TacklePerformerSelection::class;
     }
 
     #[PossibleAction]

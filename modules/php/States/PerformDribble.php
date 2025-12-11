@@ -32,11 +32,11 @@ class PerformDribble extends GameState
         $attackerRollRes = DiceRoll::getRollResult($board->getAttacker());
         $defenderRollRes = DiceRoll::getRollResult($board->getDefender());
 
-        if ($attackerRollRes->getTotal() > $defenderRollRes->getTotal())
+        if ($attackerRollRes->getTotal() >= $defenderRollRes->getTotal())
         {
             $selectedHex = DBAdapter::getInstance()->getSelectedHexAsHexID();
             $ballOldHex = $board->getBallHex();
-            $board->swapHexesContent($ballOldHex, $selectedHex);
+            $board->swapHexesContent($ballOldHex, $selectedHex, true);
 
             $this->game->notify->all("dribblePerformed", '', [
                 "swappedHexes" => [$selectedHex->convertToArray(), $ballOldHex->convertToArray()]

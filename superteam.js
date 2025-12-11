@@ -204,7 +204,7 @@ define([
                 this.clientButtonNeedsConfirm = true;
             },
 
-            removeConfirmationStepFromActionButton: function() {
+            removeConfirmationStepFromActionButton: function () {
                 this.clientButtonNeedsConfirm = false;
             },
 
@@ -279,17 +279,20 @@ define([
                 this.bgaSetupPromiseNotifications();
             },
 
-            notif_placedPiece: async function (notifData) {
+            notif_placedPiece: function (notifData) {
                 return this.forwardNotification(this.notif_placedPiece.name, notifData);
             },
 
-            notif_movedPiece: async function (notifData) {
+            notif_movedPiece: function (notifData) {
                 return this.forwardNotification(this.notif_movedPiece.name, notifData);
             },
 
-            notif_dribblePerformed: async function(notifData)
-            {
+            notif_dribblePerformed: function (notifData) {
                 return this.forwardNotification(this.notif_dribblePerformed.name, notifData);
+            },
+
+            notif_tacklePerformed: function (notifData) {
+                return this.forwardNotification(this.notif_tacklePerformed.name, notifData);
             },
 
             notif_pieceExhausted: function (notifData) {
@@ -343,8 +346,7 @@ define([
                 return PlayerAreaManager.setPlayerScoredGoals(notifData.playerId, notifData.goals);
             },
 
-            notif_resetBoard: async function (notifData)
-            {
+            notif_resetBoard: async function (notifData) {
                 Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
                 return this.pieceManager.animateResetPieces(parseInt(notifData.goalieRow));
             },
