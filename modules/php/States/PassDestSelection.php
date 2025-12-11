@@ -62,6 +62,10 @@ class PassDestSelection extends PlayerBaseState
         $dummyblockingHexes = [];
         $requiredPower = $board->getRequiredPower($hexWithBall, $selectedHex, $this->game->getInactivePlayerId(), $dummyinlineHexes, $dummyblockingHexes);
 
+        //TODO: goalie pass is different from regular pass, if it is within a player half where there is a piece, then 
+        //it is free, otherwise, it is regular! so a goalie pass with the situation described must by pass dice roll and morale assignment,
+        //and perform must also notice that. (it must skip reading dice roll and morale assign)
+
         DiceRoll::storeRollData($requiredPower, addslashes(PassPerform::class), false);
         MoraleAssignment::storeMoraleAssignData(addslashes(DiceRoll::class), false);
         
