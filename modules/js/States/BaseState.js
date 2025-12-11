@@ -8,6 +8,8 @@ define(["dojo/_base/declare", "dojo/topic"], function (declare, topic) {
         },
 
         onEnter: function (args) {
+            this._args = args;
+            
             if (this._root.isCurrentPlayerActive()) {
                 this._onActivePlayerEnter(args);
             }
@@ -83,6 +85,7 @@ define(["dojo/_base/declare", "dojo/topic"], function (declare, topic) {
         //Private Fields
         _root: null,
         _stateData: null,
+        _args: null,
         _eventHandles: []
     });
 
