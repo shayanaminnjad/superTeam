@@ -249,6 +249,35 @@ class Board
         }
     }
 
+    //TODO: This can be inside a utility function instead of board itself!
+    public function getPiecesThatCanTackle(int $tacklingPlayer, int $opponentId)
+    {
+        $res = [];
+        $playerPiece = null;
+
+        if ($this->tryGetPlayerPieceInHex($this->getBallHex(), $playerPiece)) 
+        {
+            assert($playerPiece !== null); //to supress a warning!
+
+            if ($playerPiece->getOwner() !== $tacklingPlayer)
+            {
+                //Here is a bit confusing, to we want our pieces, so we get opponent pieces regarding opponent Id!
+                //getAdjacentOpponentPieces, saves us a call to get inactive player with current implementation, maybe I need to change it.
+                $adjacentOpponents = $this->getAdjacentOpponentPieces($this->getBallHex(), $opponentId, false);
+
+                foreach($adjacentOpponents as $opponent)
+                {
+                    if ($opponent->getCanTackle())
+                    {
+                        $res[] = $opponent;
+                    }
+                }
+            }
+        }
+
+        return $res;
+    }
+
     public function getClosetBlockingPieceOrHalfWay(HexID $start, HexID $end, int $opponentId): HexID
     {
         $res = null;
