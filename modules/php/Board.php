@@ -259,7 +259,7 @@ class Board
         {
             assert($playerPiece !== null); //to supress a warning!
 
-            if ($playerPiece->getOwner() !== $tacklingPlayer)
+            if ($playerPiece->getOwner() !== $tacklingPlayer && $playerPiece->getRole() !== PlayerRole::GoalKeeper->value)
             {
                 //Here is a bit confusing, to we want our pieces, so we get opponent pieces regarding opponent Id!
                 //getAdjacentOpponentPieces, saves us a call to get inactive player with current implementation, maybe I need to change it.
