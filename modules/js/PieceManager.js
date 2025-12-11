@@ -63,7 +63,7 @@ define([
 
                     const anim = this._root.slideToObject(piece.getDOMElement(), destHexId);
 
-                    await this._root.bgaPlayDojoAnimation(anim);
+                    return this._root.bgaPlayDojoAnimation(anim);
                 },
 
                 animateResetPieces: async function (goalieRow) {
@@ -111,6 +111,16 @@ define([
                     }
 
                     return result;
+                },
+
+                getPieceAtPosition: function (pos) {
+                    for (const [key, value] of this._piecesMap) {
+                        if (value.getPosition().equals(pos)) {
+                            return value;
+                        }
+                    }
+
+                    return null;
                 },
 
                 getPlayerGoalie: function (playerId) {
