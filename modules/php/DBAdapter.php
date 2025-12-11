@@ -88,6 +88,12 @@ class DBAdapter
         return $this->getObjectFromDB("SELECT selected_hex_column, selected_hex_row FROM st_globals");
     }
 
+    public function getSelectedHexAsHexID(): HexID
+    {
+        $selectedHexArray = $this->getSelectedHex();
+        return new HexID(\intval($selectedHexArray['selected_hex_column']), intval($selectedHexArray['selected_hex_row']));
+    }
+
     public function storePlayerTempStr(int $playerId, string $entry, string $value): void
     {
         $value = addslashes($value);
