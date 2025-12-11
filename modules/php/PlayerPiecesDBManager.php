@@ -7,7 +7,7 @@ class PlayerPiecesDBManager
     //TODO: this class doesn't do much, I should encapsulate piece logic into a single class, which resides inside board.
     static public function getPiecesDataQuery(): string
     {
-        return "SELECT `id`, `hex_column`, `hex_row`, `owner_id`, `piece_role`, `is_fresh` FROM `player_pieces`";
+        return "SELECT `id`, `hex_column`, `hex_row`, `owner_id`, `piece_role`, `is_fresh`, `can_tackle` FROM `player_pieces`";
     }
 
     static public function resetPiecesDataQuery(): string
@@ -23,7 +23,8 @@ class PlayerPiecesDBManager
                     WHEN `piece_role` = $goalkeeperValue THEN 5
                     ELSE -1
                 END,
-    `is_fresh` = TRUE";
+    `is_fresh` = TRUE,
+    `can_tackle` = TRUE";
     }
     
     static public function swapPiecesQuery(int $lhsId, int $lhsSwapToRow, $lhsSwapToColumn, int $rhsId, int $rhsSwapToRow, int $rhsSwapToColumn) : string
