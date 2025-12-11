@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\PlayerRole;
 
 class PlayerTurn extends PlayerBaseState
 {
@@ -35,11 +36,6 @@ class PlayerTurn extends PlayerBaseState
 
         //TODO: If the player with ball is the goal keeper, then only pass is possible!
 
-        if (count($pieceSelectableForMove['selectablePieces']) > 0 || count($pieceSelectableForMove['selectableExhaustedPieces']) > 0) 
-        {
-            $this->addClientButton('move', [$this, 'actMove']);
-        }
-
         $board = $this->game->getBoard();
         $playerPieceWithBall = null;
         if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPieceWithBall)) 
@@ -49,11 +45,15 @@ class PlayerTurn extends PlayerBaseState
             if ($playerPieceWithBall->getOwner() === \intval($this->game->getActivePlayerId())) 
             {
                 $this->addClientButton('pass ball', [$this, 'actPassBall']);
-                $this->addClientButton('shoot', [$this, 'actShootBall']);
 
-                if($board->doesOpponentExistInNeighbours($board->getBallHex(), \intval($this->game->getActivePlayerId()), false))
+                if ($playerPieceWithBall->getRole() !== PlayerRole::GoalKeeper->value) 
                 {
-                    $this->addClientButton('dribble', [$this, 'actDribble']);
+                    $this->addClientButton('shoot', [$this, 'actShootBall']);
+
+                    if ($board->doesOpponentExistInNeighbours($board->getBallHex(), \intval($this->game->getActivePlayerId()), false)) 
+                    {
+                        $this->addClientButton('dribble', [$this, 'actDribble']);
+                    }
                 }
             }
             else //so opponent has the ball!
@@ -65,6 +65,12 @@ class PlayerTurn extends PlayerBaseState
                     $this->addClientButton('tackle', [$this, 'actTackle']);
                 }
             }
+        }
+
+        if ((\count($pieceSelectableForMove['selectablePieces']) > 0 || \count($pieceSelectableForMove['selectableExhaustedPieces'])) > 0 &&
+            ($playerPieceWithBall == null || $playerPieceWithBall->getRole() !== PlayerRole::GoalKeeper->value)) 
+        {
+            $this->addClientButton('move', [$this, 'actMove']);
         }
 
         return [];
