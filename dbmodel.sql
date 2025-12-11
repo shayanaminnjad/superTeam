@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS `player_pieces` (
     `piece_role` SMALLINT unsigned NOT NULL,
     `is_fresh` BOOLEAN DEFAULT TRUE,
     `hex_column` INT DEFAULT -1,
-    `hex_row` INT DEFAULT -1
+    `hex_row` INT DEFAULT -1,
+    `can_tackle` BOOLEAN DEFAULT TRUE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `ball` (

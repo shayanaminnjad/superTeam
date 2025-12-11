@@ -179,7 +179,7 @@ class Board
         return $result;
     }
 
-    public function getAdjacentOpponentPieces(HexID $reference, int $currentPlayerId, bool $includeGoalie): array
+    public function getAdjacentOpponentPieces(HexID $reference, int $playerId, bool $includeGoalie): array
     {
         $res = [];
 
@@ -188,7 +188,7 @@ class Board
         for ($i = 0; $i < \count($neighbourHexes); $i++) {
             $playerPiece = null;
             if ($this->tryGetPlayerPieceInHex(HexLib::cubicToHexID($neighbourHexes[$i]), $playerPiece)) {
-                if ($playerPiece && $playerPiece->getOwner() !== $currentPlayerId) {
+                if ($playerPiece && $playerPiece->getOwner() !== $playerId) {
                     if ($playerPiece->getRole() !== PlayerRole::GoalKeeper->value || $includeGoalie) {
                         $res[] = $playerPiece;
                     }
@@ -225,8 +225,8 @@ class Board
             $lhsPos->getColumn()
         ));
 
-        $lhsPlayerPiece->setPosition($rhsPos);
-        $rhsPlayerPiece->setPosition($lhsPos);
+        $lhsPlayerPiece->setPosition($rhsPos, false);
+        $rhsPlayerPiece->setPosition($lhsPos, false);
 
         if ($swapBall) 
         {
@@ -323,9 +323,8 @@ class Board
 
     public function movePieceToHex(int $pieceId, HexID $hex)
     {
-        $this->dbadapter->DbQuery("UPDATE `player_pieces` SET `hex_column` = {$hex->getColumn()}, `hex_row` = {$hex->getRow()} WHERE `id` = $pieceId ");
         $piece = $this->getPlayerPieceData($pieceId);
-        $piece->setPosition($hex);
+        $piece->setPosition($hex, true);
         
         $this->updateAttackerAndDefender();
     }
