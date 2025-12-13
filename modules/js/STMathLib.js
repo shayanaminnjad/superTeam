@@ -6,7 +6,7 @@ define([], function () {
         lerp: function (a, b, t) {
             return a + (b - a) * t;
         },
-        
+
         //------------------------------------------------------------------------------------
 
         createVector2D: function (x, y) {
@@ -71,10 +71,26 @@ define([], function () {
 
         //------------------------------------------------------------------------------------
 
+        normalize: function (vector) {
+            const size = this.vectorSize(lineDir);
+            return this.createVector2D(vector.x / size, vector.y / size);
+        },
+
+        //------------------------------------------------------------------------------------
+
         pointOntoLineProjection: function (point, lineStart, lineDir) {
             let projSize = this.pointOntoLineProjectionSize(point, lineStart, lineDir);
 
             return this.vectorScale(lineDir, projSize);
+        },
+
+        //------------------------------------------------------------------------------------
+
+        rotateVector: function(vector, radian) {
+            const sinTheta = Math.sin(radian);
+            const cosTheta = Math.cos(radian);
+
+            return this.createVector2D(cosTheta * vector.x - sinTheta * vector.y, sinTheta * vector.x + cosTheta * vector.y);
         },
 
         //------------------------------------------------------------------------------------
@@ -90,5 +106,6 @@ define([], function () {
         radianToDegree: function (radian) {
             return 360 * radian / (2 * Math.PI);
         },
+
     };
 });
