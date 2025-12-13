@@ -148,7 +148,7 @@ define([
             const HEX_HEIGHT = BOARD_HEIGHT * UIConstants.HEX_HEIGHT_PERCENT;
             const HEX_WIDTH_ROUND = Math.round(HEX_WIDTH);
             const HEX_HEIGHT_ROUND = Math.round(HEX_HEIGHT);
-            const HEX_VERTICAL_SPACE = UIConstants.HEX_VERTICAL_SPACE_PERCENT * BOARD_HEIGHT;
+            const HEX_VERTICAL_SPACE = UIConstants.HEX_VERTICAL_GAP_PERCENT * BOARD_HEIGHT;
             const HEX_HORIZONTAL_SPACE = UIConstants.HEX_HORIZONTAL_SPACE_PERCENT * BOARD_WIDTH;
 
             for (let x = 0; x < UIConstants.COLUMNS; x++) {
