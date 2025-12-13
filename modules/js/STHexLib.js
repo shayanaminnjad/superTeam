@@ -92,28 +92,6 @@ define([
 
             //------------------------------------------------------------------------------------
 
-            oddqToCartesian: function (coord, hexSize) {
-                let result;
-
-                const horizontalSpacing = hexSize * 1.5;
-                const verticalSpacing = 1.73205 * hexSize; //sqrt(3) * hexSize
-
-                let isEvenColumn = (coord.c & 1) === 0;
-
-                if (isEvenColumn) {
-                    result = STMathLib.createVector2D(coord.c * horizontalSpacing, coord.r * verticalSpacing);
-                }
-                else {
-                    const oddOffset = verticalSpacing * 0.5;
-
-                    result = STMathLib.createVector2D(coord.c * horizontalSpacing, oddOffset + coord.r * verticalSpacing);
-                }
-
-                return result;
-            },
-
-            //------------------------------------------------------------------------------------
-
             cubicRound: function (cubicCoordinate) {
                 let qRound = Math.round(cubicCoordinate.q);
                 let rRound = Math.round(cubicCoordinate.r);
@@ -148,33 +126,60 @@ define([
 
             //------------------------------------------------------------------------------------
 
-            getHexsInPath: function (startPoint, endPoint, pathDistExtent, hexArray) {
+            getHexsInPath: function (startPoint, endPoint, halfLineThickness, hexArray, hexInfo) {
 
                 let result = [];
 
-                const startAsCartesian = startPoint.toCartesian();
-                const endAsCartesian = endPoint.toCartesian();
+                const startAsCartesian = startPoint.toCartesian(hexInfo);
+                const endAsCartesian = endPoint.toCartesian(hexInfo);
 
-                let lineDir = STMathLib.vectorSubtract(endAsCartesian, startAsCartesian);
+                const lineDir = STMathLib.vectorSubtract(endAsCartesian, startAsCartesian);
 
                 for (let i = 0; i < hexArray.length; i++) {
 
-                    let projSize = STMathLib.pointOntoLineProjectionSize(hexArray[i].toCartesian(), startAsCartesian, lineDir);
+                    const currHexAsCartesian = hexArray[i].toCartesian(hexInfo);
+                    const projSize = STMathLib.pointOntoLineProjectionSize(currHexAsCartesian, startAsCartesian, lineDir);
 
-                    //TODO: this is not correct, since proj size of 0.1 becomes much larger in when the distance is bigger!
-                    //instead of proj size, I can determine perpendicular cubic components, and if a piece is on that line, I can rule it out!
-                    //what remains is the distance!
+                    if (projSize >= 0 && projSize <= 1) {
+                        const pointOnLineProjection = STMathLib.vectorAdd(startAsCartesian, STMathLib.vectorScale(lineDir, projSize));
+                        const pointToCenterVec = STMathLib.vectorSubtract(currHexAsCartesian, pointOnLineProjection);
+                        const moveTowardCenterMagnitude = Math.min(STMathLib.vectorSize(pointToCenterVec), halfLineThickness);
+                        const hexClosestPoint = STMathLib.vectorAdd(pointOnLineProjection, STMathLib.vectorScale(STMathLib.normalize(pointToCenterVec), moveTowardCenterMagnitude));
+                        const distanceToclosestPoint = STMathLib.vectorSize(STMathLib.vectorSubtract(currHexAsCartesian, hexClosestPoint));
 
-                    if (projSize > 0.1 && projSize < 0.9) {
-
-                        let distance = STMathLib.pointFromLineDistance(hexArray[i].toCartesian(), startAsCartesian, lineDir);
-
-                        if (distance < pathDistExtent) {
+                        if (distanceToclosestPoint <= hexInfo.inRadius) {
                             result.push(hexArray[i]);
                         }
+                        else {
+                            const hexRight = STMathLib.createVector2D(currHexAsCartesian.x + hexInfo.size, currHexAsCartesian.y);
+                            const hexLeft = STMathLib.createVector2D(currHexAsCartesian.x - hexInfo.size, currHexAsCartesian.y);
+                            const hexTop = currHexAsCartesian.y + hexInfo.inRadius;
+                            const hexBottom = currHexAsCartesian.y - hexInfo.inRadius;
+
+                            if (hexClosestPoint.x < (hexRight.x) && hexClosestPoint.x > (hexLeft.x)
+                                && hexClosestPoint.y < (hexTop) && hexClosestPoint.y > (hexBottom)) {
+
+                                const hexTopRight = STMathLib.createVector2D(currHexAsCartesian.x + hexInfo.size * 0.5, hexTop);
+                                const hexTopLeft = STMathLib.createVector2D(currHexAsCartesian.x - hexInfo.size * 0.5, hexTop);
+                                const hexBottomRight = STMathLib.createVector2D(currHexAsCartesian.x + hexInfo.size * 0.5, hexBottom);
+                                const hexBottomLeft = STMathLib.createVector2D(currHexAsCartesian.x - hexInfo.size * 0.5, hexBottom);
+
+                                const rotation = Math.PI * 0.5; //90 degrees in radian
+
+                                const rightToTopProj = STMathLib.pointOntoLineProjectionSize(hexClosestPoint, hexRight, STMathLib.rotateVector(STMathLib.vectorSubtract(hexTopRight, hexRight), rotation));
+                                const bottomToRightProj = STMathLib.pointOntoLineProjectionSize(hexClosestPoint, hexRight, STMathLib.rotateVector(STMathLib.vectorSubtract(hexRight, hexBottomRight), rotation));
+                                const leftToBottomProj = STMathLib.pointOntoLineProjectionSize(hexClosestPoint, hexLeft, STMathLib.rotateVector(STMathLib.vectorSubtract(hexLeft, hexBottomLeft), rotation));
+                                const topToLeftProj = STMathLib.pointOntoLineProjectionSize(hexClosestPoint, hexLeft, STMathLib.rotateVector(STMathLib.vectorSubtract(hexTopLeft, hexLeft), rotation));
+
+                                if(rightToTopProj > 0 && bottomToRightProj >0 && leftToBottomProj > 0 && topToLeftProj >0)
+                                {
+                                    result.push(hexArray[i]);
+                                }
+                            }
+                        }
+
                     }
-                    else if (hexArray[i].equals(endPoint))
-                    {
+                    else if (hexArray[i].equals(endPoint)) {
                         result.push(hexArray[i]);
                     }
                 }
@@ -308,18 +313,20 @@ define([
                         return [r, c, 0];
                     },
 
-                    toCartesian: function (hexSize = 1) {
-                        const horizontalSpacing = 1.5 * hexSize;
-                        const verticalSpacing = 1.73205 * hexSize;
+                    //I know this is wierd, since inRadius should be calculated from in radius, however the hex I am working with
+                    //Is not perfect regular hex, this helps me to have exact center points.
+                    toCartesian: function (hexInfo) {
+                        const horizontalSpacing = 1.5 * hexInfo.size;
+                        const verticalSpacing = 2 * hexInfo.inRadius;
 
                         const isEvenColumn = (this.c & 1) == 0;
 
                         if (isEvenColumn) {
-                            return STMathLib.createVector2D(this.c * horizontalSpacing, this.r * verticalSpacing);
+                            return STMathLib.createVector2D(this.c * (horizontalSpacing + hexInfo.horizontalGap), this.r * (verticalSpacing + hexInfo.verticalGap));
                         }
-                        else { 
+                        else {
                             const oddOffset = verticalSpacing * 0.5;
-                            return STMathLib.createVector2D(this.c * horizontalSpacing, oddOffset + this.r * verticalSpacing);
+                            return STMathLib.createVector2D(this.c * (horizontalSpacing + hexInfo.horizontalGap), oddOffset + this.r * (verticalSpacing + hexInfo.verticalGap));
                         }
                     }
                 };
@@ -336,6 +343,16 @@ define([
                     rOddMax: rOddMax,
                 };
             },
+            //------------------------------------------------------------------------------------
+
+            createHexInfo: function (size, inRadius, horizontalGap, verticalGap) {
+                return {
+                    size: size,
+                    inRadius: inRadius,
+                    horizontalGap: horizontalGap,
+                    verticalGap: verticalGap
+                }
+            }
             //------------------------------------------------------------------------------------
         };
     });
