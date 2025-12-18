@@ -10,6 +10,7 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\RequiredPower;
 
 class DribbleTargetSelection extends GameState
 {
@@ -47,8 +48,9 @@ class DribbleTargetSelection extends GameState
     #[PossibleAction]
     public function actTargetSelected(int $hexColumn, int $hexRow): string
     {
+        $activePlayer = \intval($this->game->getActivePlayerId());
         $board = $this->game->getBoard();
-        $adjacentOpponents = $board->getAdjacentOpponentPieces($board->getBallHex(), \intval($this->game->getActivePlayerId()), false);
+        $adjacentOpponents = $board->getAdjacentOpponentPieces($board->getBallHex(),$activePlayer, false);
         $selectedHex = new HexID($hexColumn, $hexRow);
 
         $found = false;
@@ -66,7 +68,7 @@ class DribbleTargetSelection extends GameState
 
         DBAdapter::getInstance()->storeSelectedHex($hexColumn ,$hexRow);
         MoraleAssignment::storeMoraleAssignData(addslashes(DiceRoll::class), true);
-        DiceRoll::storeRollData(0, addslashes(PerformDribble::class), true);
+        DiceRoll::storeRollInput($activePlayer, new RequiredPower(-1, []), PerformDribble::class, true);
 
         return ActiveNextGoMorale::class;
     }

@@ -44,7 +44,7 @@ class ShootTargetReveal extends GameState
         $dummyblockingHexes = [];
         $requiredPower = $board->getRequiredPower($board->getBallHex(), $attackerTargetHex, $board->getDefender(), $dummyinlineHexes, $dummyblockingHexes);
 
-        DiceRoll::storeRollData($requiredPower, addslashes(ShootPerform::class), true);
+        DiceRoll::storeRollInput($activePlayerId, $requiredPower, ShootPerform::class, true);
         MoraleAssignment::storeMoraleAssignData(addslashes(DiceRoll::class), true);
         $db->storeSelectedHex($attackerTargetHex->getColumn(), $attackerTargetHex->getRow());
 

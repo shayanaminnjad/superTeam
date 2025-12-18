@@ -192,7 +192,6 @@ class Game extends \Table
             "defenderShootTarget" => 18,
             "attackerShootTarget" => 19,
             "moraleAssignRemaining" => 20,
-            "shouldRollForBoth" => 21
         ]);
 
         /* example of notification decorator.
@@ -490,7 +489,6 @@ class Game extends \Table
         $this->setGameStateInitialValue('defenderShootTarget', 0);
         $this->setGameStateInitialValue('attackerShootTarget', 0);
         $this->setGameStateInitialValue("moraleAssignRemaining", 0);
-        $this->setGameStateInitialValue("shouldRollForBoth", 0);
     }
 
     private function initBoard(array $players): void

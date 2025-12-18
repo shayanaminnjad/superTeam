@@ -4,7 +4,6 @@ namespace Bga\Games\SuperTeam;
 
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\DBAdapter;
-use Bga\Games\SuperTeam\Utility\Logger;
 
 class Board
 {
@@ -309,7 +308,7 @@ class Board
         return $res;
     }
 
-    public function getRequiredPower(HexID $start, HexID $end, int $opponentId, array &$outLineHexes, array &$outBlockingHexes): int
+    public function getRequiredPower(HexID $start, HexID $end, int $opponentId, array &$outLineHexes, array &$outBlockingHexes): RequiredPower
     {
         $distance = HexLib::getOffsetDistance($start, $end);
         $opponentPieces = $this->getPlayerPiecesByOwner($opponentId);
@@ -321,7 +320,7 @@ class Board
 
         $outBlockingHexes = HexLib::getHexesInPath($start, $end, 1.2, $opponentPieceLocations);
 
-        return ceil($distance / (float)2) + \count($outBlockingHexes);
+        return new RequiredPower($distance, $outBlockingHexes);
     }
 
     public function getAttacker(): int

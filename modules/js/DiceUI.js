@@ -7,7 +7,7 @@ define([
             this._root = root;
         },
 
-        showRollAndWait: async function (rollResults, requiredPower) {
+        showRollAndWait: async function (rollResults, requiredPower, blockingPieces, distance) {
 
             Board.getMainBoardElement().insertAdjacentHTML('beforeend', `<div id='diceRollArea'></div>`);
             let diceRollAreaEl = document.getElementById('diceRollArea');
@@ -25,23 +25,25 @@ define([
                     totalPower += whiteDie;
                 }
 
-                playerRollLine.insertAdjacentHTML('beforeend', `<div id='${result.playerId}_moraleRow'></dive>`);
+                playerRollLine.insertAdjacentHTML('beforeend', `<div id='${result.playerId}_moraleRow'></div>`);
                 let moraleRowEl = document.getElementById(`${result.playerId}_moraleRow`);
 
                 for (let i = 0; i < result.assignedMorale; ++i)
                     moraleRowEl.insertAdjacentHTML('beforeend', `<span class='moraleSpent'></span>`);
 
-                playerRollLine.insertAdjacentHTML('beforeend', `<div style="color: white; font-size: 20px;">${totalPower}</div>`)
+                if (parseInt(result.playerId) === this._root.opponentId) {
+                    playerRollLine.insertAdjacentHTML('beforeend', `<div class='powerDistance'>${distance}</div>`);
+                    playerRollLine.insertAdjacentHTML('beforeend', `<div class="powerBlockingPieces">${blockingPieces}</div>`);
+                }
+
+                playerRollLine.insertAdjacentHTML('beforeend', `<div style="color: white; font-size: 20px;">${totalPower}</div>`);
             }
 
-            /*
-            if (totalPower >= requiredPower) {
-                diceRollAreaEl.insertAdjacentHTML('beforeend', `<span style='font-size: xx-large;'> >= ${requiredPower}</span>`);
+            if (rollResults.length === 1) {
+                let neutralRollLine = this._createNeutralRollLineElement(diceRollAreaEl);
+                neutralRollLine.insertAdjacentHTML('beforeend', `<div class='powerDistance'>${distance}</div>`);
+                neutralRollLine.insertAdjacentHTML('beforeend', `<div class="powerBlockingPieces">${blockingPieces}</div>`);
             }
-            else {
-                diceRollAreaEl.insertAdjacentHTML('beforeend', `<span style='font-size: xx-large;'> < ${requiredPower}</span>`);
-            }
-                */
 
             const TIMEOUT = 3000;
             setTimeout(() => {
@@ -70,6 +72,17 @@ define([
             parentEl.insertAdjacentHTML('beforeend', `<div id='${result.playerId}_RollLine' style='--ribbonColor: ${backColor}; ${pos} ${rowStyle}' class='diceResult ${anchorClass}'></div>`)
 
             return document.getElementById(`${result.playerId}_RollLine`);
+        },
+
+        _createNeutralRollLineElement: function (parentEl) {
+            let backColor = 'grey';
+            let pos = 'bottom: 20%; right: 0;';
+            let rowStyle = 'flex-direction: row-reverse;';
+            let anchorClass = 'right';
+
+            parentEl.insertAdjacentHTML('beforeend', `<div id='neutral_RollLine' style='--ribbonColor: ${backColor}; ${pos} ${rowStyle}' class='diceResult ${anchorClass}'></div>`)
+
+            return document.getElementById(`neutral_RollLine`);
         },
 
         //Private Members

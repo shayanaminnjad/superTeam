@@ -7,6 +7,7 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\DBAdapter;
 use BgaUserException;
@@ -66,7 +67,7 @@ class PassDestSelection extends PlayerBaseState
         //it is free, otherwise, it is regular! so a goalie pass with the situation described must by pass dice roll and morale assignment,
         //and perform must also notice that. (it must skip reading dice roll and morale assign)
 
-        DiceRoll::storeRollData($requiredPower, addslashes(PassPerform::class), false);
+        DiceRoll::storeRollInput(\intval($this->game->getActivePlayerId()), $requiredPower,PassPerform::class, false);
         MoraleAssignment::storeMoraleAssignData(addslashes(DiceRoll::class), false);
         
         $dbAdapter = DBAdapter::getInstance();

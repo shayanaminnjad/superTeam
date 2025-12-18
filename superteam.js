@@ -303,7 +303,7 @@ define([
                     rollResults.push(DiceUI.createRollResult(parseInt(player), notifData["rollResult"][player]));
                 }
 
-                return DiceUI.showRollAndWait(rollResults, notifData.requiredPower);
+                return DiceUI.showRollAndWait(rollResults, notifData.requiredPower, notifData.blockingPieces, notifData.distance);
             },
 
             notif_successfulPass: function (notifData) {
