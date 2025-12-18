@@ -9,7 +9,7 @@ define(["dojo/_base/declare", "dojo/topic"], function (declare, topic) {
 
         onEnter: function (args) {
             this._args = args;
-            
+
             if (this._root.isCurrentPlayerActive()) {
                 this._onActivePlayerEnter(args);
             }
@@ -39,9 +39,21 @@ define(["dojo/_base/declare", "dojo/topic"], function (declare, topic) {
         },
 
         onHexEnter: function (evt) {
+            try {
+                this._selfOnHexEnter(evt);
+            }
+            catch (error) {
+                console.error("hex enter failed, exception caught:", error);
+            }
         },
 
         onHexLeave: function (evt) {
+            try {
+                this._selfOnHexLeave(evt);
+            }
+            catch (error) {
+                console.error("hex leave failed, exception caught:", error);
+            }
         },
 
         getName: function () {
@@ -69,16 +81,22 @@ define(["dojo/_base/declare", "dojo/topic"], function (declare, topic) {
 
         },
 
+        _selfOnHexEnter: async function (evt) {
+
+        },
+
+        _selfOnHexLeave: async function (evt) {
+
+        },
+
         //TODO: composition is a better suit here.
-        subscribeEvent: function(eventName, handler)
-        {
+        subscribeEvent: function (eventName, handler) {
             this._eventHandles.push(topic.subscribe(eventName, handler));
         },
 
         //Private Methods
-        __removeAllHandles: function()
-        {
-            for(const handle of this._eventHandles)
+        __removeAllHandles: function () {
+            for (const handle of this._eventHandles)
                 handle.remove();
         },
 
