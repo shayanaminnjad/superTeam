@@ -378,7 +378,7 @@ define([
                     //I know this is wierd, since inRadius should be calculated from in radius, however the hex I am working with
                     //Is not perfect regular hex, this helps me to have exact center points.
                     toCartesian: function (hexInfo) {
-                        const horizontalSpacing = hexInfo.horizontalGap;
+                        const horizontalSpacing = hexInfo.horizontalSpacing;
                         const verticalSpacing = 2 * hexInfo.inRadius;
 
                         const isEvenColumn = (this.c + 1) % 2 == 1;
@@ -407,11 +407,11 @@ define([
             },
             //------------------------------------------------------------------------------------
 
-            createHexInfo: function (size, inRadius, horizontalGap, verticalGap, oddOffset) {
+            createHexInfo: function (size, inRadius, horizontalSpacing, verticalGap, oddOffset) {
                 return {
                     size: size,
                     inRadius: inRadius,
-                    horizontalGap: horizontalGap,
+                    horizontalSpacing: horizontalSpacing,
                     verticalGap: verticalGap,
                     oddOffset: oddOffset
                 }

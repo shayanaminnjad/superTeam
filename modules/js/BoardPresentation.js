@@ -10,9 +10,7 @@ define([
         //Public Functions
         construct: function (root, ballPosObj) {
             this._root = root;
-
             this._initBoard();
-
             this._addBall(ballPosObj);
         },
 
@@ -25,10 +23,12 @@ define([
         visualizePowerRequired: function (start, end) {
             this.removeRequiredPowerVisualization();
 
+            this._drawRuler(start, end);
+
             let hexesInLine = HexLib.getHexesInLine(start, end);
 
             let opponentHexes = this._root.pieceManager.getAllPiecesOwnedBy(this._root.opponentId);
-            let blockingPieces = HexLib.getHexsInPath(start, end, 1.2, opponentHexes);
+            let blockingPieces = HexLib.getHexsInPath(start, end, this._hexInfo.size * 0.5, opponentHexes, this._hexInfo);
 
             for (let i = 0; i < hexesInLine.length; i++) {
                 let el = document.getElementById(this.convertOffsetCoordToHexId(hexesInLine[i]));
@@ -56,6 +56,7 @@ define([
             document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
             document.querySelectorAll('.blocking').forEach(el => el.classList.remove('blocking'));
             document.querySelectorAll('.powerIndication').forEach(el => el.remove());
+            this._removeRuler();
         },
 
         //------------------------------------------------------------------------------------
@@ -125,10 +126,10 @@ define([
             }
         },
         //------------------------------------------------------------------------------------
-        makeAllHexesNonSelectable: function() {
+        makeAllHexesNonSelectable: function () {
             document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
         },
-        
+
         //------------------------------------------------------------------------------------
 
         //Private Functions
@@ -145,11 +146,19 @@ define([
             const TOP_MARGIN_EVEN = UIConstants.TOP_MARGIN_EVEN_PERCENT * BOARD_HEIGHT;
 
             const HEX_WIDTH = BOARD_WIDTH * UIConstants.HEX_WIDTH_PERCENT;
+            this._rulerWidth = HEX_WIDTH * 0.5;
             const HEX_HEIGHT = BOARD_HEIGHT * UIConstants.HEX_HEIGHT_PERCENT;
             const HEX_WIDTH_ROUND = Math.round(HEX_WIDTH);
             const HEX_HEIGHT_ROUND = Math.round(HEX_HEIGHT);
             const HEX_VERTICAL_SPACE = UIConstants.HEX_VERTICAL_GAP_PERCENT * BOARD_HEIGHT;
             const HEX_HORIZONTAL_SPACE = UIConstants.HEX_HORIZONTAL_SPACE_PERCENT * BOARD_WIDTH;
+
+            this._hexInfo = HexLib.createHexInfo(
+                UIConstants.NORMALIZED_HEX_SIZE,
+                UIConstants.NORMALIZED_HEX_INRADIUS,
+                UIConstants.NORMALIZED_HEX_HORIZONTAL_SPACING,
+                UIConstants.NORMALIZED_VERTICALL_GAP,
+                UIConstants.NORMALIZED_HEX_INRADIUS + UIConstants.NORMALIZED_VERTICALL_GAP * 0.5);
 
             for (let x = 0; x < UIConstants.COLUMNS; x++) {
                 let hexInColumn = (x + 1) % 2 == 1 ? UIConstants.EVEN_COLUMN_ROWS : UIConstants.ODD_COLUMN_ROWS;
@@ -164,6 +173,8 @@ define([
             }
 
             MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='pieces'></div>`);
+
+            this._addSVGLayer(MAIN_BOARD_EL);
         },
 
         //------------------------------------------------------------------------------------
@@ -188,8 +199,56 @@ define([
             return [idEls[1], idEls[2]];
         },
 
+        //------------------------------------------------------------------------------------
+
+        _addSVGLayer: function (mainBoardEl) {
+            this._svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            this._svg.setAttribute("id", "svg");
+            mainBoardEl.appendChild(this._svg);
+        },
+
+        //------------------------------------------------------------------------------------
+        _drawRuler: function (startHex, endHex) {
+            const startEl = document.getElementById(this.convertOffsetCoordToHexId(startHex));
+            const endEl = document.getElementById(this.convertOffsetCoordToHexId(endHex));
+
+
+            const startCenterX = startEl.offsetLeft + startEl.offsetWidth / 2;
+            const startCenterY = startEl.offsetTop + startEl.offsetHeight / 2;
+
+            const endCenterX = endEl.offsetLeft + endEl.offsetWidth / 2;
+            const endCenterY = endEl.offsetTop + endEl.offsetHeight / 2;
+
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("id", "ruler");
+            line.setAttribute("x1", startCenterX);
+            line.setAttribute("y1", startCenterY);
+            line.setAttribute("x2", endCenterX);
+            line.setAttribute("y2", endCenterY);
+            line.setAttribute("stroke", "yellow");
+            line.setAttribute("stroke-width", this._rulerWidth);
+            this._svg.appendChild(line);
+        },
+
+        //------------------------------------------------------------------------------------
+
+        _removeRuler: function () {
+            let rulerEl = document.getElementById('ruler');
+
+            if (rulerEl != null)
+                rulerEl.remove();
+
+            let rulerFront = document.getElementById('ruler_front');
+
+            if (rulerFront != null)
+                rulerFront.remove();
+        },
+
         //Private Members
         _root: null,
         _hexWithBall: null,
+        _hexInfo: null,
+        _svg: null,
+        _rulerWidth: null
     };
 });
