@@ -3,10 +3,13 @@
 namespace Bga\Games\SuperTeam\HexLib;
 
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\Math\HexInfo;
+use Bga\Games\SuperTeam\Math\HexShape;
+use Bga\Games\SuperTeam\Math\RectangleShape;
 use Bga\Games\SuperTeam\Math\Vector2;
 use Bga\Games\SuperTeam\Math\Math;
 
-enum Direction : int
+enum Direction: int
 {
     case NORTHEAST = 0;
     case NORTH = 1;
@@ -22,10 +25,16 @@ class HexLib
 {
     //TODO: This should be really set from outside, but for now it is ok.
     private static ?OffsetExtent $offsetExtent = null;
+    private static HexInfo $hexInfo;
 
     public static function getOffsetExtent(): OffsetExtent
     {
         return self::$offsetExtent ??= new OffsetExtent(0, 16, 0, 9, 0, 10);
+    }
+
+    public static function SetHexInfo(HexInfo $hexInfo)
+    {
+        HexLib::$hexInfo = $hexInfo;
     }
 
     private static ?array $CUBIC_DIRECTIONS = null;
@@ -42,7 +51,7 @@ class HexLib
         ];
     }
 
-    public static function offsetToCubic(HexID $hexID) : CubicCoordinate
+    public static function offsetToCubic(HexID $hexID): CubicCoordinate
     {
         $q = $hexID->getColumn();
         $r = $hexID->getRow() - floor(($q - ($q & 1)) * 0.5);
@@ -51,7 +60,7 @@ class HexLib
         return new CubicCoordinate($q, $r, $s);
     }
 
-    public static function cubicToHexID(CubicCoordinate $cubic) : HexID
+    public static function cubicToHexID(CubicCoordinate $cubic): HexID
     {
         $c = $cubic->getQ();
         $r = $cubic->getR() + floor(($c - ($c & 1)) * 0.5);
@@ -59,7 +68,7 @@ class HexLib
         return new HexID($c, $r);
     }
 
-    public static function cubicLerp(CubicCoordinate $a, CubicCoordinate $b, float $t) : CubicCoordinate
+    public static function cubicLerp(CubicCoordinate $a, CubicCoordinate $b, float $t): CubicCoordinate
     {
         return new CubicCoordinate(
             Math::lerp($a->getQ(), $b->getQ(), $t),
@@ -68,81 +77,87 @@ class HexLib
         );
     }
 
-    public static function cubicRound(CubicCoordinate $coordinate) : CubicCoordinate
+    public static function cubicRound(CubicCoordinate $coordinate): CubicCoordinate
     {
         $qRound = round($coordinate->getQ());
         $rRound = round($coordinate->getR());
         $sRound = round($coordinate->getS());
 
         $qDiff = abs($qRound - $coordinate->getQ());
-        $rDiff = abs( $rRound - $coordinate->getR());
+        $rDiff = abs($rRound - $coordinate->getR());
         $sDiff = abs($sRound - $coordinate->getS());
 
-        if ($qDiff > $rDiff && $qDiff > $sDiff)
-        {
+        if ($qDiff > $rDiff && $qDiff > $sDiff) {
             $qRound = -$rRound - $sRound;
-        }
-        else if ($rDiff > $sDiff)
-        {
+        } else if ($rDiff > $sDiff) {
             $rRound = -$qRound - $sRound;
-        }
-        else
-        {
+        } else {
             $sRound = -$qRound - $rRound;
         }
 
         return new CubicCoordinate($qRound, $rRound, $sRound);
     }
 
-    public static function HexIDToCartesian(HexID $hexID) : Vector2
+    public static function HexIDToCartesian(HexID $hexID): Vector2
     {
-        //sha: Since I don't want pixel perfect results, and only care about some relatively correct coordinates, I assume hex size is 1.
-        $horizontalSpacing = 1.5; // hex size * 1.5
-        $verticalSpacing = 1.73205; //sqrt(3) * hexSize
+        $horizontalSpacing = self::$hexInfo->horizontalSpacing;
+        $verticalSpacing = 2 * self::$hexInfo->inRadius;
 
         $isEvenColumn = ($hexID->getColumn() & 1) == 0;
 
-        if ($isEvenColumn)
+        if ($isEvenColumn) 
         {
-            return new Vector2($hexID->getColumn() * $horizontalSpacing, $hexID->getRow() * $verticalSpacing);
-        }
-        else
+            return new Vector2($hexID->getColumn() * $horizontalSpacing, $hexID->getRow() * ($verticalSpacing + self::$hexInfo->verticalGap));
+        } 
+        else 
         {
-            $oddOffset = $verticalSpacing * 0.5;
-
-            return new Vector2($hexID->getColumn() * $horizontalSpacing, $oddOffset + $hexID->getRow() * $verticalSpacing);
+            $oddOffset = self::$hexInfo->oddOffset;
+            return new Vector2($hexID->getColumn() * $horizontalSpacing, $oddOffset + $hexID->getRow() * ($verticalSpacing + self::$hexInfo->verticalGap));
         }
     }
 
-    public static function getHexesInPath(HexID $start, HexID $end, float $distanceTreshold, array $hexesToCheck) : array
+    public static function getHexesInPath(HexID $start, HexID $end, float $halfLineThickness, array $hexesToCheck): array
     {
         $result = [];
 
-        $lineDir = Vector2::subtract($end->asCartesian(), $start->asCartesian());
+        $startCartesian = $start->asCartesian();
+        $endCartesian = $end->asCartesian();
 
-        for ($i = 0; $i < count($hexesToCheck); $i++)
-        {
-            $currentHex = $hexesToCheck[$i];
+        $lineDir = $endCartesian->subtract($startCartesian);
 
-            $projectionSize = Math::pointOntoLineProjectionSize($currentHex->asCartesian(), $start->asCartesian(), $lineDir);
+        $rec = new RectangleShape($startCartesian, $lineDir, $halfLineThickness);
 
-            if ($projectionSize > 0.1 && $projectionSize < 0.9)
-            {
-                $distance = Math::pointFromLineDistance($currentHex->asCartesian(), $start->asCartesian(), $lineDir);
+        foreach ($hexesToCheck as $hex) {
+            $hexShape = new HexShape($hex->asCartesian(), HexLib::$hexInfo);
 
-                if ($distance < $distanceTreshold)
-                {
-                    $result[] = $currentHex;
-                }
-            }
-            else if ($currentHex->equals($end))
-            {
-                $result[] = $currentHex;
+            if (HexLib::satIntersect($hexShape, $rec)) {
+                return $result[] = $hex;
             }
         }
 
+
         return $result;
     }
+
+    public static function satIntersect(HexShape $hexShape, RectangleShape $rectShape): bool
+    {
+        $testingAxis = [...$hexShape->getSATAxis(), ...$rectShape->getSATAxis()];
+
+        $hexVerticesArray = $hexShape->getVertices();
+        $rectVerticesArray = $rectShape->getVertices();
+
+        foreach ($testingAxis as $axis) {
+            $hexMinMaxProj = Math::getMinMaxProjections($hexVerticesArray, $axis);
+            $rectMinMaxProj = Math::getMinMaxProjections($rectVerticesArray, $axis);
+
+            if ($hexMinMaxProj->max < $rectMinMaxProj->min || $hexMinMaxProj->min > $rectMinMaxProj->max)
+                return false;
+        }
+
+        return true;
+    }
+
+    public static function getMinMaxProjections(array $verticesArray, array $axis) {}
 
     public static function getOffsetDistance(HexID $start, HexID $end)
     {
@@ -158,8 +173,7 @@ class HexLib
     {
         $result = [];
 
-        if ($start->equals($end))
-        {
+        if ($start->equals($end)) {
             $result[] = $end;
 
             return $result;
@@ -170,9 +184,8 @@ class HexLib
 
         $distance = self::getOffsetDistance($start, $end);
 
-        for ($i = 0; $i <= $distance; $i++)
-        {
-            $cubicCoordinateOnLine = self::cubicRound(self::cubicLerp($startCubic , $endCubic, 1.0 / $distance * $i));
+        for ($i = 0; $i <= $distance; $i++) {
+            $cubicCoordinateOnLine = self::cubicRound(self::cubicLerp($startCubic, $endCubic, 1.0 / $distance * $i));
 
             $result[] = self::cubicToHexID($cubicCoordinateOnLine);
         }
@@ -180,29 +193,25 @@ class HexLib
         return $result;
     }
 
-    public static function getNeighbour(CubicCoordinate $cubicCoordinate, CubicCoordinate $direction) : CubicCoordinate
+    public static function getNeighbour(CubicCoordinate $cubicCoordinate, CubicCoordinate $direction): CubicCoordinate
     {
         return $cubicCoordinate->add($direction);
     }
 
-    public static function getNeighbours(CubicCoordinate $cubicCoord, int $dist) : array
+    public static function getNeighbours(CubicCoordinate $cubicCoord, int $dist): array
     {
         $result = [];
 
         $directions = self::getCubicDirections();
         $offsetExtent = self::getOffsetExtent();
 
-        for ($currDist = 1; $currDist <= $dist; $currDist++)
-        {
+        for ($currDist = 1; $currDist <= $dist; $currDist++) {
             $currentHex = self::getNeighbour($cubicCoord, $directions[Direction::SOUTH->value]->scale($currDist));
 
-            for ($currDir = 0; $currDir < Direction::COUNT->value; $currDir++)
-            {
-                for ($i = 0;$i < $currDist; $i++)
-                {
+            for ($currDir = 0; $currDir < Direction::COUNT->value; $currDir++) {
+                for ($i = 0; $i < $currDist; $i++) {
                     $currentHex = self::getNeighbour($currentHex, $directions[$currDir]);
-                    if ($offsetExtent->isInsideExtent(self::cubicToHexID($currentHex)))
-                    {
+                    if ($offsetExtent->isInsideExtent(self::cubicToHexID($currentHex))) {
                         $result[] = $currentHex;
                     }
                 }

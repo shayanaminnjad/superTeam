@@ -25,6 +25,7 @@ use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\Dice\GameDice;
+use Bga\Games\SuperTeam\Math\HexInfo;
 use Bga\Games\SuperTeam\Utility\Logger;
 
 
@@ -166,6 +167,8 @@ class Game extends \Table
         parent::__construct();
 
         BoardInfo::init();
+        HexLib::SetHexInfo(BoardInfo::GetHexInfo());
+
         DBAdapter::getInstance()->init(
             fn($sql) => $this->getObjectListFromDB($sql),
             fn($sql) => $this->getObjectFromDB($sql),
