@@ -131,7 +131,7 @@ class HexLib
             $hexShape = new HexShape($hex->asCartesian(), HexLib::$hexInfo);
 
             if (HexLib::satIntersect($hexShape, $rec)) {
-                return $result[] = $hex;
+                $result[] = $hex;
             }
         }
 

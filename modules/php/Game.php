@@ -166,8 +166,8 @@ class Game extends \Table
     {
         parent::__construct();
 
-        BoardInfo::init();
         HexLib::SetHexInfo(BoardInfo::GetHexInfo());
+        BoardInfo::init();
 
         DBAdapter::getInstance()->init(
             fn($sql) => $this->getObjectListFromDB($sql),
