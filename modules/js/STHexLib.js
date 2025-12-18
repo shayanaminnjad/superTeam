@@ -208,11 +208,11 @@ define([
                     getVerticesAsArray() {
                         return [
                             this.right,
-                            this.left,
-                            this.topRight,
-                            this.topLeft,
                             this.bottomRight,
-                            this.bottomLeft
+                            this.bottomLeft,
+                            this.left,
+                            this.topLeft,
+                            this.topRight
                         ];
                     }
                 }
@@ -242,8 +242,8 @@ define([
                         return [
                             this.topLeft,
                             this.topRight,
-                            this.bottomLeft,
-                            this.bottomRight
+                            this.bottomRight,
+                            this.bottomLeft
                         ];
                     }
                 };
