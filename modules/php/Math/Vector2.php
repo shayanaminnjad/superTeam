@@ -24,16 +24,26 @@ class Vector2
         return '(' . $this->x . ',' . $this->y .')';
     }
 
-    //============================
-
-    public static function subtract(Vector2 $lhs, Vector2 $rhs) : Vector2
+    public function normalize() : Vector2
     {
-        return new Vector2($lhs->x - $rhs->x, $lhs->y - $rhs->y);
+        $size = $this->size();
+
+        return new Vector2($this->x / $size, $this->y / $size);
     }
 
-    public static function add(Vector2 $lhs, Vector2 $rhs) : Vector2
+    public function subtract(Vector2 $rhs) : Vector2
     {
-        return new Vector2($lhs->x + $rhs->x, $lhs->y + $rhs->y);
+        return new Vector2($this->x - $rhs->x, $this->y - $rhs->y);
+    }
+
+    public function add(Vector2 $rhs) : Vector2
+    {
+        return new Vector2($this->x + $rhs->x, $this->y + $rhs->y);
+    }
+
+    public function scale(float $scale) : Vector2
+    {
+        return new Vector2($this->x * $scale, $this->y * $scale);
     }
 
 }
