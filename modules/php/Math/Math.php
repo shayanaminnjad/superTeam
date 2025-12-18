@@ -8,31 +8,53 @@ class Math
     {
         return max($min, min($value, $max));
     }
-    public static function pointFromLineDistance(Vector2 $point, Vector2 $lineStart, Vector2 $lineDir) : float
+    public static function pointFromLineDistance(Vector2 $point, Vector2 $lineStart, Vector2 $lineDir): float
     {
         if ($lineDir->size() === 0)
             return 0;
         else
-            return abs(self::crossProduct2D($lineDir, Vector2::subtract($point, $lineStart))) / $lineDir->size();
+            return abs(self::crossProduct2D($lineDir, $point->subtract($lineStart)) / $lineDir->size());
     }
 
-    public static function pointOntoLineProjectionSize(Vector2 $point, Vector2 $lineStart, Vector2 $lineDir) : float
+    public static function pointOntoLineProjectionSize(Vector2 $point, Vector2 $lineStart, Vector2 $lineDir): float
     {
-        return self::dotProduct($lineDir, Vector2::subtract($point, $lineStart)) / pow($lineDir->size(), 2);
+        return self::dotProduct($lineDir, rhs: $point->subtract($lineStart)) / pow($lineDir->size(), 2);
     }
 
-    public static function dotProduct(Vector2 $lhs, Vector2 $rhs) : float
+    public static function dotProduct(Vector2 $lhs, Vector2 $rhs): float
     {
         return $lhs->x * $rhs->x + $lhs->y * $rhs->y;
     }
 
-    public static function crossProduct2D(Vector2 $lhs, Vector2 $rhs) : float
+    public static function crossProduct2D(Vector2 $lhs, Vector2 $rhs): float
     {
         return $lhs->x * $rhs->y - $lhs->y * $rhs->x;
     }
 
-    public static function lerp(float $a, float $b, float $t) : float
+    public static function lerp(float $a, float $b, float $t): float
     {
         return $a + ($b - $a) * $t;
+    }
+
+    public static function rotateVector(Vector2 $vector, float $radian)
+    {
+        $sinTheta = -sin($radian);
+        $cosTheta = cos($radian);
+
+        return new Vector2($cosTheta * $vector->x - $sinTheta * $vector->y, $sinTheta * $vector->x + $cosTheta * $vector->y);
+    }
+
+    public static function getMinMaxProjections(array $vertices, Vector2 $axis)
+    {
+        $hexMinPoint = INF;
+        $hexMaxPoint = -INF;
+
+        foreach ($vertices as $vertex) {
+            $projSize = Math::dotProduct($vertex, $axis);
+            $hexMinPoint = min($hexMinPoint, $projSize);
+            $hexMaxPoint = max($hexMaxPoint, $projSize);
+        }
+
+        return new MinMax($hexMinPoint, $hexMaxPoint);
     }
 }
