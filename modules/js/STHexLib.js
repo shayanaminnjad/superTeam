@@ -137,13 +137,13 @@ define([
 
                 const rect = this.getRectangleShape(startAsCartesian, lineDir, halfLineThickness);
 
-                for (let i = 0; i < hexArray.length; i++) {
+                for (const hex of hexArray) {
 
-                    const currHexAsCartesian = hexArray[i].toCartesian(hexInfo);
+                    const currHexAsCartesian = hex.toCartesian(hexInfo);
                     const hexShape = this.getHexShape(currHexAsCartesian, hexInfo);
 
                     if (this.satIntersect(hexShape, rect)) {
-                        result.push(hexArray[i]);
+                        result.push(hex);
                     }
                 }
 
