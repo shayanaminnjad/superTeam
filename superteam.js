@@ -136,26 +136,18 @@ define([
                 await this.currentState.onHexClicked(evt);
             },
 
-            onHexMouseEnter: function (evt) {
+            onHexMouseEnter: async function (evt) {
                 if (this.serverCallInProgress)
                     return;
 
-                if (this.currentStateData.name === 'passDestinationSelection') {
-                    if (evt.currentTarget.classList.contains('selectable')) {
-                        Board.visualizePowerRequired(Board.getHexWithBall(), Board.convertHexIdToOffsetCoord(evt.currentTarget.id));
-                    }
-                }
+                await this.currentState.onHexEnter(evt);
             },
 
-            onHexMouseLeave: function (evt) {
+            onHexMouseLeave: async function (evt) {
                 if (this.serverCallInProgress)
                     return;
 
-                if (this.currentStateData.name === 'passDestinationSelection') {
-                    document.querySelectorAll('.inPath').forEach(el => el.classList.remove('inPath'));
-                    document.querySelectorAll('.blocking').forEach(el => el.classList.remove('blocking'));
-                    document.querySelectorAll('.powerIndication').forEach(el => el.remove());
-                }
+                this.currentState.onHexLeave(evt);
             },
 
             configureClientButtons(clientButtons) {
