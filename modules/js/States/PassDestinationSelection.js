@@ -45,6 +45,16 @@ define(["dojo/_base/declare",
                 }
             },
 
+            _selfOnHexEnter: async function (evt) {
+                if (evt.currentTarget.classList.contains('selectable')) {
+                    Board.visualizePowerRequired(Board.getHexWithBall(), Board.convertHexIdToOffsetCoord(evt.currentTarget.id));
+                }
+            },
+
+            _selfOnHexLeave: async function(evt) {
+                Board.removeRequiredPowerVisualization();
+            },
+
             getName: function () {
                 return this.constructor.getName();
             }
