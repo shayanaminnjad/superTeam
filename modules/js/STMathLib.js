@@ -10,17 +10,49 @@ define([], function () {
         //------------------------------------------------------------------------------------
 
         createVector2D: function (x, y) {
+            const factory = this;
+
             return {
                 x: x,
                 y: y,
 
                 toString: function () {
-                    return '(' + x + ', ' + y + ')';
+                    return '(' + this.x + ', ' + this.y + ')';
                 },
 
-                equals: function (other) {
-                    return this.x === other.x && this.y === other.y;
+                equals: function (other, ep = 1e-6) {
+                    return Math.abs(this.x - other.x) < eps &&
+                        Math.abs(this.y - other.y) < eps;
                 },
+
+                normalized: function () {
+                    const size = this.magnitude();
+
+                    if (size === 0)
+                        return factory.createVector2D(0, 0);
+
+                    return factory.createVector2D(this.x / size, this.y / size);
+                },
+
+                magnitude: function () {
+                    return Math.sqrt(this.x * this.x + this.y * this.y);
+                },
+
+                squaredMagnitude: function () {
+                    return this.x * this.x + this.y * this.y;
+                },
+
+                scale: function (factor) {
+                    return factory.createVector2D(this.x * factor, this.y * factor);
+                },
+
+                add: function (other) {
+                    return factory.createVector2D(this.x + other.x, this.y + other.y);
+                },
+
+                subtract: function (other) {
+                    return factory.createVector2D(this.x - other.x, this.y - other.y);
+                }
             }
         },
 
@@ -38,42 +70,11 @@ define([], function () {
 
         //------------------------------------------------------------------------------------
 
-        vectorSize: function (vec) {
-            return Math.sqrt(vec.x * vec.x + vec.y * vec.y);
-        },
-
-        //------------------------------------------------------------------------------------
-
         pointFromLineDistance: function (point, lineStart, lineDir) {
-            if (this.vectorSize(lineDir) === 0)
+            if (lineDir.squaredMagnitude() === 0)
                 return 0;
             else
-                return Math.abs(this.crossProduct2D(lineDir, this.vectorSubtract(point, lineStart))) / this.vectorSize(lineDir);
-        },
-
-        //------------------------------------------------------------------------------------
-
-        vectorSubtract: function (a, b) {
-            return this.createVector2D(a.x - b.x, a.y - b.y);
-        },
-
-        //------------------------------------------------------------------------------------
-
-        vectorAdd: function (a, b) {
-            return this.createVector2D(a.x + b.x, a.y + b.y);
-        },
-
-        //------------------------------------------------------------------------------------
-
-        vectorScale: function (vector, scale) {
-            return this.createVector2D(vector.x * scale, vector.y * scale);
-        },
-
-        //------------------------------------------------------------------------------------
-
-        normalize: function (vector) {
-            const size = this.vectorSize(lineDir);
-            return this.createVector2D(vector.x / size, vector.y / size);
+                return Math.abs(this.crossProduct2D(lineDir, point.subtract(lineStart))) / lineDir.magnitude();
         },
 
         //------------------------------------------------------------------------------------
@@ -81,13 +82,13 @@ define([], function () {
         pointOntoLineProjection: function (point, lineStart, lineDir) {
             let projSize = this.pointOntoLineProjectionSize(point, lineStart, lineDir);
 
-            return this.vectorScale(lineDir, projSize);
+            return lineStart.add(lineDir.scale(projSize));
         },
 
         //------------------------------------------------------------------------------------
 
-        rotateVector: function(vector, radian) {
-            const sinTheta = Math.sin(radian);
+        rotateVector: function (vector, radian) {
+            const sinTheta = -Math.sin(radian);
             const cosTheta = Math.cos(radian);
 
             return this.createVector2D(cosTheta * vector.x - sinTheta * vector.y, sinTheta * vector.x + cosTheta * vector.y);
@@ -96,9 +97,12 @@ define([], function () {
         //------------------------------------------------------------------------------------
 
         pointOntoLineProjectionSize: function (point, lineStart, lineDir) {
-            let lineDirSize = this.vectorSize(lineDir);
+            const lineDirSquaredMagnitude = lineDir.squaredMagnitude();
 
-            return this.dotProduct(lineDir, this.vectorSubtract(point, lineStart)) / (lineDirSize * lineDirSize);
+            if (lineDirSquaredMagnitude === 0)
+                return 0;
+
+            return this.dotProduct(lineDir, point.subtract(lineStart)) / lineDirSquaredMagnitude;
         },
 
         //------------------------------------------------------------------------------------
