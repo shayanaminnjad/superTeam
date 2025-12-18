@@ -25,7 +25,7 @@ define(["dojo/_base/declare",
             },
 
             _onActivePlayerLeave: function () {
-                if (this._args.isAttacker) {
+                if (this._args.attacker) {
                     this._root.removeConfirmationStepFromActionButton();
                 }
             },
