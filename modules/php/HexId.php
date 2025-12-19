@@ -34,9 +34,21 @@ class HexID
         return ['hex_column'=> $this->column, 'hex_row' =>$this->row];
     }
 
+    public function toJson() : string
+    {
+        return json_encode($this->convertToArray());
+    }
+
     public static function fromArray(array $arrayHexId) : HexID
     {
         return new HexID($arrayHexId['hex_column'], $arrayHexId['hex_row']);
+    }
+
+    public static function fromJson(string $json):HexID
+    {
+        $res = json_decode($json, true);
+
+        return new HexID($res['hex_column'], $res['hex_row']);
     }
 
     public function asCartesian() : Vector2
