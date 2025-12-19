@@ -45,8 +45,8 @@ define([
 
                 console.log(gamedatas);
 
-                this.myColor = gamedatas.players[this.player_id].color === 'DD4720' ? 'orange' : 'blue';
-                this.opponentColor = this.myColor === 'orange' ? 'blue' : 'orange';
+                this.myColor = gamedatas.players[this.player_id].color === 'DD4720' ? 'red' : 'blue';
+                this.opponentColor = this.myColor === 'red' ? 'blue' : 'red';
 
                 for (const player of Object.keys(gamedatas.players)) {
                     if (parseInt(player) !== this.player_id) {

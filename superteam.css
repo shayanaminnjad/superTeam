@@ -103,7 +103,7 @@
     pointer-events: none;
 }
 
-.piece.regular.orange.fresh {
+.piece.regular.red.fresh {
     background-image: url('img/redMeepleReady.png');
     background-size: contain;
     background-repeat: no-repeat;
@@ -111,21 +111,21 @@
     pointer-events: none;
 }
 
-.piece.regular.orange.exhausted {
+.piece.regular.red.exhausted {
     background-image: url('img/redMeepleExhausted.png');
     background-size: contain;
     background-repeat: no-repeat;
     pointer-events: none;
 }
 
-.piece.captain.orange.fresh {
+.piece.captain.red.fresh {
     background-image: url('img/redMeepleReady.png');
     background-size: contain;
     background-repeat: no-repeat;
     pointer-events: none;
 }
 
-.piece.captain.orange.exhausted {
+.piece.captain.red.exhausted {
     pointer-events: none;
     background-image: url('img/redMeepleExhausted.png');
     background-size: contain;
@@ -190,7 +190,8 @@
 }
 
 .blocking {
-    background-color: rgb(255, 0, 0);
+    --col: red;
+    background-color: var(--col);
     opacity: 0.8 !important;
 }
 
@@ -381,6 +382,27 @@
     text-align: center;
     line-height: 28px;
     font-size: large;
+}
+
+.shootTargetTile {
+    --rot: 0deg;
+    --scale: 1;
+
+    position: absolute;
+    background-size: contain;
+    background-repeat: no-repeat;
+    overflow: visible;
+    width: 37px ;
+    height: 43px;
+    z-index: 102;
+    pointer-events: all;
+    transform: rotate(var(--rot)) scale(var(--scale));
+    transition: transform 0.25s;
+}
+
+.shootTargetTile:hover
+{
+    --scale: 1.2;
 }
 
 .lineStart {
