@@ -9,6 +9,7 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use BgaUserException;
 
 class ShootTargetSelection extends PlayerBaseState
 {
@@ -32,35 +33,46 @@ class ShootTargetSelection extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
-        $this->addClientButton('left', [$this, 'actLeft']);
-        $this->addClientButton('middle', [$this, 'actMiddle']);
-        $this->addClientButton('right', [$this, 'actRight']);
-
-        //(TODO: probably this is too expensive here!)
         $board = $this->game->getBoard();
+        $defender = $board->getDefender();
+        $goalieCol = $board->getPlayerGoalie($defender)->getPosition()->getColumn();
 
         return [
             'attacker' => $board->getAttacker(),
-            'defender' => $board->getDefender()
+            'defender' => $defender,
+            'selectableHexes' => [
+                new HexID($goalieCol, 4)->convertToArray(),
+                new HexID($goalieCol, 5)->convertToArray(),
+                new HexID($goalieCol, 6)->convertToArray(),
+            ]
         ];
     }
 
     #[PossibleAction]
-    public function actLeft(): void
+    public function actTargetSelected(int $hexColumn, int $hexRow): void
     {
-        $this->onTargetSelected(-1);
-    }
+        $selectedHex = new HexID($hexColumn, $hexRow);
+        $selectableHexes = $this->getArgs()['selectableHexes'];
 
-    #[PossibleAction]
-    public function actMiddle(): void
-    {
-        $this->onTargetSelected(0);
-    }
+        $isInputCorrect = false;
+        foreach ($selectableHexes as $hex)
+        {
+            if (HexID::fromArray($hex)->equals($selectedHex))
+            {
+                $isInputCorrect = true;
+                break;
+            }
+        }
 
-    #[PossibleAction]
-    public function actRight(): void
-    {
-        $this->onTargetSelected(1);
+        if (!$isInputCorrect)
+        {
+            throw new BgaUserException("invalid hex selected ($hexColumn, $hexRow)");
+        }
+
+        $playerId = \intval($this->game->getCurrentPlayerId());
+        DBAdapter::getInstance()->storePlayerTempStr($playerId, 'shootTarget', $selectedHex->toJson());
+
+        $this->gamestate->setPlayerNonMultiactive($playerId, ShootTargetReveal::class);
     }
 
     function zombie(int $playerId): string
@@ -69,33 +81,9 @@ class ShootTargetSelection extends PlayerBaseState
         return '';
     }
 
-    private function onTargetSelected(int $target)
+    public static function getPlayerShootTarget(int $playerId) : HexID
     {
-        if ($target < -1 || $target > 1)
-            throw new \BgaUserException("Invalid target value sent!");
-
-        $player_id = intval($this->game->getCurrentPlayerId());
-        $board = $this->game->getBoard();
-
-        $label = $board->getAttacker() === $player_id ? "attackerShootTarget" : "defenderShootTarget";
-
-        DBAdapter::getInstance()->setGameStateValue($label, $target);
-
-        $this->gamestate->setPlayerNonMultiactive($player_id, ShootTargetReveal::class);
-    }
-
-    public static function getDefenderShootTarget(): int
-    {
-        return DBAdapter::getInstance()->getGameStateValue("defenderShootTarget");
-    }
-
-    public static function getShootTargetHex(int $goalieCol, int $target): HexID
-    {
-        return new HexID($goalieCol, 5 + $target);
-    }
-
-    public static function getAttackShootTarget(): int
-    {
-        return DBAdapter::getInstance()->getGameStateValue("attackerShootTarget");
+        $jsonObj = DBAdapter::getInstance()->getPlayerTempStr($playerId, 'shootTarget');
+        return HexID::fromJson($jsonObj);
     }
 }

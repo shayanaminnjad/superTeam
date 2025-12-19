@@ -11,27 +11,18 @@ define(["dojo/_base/declare",
 
             //State Overrides
             _onActivePlayerEnter: function (args) {
-                let isAttacker = parseInt(args.attacker) === this._root.player_id;
-
-                if (isAttacker) {
-                    this._root.addConfirmationStepToActionButtons();
-                    this.subscribeEvent('serverActionRequested', this.onAttackerSelectedTarget.bind(this));
-                    this.subscribeEvent('requestedActionCanceled', this.onAttackerCanceledTarget.bind(this));
-                }
+                this._placeTargetingTiles(this._isCurrentPlayerAttacker());
             },
 
             _onInactivePlayerEnter: function (args) {
-                //This is a multiActive state, there are not inActive
             },
 
             _onActivePlayerLeave: function () {
-                if (this._args.attacker) {
-                    this._root.removeConfirmationStepFromActionButton();
-                }
+                this._cleanup();
             },
 
             _onInactivePlayerLeave: function () {
-                //This is a multiActive state, there are not inActive
+                this._cleanup();
             },
 
             getName: function () {
@@ -40,30 +31,67 @@ define(["dojo/_base/declare",
             //Notifications
 
             //Private Methods
-            onAttackerSelectedTarget: function (data) {
-                //TODO: this must change based on whether goalie is on left or right. 
-                let goalieColumn = 0;
-
-                if (this._root.opponentId === this._root.userInRightId)
-                    goalieColumn = 16;
-
-                let targetHex = null;
-
-                if (data === 'left') {
-                    targetHex = HexLib.createOffsetCoord(4, goalieColumn)
-                }
-                else if (data === 'middle') {
-                    targetHex = HexLib.createOffsetCoord(5, goalieColumn)
-                }
-                else {
-                    targetHex = HexLib.createOffsetCoord(6, goalieColumn)
-                }
-
-                Board.visualizePowerRequired(Board.getHexWithBall(), targetHex);
-            },
-
             onAttackerCanceledTarget: function (data) {
                 Board.removeRequiredPowerVisualization();
+            },
+
+            _placeTargetingTiles: function (isAttacker) {
+                let goalieColumn = 16;
+                if (isAttacker) {
+                    if (this._root.player_id === this._root.userInRightId)
+                        goalieColumn = 0;
+                }
+                else if (this._root.player_id !== this._root.userInRightId) {
+                    goalieColumn = 0;
+
+                }
+
+                let rotation = "90deg";
+                let leftRow = 4;
+                let rightRow = 6;
+                if (this._root.player_id === this._root.userInRightId) {
+                    leftRow = 6;
+                    rightRow = 4;
+                    rotation = "-90deg";
+                }
+
+                const myColor = this._root.myColor;
+                let mainBoardEl = Board.getMainBoardElement();
+
+                this._createTargetingTile(mainBoardEl, rotation, leftRow, goalieColumn, `url('${g_gamethemeurl}img/${myColor}TargetLeft.png')`);
+                this._createTargetingTile(mainBoardEl, rotation, 5, goalieColumn, `url('${g_gamethemeurl}img/${myColor}TargetCenter.png')`);
+                this._createTargetingTile(mainBoardEl, rotation, rightRow, goalieColumn, `url('${g_gamethemeurl}img/${myColor}TargetRight.png')`);
+            },
+
+            _createTargetingTile: function (parent, rotation, row, column, image) {
+                const tile = document.createElement('div');
+                tile.className = 'shootTargetTile';
+                tile.style.backgroundImage = image;
+                tile.style.setProperty('--rot', rotation);
+                tile.addEventListener('click', e => this._onTileClicked(e, row, column))
+                parent.appendChild(tile);
+                this._root.placeOnObject(tile, Board.convertOffsetCoordToHexId(HexLib.createOffsetCoord(row, column)));
+            },
+
+            _onTileClicked: function (tile, row, column) {
+                const selectedTile = HexLib.createOffsetCoord(row, column);
+
+                Board.visualizePowerRequired(Board.getHexWithBall(), selectedTile, !this._isCurrentPlayerAttacker());
+
+                //(sha) Make this a function inside root.
+                this._root.statusBar.removeActionButtons();
+                this._root.statusBar.addActionButton('confirm', () => {
+                    this._root.performServerAction("actTargetSelected", { hexColumn: column, hexRow: row });
+                }, { color: 'primary' });
+            },
+
+            _isCurrentPlayerAttacker: function () {
+                return parseInt(this._args.attacker) === this._root.player_id;
+            },
+
+            _cleanup: function () {
+                Board.removeRequiredPowerVisualization();
+                document.querySelectorAll('.shootTargetTile').forEach(div => div.remove());
             }
         });
 

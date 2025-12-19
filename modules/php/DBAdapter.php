@@ -77,6 +77,7 @@ class DBAdapter
 
 
     //TODO: These shouldn't be here, these are utils on data base.
+    //This must be a single json entry!
     public function storeSelectedHex(int $hexColumn, int $hexRow)
     {
         $this->DbQuery("UPDATE `st_globals` SET `selected_hex_column` = $hexColumn, `selected_hex_row` = $hexRow");

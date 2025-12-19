@@ -27,17 +27,19 @@ class ShootPerform extends GameState
     function onEnteringState(int $activePlayerId)
     {
         $board = $this->game->getBoard();
+        $attacker = $board->getAttacker();
+        $defender = $board->getDefender();
 
-        $attackerRollResult = DiceRoll::getRollResult($board->getAttacker());
-        $defenderRollResult = DiceRoll::getRollResult($board->getDefender());
+        $attackerRollResult = DiceRoll::getRollResult($attacker);
+        $defenderRollResult = DiceRoll::getRollResult($defender);
         $powerRequired = $this->game->getGameStateValue('required_power');
 
         if ($attackerRollResult->getTotal() >= $defenderRollResult->getTotal() + $powerRequired) 
         {
-            $playerGoals = $this->game->AddOneGoal($board->getAttacker());
+            $playerGoals = $this->game->AddOneGoal($attacker);
 
             $this->notify->all('goalScored', 'goal scored!', array(
-                "playerId" => $board->getAttacker(),
+                "playerId" => $attacker,
                 "goals" => $playerGoals
             ));
 
@@ -47,8 +49,8 @@ class ShootPerform extends GameState
         } 
         else 
         {
-            $defenderGoalie = $board->getPlayerGoalie($board->getDefender());
-            $selectedHex = ShootTargetSelection::getShootTargetHex( $defenderGoalie->getPosition()->getColumn(),ShootTargetSelection::getAttackShootTarget());
+            $defenderGoalie = $board->getPlayerGoalie($defender);
+            $selectedHex = ShootTargetSelection::getPlayerShootTarget($attacker);
 
             $newLocation = $board->getClosetBlockingPieceOrHalfWay($board->getBallHex(), $selectedHex, $this->game->getInactivePlayerId());
             $board->setBallLocation($newLocation);

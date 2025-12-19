@@ -16,7 +16,7 @@ define(["dojo/_base/declare",
                 let selectedHex = STHexLib.createOffsetCoord(args.selectedDestination.hex_row, args.selectedDestination.hex_column);
 
                 if (parseInt(args.requiredPower) > 0) {
-                    Board.visualizePowerRequired(Board.getHexWithBall(), selectedHex);
+                    Board.visualizePowerRequired(Board.getHexWithBall(), selectedHex, parseInt(args.attacker) !== this._root.player_id);
                 }
                 else {
                     Board.highlightHex(Board.convertOffsetCoordToHexId(selectedHex));

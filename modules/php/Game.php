@@ -189,9 +189,7 @@ class Game extends \Table
             "required_power" => 15,
             "attacker" => 16,
             "defender" => 17,
-            "defenderShootTarget" => 18,
-            "attackerShootTarget" => 19,
-            "moraleAssignRemaining" => 20,
+            "moraleAssignRemaining" => 18,
         ]);
 
         /* example of notification decorator.
@@ -476,18 +474,16 @@ class Game extends \Table
 
     private function initGameState(array $players): void
     {
-        list($orangePlayer, $bluePlayer) = array_keys($players);
+        list($redPlayer, $bluePlayer) = array_keys($players);
 
         $this->setGameStateInitialValue('number_of_moves', 0);
         $this->setGameStateInitialValue('selected_piece', -1);
         $this->setGameStateInitialValue('required_power', -1);
         $this->setGameStateInitialValue('game_half', 1);
-        $this->setGameStateInitialValue('user_in_left_id', $orangePlayer);
-        $this->setGameStateInitialValue('attacker', $orangePlayer);
+        $this->setGameStateInitialValue('user_in_left_id', $redPlayer);
+        $this->setGameStateInitialValue('attacker', $redPlayer);
         $this->setGameStateInitialValue('user_in_right_id', $bluePlayer);
         $this->setGameStateInitialValue('defender', $bluePlayer);
-        $this->setGameStateInitialValue('defenderShootTarget', 0);
-        $this->setGameStateInitialValue('attackerShootTarget', 0);
         $this->setGameStateInitialValue("moraleAssignRemaining", 0);
     }
 
@@ -496,9 +492,9 @@ class Game extends \Table
         $centerPos = BoardInfo::$CENTER_POSITION;
         $this->DbQuery("INSERT INTO ball (hex_column, hex_row) VALUES ({$centerPos->getColumn()},{$centerPos->getRow()})");
 
-        list($orangePlayer, $bluePlayer) = array_keys($players);
+        list($redPlayer, $bluePlayer) = array_keys($players);
 
-        $this->initAPlayerPiece($orangePlayer);
+        $this->initAPlayerPiece($redPlayer);
         $this->initAPlayerPiece($bluePlayer);
     }
 

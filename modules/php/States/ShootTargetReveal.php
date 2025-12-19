@@ -28,31 +28,30 @@ class ShootTargetReveal extends GameState
     function onEnteringState(int $activePlayerId)
     {
         $board = $this->game->getBoard();
-
-        $db = DBAdapter::getInstance();
-        $defenderTarget = ShootTargetSelection::getDefenderShootTarget();
-
+        $defender = $board->getDefender();
+        
+        $defenderTarget = ShootTargetSelection::getPlayerShootTarget($defender);
         $defenderGoalie = $board->getPlayerGoalie($board->getDefender());
-        $defenderGoalieOldPos = $defenderGoalie->getPosition();
-        $goalieNewPos = ShootTargetSelection::getShootTargetHex($defenderGoalieOldPos->getColumn(), $defenderTarget);
-        $board->movePieceToHex($defenderGoalie->getId(), $goalieNewPos);
-
-        $attackerTarget = ShootTargetSelection::getAttackShootTarget();
-        $attackerTargetHex = ShootTargetSelection::getShootTargetHex($goalieNewPos->getColumn(), $attackerTarget);
-
+        $board->movePieceToHex($defenderGoalie->getId(), $defenderTarget);
+        
+        $attacker = $board->getAttacker();
+        $attackerTarget = ShootTargetSelection::getPlayerShootTarget($attacker);
+        
         $dummyinlineHexes = [];
         $dummyblockingHexes = [];
-        $requiredPower = $board->getRequiredPower($board->getBallHex(), $attackerTargetHex, $board->getDefender(), $dummyinlineHexes, $dummyblockingHexes);
-
+        $requiredPower = $board->getRequiredPower($board->getBallHex(), $attackerTarget, $board->getDefender(), $dummyinlineHexes, $dummyblockingHexes);
+        
         DiceRoll::storeRollInput($activePlayerId, $requiredPower, ShootPerform::class, true);
         MoraleAssignment::storeMoraleAssignData(addslashes(DiceRoll::class), true);
-        $db->storeSelectedHex($attackerTargetHex->getColumn(), $attackerTargetHex->getRow());
+
+        $db = DBAdapter::getInstance();
+        $db->storeSelectedHex($attackerTarget->getColumn(), $attackerTarget->getRow());
 
         $this->game->notify->all(
             'shootTargetReveal',
             '',
             [
-                'goalieHex' => $goalieNewPos->convertToArray(),
+                'goalieHex' => $defenderTarget->convertToArray(),
                 'attacker' => $board->getAttacker(),
                 'defender' => $board->getDefender(),
                 'defenderTarget' => $defenderTarget,
