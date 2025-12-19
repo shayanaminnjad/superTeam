@@ -20,15 +20,17 @@ define([
         },
         //------------------------------------------------------------------------------------
 
-        visualizePowerRequired: function (start, end) {
+        visualizePowerRequired: function (start, end, opponentPerspective = false) {
             this.removeRequiredPowerVisualization();
-
+            
             this._drawRuler(start, end);
+
+            const blockingPiecesOwner = opponentPerspective ? this._root.player_id : this._root.opponentId;
 
             let hexesInLine = HexLib.getHexesInLine(start, end);
 
-            let opponentHexes = this._root.pieceManager.getAllPiecesOwnedBy(this._root.opponentId);
-            let blockingPieces = HexLib.getHexsInPath(start, end, this._hexInfo.size * 0.5, opponentHexes, this._hexInfo);
+            let ownedHexes = this._root.pieceManager.getAllPiecesOwnedBy(blockingPiecesOwner);
+            let blockingPieces = HexLib.getHexsInPath(start, end, this._hexInfo.size * 0.5, ownedHexes, this._hexInfo);
 
             for (let i = 0; i < hexesInLine.length; i++) {
                 let el = document.getElementById(this.convertOffsetCoordToHexId(hexesInLine[i]));
@@ -38,6 +40,7 @@ define([
             for (let i = 0; i < blockingPieces.length; i++) {
                 let el = document.getElementById(this.convertOffsetCoordToHexId(blockingPieces[i]));
                 el.classList.add('blocking');
+                el.style.setProperty('--col', opponentPerspective ? "#1fc7c7" : "red");
 
                 let tempEl = document.createElement("span");
                 tempEl.innerHTML = `<span class="powerIndication">+1</span>`;
