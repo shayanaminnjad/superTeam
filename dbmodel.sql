@@ -47,7 +47,8 @@ CREATE TABLE IF NOT EXISTS `player_temp_data` (
     `player_id` int (10) unsigned NOT NULL,
     `assigned_morale` INT DEFAULT 0,
     `dice_result` TEXT DEFAULT '',
-    `dice_roll_input` TEXT DEFAULT ''
+    `dice_roll_input` TEXT DEFAULT '',
+    `shootTarget` TEXT DEFAULT ''
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `logs` (
