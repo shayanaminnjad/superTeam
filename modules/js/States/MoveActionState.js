@@ -1,9 +1,9 @@
 define(["dojo/_base/declare",
     g_gamethemeurl + "modules/js/States/BaseState.js",
     g_gamethemeurl + "modules/js/BoardPresentation.js",
-    g_gamethemeurl + "modules/js/PlayerAreaManager.js",
+    g_gamethemeurl + "modules/js/PlayerPanelManager.js",
     g_gamethemeurl + "modules/js/STHexLib.js",],
-    function (declare, BaseState, Board, PlayerAreaManager, STHexLib) {
+    function (declare, BaseState, Board, PlayerPanelManager, STHexLib) {
 
         const MoveActionState = declare("st.MoveActionState", BaseState, {
 
@@ -49,7 +49,7 @@ define(["dojo/_base/declare",
                 let piece = this._root.pieceManager.getPiece(notifData.movedPiece);
 
                 if (parseInt(notifData.spentMorale) === 1) {
-                    await PlayerAreaManager.reducePlayerMorale(1, piece.getDOMID());
+                    await PlayerPanelManager.reducePlayerMorale(1, piece.getDOMID());
                 }
 
                 piece.setPosition(destHex);

@@ -21,16 +21,16 @@ define([
     "dojo", "dojo/_base/declare", "dojo/topic",
     g_gamethemeurl + "modules/js/STHexLib.js",
     g_gamethemeurl + "modules/js/PieceManager.js",
-    g_gamethemeurl + "modules/js/Piece.js",
     g_gamethemeurl + "modules/js/STUIHelpers.js",
     g_gamethemeurl + "modules/js/BoardPresentation.js",
     g_gamethemeurl + "modules/js/DiceUI.js",
-    g_gamethemeurl + "modules/js/PlayerAreaManager.js",
+    g_gamethemeurl + "modules/js/PlayerPanelManager.js",
     g_gamethemeurl + "modules/js/States/StatesRegistry.js",
+    g_gamethemeurl + "modules/js/PlayerArea.js",
     "ebg/core/gamegui",
     "ebg/counter",
 ],
-    function (dojo, declare, topic, STHexLib, PieceManager, Piece, STHUIHelpers, Board, DiceUI, PlayerAreaManager, StatesRegistry) {
+    function (dojo, declare, topic, STHexLib, PieceManager, STHUIHelpers, Board, DiceUI, PlayerPanelManager, StatesRegistry, PlayerArea) {
         return declare("bgagame.superteam", ebg.core.gamegui, {
             constructor: function () {
                 console.log('superteam constructor');
@@ -58,9 +58,12 @@ define([
                 this.userInLeftId = parseInt(gamedatas['user_in_left_id']);
                 this.userInRightId = parseInt(gamedatas['user_in_right_id']);
 
-                PlayerAreaManager.construct(this, gamedatas);
+                PlayerPanelManager.construct(this, gamedatas);
 
                 this.setupMainBoard(gamedatas);
+
+                this.myPlayerArea = new PlayerArea(this.player_id, gamedatas.players[this.player_id], this);
+                this.opponentPlayerArea = new PlayerArea(this.opponentId, gamedatas.players[this.opponentId], this);
 
                 DiceUI.construct(this);
 
@@ -335,7 +338,7 @@ define([
             },
 
             notif_goalScored: async function (notifData) {
-                return PlayerAreaManager.setPlayerScoredGoals(notifData.playerId, notifData.goals);
+                return PlayerPanelManager.setPlayerScoredGoals(notifData.playerId, notifData.goals);
             },
 
             notif_resetBoard: async function (notifData) {
@@ -426,6 +429,10 @@ define([
             pieceManager: null,
 
             opponentId: null,
+
+            myPlayerArea: null,
+
+            opponentPlayerArea: null,
 
             userInLeftId: null,
 

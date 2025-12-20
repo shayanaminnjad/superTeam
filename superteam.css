@@ -28,7 +28,18 @@
     background-repeat: no-repeat;
     width: calc(var(--main-bg-ratio-x) * var(--main-bg-scale));
     height: calc(var(--main-bg-ratio-y) * var(--main-bg-scale));
+    border-radius: 8px;
     overflow: visible;
+}
+
+.playerArea {
+    position: relative;
+    height: fit-content;
+    width: auto;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    margin: 10px;
+    border: 4px solid white;
 }
 
 #svg {
@@ -166,7 +177,9 @@
 }
 
 .selectable {
-    background-color: white;
+    --back-color: white;
+
+    background-color: var(--back-color);
     opacity: 0.4;
 }
 
@@ -400,15 +413,55 @@
     transition: transform 0.25s;
 }
 
-.shootTargetTile:hover
-{
+.shootTargetTile:hover {
     --scale: 1.2;
 }
 
-.lineStart {
-    background-color: aquamarine;
+.coachBoard {
+    --width-ratio: 5px;
+    --heigh-ratio: 3px;
+    --scale: 75;
+
+    position: relative;
+    background-image: url("img/coachBoard.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    overflow: visible;
+    margin: 5px;
+    width: calc(var(--width-ratio) * var(--scale));
+    height: calc(var(--heigh-ratio) * var(--scale));
+    border-radius: 8px;
 }
 
-.lineEnd {
-    background-color: chartreuse;
+.readonlyText {
+    --size: xx-small;
+    --color: red;
+
+    position: relative;
+    font-size: var(--size);
+    color: var(--color);
+    margin-left: 10px;
+    pointer-events: none;
+}
+
+.grid{
+    --rows: 2;
+    --columns: 5;
+    --rows-gap: 16px;
+    --columns-gap: 8px;
+
+    position: absolute;
+    display: grid;
+    grid-template-columns: repeat(var(--columns), 1fr);
+    grid-template-rows: repeat(var(--rows), auto);
+    
+    column-gap: var(--columns-gap); 
+    row-gap: var(--rows-gap);     
+}
+
+.skillBox {
+    background-color: rgba(235, 148, 27, 0.5);
+    border-radius: 8px;
+    border: 2px dashed rgb(235, 148, 27);
+    box-sizing: border-box;
 }
