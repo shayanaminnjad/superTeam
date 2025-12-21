@@ -24,12 +24,12 @@ define([
 
                 const skillsGrid = document.createElement('div');
                 skillsGrid.className = 'grid';
-                skillsGrid.style.bottom = `${UIConstants.BOTTOM_TO_CUBE_PERCENT * computedHeight}px`;
-                skillsGrid.style.left = `${UIConstants.LEFT_TO_CUBE_PERCENT * computedWidth}px`;
+                skillsGrid.style.bottom = `${UIConstants.COACH_BOARD_BOTTOM_TO_CUBE_PERCENT * computedHeight}px`;
+                skillsGrid.style.left = `${UIConstants.COACH_BOARD_LEFT_TO_CUBE_PERCENT * computedWidth}px`;
                 skillsGrid.style.setProperty('--rows', 2);
                 skillsGrid.style.setProperty('--columns', 5);
-                skillsGrid.style.setProperty('--columns-gap', `${UIConstants.HORIZONTAL_MARGIN_PERCENT * computedWidth}px`);
-                skillsGrid.style.setProperty('--rows-gap', `${UIConstants.VERTICAL_MARGIN_PERCENT * computedHeight}px`);
+                skillsGrid.style.setProperty('--columns-gap', `${UIConstants.COACH_BOARD_HORIZONTAL_MARGIN_PERCENT * computedWidth}px`);
+                skillsGrid.style.setProperty('--rows-gap', `${UIConstants.COACH_BOARD_VERTICAL_MARGIN_PERCENT * computedHeight}px`);
                 coachBoard.appendChild(skillsGrid);
 
                 for (let i = 0; i < 2; i++) {

@@ -28,10 +28,10 @@ define([], function(){
         //============================================================================
 
         //Coach board
-        BOTTOM_TO_CUBE_PERCENT: 0.065,
-        LEFT_TO_CUBE_PERCENT: 0.065,
-        VERTICAL_MARGIN_PERCENT: 0.021,
-        HORIZONTAL_MARGIN_PERCENT: 0.0325,
+        COACH_BOARD_BOTTOM_TO_CUBE_PERCENT: 0.065,
+        COACH_BOARD_LEFT_TO_CUBE_PERCENT: 0.065,
+        COACH_BOARD_VERTICAL_MARGIN_PERCENT: 0.021,
+        COACH_BOARD_HORIZONTAL_MARGIN_PERCENT: 0.0325,
         CUBE_WIDTH_PERCENT: 0.0585,
         CUBE_HEIGHT_PERCENT: 0.098,
     };
