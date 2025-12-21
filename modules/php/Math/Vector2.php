@@ -4,11 +4,11 @@ namespace Bga\Games\SuperTeam\Math;
 
 class Vector2
 {
-    public int $x;
+    public float $x;
 
-    public int $y;
+    public float $y;
 
-    public function __construct(int $x, int $y)
+    public function __construct(float $x, float $y)
     {
         $this->x = $x;
         $this->y = $y;
