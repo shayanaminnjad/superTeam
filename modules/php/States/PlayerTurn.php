@@ -66,9 +66,10 @@ class PlayerTurn extends PlayerBaseState
                 }
             }
         }
-
+        
+        //TODO: what if the other goalie has the ball?
         if ((\count($pieceSelectableForMove['selectablePieces']) > 0 || \count($pieceSelectableForMove['selectableExhaustedPieces'])) > 0 &&
-            ($playerPieceWithBall == null || $playerPieceWithBall->getRole() !== PlayerRole::GoalKeeper->value)) 
+            ($playerPieceWithBall == null || $playerPieceWithBall->getRole() !== PlayerRole::GoalKeeper->value)) //FIXME: if opponent's goalie has the ball we should be able to move! 
         {
             $this->addClientButton('move', [$this, 'actMove']);
         }
