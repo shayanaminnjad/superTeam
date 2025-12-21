@@ -8,6 +8,7 @@ use Bga\Games\SuperTeam\Math\HexShape;
 use Bga\Games\SuperTeam\Math\RectangleShape;
 use Bga\Games\SuperTeam\Math\Vector2;
 use Bga\Games\SuperTeam\Math\Math;
+use Bga\Games\SuperTeam\Utility\Logger;
 
 enum Direction: int
 {
@@ -35,6 +36,11 @@ class HexLib
     public static function SetHexInfo(HexInfo $hexInfo)
     {
         HexLib::$hexInfo = $hexInfo;
+    }
+
+    public static function GetHexInfo(): HexInfo
+    {
+        return HexLib::$hexInfo;
     }
 
     private static ?array $CUBIC_DIRECTIONS = null;
@@ -103,7 +109,7 @@ class HexLib
         $horizontalSpacing = self::$hexInfo->horizontalSpacing;
         $verticalSpacing = 2 * self::$hexInfo->inRadius;
 
-        $isEvenColumn = ($hexID->getColumn() & 1) == 0;
+        $isEvenColumn = ($hexID->getColumn() + 1) % 2 == 1;
 
         if ($isEvenColumn) 
         {

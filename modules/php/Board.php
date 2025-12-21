@@ -288,7 +288,7 @@ class Board
             $opponentPieceLocations[] = $opponentPieces[$i]->getPosition();
         }
 
-        $outBlockingHexes = HexLib::getHexesInPath($start, $end, 1.2, $opponentPieceLocations);
+        $outBlockingHexes = HexLib::getHexesInPath($start, $end, HexLib::GetHexInfo()->size * 0.5, $opponentPieceLocations);
 
         if (\count($outBlockingHexes) > 0) {
             $smallestDist = PHP_FLOAT_MAX;
@@ -318,7 +318,7 @@ class Board
             $opponentPieceLocations[] = $opponentPieces[$i]->getPosition();
         }
 
-        $outBlockingHexes = HexLib::getHexesInPath($start, $end, 1.2, $opponentPieceLocations);
+        $outBlockingHexes = HexLib::getHexesInPath($start, $end, HexLib::GetHexInfo()->size * 0.5, $opponentPieceLocations);
 
         return new RequiredPower($distance, $outBlockingHexes);
     }

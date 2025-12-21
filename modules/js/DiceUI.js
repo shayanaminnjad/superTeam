@@ -9,6 +9,7 @@ define([
 
         showRollAndWait: async function (rollResults, requiredPower, blockingPieces, distance) {
 
+            //TODO: always show current player at top!
             Board.getMainBoardElement().insertAdjacentHTML('beforeend', `<div id='diceRollArea'></div>`);
             let diceRollAreaEl = document.getElementById('diceRollArea');
 
