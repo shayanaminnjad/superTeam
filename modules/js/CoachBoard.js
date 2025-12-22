@@ -25,6 +25,7 @@ define([
                 this.makeAvailableBoxesSelectable();
             },
 
+            //Public Methods
             placeCubeAnimated: async function (skill) {
                 let slot = this._getEmptyCubeSlot(skill);
                 slot.isFilled = true;
@@ -48,6 +49,7 @@ define([
                 }
             },
 
+            //Private Methods
             _getEmptyCubeSlot: function (skill) {
                 if (this._skillBoxes[skill].isFilled === false)
                     return this._skillBoxes[skill];
@@ -85,7 +87,7 @@ define([
                             skillBox.style.width = `${Math.round(UIConstants.CUBE_WIDTH_PERCENT * computedWidth)}px`;
                             skillBox.style.height = `${Math.round(UIConstants.CUBE_HEIGHT_PERCENT * computedHeight)}px`;
                             skillsGrid.appendChild(skillBox);
-                            let skillSlot = this._createSkillSlot(skillBox);
+                            let skillSlot = this._createSkillSlot(skillBox, j, i);
                             this._skillBoxes.push(skillSlot);
 
                             skillBox.addEventListener('click', (evt) => this._onClick(evt, skillSlot));
@@ -97,8 +99,10 @@ define([
                 this._cubeWidth = Math.round(UIConstants.CUBE_WIDTH_PERCENT * computedWidth);
             },
 
-            _createSkillSlot: function (element) {
+            _createSkillSlot: function (element, skillIndex, skillRow) {
                 return {
+                    skillIndex: skillIndex,
+                    skillRow: skillRow,
                     element: element,
                     isFilled: false
                 };
@@ -115,6 +119,8 @@ define([
             },
 
             _onClick: function (evt, skillSlot) {
+                this.placeCubeAnimated(skillSlot.skillIndex);
+                this.makeAvailableBoxesSelectable();
             },
 
             //Private Fields
