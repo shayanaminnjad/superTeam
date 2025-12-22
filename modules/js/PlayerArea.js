@@ -17,6 +17,11 @@ define([
                 return this._areaEl;
             },
 
+            getCoachBoard()
+            {
+                return this._coachBoard;
+            },
+
             _init: function()
             {
                 this._areaEl = document.createElement('div');
