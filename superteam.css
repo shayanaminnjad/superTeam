@@ -465,3 +465,13 @@
     border: 2px dashed rgb(235, 148, 27);
     box-sizing: border-box;
 }
+
+.cube {
+    position: absolute;
+    
+    background-image: url('img/coachCube.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    overflow: visible;
+    z-index: 104;
+}
