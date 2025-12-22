@@ -22,6 +22,7 @@ define([
                 this._skillBoxes = [];
 
                 this._init();
+                this.makeAvailableBoxesSelectable();
             },
 
             placeCubeAnimated: async function (skill) {
@@ -33,6 +34,18 @@ define([
                 const anim = this._root.slideToObject(cube, slot.element);
 
                 await this._root.bgaPlayDojoAnimation(anim);
+            },
+
+            makeAllNonSelectable: function () {
+                for (const skillBox of this._skillBoxes) {
+                    skillBox.element.classList.remove('selectable');
+                }
+            },
+
+            makeAvailableBoxesSelectable: function () {
+                for (const skillBox of this._skillBoxes) {
+                    skillBox.element.classList.toggle('selectable', !skillBox.isFilled);
+                }
             },
 
             _getEmptyCubeSlot: function (skill) {
@@ -72,12 +85,15 @@ define([
                             skillBox.style.width = `${Math.round(UIConstants.CUBE_WIDTH_PERCENT * computedWidth)}px`;
                             skillBox.style.height = `${Math.round(UIConstants.CUBE_HEIGHT_PERCENT * computedHeight)}px`;
                             skillsGrid.appendChild(skillBox);
-                            this._skillBoxes.push(this._createSkillSlot(skillBox));
+                            let skillSlot = this._createSkillSlot(skillBox);
+                            this._skillBoxes.push(skillSlot);
+
+                            skillBox.addEventListener('click', (evt) => this._onClick(evt, skillSlot));
                         }
                     }
                 }
 
-                this._cubeHeight = Math.round(UIConstants.CUBE_HEIGHT_PERCENT * computedHeight); 
+                this._cubeHeight = Math.round(UIConstants.CUBE_HEIGHT_PERCENT * computedHeight);
                 this._cubeWidth = Math.round(UIConstants.CUBE_WIDTH_PERCENT * computedWidth);
             },
 
@@ -98,13 +114,17 @@ define([
                 return cube;
             },
 
+            _onClick: function (evt, skillSlot) {
+            },
+
+            //Private Fields
             _cubeWidth: 0,
             _cubeHeight: 0,
             _ownerId: 0,
             _ownerData: null,
             _root: null,
             _area: null,
-            _skillBoxes: null
+            _skillSlots: null
         });
 
         CoachBoard.Skills = Skills;

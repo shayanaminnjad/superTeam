@@ -459,11 +459,16 @@
     row-gap: var(--rows-gap);     
 }
 
-.skillBox {
+.skillBox.selectable {
     background-color: rgba(235, 148, 27, 0.5);
     border-radius: 8px;
     border: 2px dashed rgb(235, 148, 27);
     box-sizing: border-box;
+    pointer-events: all;
+}
+
+.skillBox.selectable:hover{
+    background-color: rgba(232, 235, 27, 0.7);
 }
 
 .cube {
