@@ -8,6 +8,7 @@ class DBAdapter
     private $getOneFn;
     private $getUniqueFn;
     private $queryFn;
+    private $collectionFn;
     private $gameStateSetter;
     private $gameStateGetter;
 
@@ -24,7 +25,7 @@ class DBAdapter
 
     private function __construct() {}
 
-    public function init(callable $getListFn, callable $getOneFn, callable $getUnique, callable $execFn, callable $gameStateStter, callable $gameStateGetter)
+    public function init(callable $getListFn, callable $getOneFn, callable $getUnique, callable $execFn, callable $collectionFn, callable $gameStateStter, callable $gameStateGetter)
     {
         $this->getListFn = $getListFn;
         $this->getOneFn  = $getOneFn;
@@ -32,6 +33,7 @@ class DBAdapter
         $this->getUniqueFn = $getUnique;
         $this->gameStateSetter = $gameStateStter;
         $this->gameStateGetter = $gameStateGetter;
+        $this->collectionFn = $collectionFn;
     }
 
     public function initGlobals(): void
@@ -63,6 +65,11 @@ class DBAdapter
     public function DbQuery($sql)
     {
         return ($this->queryFn)($sql);
+    }
+
+    public function getCollectionFromDB(string $sql)
+    {
+        return ($this->collectionFn)($sql);
     }
 
     public function setGameStateValue(string $name, int $value): void

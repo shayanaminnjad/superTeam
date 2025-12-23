@@ -174,6 +174,7 @@ class Game extends \Table
             fn($sql) => $this->getObjectFromDB($sql),
             fn($sql) => $this->getUniqueValueFromDB($sql),
             fn($sql) => $this->DbQuery($sql),
+            fn($sql)=> $this->getCollectionFromDB($sql),
             fn($name, $value) => $this->setGameStateValue($name, $value),
             fn($name) => $this->getGameStateValue($name)
         );
