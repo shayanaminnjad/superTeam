@@ -36,7 +36,7 @@ class SetupComplete extends GameState
         } 
         else 
         {
-            return BeforePlayerTurn::class;
+            return TeamAttributeAssignment::class;
         }
     }
 }
