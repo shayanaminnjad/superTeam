@@ -18,12 +18,18 @@
 -- Note: The database schema is created from this file when the game starts. If you modify this file,
 --       you have to restart a game to see your changes in database.
 
-ALTER TABLE `player` ADD `resource_morale` int(10) NOT NULL DEFAULT 0;
-ALTER TABLE `player` ADD `goals_scored` int(10) NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD `resource_morale` INT NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD `goals_scored` INT NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD `team_attr_pass` TINYINT NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD `team_attr_shoot` TINYINT NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD `team_attr_dribble` TINYINT NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD `team_attr_tackle` TINYINT NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD `team_attr_gk` TINYINT NOT NULL DEFAULT 0;
+
 
 CREATE TABLE IF NOT EXISTS `player_pieces` (
     `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
-    `owner_id` int (10) unsigned NOT NULL,
+    `owner_id` INT unsigned NOT NULL,
     `piece_role` SMALLINT unsigned NOT NULL,
     `is_fresh` BOOLEAN DEFAULT TRUE,
     `hex_column` INT DEFAULT -1,
@@ -44,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `player_temp_data` (
-    `player_id` int (10) unsigned NOT NULL,
+    `player_id` INT unsigned NOT NULL,
     `assigned_morale` INT DEFAULT 0,
     `dice_result` TEXT DEFAULT '',
     `dice_roll_input` TEXT DEFAULT '',
