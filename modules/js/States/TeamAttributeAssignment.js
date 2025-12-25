@@ -17,8 +17,9 @@ define(["dojo/_base/declare",
             },
 
             _onActivePlayerLeave: function () {
-                this._root.myPlayerArea.getCoachBoard().removeClickHandler();
-                this._root.myPlayerArea.getCoachBoard().makeAllNonSelectable();
+                const myCoachBoard = this._root.myPlayerArea.getCoachBoard();
+                myCoachBoard.removeClickHandler();
+                myCoachBoard.makeAllNonSelectable();
             },
 
             _onInactivePlayerLeave: function () {
@@ -30,7 +31,9 @@ define(["dojo/_base/declare",
 
             //Notifications
             notif_cubePlaced: function (notifData) {
-                this._root.myPlayerArea.getCoachBoard().placeCubeAnimated(parseInt(notifData.skill));
+                const myCoachBoard = this._root.myPlayerArea.getCoachBoard();
+                myCoachBoard.placeCubeAnimated(parseInt(notifData.skill));
+                myCoachBoard.makeAvailableBoxesSelectable();
             },
 
             onSkillSelected: function (evt, skillSlot) {
