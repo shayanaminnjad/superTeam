@@ -11,7 +11,8 @@ define([
     g_gamethemeurl + "modules/js/States/DribbleTargetSelection.js",
     g_gamethemeurl + "modules/js/States/PerformDribble.js",
     g_gamethemeurl + "modules/js/States/TacklePerformerSelection.js",
-    g_gamethemeurl + "modules/js/States/PerformTackle.js"
+    g_gamethemeurl + "modules/js/States/PerformTackle.js",
+    g_gamethemeurl + "modules/js/States/TeamAttributeAssignment.js"
 ], function (
     declare,
     PlayerPieceSetupState,
@@ -25,7 +26,8 @@ define([
     DribbleTargetSelection,
     PerformDribble,
     TacklePerformerSelection,
-    PerformTackle
+    PerformTackle,
+    TeamAttributeAssignment,
 ) {
 
     const StateRegistry = declare("st.StateRegistry", null, {
@@ -45,6 +47,7 @@ define([
             this.registerState(PerformDribble);
             this.registerState(TacklePerformerSelection);
             this.registerState(PerformTackle);
+            this.registerState(TeamAttributeAssignment);
         },
 
         getState: function (name, root, stateData) {

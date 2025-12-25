@@ -36,7 +36,6 @@ define([
                 playerName.style.setProperty('--size', 'large');
                 this._areaEl.appendChild(playerName);
 
-                //TODO: the data must be filtered, and only skill values must be sent.
                 this._coachBoard = new CoachBoard(this._ownerId, this._ownerData, this._root, this)
             },
 
