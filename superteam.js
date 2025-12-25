@@ -184,7 +184,10 @@ define([
                 this.assert(this.serverCallInProgress === false, 'user must not be able to call server action while another is in progress!');
 
                 try {
+                    console.log("call in progress");
                     this.serverCallInProgress = true;
+                    //TODO: this is not efficient, however it works perfectly for now.
+                    document.querySelectorAll('.selectable').forEach((div)=> div.classList.add('inputBlocked'));
                     await this.bgaPerformAction(name, args);
                 }
                 catch (error) {
@@ -192,6 +195,8 @@ define([
                 }
                 finally {
                     this.serverCallInProgress = false;
+                    //TODO: this is not efficient, however it works perfectly for now.
+                    document.querySelectorAll('.inputBlocked').forEach((div)=> div.classList.remove('inputBlocked'));
                 }
             },
 
@@ -276,6 +281,10 @@ define([
 
             notif_placedPiece: function (notifData) {
                 return this.forwardNotification(this.notif_placedPiece.name, notifData);
+            },
+
+            notif_cubePlaced: function (notifData) {
+                return this.forwardNotification(this.notif_cubePlaced.name, notifData);
             },
 
             notif_movedPiece: function (notifData) {

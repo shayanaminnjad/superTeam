@@ -176,14 +176,14 @@
     opacity: 0.7;
 }
 
-.selectable {
+.selectable:not(.inputBlocked) {
     --back-color: white;
 
     background-color: var(--back-color);
     opacity: 0.4;
 }
 
-.selectable:hover{
+.selectable:not(.inputBlocked):hover{
     opacity: 0.7;
 }
 
@@ -463,7 +463,7 @@
     pointer-events: none;
 }
 
-.skillBox.selectable {
+.skillBox.selectable:not(.inputBlocked) {
     background-color: rgba(235, 148, 27, 0.5);
     border-radius: 8px;
     border: 2px dashed rgb(235, 148, 27);
@@ -471,7 +471,7 @@
     pointer-events: all;
 }
 
-.skillBox.selectable:hover{
+.skillBox.selectable:not(.inputBlocked):hover{
     background-color: rgba(232, 235, 27, 0.7);
 }
 
