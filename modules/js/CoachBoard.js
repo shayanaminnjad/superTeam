@@ -19,10 +19,9 @@ define([
                 this._ownerData = ownerData;
                 this._root = root;
                 this._area = area;
-                this._skillBoxes = [];
+                this._skillSlots = [];
 
                 this._init();
-                this.makeAvailableBoxesSelectable();
             },
 
             //Public Methods
@@ -38,23 +37,36 @@ define([
             },
 
             makeAllNonSelectable: function () {
-                for (const skillBox of this._skillBoxes) {
+                for (const skillBox of this._skillSlots) {
                     skillBox.element.classList.remove('selectable');
                 }
             },
 
             makeAvailableBoxesSelectable: function () {
-                for (const skillBox of this._skillBoxes) {
-                    skillBox.element.classList.toggle('selectable', !skillBox.isFilled);
+                for (let i = 0; i < Skills.Count; i++) {
+                    const topRowSkill = this._skillSlots[i];
+                    const bottomRowSkill = this._skillSlots[i + Skills.Count];
+
+                    topRowSkill.element.classList.toggle('selectable', !topRowSkill.isFilled);
+                    bottomRowSkill.element.classList.toggle('selectable', topRowSkill.isFilled && !bottomRowSkill.isFilled)
                 }
+            },
+
+            // clickHandler: function(evt, skillSlot)
+            setClickHandler: function (handler) {
+                this._clickHandler = handler;
+            },
+
+            removeClickHandler: function () {
+                this._clickHandler = null;
             },
 
             //Private Methods
             _getEmptyCubeSlot: function (skill) {
-                if (this._skillBoxes[skill].isFilled === false)
-                    return this._skillBoxes[skill];
-                else if (this._skillBoxes[Skills.Count + skill].isFilled === false)
-                    return this._skillBoxes[Skills.Count + skill];
+                if (this._skillSlots[skill].isFilled === false)
+                    return this._skillSlots[skill];
+                else if (this._skillSlots[Skills.Count + skill].isFilled === false)
+                    return this._skillSlots[Skills.Count + skill];
                 else
                     throw new Error("invalid skill passed " + skill);
             },
@@ -82,13 +94,13 @@ define([
                     for (let j = 0; j < Skills.Count; j++) {
                         {
                             const skillBox = document.createElement('div');
-                            skillBox.id = `${i}_${j}_skillBox`;
+                            skillBox.id = `${i}_${j}_skillSlot`;
                             skillBox.className = 'skillBox';
                             skillBox.style.width = `${Math.round(UIConstants.CUBE_WIDTH_PERCENT * computedWidth)}px`;
                             skillBox.style.height = `${Math.round(UIConstants.CUBE_HEIGHT_PERCENT * computedHeight)}px`;
                             skillsGrid.appendChild(skillBox);
                             let skillSlot = this._createSkillSlot(skillBox, j, i);
-                            this._skillBoxes.push(skillSlot);
+                            this._skillSlots.push(skillSlot);
 
                             skillBox.addEventListener('click', (evt) => this._onClick(evt, skillSlot));
                         }
@@ -119,8 +131,12 @@ define([
             },
 
             _onClick: function (evt, skillSlot) {
-                this.placeCubeAnimated(skillSlot.skillIndex);
-                this.makeAvailableBoxesSelectable();
+                this._root.assert(
+                    typeof this._clickHandler === 'function',
+                    "No handler is defined for clicking on coach board!"
+                );
+
+                this._clickHandler(evt, skillSlot);
             },
 
             //Private Fields
@@ -130,7 +146,8 @@ define([
             _ownerData: null,
             _root: null,
             _area: null,
-            _skillSlots: null
+            _skillSlots: null,
+            _clickHandler: null
         });
 
         CoachBoard.Skills = Skills;

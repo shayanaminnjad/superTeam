@@ -459,6 +459,10 @@
     row-gap: var(--rows-gap);     
 }
 
+.skillBox {
+    pointer-events: none;
+}
+
 .skillBox.selectable {
     background-color: rgba(235, 148, 27, 0.5);
     border-radius: 8px;
