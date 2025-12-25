@@ -24,6 +24,10 @@ define(["dojo/_base/declare",
                 this._cleanup();
             },
 
+            onMultiActiveStateFinished: function() {
+                this._cleanup();
+            },
+
             getName: function () {
                 return this.constructor.getName();
             },
