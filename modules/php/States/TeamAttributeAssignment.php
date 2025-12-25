@@ -30,29 +30,37 @@ class TeamAttributeAssignment extends PlayerBaseState
         );
     }
 
+    public function onEnteringState(int $activePlayerId)
+    {
+        DBAdapter::getInstance()->setGameStateValue('isAttributesAssignmentFinished', 0);
+    }
+
     public function selfGetArgs(): array
     {
         $db = DBAdapter::getInstance();
 
-        $playersAttributes = $db->getCollectionFromDB("SELECT `player_id`, `team_attr_pass`, `team_attr_shoot`,`team_attr_dribble`, `team_attr_tackle` , `team_attr_gk` FROM `player`");
-
-        $firstPlayerAttributes = $playersAttributes[0];
-        $secondPlayerAttributes = $playersAttributes[1];
-        $firstPlayerId = $firstPlayerAttributes['player_id'];
-        $secondPlayerId = $secondPlayerAttributes['player_id'];
-
-        unset($firstPlayerAttributes['player_id']);
-        unset($secondPlayerAttributes['player_id']);
-
+        $playersAttributes = $db->getObjectListFromDB("SELECT `player_id`, `team_attr_pass`, `team_attr_shoot`,`team_attr_dribble`, `team_attr_tackle` , `team_attr_gk` FROM `player`");
+        
         $TOTAL_CUBES = 6;
 
-        $firstPlayerRemainingCubes = $TOTAL_CUBES - array_sum($firstPlayerAttributes);
-        $secondPlayerRemainingCubes = $TOTAL_CUBES - array_sum($secondPlayerAttributes);
+        $result= [];
+        for ($i = 0; $i < \count($playersAttributes); $i++) 
+        {
+            $currentPlayerAttributes = $playersAttributes[$i];
+            $id = $currentPlayerAttributes['player_id'];
+            unset($currentPlayerAttributes['player_id']);
 
-        return [
-            $firstPlayerId => $firstPlayerRemainingCubes,
-            $secondPlayerId => $secondPlayerRemainingCubes,
-        ];
+            $placedCubes = 0;
+
+            foreach($currentPlayerAttributes as $attr)
+            {
+                $placedCubes += (int)$attr;
+            }
+
+            $result[$id]= $TOTAL_CUBES - $placedCubes;
+        }
+
+        return $result;
     }
 
     #[PossibleAction]
@@ -65,8 +73,14 @@ class TeamAttributeAssignment extends PlayerBaseState
         $db = DBAdapter::getInstance();
         $playersAttributes = $db->getObjectFromDB("SELECT `team_attr_pass`, `team_attr_shoot`,`team_attr_dribble`, `team_attr_tackle` , `team_attr_gk` FROM `player` WHERE `player_id` = $currentPlayer");
 
-        $cubesPlaced = array_sum($playersAttributes);
-        if ($cubesPlaced == $TOTAL_CUBES) 
+        $placedCubes = 0;
+
+        foreach ($playersAttributes as $attr) 
+        {
+            $placedCubes += (int)$attr;
+        }
+
+        if ($placedCubes == $TOTAL_CUBES) 
         {
             throw new BgaUserException("You cannot place more than 6 cubes!");
         }
@@ -78,8 +92,7 @@ class TeamAttributeAssignment extends PlayerBaseState
         //4 = gk
 
         $attrName = "team_attr_";
-        switch ($skillId) 
-        {
+        switch ($skillId) {
             case 0:
                 $attrName .= "pass";
                 break;
@@ -101,14 +114,13 @@ class TeamAttributeAssignment extends PlayerBaseState
 
         $attrValue = $playersAttributes[$attrName] + 1;
 
-        if ($attrValue > 2) 
-        {
+        if ($attrValue > 2) {
             throw new BgaUserException("You cannot assign more than two cubes to an attribute!");
         }
 
         $db->DbQuery("UPDATE player SET `$attrName` = $attrValue WHERE `player_id` = $currentPlayer");
 
-        $cubesRemaining = $TOTAL_CUBES - ($cubesPlaced + 1);
+        $cubesRemaining = $TOTAL_CUBES - ($placedCubes + 1);
 
         if ($cubesRemaining == 0) 
         {
@@ -120,7 +132,7 @@ class TeamAttributeAssignment extends PlayerBaseState
                 $currentPlayer,
                 "cubePlaced",
                 "",
-                ["cubesRemaining" => $cubesRemaining]
+                ["skill" => $skillId]
             );
         }
     }

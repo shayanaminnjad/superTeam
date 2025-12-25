@@ -174,7 +174,7 @@ class Game extends \Table
             fn($sql) => $this->getObjectFromDB($sql),
             fn($sql) => $this->getUniqueValueFromDB($sql),
             fn($sql) => $this->DbQuery($sql),
-            fn($sql)=> $this->getCollectionFromDB($sql),
+            fn($sql) => $this->getCollectionFromDB($sql),
             fn($name, $value) => $this->setGameStateValue($name, $value),
             fn($name) => $this->getGameStateValue($name)
         );
@@ -191,6 +191,7 @@ class Game extends \Table
             "attacker" => 16,
             "defender" => 17,
             "moraleAssignRemaining" => 18,
+            "isAttributesAssignmentFinished" => 19,
         ]);
 
         /* example of notification decorator.
@@ -362,11 +363,32 @@ class Game extends \Table
         $current_player_id = (int) $this->getCurrentPlayerId();
 
         // Get information about players.
-        // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
         $result["players"] = $this->getCollectionFromDb(
-            "SELECT `player_id` `id`, `player_score` `score`, `resource_morale` `morale`, `goals_scored` `goals` FROM `player`"
+            "SELECT `player_id` `id`, `player_score` `score`, `resource_morale` `morale`, `goals_scored` `goals`, 
+                `team_attr_pass`, `team_attr_shoot` , `team_attr_dribble`, `team_attr_tackle`, `team_attr_gk` FROM `player`"
         );
 
+        $isAttributesPublic = \intval($this->getGameStateValue('isAttributesAssignmentFinished')) === 1;
+
+        if (!$isAttributesPublic)
+        {
+            foreach ($result["players"] as &$player) 
+            {
+                if ($player['id'] != $current_player_id) 
+                {
+                    unset(
+                        $player["team_attr_pass"],
+                        $player["team_attr_shoot"],
+                        $player["team_attr_dribble"],
+                        $player["team_attr_tackle"],
+                        $player["team_attr_gk"]
+                );
+                }
+            }
+            
+            unset($player);
+        }
+        
         $result["player_pieces"] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
         $result["ball"] = $this->getObjectFromDB("SELECT * FROM `ball`");
         $result['user_in_right_id'] = $this->getGameStateValue('user_in_right_id');
@@ -433,46 +455,6 @@ class Game extends \Table
         $this->activeNextPlayer();
     }
 
-    /**
-     * This method is called each time it is the turn of a player who has quit the game (= "zombie" player).
-     * You can do whatever you want in order to make sure the turn of this player ends appropriately
-     * (ex: pass).
-     *
-     * Important: your zombie code will be called when the player leaves the game. This action is triggered
-     * from the main site and propagated to the gameserver from a server, not from a browser.
-     * As a consequence, there is no current player associated to this action. In your zombieTurn function,
-     * you must _never_ use `getCurrentPlayerId()` or `getCurrentPlayerName()`, otherwise it will fail with a
-     * "Not logged" error message.
-     *
-     * @param array{ type: string, name: string } $state
-     * @param int $active_player
-     * @return void
-     * @throws feException if the zombie mode is not supported at this game state.
-     */
-    protected function zombieTurn(array $state, int $active_player): void
-    {
-        $state_name = $state["name"];
-
-        if ($state["type"] === "activeplayer") {
-            switch ($state_name) {
-                default: {
-                        $this->gamestate->nextState("zombiePass");
-                        break;
-                    }
-            }
-
-            return;
-        }
-
-        // Make sure player is in a non-blocking status for role turn.
-        if ($state["type"] === "multipleactiveplayer") {
-            $this->gamestate->setPlayerNonMultiactive($active_player, '');
-            return;
-        }
-
-        throw new \feException("Zombie mode not supported at this game state: \"{$state_name}\".");
-    }
-
     private function initGameState(array $players): void
     {
         list($redPlayer, $bluePlayer) = array_keys($players);
@@ -486,6 +468,7 @@ class Game extends \Table
         $this->setGameStateInitialValue('user_in_right_id', $bluePlayer);
         $this->setGameStateInitialValue('defender', $bluePlayer);
         $this->setGameStateInitialValue("moraleAssignRemaining", 0);
+        $this->setGameStateInitialValue("isAttributesAssignmentFinished", 0);
     }
 
     private function initBoard(array $players): void
@@ -566,7 +549,7 @@ class Game extends \Table
         }
     }
 
-    public function AddOneGoal(int $playerId) : int
+    public function AddOneGoal(int $playerId): int
     {
         $goalsScored = $this->getUniqueValueFromDB(
             "SELECT `goals_scored` FROM `player` WHERE `player_id` = {$playerId}"

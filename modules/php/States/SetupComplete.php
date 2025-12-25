@@ -36,6 +36,7 @@ class SetupComplete extends GameState
         } 
         else 
         {
+            $this->gamestate->setAllPlayersMultiactive();
             return TeamAttributeAssignment::class;
         }
     }
