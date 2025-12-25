@@ -56,6 +56,9 @@ define(["dojo/_base/declare", "dojo/topic"], function (declare, topic) {
             }
         },
 
+        onMultiActiveStateFinished: function() {
+        },
+
         getName: function () {
             throw new Error("getName() not implemented!");
         },

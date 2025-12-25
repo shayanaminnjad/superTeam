@@ -45,6 +45,8 @@ define([
 
                 console.log(gamedatas);
 
+                this.gameDatas = gamedatas;
+
                 this.myColor = gamedatas.players[this.player_id].color === 'DD4720' ? 'red' : 'blue';
                 this.opponentColor = this.myColor === 'red' ? 'blue' : 'red';
 
@@ -95,6 +97,11 @@ define([
                 console.log('onUpdateActionButtons: ' + stateName, args);
 
                 console.log("active players are " + this.getActivePlayers());
+
+                if (this.gameDatas.gamestate.type === 'multipleactiveplayer' && !this.getActivePlayers().includes(this.player_id)) {
+                    if (this.currentState != null)
+                        this.currentState.onMultiActiveStateFinished();
+                }
 
                 if (this.isCurrentPlayerActive() || this.getActivePlayers().includes(this.player_id)) {
                     if (stateName === 'moraleAssignment') {
@@ -184,10 +191,9 @@ define([
                 this.assert(this.serverCallInProgress === false, 'user must not be able to call server action while another is in progress!');
 
                 try {
-                    console.log("call in progress");
                     this.serverCallInProgress = true;
                     //TODO: this is not efficient, however it works perfectly for now.
-                    document.querySelectorAll('.selectable').forEach((div)=> div.classList.add('inputBlocked'));
+                    document.querySelectorAll('.selectable').forEach((div) => div.classList.add('inputBlocked'));
                     await this.bgaPerformAction(name, args);
                 }
                 catch (error) {
@@ -196,7 +202,7 @@ define([
                 finally {
                     this.serverCallInProgress = false;
                     //TODO: this is not efficient, however it works perfectly for now.
-                    document.querySelectorAll('.inputBlocked').forEach((div)=> div.classList.remove('inputBlocked'));
+                    document.querySelectorAll('.inputBlocked').forEach((div) => div.classList.remove('inputBlocked'));
                 }
             },
 
@@ -287,7 +293,7 @@ define([
                 return this.forwardNotification(this.notif_cubePlaced.name, notifData);
             },
 
-            notif_attributeAssignmentFinished: function(notifData) {
+            notif_attributeAssignmentFinished: function (notifData) {
                 return this.forwardNotification(this.notif_attributeAssignmentFinished.name, notifData);
             },
 
@@ -462,5 +468,7 @@ define([
             clientButtonNeedsConfirm: false,
 
             serverCallInProgress: false,
+
+            gameDatas: null,
         });
     });
