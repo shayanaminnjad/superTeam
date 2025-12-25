@@ -22,6 +22,7 @@ define([
                 this._skillSlots = [];
 
                 this._init();
+                this._assignPlacedCubes();
             },
 
             //Public Methods
@@ -34,6 +35,17 @@ define([
                 const anim = this._root.slideToObject(cube, slot.element);
 
                 await this._root.bgaPlayDojoAnimation(anim);
+            },
+
+            placeCubeImmediate: function (skill, count) {
+                if (count === null || count === 0)
+                    return;
+
+                for (let i = 0; i < count; i++) {
+                    let slot = this._getEmptyCubeSlot(skill);
+                    slot.isFilled = true;
+                    this._createCube(slot.element);
+                }
             },
 
             makeAllNonSelectable: function () {
@@ -137,6 +149,14 @@ define([
                 );
 
                 this._clickHandler(evt, skillSlot);
+            },
+
+            _assignPlacedCubes: function () {
+                this.placeCubeImmediate(Skills.Dribble, this._ownerData.team_attr_dribble);
+                this.placeCubeImmediate(Skills.Pass, this._ownerData.team_attr_pass);
+                this.placeCubeImmediate(Skills.GK, this._ownerData.team_attr_gk);
+                this.placeCubeImmediate(Skills.Shoot, this._ownerData.team_attr_shoot);
+                this.placeCubeImmediate(Skills.Tackle, this._ownerData.team_attr_tackle);
             },
 
             //Private Fields
