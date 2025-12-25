@@ -287,6 +287,10 @@ define([
                 return this.forwardNotification(this.notif_cubePlaced.name, notifData);
             },
 
+            notif_attributeAssignmentFinished: function(notifData) {
+                return this.forwardNotification(this.notif_attributeAssignmentFinished.name, notifData);
+            },
+
             notif_movedPiece: function (notifData) {
                 return this.forwardNotification(this.notif_movedPiece.name, notifData);
             },

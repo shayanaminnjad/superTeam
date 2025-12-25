@@ -23,145 +23,20 @@ namespace Bga\Games\SuperTeam;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\TeamBoard;
 use Bga\Games\SuperTeam\HexLib\HexLib;
-use Bga\Games\SuperTeam\Dice\GameDice;
-use Bga\Games\SuperTeam\Math\HexInfo;
 use Bga\Games\SuperTeam\Utility\Logger;
 
 
-use BgaUserException;
 use Exception;
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 require_once(__DIR__ . '/StateMachineConstants.inc.php');
 
-class PassForwardCommand
-{
-    private Board $board;
-    private $currentPlayer;
-    private $opponentPlayer;
-
-    public function __construct(Board $board, $currentPlayer, $oppoenentPlayer)
-    {
-        $this->board = $board;
-        $this->currentPlayer = $currentPlayer;
-        $this->opponentPlayer = $oppoenentPlayer;
-    }
-
-    public function canBePlayed(): bool
-    {
-        $ballHex = $this->board->getBallHex();
-        $playerPiece = null;
-
-        if ($this->board->tryGetPlayerPieceInHex($ballHex, $playerPiece)) {
-            //PlayerPiece is here to supress a warning.
-            if ($playerPiece && $playerPiece->getOwner() === $this->currentPlayer) {
-                return count($this->board->getPlayerPiecesInForwardColumns($ballHex->getColumn(), $this->currentPlayer)) > 0;
-            }
-        }
-
-        return false;
-    }
-
-    public function getCommandArgs(): array
-    {
-        //TODO: In general a pass can be onto any space that is not occupied by your opponent! however this card require us to pass in a certain way.
-
-        $ballHex = $this->board->getBallHex();
-
-        $playerPiecesInForwardColumns = $this->board->getPlayerPiecesInForwardColumns($ballHex->getColumn(), $this->currentPlayer);
-        $piecesIds = [];
-        for ($i = 0; $i < count($playerPiecesInForwardColumns); $i++) {
-            $piecesIds[] = $playerPiecesInForwardColumns[$i]->getId();
-        }
-
-        return ["possibleTargets" => $piecesIds];
-    }
-
-    public function performAct(array $actData): void
-    {
-        $passTarget = $actData['target'];
-        $spentMorale = $actData['spentMorale'];
-
-        //TOOD: This should be inside validation function!
-        if (intval($spentMorale) > 3) {
-            throw new \BgaUserException("You cannot spend more than 3 morale on an action!");
-        }
-
-        //TODO: target can't be current ball location!
-
-        $targetHex = new HexID($passTarget['column'], $passTarget['row']);
-        $ballHex = $this->board->getBallHex();
-        //TODO: This logic for pass must be encapsulated inside another class, it doesn't relate to here.
-        $passDistance = HexLib::getOffsetDistance($ballHex, $targetHex);
-
-        $opponentPieces = $this->board->getPlayerPiecesByOwner($this->opponentPlayer);
-        $opponentPiecesInPath = HexLib::getHexesInPath($ballHex, $targetHex, 1, $opponentPieces);
-
-        $powerNeeded = ceil($passDistance * 0.5) + count($opponentPiecesInPath);
-
-        $greenRoll = GameDice::greenDie()->roll();
-        $whiteDieRes = [];
-
-        //TODO: get coach markers for pass action.
-        $coachMarkerCount = 1;
-        $whiteRollSum = 0;
-        for ($i = 0; $i < $coachMarkerCount; $i++) {
-            $currentWhiteRollRes = GameDice::whiteDie()->roll();
-            $whiteRollSum += $currentWhiteRollRes;
-            $whiteDieRes[] = $currentWhiteRollRes;
-        }
-
-        $totalPlayerPower = $whiteRollSum + $greenRoll + $spentMorale;
-
-        $finalBallLocation = null;
-
-        if ($totalPlayerPower >= $powerNeeded) {
-            $finalBallLocation = $targetHex;
-        } else {
-            if (count($opponentPiecesInPath) > 0) {
-                $nearestOpponent = null;
-                $nearestOpponentDistance = 1000; //1000 is way beyond the furthest distance we can have.
-
-                //TODO: asked amir about this, if two opponent pieces have the same distance from the ball, then how should we determine which one will get the ball?
-                //right now I only find the closest one, and don't solve the above edge case.
-                for ($i = 0; $i < count($opponentPiecesInPath); $i++) {
-                    $currentOpponentDistance = HexLib::getOffsetDistance($ballHex, $opponentPiecesInPath[$i]);
-
-                    if ($currentOpponentDistance < $nearestOpponentDistance) {
-                        $nearestOpponent = $opponentPiecesInPath[$i];
-                    }
-                }
-
-                $finalBallLocation = $nearestOpponent;
-            } else {
-                $hexesInLine = HexLib::getHexesInLine($ballHex, $targetHex);
-                $hexInMiddle = ceil((count($hexesInLine) - 1) / 2.0);
-
-                $finalBallLocation = $hexesInLine[$hexInMiddle];
-            }
-        }
-
-        DBAdapter::getInstance()->DbQuery("UPDATE ball SET hex_column= {$finalBallLocation->getColumn()}, hex_row= {$finalBallLocation->getRow()}");
-
-        //TODO: notify all about all these changes.
-    }
-}
-
 class Game extends \Table
 {
-    /**
-     * Your global variables labels:
-     *
-     * Here, you can assign labels to global variables you are using for this game. You can use any number of global
-     * variables with IDs between 10 and 99. If your game has options (variants), you also have to associate here a
-     * label to the corresponding ID in `gameoptions.inc.php`.
-     *
-     * NOTE: afterward, you can get/set the global variables with `getGameStateValue`, `setGameStateInitialValue` or
-     * `setGameStateValue` functions.
-     */
-
-
+    private ?TeamBoard $teamBoard = null;
+    
     public function __construct()
     {
         parent::__construct();
@@ -169,6 +44,7 @@ class Game extends \Table
         HexLib::SetHexInfo(BoardInfo::GetHexInfo());
         BoardInfo::init();
 
+        
         DBAdapter::getInstance()->init(
             fn($sql) => $this->getObjectListFromDB($sql),
             fn($sql) => $this->getObjectFromDB($sql),
@@ -178,6 +54,8 @@ class Game extends \Table
             fn($name, $value) => $this->setGameStateValue($name, $value),
             fn($name) => $this->getGameStateValue($name)
         );
+
+        $this->teamBoard = new TeamBoard(DBAdapter::getInstance());
 
         Logger::init(DBAdapter::getInstance(), 'logs');
 
@@ -223,19 +101,6 @@ class Game extends \Table
 
         // at the end of the action, move to the next state
         $this->gamestate->nextState("pass");
-    }
-
-    //TODO: I can have a single entry to player actions, and a dispatcher dispatches each action to it's proper handler.
-    public function actPassForward(): void
-    {
-        $activePlayerID = $this->getActivePlayerId();
-        $Command = new PassForwardCommand($this->getBoard(), $activePlayerID, $this->getInactivePlayerId());
-
-        if ($Command->canBePlayed()) {
-            $this->notify->player(intval($activePlayerID), "actionArgs", "", $Command->getCommandArgs());
-        } else {
-            throw new Exception("Pass forward can't be played!");
-        }
     }
 
     //(sha) TODO: probably this must be a part of board? or a piece manager?
@@ -499,6 +364,11 @@ class Game extends \Table
         $sqlQuery .= implode(',', $sqlValues);
 
         $this->DbQuery($sqlQuery);
+    }
+
+    public function getTeamBoard() : TeamBoard
+    {
+        return $this->teamBoard;
     }
 
     public function getBoard(): Board

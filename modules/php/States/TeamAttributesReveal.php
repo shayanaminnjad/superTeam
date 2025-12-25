@@ -29,6 +29,10 @@ class TeamAttributesReveal extends GameState
     {
         DBAdapter::getInstance()->setGameStateValue('isAttributesAssignmentFinished', 1);
 
+        $attributes = $this->game->getTeamBoard()->getAttributesAsCollection();
+
+        $this->game->notify->all("attributeAssignmentFinished", "", $attributes);
+
         return PlayerTurn::class;
     }
 }
