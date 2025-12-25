@@ -120,21 +120,19 @@ class TeamAttributeAssignment extends PlayerBaseState
 
         $db->DbQuery("UPDATE player SET `$attrName` = $attrValue WHERE `player_id` = $currentPlayer");
 
+        $this->game->notify->player(
+            $currentPlayer,
+            "cubePlaced",
+            "",
+            ["skill" => $skillId]
+        );
+        
         $cubesRemaining = $TOTAL_CUBES - ($placedCubes + 1);
 
         if ($cubesRemaining == 0) 
         {
             $this->gamestate->setPlayerNonMultiactive($currentPlayer, TeamAttributesReveal::class);
         } 
-        else 
-        {
-            $this->game->notify->player(
-                $currentPlayer,
-                "cubePlaced",
-                "",
-                ["skill" => $skillId]
-            );
-        }
     }
 
     function zombie(int $playerId): string
