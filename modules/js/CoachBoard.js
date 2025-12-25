@@ -27,14 +27,8 @@ define([
 
             //Public Methods
             placeCubeAnimated: async function (skill) {
-                let slot = this._getEmptyCubeSlot(skill);
-                slot.isFilled = true;
-
-                let cube = this._createCube(this._area.getElement());
-                this._root.placeOnObject(cube, this._root.getPlayerPanelElement(this._ownerId));
-                const anim = this._root.slideToObject(cube, slot.element);
-
-                await this._root.bgaPlayDojoAnimation(anim);
+                const animations = this._getCubePlacementAnimation(skill, 1);
+                await this._root.bgaPlayDojoAnimation(dojo.fx.combine(animations));
             },
 
             placeCubeImmediate: function (skill, count) {
@@ -46,6 +40,19 @@ define([
                     slot.isFilled = true;
                     this._createCube(slot.element);
                 }
+            },
+
+            updateOwnerDataAnimated: function (ownerData) {
+                this._ownerData = ownerData;
+
+                animations = [];
+                animations.push(...this._getCubePlacementAnimation(Skills.Dribble, this._ownerData.team_attr_dribble));
+                animations.push(...this._getCubePlacementAnimation(Skills.Pass, this._ownerData.team_attr_pass));
+                animations.push(...this._getCubePlacementAnimation(Skills.GK, this._ownerData.team_attr_gk));
+                animations.push(...this._getCubePlacementAnimation(Skills.Shoot, this._ownerData.team_attr_shoot));
+                animations.push(...this._getCubePlacementAnimation(Skills.Tackle, this._ownerData.team_attr_tackle));
+
+                return this._root.bgaPlayDojoAnimation(dojo.fx.combine(animations));
             },
 
             makeAllNonSelectable: function () {
@@ -81,6 +88,20 @@ define([
                     return this._skillSlots[Skills.Count + skill];
                 else
                     throw new Error("invalid skill passed " + skill);
+            },
+
+            _getCubePlacementAnimation: function (skill, count) {
+                let anim =[];
+                for (let i = 0; i < count; i++) {
+                    let slot = this._getEmptyCubeSlot(skill);
+                    slot.isFilled = true;
+
+                    let cube = this._createCube(this._area.getElement());
+                    this._root.placeOnObject(cube, this._root.getPlayerPanelElement(this._ownerId));
+                    anim.push(this._root.slideToObject(cube, slot.element));
+                }
+
+                return anim;
             },
 
             _init: function () {

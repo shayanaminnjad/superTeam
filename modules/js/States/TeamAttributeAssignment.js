@@ -9,7 +9,7 @@ define(["dojo/_base/declare",
 
             //State Overrides
             _onActivePlayerEnter: function (args) {
-                this._root.myPlayerArea.getCoachBoard().setClickHandler((evt, skillSlot)=> this.onSkillSelected(evt, skillSlot));
+                this._root.myPlayerArea.getCoachBoard().setClickHandler((evt, skillSlot) => this.onSkillSelected(evt, skillSlot));
                 this._root.myPlayerArea.getCoachBoard().makeAvailableBoxesSelectable();
             },
 
@@ -17,12 +17,11 @@ define(["dojo/_base/declare",
             },
 
             _onActivePlayerLeave: function () {
-                const myCoachBoard = this._root.myPlayerArea.getCoachBoard();
-                myCoachBoard.removeClickHandler();
-                myCoachBoard.makeAllNonSelectable();
+                this._cleanup();
             },
 
             _onInactivePlayerLeave: function () {
+                this._cleanup();
             },
 
             getName: function () {
@@ -40,8 +39,14 @@ define(["dojo/_base/declare",
                 evt.preventDefault();
                 evt.stopPropagation();
 
-                this._root.performServerAction("actPlacedAttrCube", {skillId: skillSlot.skillIndex});
+                this._root.performServerAction("actPlacedAttrCube", { attributeId: skillSlot.skillIndex });
             },
+
+            _cleanup: function () {
+                const myCoachBoard = this._root.myPlayerArea.getCoachBoard();
+                myCoachBoard.removeClickHandler();
+                myCoachBoard.makeAllNonSelectable();
+            }
         });
 
         TeamAttributeAssignment.getName = function () {
