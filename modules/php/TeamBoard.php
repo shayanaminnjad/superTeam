@@ -39,9 +39,9 @@ class TeamBoard
         }
     }
 
-    public function getAttribute(int $player_id, TeamAttribute $attribute)
+    public function getAttribute(int $player_id, TeamAttribute $attribute): int
     {
-        $this->attributes[$player_id][$attribute->value];
+        return $this->attributes[$player_id][$attribute->value];
     }
 
     public function getTotalAttributesAssigned(int $player_id): int
@@ -133,4 +133,5 @@ enum TeamAttribute: int
     case Tackle = 3;
     case GK = 4;
     case Count = 5;
+    case None = 6;
 }
