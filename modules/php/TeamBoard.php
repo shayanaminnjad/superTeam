@@ -9,13 +9,11 @@ class TeamBoard
     public const MAX_ALLOWED_ATTRIBUTES = 6;
     public const MAX_PER_ATTRIBUTE_VALUE = 2;
 
-    private $attributesRaw;
-
     private $attributes = [];
 
     public function __construct(DBAdapter $adapter)
     {
-        $this->attributesRaw = $adapter->getCollectionFromDB(
+        $attributesRaw = $adapter->getCollectionFromDB(
             "SELECT 
             `player_id`,
             `team_attr_pass`, 
@@ -25,7 +23,7 @@ class TeamBoard
             `team_attr_gk` FROM `player`"
         );
 
-        foreach ($this->attributesRaw as $row) 
+        foreach ($attributesRaw as $row) 
         {
             $playerId = (int)$row['player_id'];
 
@@ -102,7 +100,19 @@ class TeamBoard
 
     public function getAttributesAsCollection()
     {
-        return $this->attributesRaw;
+        $res = [];
+        foreach ($this->attributes as $playerId => $info) 
+        {
+            $labledInfo = [];
+            for($i = 0; $i < \count($info); $i++)
+            {
+                $labledInfo [self::attributeToString(TeamAttribute::from($i))] = $info[$i];
+            }
+
+            $res[$playerId] = $labledInfo;
+        }
+
+        return $res;
     }
 
     public static function attributeToString(TeamAttribute $attribute): string
