@@ -26,10 +26,16 @@ define(["dojo/_base/declare",
 
             //Notifications
             notif_attributeAssignmentFinished: function (notifData) {
+                //this only happens in fast setup for debug.
+                const myAttributes = notifData[this._root.player_id]
+                const myCoachBoard = this._root.myPlayerArea.getCoachBoard();
+                myCoachBoard.updateOwnerDataAnimated(myAttributes);
+
                 const opponentAttributes = notifData[this._root.opponentId];
 
                 const opponentCoachBoard = this._root.opponentPlayerArea.getCoachBoard();
                 return opponentCoachBoard.updateOwnerDataAnimated(opponentAttributes);
+
             }
 
         });

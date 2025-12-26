@@ -36,7 +36,11 @@ define([
                     return;
 
                 for (let i = 0; i < count; i++) {
-                    let slot = this._getEmptyCubeSlot(skill);
+                    let [res, slot] = this._tryGetEmptyCubeSlot(skill);
+
+                    if (!res)
+                        continue;
+                    
                     slot.isFilled = true;
                     this._createCube(slot.element);
                 }
@@ -81,19 +85,23 @@ define([
             },
 
             //Private Methods
-            _getEmptyCubeSlot: function (skill) {
+            _tryGetEmptyCubeSlot: function (skill) {
                 if (this._skillSlots[skill].isFilled === false)
-                    return this._skillSlots[skill];
+                    return [true, this._skillSlots[skill]];
                 else if (this._skillSlots[Skills.Count + skill].isFilled === false)
-                    return this._skillSlots[Skills.Count + skill];
+                    return [true, this._skillSlots[Skills.Count + skill]];
                 else
-                    throw new Error("invalid skill passed " + skill);
+                    return [false, null];
             },
 
             _getCubePlacementAnimation: function (skill, count) {
-                let anim =[];
+                let anim = [];
                 for (let i = 0; i < count; i++) {
-                    let slot = this._getEmptyCubeSlot(skill);
+                    const [result, slot] = this._tryGetEmptyCubeSlot(skill);
+
+                    if (!result)
+                        continue;
+                    
                     slot.isFilled = true;
 
                     let cube = this._createCube(this._area.getElement());
