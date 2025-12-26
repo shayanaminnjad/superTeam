@@ -43,6 +43,16 @@ CREATE TABLE IF NOT EXISTS `ball` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+CREATE TABLE IF NOT EXISTS `player_cards` (
+  `card_id` int unsigned NOT NULL AUTO_INCREMENT,
+  `card_type` varchar(32) NOT NULL,
+  `card_type_arg` int NOT NULL,
+  `card_location` varchar(32) NOT NULL,
+  `card_location_arg` int NOT NULL,
+  PRIMARY KEY (`card_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
 CREATE TABLE IF NOT EXISTS `st_globals` (
     `morale_assign_transition` TEXT DEFAULT '',
     `selected_hex_column` INT DEFAULT -1,

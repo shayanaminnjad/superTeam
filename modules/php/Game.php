@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace Bga\Games\SuperTeam;
 
 use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\TeamBoard;
@@ -40,10 +41,6 @@ class Game extends \Table
     public function __construct()
     {
         parent::__construct();
-
-        HexLib::SetHexInfo(BoardInfo::GetHexInfo());
-        BoardInfo::init();
-
         
         DBAdapter::getInstance()->init(
             fn($sql) => $this->getObjectListFromDB($sql),
@@ -55,9 +52,12 @@ class Game extends \Table
             fn($name) => $this->getGameStateValue($name)
         );
 
-        $this->teamBoard = new TeamBoard(DBAdapter::getInstance());
-
         Logger::init(DBAdapter::getInstance(), 'logs');
+
+        HexLib::SetHexInfo(BoardInfo::GetHexInfo());
+        BoardInfo::init();
+
+        $this->teamBoard = new TeamBoard(DBAdapter::getInstance());
 
         $this->initGameStateLabels([
             "game_half" => 10,
@@ -278,8 +278,9 @@ class Game extends \Table
      */
     protected function setupNewGame($players, $options = [])
     {
+        $playersDeck = $this->deckFactory->createDeck('player_cards');
         $default_colors = ['DD4720', '479ADA'];
-
+        
         foreach ($players as $player_id => $player) {
             // Now you can access both $player_id and $player array
             $query_values[] = vsprintf("('%s', '%s', '%s', '%s', '%s')", [
@@ -289,6 +290,9 @@ class Game extends \Table
                 addslashes($player["player_name"]),
                 addslashes($player["player_avatar"]),
             ]);
+
+            //TODO: this must change, it should be initialized when we have selected captain board and team board.
+            PlayerHand::createPlayerHand($playersDeck, $player_id, 0, 0);
         }
 
         static::DbQuery(
