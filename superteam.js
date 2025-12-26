@@ -198,6 +198,7 @@ define([
                 }
                 catch (error) {
                     console.error("Server action failed, exception caught:", error);
+                    throw error;
                 }
                 finally {
                     this.serverCallInProgress = false;
