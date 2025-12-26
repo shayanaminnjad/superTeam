@@ -14,25 +14,14 @@ define([
 
             //State Overrides
             _onActivePlayerEnter(args) {
-                document.querySelectorAll('.availableToPlacePiece').forEach(div => div.classList.remove('availableToPlacePiece'));
-
-                let availableStartingPositions = args.availableStartingPositions;
-
-                for (let i = 0; i < availableStartingPositions.length; ++i) {
-                    let el = availableStartingPositions[i];
-
-                    let hexId = Board.convertOffsetCoordToHexId(HexLib.createOffsetCoord(el.hex_row, el.hex_column));
-                    let hexEl = document.getElementById(hexId);
-
-                    hexEl.classList.add('availableToPlacePiece');
-                }
+                this._highlightAvailablePlaces();
             },
 
             _onInactivePlayerEnter(args) {
             },
 
             _onActivePlayerLeave() {
-                    document.querySelectorAll('.availableToPlacePiece').forEach(div => div.classList.remove('availableToPlacePiece'));
+                document.querySelectorAll('.availableToPlacePiece').forEach(div => div.classList.remove('availableToPlacePiece'));
             },
 
             _onInactivePlayerLeave() {
@@ -45,7 +34,15 @@ define([
 
                     var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
 
-                    await this._root.performServerAction("actPlacedPiece", { placedPiece: this._stateData.args.pieceToPlace, hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
+                    //not efficient, works for now.
+                    document.querySelectorAll('.availableToPlacePiece').forEach(div => div.classList.remove('availableToPlacePiece'));
+
+                    try {
+                        await this._root.performServerAction("actPlacedPiece", { placedPiece: this._stateData.args.pieceToPlace, hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
+                    }
+                    catch (e) {
+                        this._highlightAvailablePlaces();
+                    }
                 }
             },
 
@@ -60,6 +57,22 @@ define([
 
                 await this._root.pieceManager.animatePieceFromPlayerBoardToHex(notifData.placed_piece, Board.convertOffsetCoordToHexId(hex));
             },
+
+            _highlightAvailablePlaces()
+            {
+                document.querySelectorAll('.availableToPlacePiece').forEach(div => div.classList.remove('availableToPlacePiece'));
+
+                let availableStartingPositions = this._args.availableStartingPositions;
+
+                for (let i = 0; i < availableStartingPositions.length; ++i) {
+                    let el = availableStartingPositions[i];
+
+                    let hexId = Board.convertOffsetCoordToHexId(HexLib.createOffsetCoord(el.hex_row, el.hex_column));
+                    let hexEl = document.getElementById(hexId);
+
+                    hexEl.classList.add('availableToPlacePiece');
+                }
+            }
         });
 
 
