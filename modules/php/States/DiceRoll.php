@@ -11,6 +11,7 @@ use Bga\Games\SuperTeam\Dice\GameDice;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\Dice\DiceRollResult;
+use Bga\Games\SuperTeam\TeamAttribute;
 
 class DiceRoll extends GameState
 {
@@ -40,7 +41,8 @@ class DiceRoll extends GameState
 
         $rollNotifData = [];
         foreach ($playersToRollFor as $player) {
-            $rollResult = $this->rollForPlayer($player);
+            $relatedAttribute = $player == $activePlayerId ? $rollData->selfAttribute : $rollData->otherAttribute;
+            $rollResult = $this->rollForPlayer($player, $relatedAttribute);
             $this->storeRollResult($player, $rollResult);
             $rollResultData = $rollResult->getData();
             $rollNotifData[$player] = $rollResultData;
@@ -59,13 +61,24 @@ class DiceRoll extends GameState
         return $rollData->finishTransition;
     }
 
-    private function rollForPlayer(int $playerId): DiceRollResult
+    private function rollForPlayer(int $playerId, TeamAttribute $relatedAttribute): DiceRollResult
     {
-        //TODO: Determine number of white dice to roll, and roll them!
+        $whiteDice = [];
+        if ($relatedAttribute != TeamAttribute::None)
+        {
+            $teamBoard = $this->game->getTeamBoard();
+            $attrCount = $teamBoard->getAttribute($playerId, $relatedAttribute);
+
+            for($i = 0; $i < $attrCount; $i++)
+            {
+                $whiteDice[]= GameDice::whiteDie()->roll();
+            }
+        }
+
         $dieRes = GameDice::greenDie()->roll();
         $assignedMorale = MoraleAssignment::getMoraleAssigned($playerId);
 
-        return new DiceRollResult($assignedMorale, $dieRes, []);
+        return new DiceRollResult($assignedMorale, $dieRes, $whiteDice);
     }
 
     //TODO: move this to a class named dice roll serivces.
@@ -84,9 +97,9 @@ class DiceRoll extends GameState
         return $result;
     }
 
-    public static function storeRollInput(int $playerId, RequiredPower $requiredPower, string $finishTransition, bool $bothPlayers)
+    public static function storeRollInput(int $playerId, RequiredPower $requiredPower, string $finishTransition, TeamAttribute $selfAttribute, TeamAttribute $otherAttribute, bool $bothPlayers)
     {
-        $rollData = new DiceRollData($requiredPower->getTotal(), $finishTransition, $requiredPower->distance, \count($requiredPower->blockingHexes), $bothPlayers);
+        $rollData = new DiceRollData($requiredPower->getTotal(), $finishTransition, $requiredPower->distance, \count($requiredPower->blockingHexes), $selfAttribute, $otherAttribute, $bothPlayers);
 
         $dbAdapter = DBAdapter::getInstance();
         $dbAdapter->setGameStateValue('required_power', $requiredPower->getTotal());
@@ -96,10 +109,7 @@ class DiceRoll extends GameState
     private function getRollData(int $playerId): DiceRollData
     {
         $json = DBAdapter::getInstance()->getPlayerTempStr($playerId, "dice_roll_input");
-        $rollData = new DiceRollData();
-        $rollData->fromJson($json);
-
-        return $rollData;
+        return DiceRollData::fromJson($json);
     }
 }
 
@@ -110,14 +120,18 @@ class DiceRollData
     public string $finishTransition;
     public int $distance;
     public int $blockingPieces;
+    public TeamAttribute $selfAttribute;
+    public TeamAttribute $otherAttribute;
 
-    public function __construct(int $requiredPower = 0, string $finishTransition = '', int $distance = 0, int $blockingPieces = 0, bool $rollForBoth = false)
+    public function __construct(int $requiredPower, string $finishTransition, int $distance, int $blockingPieces, TeamAttribute $selfAttribute, TeamAttribute $otherAttribute, bool $rollForBoth = false)
     {
         $this->requiredPower = $requiredPower;
         $this->finishTransition = $finishTransition;
         $this->rollForBoth = $rollForBoth;
         $this->distance = $distance;
         $this->blockingPieces = $blockingPieces;
+        $this->selfAttribute = $selfAttribute;
+        $this->otherAttribute = $otherAttribute;
     }
 
     public function toJson(): string
@@ -127,22 +141,28 @@ class DiceRollData
             "requiredPower" => $this->requiredPower,
             "distance" => $this->distance,
             "blockingPieces" => $this->blockingPieces,
-            "finishTransition" => $this->finishTransition
+            "finishTransition" => $this->finishTransition,
+            "selfAttribute" => $this->selfAttribute->value,
+            "otherAttribute" => $this->otherAttribute->value
         ];
 
         return json_encode($result);
     }
 
-    public function fromJson($json)
+    public static function fromJson($json)
     {
         $data = json_decode($json, true);
 
-        assert(is_array($data), "Invalid json format passed!");
+        assert(\is_array($data), "Invalid json format passed!");
 
-        $this->rollForBoth = $data["rollForBoth"];
-        $this->requiredPower = $data["requiredPower"];
-        $this->distance = $data["distance"];
-        $this->blockingPieces = $data["blockingPieces"];
-        $this->finishTransition = $data["finishTransition"];
+        $rollForBoth = $data["rollForBoth"];
+        $requiredPower = $data["requiredPower"];
+        $distance = $data["distance"];
+        $blockingPieces = $data["blockingPieces"];
+        $finishTransition = $data["finishTransition"];
+        $selfAttribute = TeamAttribute::from($data["selfAttribute"]);
+        $otherAttribute = TeamAttribute::from($data["otherAttribute"]);
+
+        return new DiceRollData($requiredPower, $finishTransition, $distance, $blockingPieces, $selfAttribute, $otherAttribute, $rollForBoth);
     }
 }

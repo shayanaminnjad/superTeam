@@ -11,6 +11,7 @@ use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\RequiredPower;
+use Bga\Games\SuperTeam\TeamAttribute;
 
 class TacklePerformerSelection extends GameState
 {
@@ -70,7 +71,7 @@ class TacklePerformerSelection extends GameState
 
         DBAdapter::getInstance()->storeSelectedHex($hexColumn ,$hexRow);
         MoraleAssignment::storeMoraleAssignData(addslashes(DiceRoll::class), true);
-        DiceRoll::storeRollInput(\intval($this->game->getActivePlayerId()), new RequiredPower(0, []), PerformTackle::class, true);
+        DiceRoll::storeRollInput(\intval($this->game->getActivePlayerId()), new RequiredPower(0, []), PerformTackle::class, TeamAttribute::Tackle, TeamAttribute::Dribble, true);
 
         return ActiveNextGoMorale::class;
 }

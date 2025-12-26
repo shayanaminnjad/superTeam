@@ -11,6 +11,7 @@ use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\RequiredPower;
+use Bga\Games\SuperTeam\TeamAttribute;
 
 class DribbleTargetSelection extends GameState
 {
@@ -68,7 +69,7 @@ class DribbleTargetSelection extends GameState
 
         DBAdapter::getInstance()->storeSelectedHex($hexColumn ,$hexRow);
         MoraleAssignment::storeMoraleAssignData(addslashes(DiceRoll::class), true);
-        DiceRoll::storeRollInput($activePlayer, new RequiredPower(-1, []), PerformDribble::class, true);
+        DiceRoll::storeRollInput($activePlayer, new RequiredPower(-1, []), PerformDribble::class, TeamAttribute::Dribble, TeamAttribute::Tackle, true);
 
         return ActiveNextGoMorale::class;
     }
