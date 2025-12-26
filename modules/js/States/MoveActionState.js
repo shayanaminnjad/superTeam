@@ -12,17 +12,15 @@ define(["dojo/_base/declare",
 
             //State Overrides
             _onActivePlayerEnter(args) {
-                document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
-
-                this._highlightSelectedPiece(args);
+                this._resetMovementVisualCues();
+                this._setMovementVisualCues(args);
             },
 
             _onInactivePlayerEnter(args) {
             },
 
             _onActivePlayerLeave() {
-                document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
-                document.querySelector('.selected').classList.remove('selected');
+                this._resetMovementVisualCues();
             },
 
             _onInactivePlayerLeave() {
@@ -35,7 +33,14 @@ define(["dojo/_base/declare",
 
                     var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
 
-                    await this._root.performServerAction("actPieceMoved", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r });
+                    try {
+                        this._resetMovementVisualCues();
+                        await this._root.performServerAction("actPieceMoved", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r });
+                    }
+                    catch (e) {
+                        this._setMovementVisualCues(this._args)
+                    }
+
                 }
             },
 
@@ -68,11 +73,9 @@ define(["dojo/_base/declare",
             },
 
             //Private Methods
-            _highlightSelectedPiece: function (args) {
+            _setMovementVisualCues: function (args) {
                 let selectedPiece = args.selectedPiece;
                 let moveableHexes = args.moveableHexes;
-
-                console.log("selected piece" + selectedPiece);
 
                 let piece = this._root.pieceManager.getPiece(selectedPiece);
                 piece.getDOMElement().classList.add('selected');
@@ -83,8 +86,15 @@ define(["dojo/_base/declare",
 
                     document.getElementById(DOMHexId).classList.add('selectable');
                 }
-            }
+            },
 
+            _resetMovementVisualCues: function () {
+                document.querySelectorAll('.selectable').forEach(div => div.classList.remove('selectable'));
+                let selected = document.querySelector('.selected');
+
+                if (selected != null)
+                    selected.classList.remove('selected')
+            }
         });
 
         MoveActionState.getName = function () {
