@@ -193,7 +193,8 @@ define([
                 try {
                     this.serverCallInProgress = true;
                     //TODO: this is not efficient, however it works perfectly for now.
-                    document.querySelectorAll('.selectable').forEach((div) => div.classList.add('inputBlocked'));
+                    document.querySelectorAll('.selectable, .availableToPlacePiece').forEach((div) => div.classList.add('inputBlocked'));
+
                     await this.bgaPerformAction(name, args);
                 }
                 catch (error) {
