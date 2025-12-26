@@ -345,12 +345,6 @@ define([
 
                 const DEST_HEX_ID = Board.convertOffsetCoordToHexId(destHex);
                 await this.bgaPlayDojoAnimation(this.slideToObject(piece.getDOMID(), DEST_HEX_ID));
-
-                /*
-                                    'defenderTarget' => $defenderTarget,
-                                        'attackerTarget' => $attackerTarget,
-                                            'powerRequired' => $requiredPower
-                                            */
             },
 
             notif_shootFailed: async function (notifData) {
@@ -382,10 +376,14 @@ define([
 
                 console.log("Debug mode is active, to see options type: help");
 
-                window.help = function () {
-                    console.log("debug.showCoords: shows the coordinates of the hexes.")
-                    console.log("debug.defaultSetup: sets up pieces for both sides.");
-                }
+                window.help = function() {
+                    console.log("debug.showCoords = 1; shows the coordinates of the hexes.\n" +
+                    "debug.defaultSetup= 1; sets up pieces and attributes for both sides. \n" +
+                    "debug.setMorale= x; sets morale for current player\n" +
+                    "debug.moveBall= {column: x, row:y}; sets ball position");
+
+                    return 'success';
+                };
 
 
                 window.debug = {};
