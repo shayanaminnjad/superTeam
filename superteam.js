@@ -377,11 +377,12 @@ define([
 
                 console.log("Debug mode is active, to see options type: help");
 
-                window.help = function() {
+                window.help = function () {
                     console.log("debug.showCoords = 1; shows the coordinates of the hexes.\n" +
-                    "debug.defaultSetup= 1; sets up pieces and attributes for both sides. \n" +
-                    "debug.setMorale= x; sets morale for current player\n" +
-                    "debug.moveBall= {column: x, row:y}; sets ball position");
+                        "debug.defaultSetup= 1; sets up pieces and attributes for both sides. \n" +
+                        "debug.setMorale= x; sets morale for current player\n" +
+                        "debug.moveBall= {column: x, row:y}; sets ball position\n" +
+                        "debug.defaultAttribute = 1; fast attribute setup");
 
                     return 'success';
                 };
@@ -395,6 +396,18 @@ define([
                     set: function (value) {
                         console.log('calling actDebugDefaultPlacePieces');
                         this.bgaPerformAction("actDebugDefaultPlacePieces");
+                    }.bind(this)
+                })
+
+
+                Object.defineProperty(window.debug, 'defaultAttribute', {
+                    get: function () {
+                        return this._val;
+                    },
+                    set: function (input) {
+                        this._val = input;
+                        console.log(`calling actDebugDefaultSetup`);
+                        this.bgaPerformAction("actDebugDefaultSetup");
                     }.bind(this)
                 })
 
