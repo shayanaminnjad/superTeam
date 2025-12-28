@@ -100,6 +100,12 @@ define([
                     return this._root.bgaPlayDojoAnimation(animation_id);
                 },
 
+                refreshAllPieces: function () {
+                    for (let piece of this._piecesMap.values()) {
+                        piece.setFreshness(true);
+                    }
+                },
+
                 swapPeicesAndGetAnimation: function (lhsHex, rhsHex) {
                     let animations = [];
 
