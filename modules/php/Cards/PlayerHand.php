@@ -3,7 +3,6 @@
 namespace Bga\Games\SuperTeam\Cards;
 
 use Bga\Games\SuperTeam\Game;
-use Bga\Games\SuperTeam\Utility\Logger;
 use Bga\GameFramework\Components\Deck;
 use ErrorException;
 
@@ -30,6 +29,11 @@ class PlayerHand
         $this->discardName = self::getPlayerDiscard($playerId);
     }
     
+    public function getCardsInHand() : array
+    {
+        return $this->cards->getCardsInLocation('hand', $this->ownerId);
+    }
+
     public function drawToFour() : bool
     {
         $this->wasShuffled = false;
@@ -50,11 +54,6 @@ class PlayerHand
     public function discardCard(int $cardId) :void
     {
         $this->cards->moveCard($cardId, $this->discardName);
-    }
-
-    public function removeCard(int $cardId) : void
-    {
-        //TODO: where can I remove cards from?
     }
 
     public function CountCardsInHand(): int 
@@ -80,6 +79,11 @@ class PlayerHand
     public function onReshuffle()
     {
         $this->wasShuffled = true;
+    }
+
+    public function getOwner() : int
+    {
+        return $this->ownerId;
     }
 
     //TODO: this part deserves it's own class. 
