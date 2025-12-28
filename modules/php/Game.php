@@ -37,6 +37,8 @@ require_once(__DIR__ . '/StateMachineConstants.inc.php');
 class Game extends \Table
 {
     private ?TeamBoard $teamBoard = null;
+
+    private array $playerHands = [];
     
     public function __construct()
     {
@@ -254,6 +256,7 @@ class Game extends \Table
             unset($player);
         }
         
+        $result["player_hand"] = $this->getPlayerHand($current_player_id)->getCardsInHand();
         $result["player_pieces"] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
         $result["ball"] = $this->getObjectFromDB("SELECT * FROM `ball`");
         $result['user_in_right_id'] = $this->getGameStateValue('user_in_right_id');
@@ -293,6 +296,7 @@ class Game extends \Table
 
             //TODO: this must change, it should be initialized when we have selected captain board and team board.
             PlayerHand::createPlayerHand($playersDeck, $player_id, 0, 0);
+            $this->getPlayerHand($player_id)->drawToFour();
         }
 
         static::DbQuery(
@@ -368,6 +372,22 @@ class Game extends \Table
         $sqlQuery .= implode(',', $sqlValues);
 
         $this->DbQuery($sqlQuery);
+    }
+
+    public function getPlayerHand(int $playerId) : PlayerHand
+    {
+        for($i = 0; $i < \count($this->playerHands); $i++)
+        {
+            if ($this->playerHands[$i]->getOwner() === $playerId)
+            {
+                return $this->playerHands[$i];
+            }
+        }
+
+        $playerHand = new PlayerHand($playerId, $this);
+        $this->playerHands[] = $playerHand;
+
+        return $playerHand;
     }
 
     public function getTeamBoard() : TeamBoard

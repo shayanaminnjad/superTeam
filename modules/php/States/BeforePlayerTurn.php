@@ -7,6 +7,7 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\PlayerPiecesDBManager;
 
 class BeforePlayerTurn extends GameState
 {
@@ -26,10 +27,7 @@ class BeforePlayerTurn extends GameState
 
     function onEnteringState(int $activePlayerId)
     {
-        //TODO: fresh all exhusted players
-
-        //TODO: restart card played counter
-
-        return PlayerTurn::class;
+        $this->game->DbQuery(PlayerPiecesDBManager::refreshPiecesQuery($activePlayerId));
+        $this->game->notify->all("piecesRefreshed", "pieces refreshed", ["playerId" => $activePlayerId]);
     }
 }

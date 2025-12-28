@@ -13,7 +13,8 @@ define([
     g_gamethemeurl + "modules/js/States/TacklePerformerSelection.js",
     g_gamethemeurl + "modules/js/States/PerformTackle.js",
     g_gamethemeurl + "modules/js/States/TeamAttributeAssignment.js",
-    g_gamethemeurl + "modules/js/States/TeamAttributeReveal.js"
+    g_gamethemeurl + "modules/js/States/TeamAttributeReveal.js",
+    g_gamethemeurl + "modules/js/States/BeforePlayerTurn.js"
 ], function (
     declare,
     PlayerPieceSetupState,
@@ -29,7 +30,8 @@ define([
     TacklePerformerSelection,
     PerformTackle,
     TeamAttributeAssignment,
-    TeamAttributeReveal
+    TeamAttributeReveal,
+    BeforePlayerTurn
 ) {
 
     const StateRegistry = declare("st.StateRegistry", null, {
@@ -51,6 +53,7 @@ define([
             this.registerState(PerformTackle);
             this.registerState(TeamAttributeAssignment);
             this.registerState(TeamAttributeReveal);
+            this.registerState(BeforePlayerTurn);
         },
 
         getState: function (name, root, stateData) {

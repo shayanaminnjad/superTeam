@@ -311,6 +311,10 @@ define([
                 return this.forwardNotification(this.notif_tacklePerformed.name, notifData);
             },
 
+            notif_piecesRefreshed: function(notifData) {
+                return this.forwardNotification(this.notif_piecesRefreshed.name, notifData);
+            },
+
             notif_pieceExhausted: function (notifData) {
                 let pieceData = this.pieceManager.getPiece(parseInt(notifData.pieceId));
                 pieceData.setFreshness(false);
