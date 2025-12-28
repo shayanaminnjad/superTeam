@@ -36,13 +36,15 @@ class PlayerTurn extends PlayerBaseState
 
         //TODO: If the player with ball is the goal keeper, then only pass is possible!
 
+        $activePlayerId = \intval($this->game->getActivePlayerId());
+
         $board = $this->game->getBoard();
         $playerPieceWithBall = null;
         if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPieceWithBall)) 
         {
             assert($playerPieceWithBall !== null); // useless, juse supress a warning.
 
-            if ($playerPieceWithBall->getOwner() === \intval($this->game->getActivePlayerId())) 
+            if ($playerPieceWithBall->getOwner() === $activePlayerId)
             {
                 $this->addClientButton('pass ball', [$this, 'actPassBall']);
 
@@ -50,7 +52,7 @@ class PlayerTurn extends PlayerBaseState
                 {
                     $this->addClientButton('shoot', [$this, 'actShootBall']);
 
-                    if ($board->doesOpponentExistInNeighbours($board->getBallHex(), \intval($this->game->getActivePlayerId()), false)) 
+                    if ($board->doesOpponentExistInNeighbours($board->getBallHex(), $activePlayerId, false)) 
                     {
                         $this->addClientButton('dribble', [$this, 'actDribble']);
                     }
@@ -74,7 +76,13 @@ class PlayerTurn extends PlayerBaseState
             $this->addClientButton('move', [$this, 'actMove']);
         }
 
-        return [];
+        return [
+            '_private' => [
+                $activePlayerId => [
+                    'playerHand' => $this->game->getPlayerHand($activePlayerId)->getCardsInHand()
+                ]
+            ]
+        ];
     }
 
     #[PossibleAction]
