@@ -26,6 +26,11 @@ class PlayerPiecesDBManager
     `is_fresh` = TRUE,
     `can_tackle` = TRUE";
     }
+
+    public static function refreshPiecesQuery(int $playerId)
+    {
+        return "UPDATE `player_pieces` SET `is_fresh` = TRUE, `can_tackle`= TRUE WHERE `owner_id` = {$playerId}";
+    }
     
     static public function swapPiecesQuery(int $lhsId, int $lhsSwapToRow, $lhsSwapToColumn, int $rhsId, int $rhsSwapToRow, int $rhsSwapToColumn) : string
     {
