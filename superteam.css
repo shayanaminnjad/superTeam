@@ -432,8 +432,9 @@
     width: calc(var(--width-ratio) * var(--scale));
     height: calc(var(--heigh-ratio) * var(--scale));
     border-radius: 8px;
+    flex-grow: 0;
+    flex-shrink: 0;
 }
-
 .readonlyText {
     --size: xx-small;
     --color: red;
@@ -484,4 +485,14 @@
     background-size: contain;
     overflow: visible;
     z-index: 104;
+}
+
+.st-card-front {
+    background-size: 700% 300%;
+    background-image: url("img/cardsAtlas.jpg");
+}
+
+.st-card-back {
+    background-size: 700% 300%;
+    background-image: url("img/cardsAtlas.jpg");
 }
