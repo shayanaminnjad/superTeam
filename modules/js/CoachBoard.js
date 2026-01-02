@@ -14,12 +14,13 @@ define([
         };
 
         const CoachBoard = declare("st.CoachBoard", null, {
-            constructor: function (ownerId, ownerData, root, area) {
+            constructor: function (ownerId, ownerData, root, area, parentEl) {
                 this._ownerId = ownerId;
                 this._ownerData = ownerData;
                 this._root = root;
                 this._area = area;
                 this._skillSlots = [];
+                this._parentEl = parentEl;
 
                 this._init();
                 this._assignPlacedCubes();
@@ -36,11 +37,8 @@ define([
                     return;
 
                 for (let i = 0; i < count; i++) {
-                    let [res, slot] = this._tryGetEmptyCubeSlot(skill);
+                    let slot = this._getEmptyCubeSlot(skill);
 
-                    if (!res)
-                        continue;
-                    
                     slot.isFilled = true;
                     this._createCube(slot.element);
                 }
@@ -50,11 +48,12 @@ define([
                 this._ownerData = ownerData;
 
                 animations = [];
-                animations.push(...this._getCubePlacementAnimation(Skills.Dribble, this._ownerData.team_attr_dribble));
-                animations.push(...this._getCubePlacementAnimation(Skills.Pass, this._ownerData.team_attr_pass));
-                animations.push(...this._getCubePlacementAnimation(Skills.GK, this._ownerData.team_attr_gk));
-                animations.push(...this._getCubePlacementAnimation(Skills.Shoot, this._ownerData.team_attr_shoot));
-                animations.push(...this._getCubePlacementAnimation(Skills.Tackle, this._ownerData.team_attr_tackle));
+
+                animations.push(...this._getCubePlacementAnimation(Skills.Dribble, this._ownerData.team_attr_dribble - this._getCubesAssigned(Skills.Dribble)));
+                animations.push(...this._getCubePlacementAnimation(Skills.Pass, this._ownerData.team_attr_pass - this._getCubesAssigned(Skills.Pass)));
+                animations.push(...this._getCubePlacementAnimation(Skills.GK, this._ownerData.team_attr_gk - this._getCubesAssigned(Skills.GK)));
+                animations.push(...this._getCubePlacementAnimation(Skills.Shoot, this._ownerData.team_attr_shoot - this._getCubesAssigned(Skills.Shoot)));
+                animations.push(...this._getCubePlacementAnimation(Skills.Tackle, this._ownerData.team_attr_tackle - this._getCubesAssigned(Skills.Tackle)));
 
                 return this._root.bgaPlayDojoAnimation(dojo.fx.combine(animations));
             },
@@ -85,23 +84,20 @@ define([
             },
 
             //Private Methods
-            _tryGetEmptyCubeSlot: function (skill) {
+            _getEmptyCubeSlot: function (skill) {
                 if (this._skillSlots[skill].isFilled === false)
-                    return [true, this._skillSlots[skill]];
+                    return this._skillSlots[skill];
                 else if (this._skillSlots[Skills.Count + skill].isFilled === false)
-                    return [true, this._skillSlots[Skills.Count + skill]];
+                    return this._skillSlots[Skills.Count + skill];
                 else
-                    return [false, null];
+                    return null;
             },
 
             _getCubePlacementAnimation: function (skill, count) {
                 let anim = [];
                 for (let i = 0; i < count; i++) {
-                    const [result, slot] = this._tryGetEmptyCubeSlot(skill);
+                    const slot = this._getEmptyCubeSlot(skill);
 
-                    if (!result)
-                        continue;
-                    
                     slot.isFilled = true;
 
                     let cube = this._createCube(this._area.getElement());
@@ -116,7 +112,7 @@ define([
                 const coachBoard = document.createElement('div');
                 coachBoard.id = `${this._ownerId}_coachBoard`;
                 coachBoard.className = 'coachBoard';
-                this._area.getElement().appendChild(coachBoard);
+                this._parentEl.appendChild(coachBoard);
 
                 const computedWidth = Math.round(parseFloat(getComputedStyle(coachBoard).width));
                 const computedHeight = Math.round(parseFloat(getComputedStyle(coachBoard).height));
@@ -186,6 +182,18 @@ define([
                 this.placeCubeImmediate(Skills.GK, this._ownerData.team_attr_gk);
                 this.placeCubeImmediate(Skills.Shoot, this._ownerData.team_attr_shoot);
                 this.placeCubeImmediate(Skills.Tackle, this._ownerData.team_attr_tackle);
+            },
+
+            _getCubesAssigned: function (skill) {
+                total = 0;
+
+                if (this._skillSlots[skill].isFilled)
+                    total += 1;
+
+                if (this._skillSlots[Skills.Count + skill].isFilled)
+                    total += 1;
+
+                return total;
             },
 
             //Private Fields
