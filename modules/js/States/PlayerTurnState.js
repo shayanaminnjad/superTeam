@@ -8,6 +8,8 @@ define(["dojo/_base/declare",
       },
 
       _onActivePlayerEnter(args) {
+        this._root.handStock.addCards(Object.values(args._private.playerHand));
+        
       },
 
       _onInactivePlayerEnter(args) {
