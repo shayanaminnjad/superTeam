@@ -8,7 +8,6 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
-use Bga\Games\SuperTeam\PlayerPiecesDBManager;
 
 class MoveAction extends PlayerBaseState
 {

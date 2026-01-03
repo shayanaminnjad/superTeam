@@ -8,7 +8,7 @@ use ErrorException;
 
 class PlayerHand
 {
-    private static int $MAX_CARDS_IN_HAND = 4;
+    public static int $MAX_CARDS_IN_HAND = 4;
 
     private $cards;
 

@@ -33,6 +33,6 @@ class TeamAttributesReveal extends GameState
 
         $this->game->notify->all("attributeAssignmentFinished", "", $attributes);
 
-        return PlayerTurn::class;
+        return CardSelection::class;
     }
 }
