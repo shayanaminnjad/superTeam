@@ -432,8 +432,6 @@
     width: calc(var(--width-ratio) * var(--scale));
     height: calc(var(--heigh-ratio) * var(--scale));
     border-radius: 8px;
-    flex-grow: 0;
-    flex-shrink: 0;
 }
 .readonlyText {
     --size: xx-small;
@@ -485,6 +483,37 @@
     background-size: contain;
     overflow: visible;
     z-index: 104;
+}
+
+#cardsWrapper {
+    position: fixed;
+    width: 1000px;
+    height: 0%;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    transition: transform 0.4s ease-in-out;
+    z-index: 1000;
+}
+
+#cardsWrapper.low {
+    transform: translateX(-50%) translateY(150px); /* slide down off screen */
+}
+
+#cardsHideShowToggle {
+    position: fixed;
+    font-size: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1001;
+    bottom: 0;
+    padding: 8px 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(40, 40, 40, 0.85);
+    color: #f1f1f1;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
 }
 
 .st-card-front {

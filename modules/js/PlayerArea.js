@@ -12,18 +12,15 @@ define([
                 this._init();
             },
 
-            getElement()
-            {
+            getElement() {
                 return this._areaEl;
             },
 
-            getCoachBoard()
-            {
+            getCoachBoard() {
                 return this._coachBoard;
             },
 
-            _init: function()
-            {
+            _init: function () {
                 this._areaEl = document.createElement('div');
                 this._areaEl.id = `${this._ownerId}_PlayerArea`;
                 this._areaEl.className = 'playerArea';
@@ -36,7 +33,38 @@ define([
                 playerName.style.setProperty('--size', 'large');
                 this._areaEl.appendChild(playerName);
 
-                this._coachBoard = new CoachBoard(this._ownerId, this._ownerData, this._root, this)
+                const playerStuffContainer = document.createElement('div');
+                playerStuffContainer.style.display = 'flex';
+                playerStuffContainer.style.flexDirection = 'row'; // Left to right
+                playerStuffContainer.style.gap = '20px';
+                playerStuffContainer.style.paddingLeft = '10px';
+                this._areaEl.appendChild(playerStuffContainer);
+
+                this._coachBoard = new CoachBoard(this._ownerId, this._ownerData, this._root, this, playerStuffContainer);
+
+                if (this._root.player_id === this._ownerId) {
+                    const playerDiscard = document.createElement('div');
+                    playerDiscard.id = 'myDiscard';
+                    playerStuffContainer.appendChild(playerDiscard);
+
+                    const playerCardsWrapper = document.createElement('div');
+                    playerCardsWrapper.id = 'cardsWrapper';
+                    this._areaEl.appendChild(playerCardsWrapper);
+
+                    const hideShowToggle = document.createElement('span');
+                    hideShowToggle.id = 'cardsHideShowToggle';
+                    hideShowToggle.innerHTML = 'show/hide';
+                    this._areaEl.appendChild(hideShowToggle);
+
+                    hideShowToggle.addEventListener('click', e => {
+                        playerCardsWrapper.classList.toggle('low')
+                    });
+
+                    const playerHand = document.createElement('div');
+                    playerHand.id = 'myHand';
+                    playerCardsWrapper.appendChild(playerHand);
+
+                }
             },
 
             _ownerId: 0,

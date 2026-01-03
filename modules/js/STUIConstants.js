@@ -34,5 +34,9 @@ define([], function(){
         COACH_BOARD_HORIZONTAL_MARGIN_PERCENT: 0.0325,
         CUBE_WIDTH_PERCENT: 0.0585,
         CUBE_HEIGHT_PERCENT: 0.098,
+
+        //Cards
+        CARDS_PER_ROW: 7,
+        CARDS_PER_COLUMN: 3,
     };
 });

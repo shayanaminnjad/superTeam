@@ -27,10 +27,12 @@ define([
     g_gamethemeurl + "modules/js/PlayerPanelManager.js",
     g_gamethemeurl + "modules/js/States/StatesRegistry.js",
     g_gamethemeurl + "modules/js/PlayerArea.js",
+    getLibUrl('bga-animations', '1.x'), // the library uses bga-animations so this is required!
+    getLibUrl('bga-cards', '1.x'),
     "ebg/core/gamegui",
-    "ebg/counter",
+    "ebg/counter"
 ],
-    function (dojo, declare, topic, STHexLib, PieceManager, STHUIHelpers, Board, DiceUI, PlayerPanelManager, StatesRegistry, PlayerArea) {
+    function (dojo, declare, topic, STHexLib, PieceManager, STHUIHelpers, Board, DiceUI, PlayerPanelManager, StatesRegistry, PlayerArea, BgaAnimations, BgaCards) {
         return declare("bgagame.superteam", ebg.core.gamegui, {
             constructor: function () {
                 console.log('superteam constructor');
@@ -42,7 +44,6 @@ define([
 
             setup: function (gamedatas) {
                 console.log('begin setup');
-
                 console.log(gamedatas);
 
                 this.gameDatas = gamedatas;
@@ -70,6 +71,114 @@ define([
                 DiceUI.construct(this);
 
                 this.setupNotifications();
+
+
+                //----------- THIS ARE NEW, NEED TO GET REFACTORED WHEN MAKING THEM WORK!
+                // create the animation manager, and bind it to the `gameui.bgaAnimationsActive()` function
+                this.animationManager = new BgaAnimations.Manager({
+                    animationsActive: () => this.bga.gameui.bgaAnimationsActive(),
+                });
+
+                const cardWidth = 200 * 0.7;
+                const cardHeight = 280 * 0.7;
+                // create the card manager
+                this.cardsManager = new BgaCards.Manager({
+                    animationManager: this.animationManager,
+                    type: 'st-card', //css type
+                    cardWidth: cardWidth,
+                    cardHeight: cardHeight,
+                    cardBorderRadius: '8px',
+                    getId: (card) => card.id,
+                    setupFrontDiv: (card, div) => {
+                        //div.dataset.type = card.type;
+                        //div.dataset.typeArg = card.type_arg;
+
+                        //(sha) I need better row column sorting for the atlas
+                        //however it is not final yet, since I don't have all of
+                        //the cards, so lets make this work for now.
+                        rowMultiple = 0; //Basic
+                        colMultiple = 0;
+                        const tokens = card.type.split('_');
+                        const cardCategory = tokens[0];
+                        if (cardCategory === 'Basic') {
+                            colMultiple = Number(tokens[1].charCodeAt(0) - 'A'.charCodeAt(0));
+                        }
+                        else if (cardCategory === 'Team') {
+                            const teamId = tokens[1];
+                            const cardNum = Number(tokens[2]);
+                            if (teamId === '0') {
+                                if (cardNum <= 1) {
+                                    rowMultiple = 0;
+                                    colMultiple = 5 + cardNum;
+                                }
+                                else {
+                                    rowMultiple = 1;
+                                    colMultiple = cardNum - 2;
+                                }
+                            }
+                            else if (TeamId === '1') {
+                                rowMultiple = 1;
+                                colMultiple = cardNum + 1;
+                            }
+                        }
+                        else if (cardCategory === 'Captain') {
+                            const teamId = tokens[1];
+                            const cardNum = Number(tokens[2]);
+                            if (teamId === '0') {
+                                rowMultiple = 1;
+                                colMultiple = 3 + cardNum;
+                            }
+                            else if (teamId === '2') {
+                                rowMultiple = 2;
+                                colMultiple = cardNum;
+                            }
+                        }
+                        else if (cardCategory === 'Coach') {
+                            const teamId = Number(tokens[1]);
+                            rowMultiple = 2;
+                            colMultiple = 3 + teamId;
+                        }
+
+                        div.style.backgroundPositionX = `calc(100% / 6 * ${colMultiple})`;
+                        div.style.backgroundPositionY = `calc(100% / 2 * ${rowMultiple})`;
+                        this.addTooltipHtml(div.id, `tooltip of ${card.type}`);
+                    },
+                    setupBackDiv: (card, div) => {
+
+                        div.style.backgroundPositionX = `calc(100%)`;
+                        div.style.backgroundPositionY = `calc(100%)`;
+                    },
+                    isCardVisible: card => Boolean(card.type) && !card.flipped,
+                });
+
+                this.discardStock = new BgaCards.DiscardDeck(this.cardsManager, document.getElementById('myDiscard'), {
+                    autoPlace: card => card.location === `${this.player_id}_discard`,
+                });
+
+                this.handStock = new BgaCards.HandStock(this.cardsManager, document.getElementById('myHand'), {
+                    sort: BgaCards.sort('type', 'type_arg'),
+                    cardOverlap: 5,
+                    fanShaped: true,
+                    floatZIndex: 110,
+                    selectableCardStyle: {
+                        outlineSize: 2,
+                        outlineColor: 'green',
+                    },
+                    autoPlace: card => card.location === 'hand' && parseInt(card.location_arg) === this.player_id,
+                });
+
+                this.handStock.setSelectionMode('single');
+                this.handStock.onCardClick = (card) => {
+                    console.log('clicked on card ' + card);
+                    this.discardStock.addCard(card);
+                };
+
+                this.cardsManager.placeCards(Object.values(gamedatas.player_hand));
+
+                //================================================
+                //------------------------------------------------
+                //================================================
+
 
                 console.log('end setup');
             },
@@ -311,7 +420,7 @@ define([
                 return this.forwardNotification(this.notif_tacklePerformed.name, notifData);
             },
 
-            notif_piecesRefreshed: function(notifData) {
+            notif_piecesRefreshed: function (notifData) {
                 return this.forwardNotification(this.notif_piecesRefreshed.name, notifData);
             },
 
@@ -487,5 +596,13 @@ define([
             serverCallInProgress: false,
 
             gameDatas: null,
+
+            animationManager: null,
+
+            cardsManager: null,
+
+            handStock: null,
+
+            discardStock: null
         });
     });
