@@ -43,6 +43,6 @@ class PerformDribble extends GameState
             ]);
         }
 
-        return PlayerTurn::class;
+        return CardSelection::class;
     }
 }

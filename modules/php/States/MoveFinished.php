@@ -36,6 +36,6 @@ class MoveFinished extends GameState
             "pieceId" => $selectedPiece,
         ));
 
-        return PlayerTurn::class;
+        return CardSelection::class;
     }
 }

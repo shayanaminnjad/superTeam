@@ -9,6 +9,7 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\States\PlayerBaseState;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\Utility\Logger;
 
 class CardSelection extends PlayerBaseState
 {
@@ -17,7 +18,7 @@ class CardSelection extends PlayerBaseState
     ) {
         parent::__construct(
             $game,
-            id: ST_PLAY_CARD,
+            id: ST_CARD_SELECTION,
             name: 'cardSelection',
             type: StateType::ACTIVE_PLAYER,
 
@@ -34,25 +35,47 @@ class CardSelection extends PlayerBaseState
     {
         $playerHand = $this->game->getPlayerHand(\intval($this->game->getActivePlayerId()));
 
-        if ($playerHand->CountCardsInHand() < PlayerHand::$MAX_CARDS_IN_HAND) //has played a card
-        {
-            $this->addClientButton("pass", [$this, 'actPass']);
-        }
+        $cardsInHand = $playerHand->CountCardsInHand();
+        $canPass =  $cardsInHand < PlayerHand::$MAX_CARDS_IN_HAND;
+        $canPlayCard = $cardsInHand > 1;
 
-        return [];
+        return [
+            'canPass' => $canPass,
+            'canPlayCard' => $canPlayCard
+        ];
     }
 
     #[PossibleAction]
     public function actCardSelected(int $cardId, bool $asBasic): string
     {
-        return '';
+        $playerHand = $this->game->getPlayerHand(\intval($this->game->getActivePlayerId()));
+
+        if ($playerHand->CountCardsInHand() == 1)
+            throw new \BgaUserException("You can't play more than 3 cards in a turn!");
+
+        Logger::logInfo("Card " . $cardId . "selected to be performed as" . ($asBasic ? 'as basic.' : 'as tactic.'));
+
+        $activePlayer = \intval($this->game->getActivePlayerId());
+        $playerHand = $this->game->getPlayerHand($activePlayer);
+
+        $playerHand->discardCard($cardId);
+
+        $this->game->notify->all("cardPlayed", "card {$cardId} played", [
+            'discards' => $playerHand->getDiscardedCards(),
+            'cardsInHandCount' => $playerHand->CountCardsInHand()
+        ]);
+
+        //(TODO) this should change, player turn is actually basic card performer.
+        if ($asBasic)
+            return PlayerTurn::class;
+        else
+            return PlayerTurn::class;
     }
 
     #[PossibleAction]
-    public function actPass() : string
+    public function actPass(): string
     {
-        //refresh hand to four
-        return '';
+        return PassTurn::class;
     }
 
     function zombie(int $playerId): string

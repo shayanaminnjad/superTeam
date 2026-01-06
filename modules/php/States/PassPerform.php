@@ -51,6 +51,6 @@ class PassPerform extends GameState
             ]);
         }
 
-        return PlayerTurn::class;
+        return CardSelection::class;
     }
 }

@@ -228,6 +228,7 @@ class Game extends \Table
 
         // WARNING: We must only return information visible by the current player.
         $current_player_id = (int) $this->getCurrentPlayerId();
+        $opponent_player_id = (int) $this->getPlayerAfter($current_player_id);
 
         // Get information about players.
         $result["players"] = $this->getCollectionFromDb(
@@ -255,10 +256,17 @@ class Game extends \Table
             
             unset($player);
         }
-        
-        $result["player_hand"] = $this->getPlayerHand($current_player_id)->getCardsInHand();
-        $result["player_pieces"] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
-        $result["ball"] = $this->getObjectFromDB("SELECT * FROM `ball`");
+
+        $playerHand = $this->getPlayerHand($current_player_id);
+        $otherHand = $this->getPlayerHand($opponent_player_id);
+
+        $result['other_deck_count'] = $otherHand->CountCardsInDeck();
+        $result['other_discard'] = $otherHand->getDiscardedCards();
+        $result['player_deck_count'] = $playerHand->CountCardsInDeck();
+        $result['player_discard'] = $playerHand->getDiscardedCards();
+        $result['player_hand'] = $playerHand->getCardsInHand();
+        $result['player_pieces'] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
+        $result['ball'] = $this->getObjectFromDB("SELECT * FROM `ball`");
         $result['user_in_right_id'] = $this->getGameStateValue('user_in_right_id');
         $result['user_in_left_id'] = $this->getGameStateValue('user_in_left_id');
 

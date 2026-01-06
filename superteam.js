@@ -68,8 +68,8 @@ define([
                 this.opponentPlayerArea = new PlayerArea(this.opponentId, gamedatas.players[this.opponentId], this);
 
                 DiceUI.construct(this);
-                
-                this.cardsManager = new STCardsManager(this, gamedatas.player_hand);
+
+                this.cardsManager = new STCardsManager(this, Object.values(gamedatas.player_hand).concat(Object.values(gamedatas.player_discard)));
 
                 this.setupNotifications();
 
@@ -97,7 +97,6 @@ define([
 
             onUpdateActionButtons: function (stateName, args) {
                 console.log('onUpdateActionButtons: ' + stateName, args);
-
                 console.log("active players are " + this.getActivePlayers());
 
                 if (this.gameDatas.gamestate.type === 'multipleactiveplayer' && !this.getActivePlayers().includes(this.player_id)) {
@@ -315,6 +314,14 @@ define([
 
             notif_piecesRefreshed: function (notifData) {
                 return this.forwardNotification(this.notif_piecesRefreshed.name, notifData);
+            },
+
+            notif_cardPlayed: function (notifData) {
+                return this.forwardNotification(this.notif_cardPlayed.name, notifData);
+            },
+
+            notif_handRefill: function (notifData) {
+                this.cardsManager.placeCards(Object.values(notifData.playerHand));
             },
 
             notif_pieceExhausted: function (notifData) {

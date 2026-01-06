@@ -34,6 +34,11 @@ class PlayerHand
         return $this->cards->getCardsInLocation('hand', $this->ownerId);
     }
 
+    public function getDiscardedCards() : array
+    {
+        return $this->cards->getCardsInLocation($this->discardName);
+    }
+
     public function drawToFour() : bool
     {
         $this->wasShuffled = false;

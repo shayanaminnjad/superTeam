@@ -13,7 +13,7 @@ define(["dojo/_base/declare",
                 this._initDiscardStock();
                 this._initHandStock();
 
-                this._cardsManager.placeCards(Object.values(cards));
+                this._cardsManager.placeCards(cards);
             },
 
             //Public Methods
@@ -23,6 +23,20 @@ define(["dojo/_base/declare",
 
             setHandCardClickHandler: function (handler) {
                 this._handStock.onCardClick = handler;
+            },
+
+            setSelectionHandler: function(handler) {
+                this._handStock.onSelectionChange = handler;
+            },
+
+            isSelected: function(card)
+            {
+                return this._handStock.isSelected(card);
+            },
+
+            placeCards: function(cards)
+            {
+                this._cardsManager.placeCards(cards);
             },
 
             //Private Methods
