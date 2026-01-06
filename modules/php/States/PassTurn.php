@@ -7,6 +7,7 @@
  use Bga\GameFramework\StateType;
  use Bga\GameFramework\States\GameState;
  use Bga\Games\SuperTeam\Game;
+ use Bga\Games\SuperTeam\PlayerPiecesDBManager;
  
  class PassTurn extends GameState
  {
@@ -33,7 +34,10 @@
          ['playerHand' => $playerHand->getCardsInHand()]);
          
         $this->game->giveExtraTime($activePlayerId);
-        $this->game->activeNextPlayer();
+        $nextPlayer = $this->game->activeNextPlayer();
+
+        $this->game->DbQuery(PlayerPiecesDBManager::refreshPiecesQuery($nextPlayer));
+        $this->game->notify->all("piecesRefreshed", "pieces refreshed", ["playerId" => $nextPlayer]);
 
         return CardSelection::class;
      }

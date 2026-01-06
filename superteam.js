@@ -69,8 +69,8 @@ define([
 
                 DiceUI.construct(this);
 
-                this.cardsManager = new STCardsManager(this, Object.values(gamedatas.player_hand).concat(Object.values(gamedatas.player_discard)));
-
+                this.cardsManager = new STCardsManager(this, Object.values(gamedatas.player_hand).concat(Object.values(gamedatas.player_discard).concat(Object.values(gamedatas.player_deck))));
+                
                 this.setupNotifications();
 
                 console.log('end setup');
@@ -313,7 +313,7 @@ define([
             },
 
             notif_piecesRefreshed: function (notifData) {
-                return this.forwardNotification(this.notif_piecesRefreshed.name, notifData);
+                this.pieceManager.refreshAllPieces(parseInt(notifData.playerId));
             },
 
             notif_cardPlayed: function (notifData) {

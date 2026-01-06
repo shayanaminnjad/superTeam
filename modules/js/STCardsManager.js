@@ -11,6 +11,7 @@ define(["dojo/_base/declare",
                 this._initAnimationsManager();
                 this._initCardsManager();
                 this._initDiscardStock();
+                this._initHiddenDeck();
                 this._initHandStock();
 
                 this._cardsManager.placeCards(cards);
@@ -25,18 +26,20 @@ define(["dojo/_base/declare",
                 this._handStock.onCardClick = handler;
             },
 
-            setSelectionHandler: function(handler) {
+            setSelectionHandler: function (handler) {
                 this._handStock.onSelectionChange = handler;
             },
 
-            isSelected: function(card)
-            {
+            isSelected: function (card) {
                 return this._handStock.isSelected(card);
             },
 
-            placeCards: function(cards)
-            {
-                this._cardsManager.placeCards(cards);
+            placeCards: function (cards) {
+                return this._cardsManager.placeCards(cards);
+            },
+
+            shuffleDeck: function () {
+                return this._hiddenDeck.shuffle();
             },
 
             //Private Methods
@@ -67,7 +70,7 @@ define(["dojo/_base/declare",
                         div.style.backgroundPositionX = `calc(100%)`;
                         div.style.backgroundPositionY = `calc(100%)`;
                     },
-                    isCardVisible: card => Boolean(card.type) && !card.flipped,
+                    isCardVisible: card => !card.location.includes('deck'),
                 });
             },
 
@@ -75,8 +78,10 @@ define(["dojo/_base/declare",
                 //(sha) I need better row column sorting for the atlas
                 //however it is not final yet, since I don't have all of
                 //the cards, so lets make this work for now.
+
                 rowMultiple = 0; //Basic
                 colMultiple = 0;
+
                 const tokens = card.type.split('_');
                 const cardCategory = tokens[0];
                 if (cardCategory === 'Basic') {
@@ -124,6 +129,10 @@ define(["dojo/_base/declare",
             _initDiscardStock: function () {
                 this._discardStock = new BgaCards.DiscardDeck(this._cardsManager, document.getElementById('myDiscard'), {
                     autoPlace: card => card.location === `${this._root.player_id}_discard`,
+                    counter: {
+                        position: 'center',
+                        extraClasses: 'text-shadow'
+                    },
                 });
             },
 
@@ -141,12 +150,25 @@ define(["dojo/_base/declare",
                 });
             },
 
+            _initHiddenDeck: function () {
+                this._hiddenDeck = new BgaCards.Deck(this._cardsManager, document.getElementById('hiddenDeck'), {
+                    autoRemovePreviousCards: false,
+                    counter: {
+                        position: 'center',
+                        extraClasses: 'text-shadow',
+                    },
+                    autoPlace: card => card.location === `${this._root.player_id}_deck`,
+                });
+            },
+
             //Private Fields
             _animationManager: null,
 
             _handStock: null,
 
             _discardStock: null,
+
+            _hiddenDeck: null,
 
             _cardsManager: null,
 

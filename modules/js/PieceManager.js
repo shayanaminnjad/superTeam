@@ -100,9 +100,11 @@ define([
                     return this._root.bgaPlayDojoAnimation(animation_id);
                 },
 
-                refreshAllPieces: function () {
+                refreshAllPieces: function (playerId) {
                     for (let piece of this._piecesMap.values()) {
-                        piece.setFreshness(true);
+                        if (piece.getOwner() == playerId) {
+                            piece.setFreshness(true);
+                        }
                     }
                 },
 

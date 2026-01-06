@@ -43,6 +43,10 @@ define([
                 this._coachBoard = new CoachBoard(this._ownerId, this._ownerData, this._root, this, playerStuffContainer);
 
                 if (this._root.player_id === this._ownerId) {
+                    const playerHiddenDeck = document.createElement('div');
+                    playerHiddenDeck.id = 'hiddenDeck';
+                    playerStuffContainer.appendChild(playerHiddenDeck);
+                    
                     const playerDiscard = document.createElement('div');
                     playerDiscard.id = 'myDiscard';
                     playerStuffContainer.appendChild(playerDiscard);

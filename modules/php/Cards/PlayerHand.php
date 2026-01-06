@@ -39,6 +39,18 @@ class PlayerHand
         return $this->cards->getCardsInLocation($this->discardName);
     }
 
+    public function getCardsInDeckRemovePos() : array
+    {
+        $cards = $this->cards->getCardsInLocation($this->deckName);
+
+        foreach ($cards as &$card) {
+            unset($card['location_arg']);
+        }
+        unset($card); // break reference
+
+        return $cards;
+    }
+
     public function drawToFour() : bool
     {
         $this->wasShuffled = false;
