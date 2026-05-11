@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS `player_cards` (
 
 
 CREATE TABLE IF NOT EXISTS `st_globals` (
-    `morale_assign_transition` TEXT DEFAULT '',
+    `morale_assign_transition` TEXT,
     `selected_hex_column` INT DEFAULT -1,
     `selected_hex_row` INT DEFAULT -1
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -62,9 +62,9 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
 CREATE TABLE IF NOT EXISTS `player_temp_data` (
     `player_id` INT unsigned NOT NULL,
     `assigned_morale` INT DEFAULT 0,
-    `dice_result` TEXT DEFAULT '',
-    `dice_roll_input` TEXT DEFAULT '',
-    `shootTarget` TEXT DEFAULT ''
+    `dice_result` TEXT,
+    `dice_roll_input` TEXT,
+    `shootTarget` TEXT
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `logs` (

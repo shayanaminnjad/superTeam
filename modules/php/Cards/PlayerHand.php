@@ -151,7 +151,7 @@ class PlayerHand
 
     public static function getCardDefinition(string $cardType, int $count = 1): array 
     {
-        return ["type" => $cardType, 'type_arg' => '', 'nbr' => $count];
+        return ["type" => $cardType, 'type_arg' => 0, 'nbr' => $count];
     }
 
     public static function getBasicCardType(int $num): string
