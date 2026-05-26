@@ -35,7 +35,8 @@ define([
 
                 const playerStuffContainer = document.createElement('div');
                 playerStuffContainer.style.display = 'flex';
-                playerStuffContainer.style.flexDirection = 'row'; // Left to right
+                playerStuffContainer.style.flexDirection = 'row';
+                playerStuffContainer.style.flexWrap = 'wrap'; 
                 playerStuffContainer.style.gap = '20px';
                 playerStuffContainer.style.paddingLeft = '10px';
                 this._areaEl.appendChild(playerStuffContainer);
