@@ -37,8 +37,6 @@ define([
                 console.log('superteam constructor');
 
                 this.statesRegistry = new StatesRegistry();
-
-                this.setupDebugFeatures();
             },
 
             setup: function (gamedatas) {
@@ -69,11 +67,16 @@ define([
 
                 DiceUI.construct(this);
 
-                this.cardsManager = new STCardsManager(this, Object.values(gamedatas.player_hand).concat(Object.values(gamedatas.player_discard).concat(Object.values(gamedatas.player_deck))));
+                this.cardsManager = new STCardsManager(this, Object.values(gamedatas.player_hand).concat(Object.values(gamedatas.player_discard)));
                 
                 this.setupNotifications();
 
                 console.log('end setup');
+            },
+
+            reform: function()
+            {
+                this.cardsManager.shuffleDeck().then(() => console.log('shuffle ended'));
             },
 
 
@@ -384,11 +387,10 @@ define([
             //// Debugging features
 
             setupDebugFeatures: function () {
-                let isDev = window.location.hostname === "studio.boardgamearena.com";
-                if (!isDev)
-                    return;
 
-                console.log("Debug mode is active, to see options type: help");
+                const game = this;
+
+                this.myDebug = {};
 
                 window.help = function () {
                     console.log("debug.showCoords = 1; shows the coordinates of the hexes.\n" +
@@ -400,31 +402,7 @@ define([
                     return 'success';
                 };
 
-
-                window.debug = {};
-                Object.defineProperty(window.debug, 'defaultSetup', {
-                    get: function () {
-                        return this._val;
-                    },
-                    set: function (value) {
-                        console.log('calling actDebugDefaultPlacePieces');
-                        this.bgaPerformAction("actDebugDefaultPlacePieces");
-                    }.bind(this)
-                })
-
-
-                Object.defineProperty(window.debug, 'defaultAttribute', {
-                    get: function () {
-                        return this._val;
-                    },
-                    set: function (input) {
-                        this._val = input;
-                        console.log(`calling actDebugDefaultSetup`);
-                        this.bgaPerformAction("actDebugDefaultSetup");
-                    }.bind(this)
-                })
-
-                Object.defineProperty(window.debug, 'showCoords', {
+                Object.defineProperty(this.myDebug, 'showCoords', {
                     get: function () {
                         return this._val;
                     },
@@ -442,7 +420,7 @@ define([
                     }.bind(this)
                 })
 
-                Object.defineProperty(window.debug, 'setMorale', {
+                Object.defineProperty(this.myDebug, 'setMorale', {
                     get: function () {
                         return this._val;
                     },
@@ -454,7 +432,7 @@ define([
                     }.bind(this)
                 })
 
-                Object.defineProperty(window.debug, 'moveBall', {
+                Object.defineProperty(this.myDebug, 'moveBall', {
                     get: function () {
                         return this._val;
                     },
