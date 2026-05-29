@@ -39,7 +39,15 @@ define(["dojo/_base/declare",
             },
 
             shuffleDeck: function () {
-                return this._hiddenDeck.shuffle();
+                let cards = this._discardStock.getCards()
+                for(card of cards)
+                {
+                    card.location = `${this._root.player_id}_deck`;
+                } 
+
+                let promise =  this._hiddenDeck.addCards(this._discardStock.getCards()).then(() => this._hiddenDeck.shuffle());
+
+                return promise;
             },
 
             //Private Methods
@@ -70,7 +78,7 @@ define(["dojo/_base/declare",
                         div.style.backgroundPositionX = `calc(100%)`;
                         div.style.backgroundPositionY = `calc(100%)`;
                     },
-                    isCardVisible: card => !card.location.includes('deck'),
+                    isCardVisible: card => {return !!card.location && !card.flipped && !card.location.includes("_deck");},
                 });
             },
 
@@ -81,6 +89,11 @@ define(["dojo/_base/declare",
 
                 rowMultiple = 0; //Basic
                 colMultiple = 0;
+
+                if (!card.type) //covers the case of dummy cards in shuffling. somehow they end up being here.
+                {
+                    return [`calc(100%)`, `calc(100%)`];
+                }
 
                 const tokens = card.type.split('_');
                 const cardCategory = tokens[0];
@@ -152,7 +165,8 @@ define(["dojo/_base/declare",
 
             _initHiddenDeck: function () {
                 this._hiddenDeck = new BgaCards.Deck(this._cardsManager, document.getElementById('hiddenDeck'), {
-                    autoRemovePreviousCards: false,
+                    cardNumber: 15,
+                    autoRemovePreviousCards: true,
                     counter: {
                         position: 'center',
                         extraClasses: 'text-shadow',
