@@ -139,38 +139,6 @@ class PlayerPieceSetup extends GameState
         }
     }
 
-    #[PossibleAction]
-    public function actDebugDefaultPlacePieces() : string
-    {
-        $playerId = (int)$this->game->getActivePlayerId();
-
-        while(!$this->game->isPlayerSetupComplete($playerId))
-        {
-
-            $playerPieceSetupArgs = $this->getArgs();
-
-            $availablePositions = $playerPieceSetupArgs["availableStartingPositions"];
-            $pieceToPlace = $playerPieceSetupArgs["pieceToPlace"];
-
-            $firstAvailablePos = $availablePositions[0];
-            $hexColumn = $firstAvailablePos['hex_column'];
-            $hexRow = $firstAvailablePos['hex_row'];
-
-            $this->game->DbQuery("UPDATE `player_pieces` SET `hex_column` = $hexColumn, `hex_row` = $hexRow WHERE `id` = $pieceToPlace ");
-
-
-            $this->notify->all("placedPiece", clienttranslate('${player_name} places a piece'), [
-                "player_id" => $playerId,
-                "player_name" => $this->game->getActivePlayerName(), // remove this line if you uncomment notification decorator
-                "placed_piece" => $pieceToPlace,
-                "hex_column" => $hexColumn,
-                "hex_row" => $hexRow,
-            ]);
-        }
-    
-        return SetupComplete::class;
-    }
-
     function zombie(int $playerId): string
     {
         // the code to run when the player is a Zombie

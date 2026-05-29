@@ -79,21 +79,6 @@ class TeamAttributeAssignment extends PlayerBaseState
         } 
     }
 
-    #[PossibleAction]
-    public function actDebugDefaultSetup()
-    {
-        $teamBoard = $this->game->getTeamBoard();
-        $currentPlayer = \intval($this->game->getCurrentPlayerId());
-        $attributesAssigned = $teamBoard->getTotalAttributesAssigned($currentPlayer);
-
-        for($i = $attributesAssigned; $i < TeamBoard::MAX_ALLOWED_ATTRIBUTES; $i++)
-        {
-            $teamBoard->tryIncreaseAttribute($currentPlayer, TeamAttribute::from($i % TeamAttribute::Count->value));
-        }
-
-        $this->gamestate->setPlayerNonMultiactive($currentPlayer, TeamAttributesReveal::class);
-    }
-
     function zombie(int $playerId): string
     {
         // the code to run when the player is a Zombie
