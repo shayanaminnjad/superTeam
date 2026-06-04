@@ -87,22 +87,6 @@ class Board
         return null;
     }
 
-    public function getPlayerPiecesInForwardColumns(int $startColumn, $ownerId): array //This should be of type playerPiece
-    {
-        $result = [];
-
-        for ($i = 0; $i < \count($this->playerPieces); $i++) {
-            $currentPiece = $this->playerPieces[$i];
-
-            if ($currentPiece->getOwner() === $ownerId && $currentPiece->getPosition()->getColumn() > $startColumn) {
-                $result[] = $currentPiece;
-                break;
-            }
-        }
-
-        return $result;
-    }
-
     public function getPlayerPiecesInBackwardColumns(int $startColumn, $ownerId): array
     {
         $result = [];
