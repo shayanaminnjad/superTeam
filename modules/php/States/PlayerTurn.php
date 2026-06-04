@@ -10,6 +10,7 @@ use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\PlayerRole;
 
+//TODO: rename this to Player basic turn.
 class PlayerTurn extends PlayerBaseState
 {
     function __construct(
