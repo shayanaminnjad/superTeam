@@ -21,6 +21,8 @@ declare(strict_types=1);
 namespace Bga\Games\SuperTeam;
 
 use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\Cards\CardFactory;
+use Bga\Games\SuperTeam\Cards\Basic_1;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexID;
@@ -37,6 +39,8 @@ require_once(__DIR__ . '/StateMachineConstants.inc.php');
 class Game extends \Table
 {
     private ?TeamBoard $teamBoard = null;
+
+    private CardFactory $cardFactory;
 
     private array $playerHands = [];
     
@@ -58,7 +62,8 @@ class Game extends \Table
 
         HexLib::SetHexInfo(BoardInfo::GetHexInfo());
         BoardInfo::init();
-
+        $this->initCardFactory();
+        
         $this->teamBoard = new TeamBoard(DBAdapter::getInstance());
 
         $this->initGameStateLabels([
@@ -72,6 +77,7 @@ class Game extends \Table
             "defender" => 17,
             "moraleAssignRemaining" => 18,
             "isAttributesAssignmentFinished" => 19,
+            "lastPassResult" => 20
         ]);
 
         /* example of notification decorator.
@@ -136,13 +142,27 @@ class Game extends \Table
 
     public function getValidPassTargets(?callable $additionalCondition): array
     {
+        $currentPlayer = \intval($this->getActivePlayerId());
+        $forcedTargetsJson = DBAdapter::getInstance()->getPlayerTempStr($currentPlayer, "forced_pass_targets");
+        $forcedTargetsArray = json_decode($forcedTargetsJson, true);
+
+        if (!\is_array($forcedTargetsArray)) 
+            $forcedTargetsArray = [];
+
+        $forcedPositions = [];
+
+        foreach($forcedTargetsArray as $forcedTarget)
+        {
+            $forcedPositions[] = HexID::fromJson($forcedTarget)->convertToArray();
+        }
+
         $board = $this->getBoard();
 
         $allPieces = $board->getPieces();
 
         $blockedSpaces = [];
 
-        $currentPlayerId = intval($this->getActivePlayerId());
+        $currentPlayerId = \intval($this->getActivePlayerId());
 
         foreach ($allPieces as $piece) {
             if ($piece->getOwner() !== $currentPlayerId && $piece->getRole() !== PlayerRole::GoalKeeper->value && (!$additionalCondition || $additionalCondition($piece))) {
@@ -163,7 +183,8 @@ class Game extends \Table
 
         return [
             "hexWithBall" => $hexWithBall->convertToArray(),
-            "blockedSpaces" => $blockedSpaces
+            "blockedSpaces" => $blockedSpaces,
+            "forcedPositions" => $forcedPositions
         ];
     }
 
@@ -350,6 +371,7 @@ class Game extends \Table
         $this->setGameStateInitialValue('defender', $bluePlayer);
         $this->setGameStateInitialValue("moraleAssignRemaining", 0);
         $this->setGameStateInitialValue("isAttributesAssignmentFinished", 0);
+        $this->setGameStateInitialValue("lastPassResult", 0);
     }
 
     private function initBoard(array $players): void
@@ -513,5 +535,20 @@ class Game extends \Table
         }
 
         return $isComplete;
+    }
+
+    private function initCardFactory()
+    {
+        $cardFactory = new CardFactory();
+
+        $cardFactory->registerCard(0, fn() => new Basic_1($this, $this->getBoard()));
+        
+        
+        $this->cardFactory = $cardFactory;
+    }
+
+    public function getCardFactory() : CardFactory
+    {
+        return $this->cardFactory;
     }
 }
