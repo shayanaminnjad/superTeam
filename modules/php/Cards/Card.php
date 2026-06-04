@@ -2,11 +2,8 @@
 
 namespace Bga\Games\SuperTeam\Cards;
 
+use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Board;
-use Bga\Games\SuperTeam\DBAdapter;
-use Bga\Games\SuperTeam\HexID;
-use Bga\Games\SuperTeam\HexLib\HexLib;
-use Bga\Games\SuperTeam\GameDice\GameDice;
 
 enum CardType : int
 {
@@ -18,254 +15,13 @@ enum CardType : int
     case Fatigue = 5;
 }
 
-interface ICardCommand
+final class CardReward
 {
-    //WAITING: Amir needs to think about this, whether a sequence of actions should be evaluatd altogether, or it is up
-    //to player?
-    public function canBePlayed() : bool;
-
-    public function getCommandArgs() : array;
-
-    public function validateAct(array $actData) : bool;
-
-    // TODO: In combined commands, this perform act might need to be evaluated multiple times. 
-    // maybe keeping basic one time steps and also combining them is the solution.
-    public function performAct(array $actData) : void;
-
-    //This also can help with getting the next step.
-    public function isActComplete(bool &$wasSuccess) : bool;
-
-    public function finishCommand() : void;
-}
-
-enum PassType : int
-{
-    case Unknown = 0;
-
-    case Forward = 1;
-
-    case Backward = 2;
-
-    case Cross = 3;
-
-    case Through = 4; // one or two spaces around someone, it has no direction, anywhere around a player
-
-    case PressPass = 5; //When you pass you should be adjacent to an opponent piece.
-}
-
-
-class PassForwardCommand
-{
-    private Board $board;
-    private $currentPlayer;
-    private $opponentPlayer;
-
-    public function __construct(Board $board, $currentPlayer, $oppoenentPlayer)
-    {
-        $this->board = $board;
-        $this->currentPlayer = $currentPlayer;
-        $this->opponentPlayer = $oppoenentPlayer;
-    }
-
-    public function canBePlayed() : bool
-    {
-        $ballHex = $this->board->getBallHex();
-        $playerPiece = null;
-        
-        if ($this->board->tryGetPlayerPieceInHex($ballHex, $playerPiece))
-        {
-            if ($playerPiece->getOwner() === $this->currentPlayer)
-            {
-                return count($this->board->getPlayerPiecesInForwardColumns($ballHex->getColumn(), $this->currentPlayer)) > 0;
-            }
-        }
-
-        return false;
-    }
-
-    public function getCommandArgs() : array
-    {
-        //TODO: In general a pass can be onto any space that is not occupied by your opponent! however this card require us to pass in a certain way.
-
-        $ballHex = $this->board->getBallHex();
-        
-        $playerPiecesInForwardColumns = $this->board->getPlayerPiecesInForwardColumns($ballHex->getColumn(), $this->currentPlayer);
-        $piecesIds = [];
-        for ($i = 0; $i < count($playerPiecesInForwardColumns); $i++)
-        {
-            $piecesIds[] = $playerPiecesInForwardColumns[$i]->getId();
-        }
-
-        return ["possibleTargets" => $piecesIds];
-    }
-
-    public function performAct(array $actData) : void
-    {
-        $passTarget = $actData['target'];
-        $spentMorale = $actData['spentMorale'];
-
-        //TOOD: This should be inside validation function!
-        if (intval($spentMorale) > 3)
-        {
-            throw new \BgaUserException("You cannot spend more than 3 morale on an action!");
-        }
-
-        //TODO: target can't be current ball location!
-
-        $targetHex = new HexID($passTarget['column'], $passTarget['row']);
-        $ballHex = $this->board->getBallHex();
-        //TODO: This logic for pass must be encapsulated inside another class, it doesn't relate to here.
-        $passDistance = HexLib::getOffsetDistance($ballHex, $targetHex);
-        
-        $opponentPieces = $this->board->getPlayerPiecesByOwner($this->opponentPlayer);
-        $opponentPiecesInPath = HexLib::getHexesInPath($ballHex, $targetHex, 1, $opponentPieces);
-        
-        $powerNeeded = ceil($passDistance * 0.5) + count($opponentPiecesInPath);
-
-        $greenRoll = GameDice::greenDie()->roll();
-        $whiteDieRes = [];
-
-        //TODO: get coach markers for pass action.
-        $coachMarkerCount = 1;
-        $whiteRollSum = 0;
-        for ($i = 0; $i < $coachMarkerCount; $i++)
-        {
-            $currentWhiteRollRes = GameDice::whiteDie()->roll();
-            $whiteRollSum += $currentWhiteRollRes;
-            $whiteDieRes[] = $currentWhiteRollRes;
-        }
-
-        $totalPlayerPower = $whiteRollSum + $greenRoll + $spentMorale;
-
-        $finalBallLocation = null;
-
-        if ($totalPlayerPower >= $powerNeeded)
-        {
-            $finalBallLocation = $targetHex;
-        }
-        else
-        {
-            if (count ($opponentPiecesInPath) > 0)
-            {
-                $nearestOpponent = null;
-                $nearestOpponentDistance = 1000; //1000 is way beyond the furthest distance we can have.
-
-                //TODO: asked amir about this, if two opponent pieces have the same distance from the ball, then how should we determine which one will get the ball?
-                //right now I only find the closest one, and don't solve the above edge case.
-                for ($i = 0; $i < count ($opponentPiecesInPath); $i++)
-                {
-                    $currentOpponentDistance = HexLib::getOffsetDistance($ballHex, $opponentPiecesInPath[$i]);
-
-                    if ($currentOpponentDistance < $nearestOpponentDistance)
-                    {
-                        $nearestOpponent = $opponentPiecesInPath[$i];
-                    }
-                }
-
-                $finalBallLocation = $nearestOpponent;
-            }
-            else 
-            {
-                $hexesInLine = HexLib::getHexesInLine($ballHex, $targetHex);
-                $hexInMiddle = ceil((count($hexesInLine) - 1) / 2.0);
-
-                $finalBallLocation = $hexesInLine[$hexInMiddle];
-            }
-        }
-
-        DBAdapter::getInstance()->DbQuery("UPDATE ball SET hex_column= {$finalBallLocation->getColumn()}, hex_row= {$finalBallLocation->getRow()}");
-
-        //TODO: notify all about all these changes.
-    }
-}
-
-class PassCommand implements ICardCommand
-{
-    private readonly PassType $Type;
-
-    public function canBePlayed() : bool
-    {
-        return false;
-    }
-
-    public function getCommandArgs() : array
-    {
-        return [];
-    }
-
-    public function validateAct(array $actData) : bool
-    {
-        return false;
-    }
-
-    public function performAct(array $actData) : void
-    {
-
-    }
-
-    public function isActComplete(bool &$wasSuccess): bool
-    {
-        $wasSuccess = false;
-        return true;
-    }
-
-    public function finishCommand() : void
-    {}
-}
-
-enum MoveType : int
-{
-    case Unknown = 0;
-    case Forward = 1;
-    case ForwardMarking = 2;
-    case Backward = 3;
-    case BackwardMarking = 4;
-    case Free = 5;
-
-    case ByPass = 6; //if adjacent, move in the direction you have with the opponent piece
-}
-
-class MoveCommand implements ICardCommand
-{
-    //If multiple players must be moved, then they must be unique players.
-    //same player cannot be targeted by the same moveCommand twice.
-    private readonly MoveType $Type;
-
-    public function canBePlayed() : bool
-    {
-        return false;    
-    }
-
-    public function getCommandArgs(): array
-    {
-        return [];
-    }
-
-    public function validateAct(array $actData) : bool
-    {
-        return false;
-    }
-
-    public function performAct(array $actData) : void
-    {
-
-    }
-
-    public function isActComplete(bool &$wasSuccess): bool
-    {
-        $wasSuccess = false;
-        return true;
-    }
-
-    public function finishCommand() : void
-    {}
-}
-
-class CardReward
-{
-    private readonly int $morale;
-    private readonly int $move; //optional
-    private readonly int $action; //optional
+    public function __construct(
+        public readonly int $morale,
+        public readonly int $move,
+        public readonly int $action,
+    ) {}
 }
 
 /* coach and captain has only instruction 
@@ -293,48 +49,100 @@ coach has a cost and a reward, which might be moving, reward is optional*/
 
 //This is actually Team and basic cards
 
-//Move rewrads are optional*/
-class Card
+enum ExecutionAction
 {
-    private readonly int $id;
-    private readonly string $name;
-    private readonly CardType $type;
-    private readonly string $toolTip;
-
-    //TODO: ordered commands canBePlayed() function must be combined, so doing one of them is not enough, 
-    //So probably we need a single command, not an array for some of the commands, that seems a combination of basic
-    //steps.
-    private readonly array $defensiveCommands; // array of ICardCommand
-    private readonly CardReward $defensiveReward;
-    private readonly bool $areDefensiveCommandsOrderes;
-    private readonly bool $defenseHasFatigue;
-
-    private readonly array $offsensiveCommands; // array of ICardCommand
-    private readonly bool $areOffensiveCommandsOrderes;
-    private readonly CardReward $offsensiveReward;
-    private readonly bool $offenseHasFatigue;
+    case Continue;
+    case GoToState;
+    case Success;
+    case Failure;
 }
 
-/*
-require_once('behaviors.php');
-
-class Card {
-    public string $name;
-    public $condition;
-    public $reward;
-
-    public function __construct($name, callable $condition, callable $reward) {
-        $this->name = $name;
-        $this->condition = $condition;
-        $this->reward = $reward;
-    }
-
-    public function canActivate($game, $playerId) {
-        return call_user_func($this->condition, $game, $playerId);
-    }
-
-    public function activate($game, $playerId) {
-        call_user_func($this->reward, $game, $playerId);
-    }
+enum TacticType : int
+{
+    case Offensive = 0;
+    case Defensive = 1;
 }
-*/
+
+final class ExecutionResult
+{
+    public function __construct(
+        public ExecutionAction $action,
+        public ?string $requestedState = null,
+        public int $index = -1,
+    ) {}
+}
+
+class CardDefinition
+{
+    public function __construct(
+        public readonly int $id,
+        public readonly string $name,
+        public readonly CardType $type,
+        public readonly string $toolTip,
+
+        public readonly CardReward $defensiveReward,
+        public readonly bool $defenseHasFatigue,
+
+        public readonly CardReward $offensiveReward,
+        public readonly bool $offenseHasFatigue,
+    ) {}
+}
+
+abstract class Card
+{
+    protected readonly CardDefinition $definition;
+    protected readonly Game $game;
+    protected readonly Board $board;
+
+    public function __construct(CardDefinition $definition, Board $board, Game $game)
+    {
+        $this->definition = $definition;
+        $this->game = $game;
+        $this->board = $board;
+    }
+
+    public function getDefinition() : CardDefinition
+    {
+        return $this->definition;
+    }
+
+    abstract public function isOffensivePossible() : bool;
+
+    public function execute(TacticType $type, int $index) : ExecutionResult
+    {
+        //TODO: get steps based on the type!
+        //TODO: check for index outside of the command list range.
+        $steps = $this->getOffensiveCommands();
+
+        for ($i = $index; $i < \count($steps); $i++)
+        {
+            $result = $steps[$i]();
+
+            if ($result && $result->action != ExecutionAction::Continue)
+            {
+                if ($result->action == ExecutionAction::GoToState)
+                {
+                    $result->index = $i + 1;
+                }
+                else
+                {
+                    $this->cleanup();
+                }
+
+                return $result;
+            }
+        }
+
+        $this->cleanup();
+
+        return new ExecutionResult(ExecutionAction::Success);
+    }
+
+    /**
+ * @return array<callable(): ?ExecutionResult>
+ */
+    abstract protected function getOffensiveCommands() : array;
+
+    abstract protected function cleanup();
+}
+
