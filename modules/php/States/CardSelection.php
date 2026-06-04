@@ -65,11 +65,10 @@ class CardSelection extends PlayerBaseState
             'cardsInHandCount' => $playerHand->CountCardsInHand()
         ]);
 
-        //(TODO) this should change, player turn is actually basic card performer.
         if ($asBasic)
             return PlayerTurn::class;
         else
-            return PlayerTurn::class;
+            return TacticalTurnStateManager::class;
     }
 
     #[PossibleAction]
