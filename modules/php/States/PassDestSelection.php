@@ -45,16 +45,36 @@ class PassDestSelection extends PlayerBaseState
         $selectedHex = new HexID($hexColumn, $hexRow);
 
         $passDestArgs = $this->game->getValidPassTargets(null);
+        
+        $forcedPositions = $passDestArgs["forcedPositions"];
 
-        $blockedSpaces = $passDestArgs["blockedSpaces"];
-        $blockedSpaces[] = $passDestArgs["hexWithBall"];
-
-        foreach($blockedSpaces as $blockedSpace)
+        if (\count($forcedPositions) > 0)
         {
-            $hex = HexID::fromArray($blockedSpace);
+            $found = false;
+            foreach($forcedPositions as $pos)
+            {
+                if(HexID::fromArray($pos)->equals($selectedHex))
+                {
+                    $found = true;
+                    break;
+                }
+            }
 
-            if ($selectedHex->equals($hex))
-                throw new BgaUserException('blocked space selected as pass destination!');
+            if (!$found)
+                throw new BgaUserException('only given positions should be selected!'); 
+        }
+        else
+        {
+            $blockedSpaces = $passDestArgs["blockedSpaces"];
+            $blockedSpaces[] = $passDestArgs["hexWithBall"];
+
+            foreach ($blockedSpaces as $blockedSpace) 
+            {
+                $hex = HexID::fromArray($blockedSpace);
+
+                if ($selectedHex->equals($hex))
+                    throw new BgaUserException('blocked space selected as pass destination!');
+            }
         }
 
         $board = $this->game->getBoard();
@@ -68,7 +88,7 @@ class PassDestSelection extends PlayerBaseState
         //it is free, otherwise, it is regular! so a goalie pass with the situation described must by pass dice roll and morale assignment,
         //and perform must also notice that. (it must skip reading dice roll and morale assign)
 
-        DiceRoll::storeRollInput(\intval($this->game->getActivePlayerId()), $requiredPower,PassPerform::class,TeamAttribute::Pass, TeamAttribute::None, false);
+        DiceRollServices::storeRollInput(\intval($this->game->getActivePlayerId()), $requiredPower,PassPerform::class,TeamAttribute::Pass, TeamAttribute::None, false);
         MoraleAssignment::storeMoraleAssignData(addslashes(DiceRoll::class), false);
         
         $dbAdapter = DBAdapter::getInstance();

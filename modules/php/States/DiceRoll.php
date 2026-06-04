@@ -31,7 +31,7 @@ class DiceRoll extends GameState
 
     function onEnteringState(int $activePlayerId): string
     {
-        $rollData = $this->getRollData($activePlayerId);
+        $rollData = DiceRollServices::getRollData($activePlayerId);
 
         $playersToRollFor = [$activePlayerId];
 
@@ -43,7 +43,7 @@ class DiceRoll extends GameState
         foreach ($playersToRollFor as $player) {
             $relatedAttribute = $player == $activePlayerId ? $rollData->selfAttribute : $rollData->otherAttribute;
             $rollResult = $this->rollForPlayer($player, $relatedAttribute);
-            $this->storeRollResult($player, $rollResult);
+            DiceRollServices::storeRollResult($player, $rollResult);
             $rollResultData = $rollResult->getData();
             $rollNotifData[$player] = $rollResultData;
         }
@@ -79,37 +79,6 @@ class DiceRoll extends GameState
         $assignedMorale = MoraleAssignment::getMoraleAssigned($playerId);
 
         return new DiceRollResult($assignedMorale, $dieRes, $whiteDice);
-    }
-
-    //TODO: move this to a class named dice roll serivces.
-    private function storeRollResult(int $player_id, DiceRollResult $rollRes)
-    {
-        DBAdapter::getInstance()->storePlayerTempStr($player_id, 'dice_result', $rollRes->toJson());
-    }
-
-    public static function getRollResult(int $player_id): DiceRollResult
-    {
-        $json = DBAdapter::getInstance()->getPlayerTempStr($player_id, 'dice_result');
-
-        $result = new DiceRollResult();
-        $result->fromJson($json);
-
-        return $result;
-    }
-
-    public static function storeRollInput(int $playerId, RequiredPower $requiredPower, string $finishTransition, TeamAttribute $selfAttribute, TeamAttribute $otherAttribute, bool $bothPlayers)
-    {
-        $rollData = new DiceRollData($requiredPower->getTotal(), $finishTransition, $requiredPower->distance, \count($requiredPower->blockingHexes), $selfAttribute, $otherAttribute, $bothPlayers);
-
-        $dbAdapter = DBAdapter::getInstance();
-        $dbAdapter->setGameStateValue('required_power', $requiredPower->getTotal());
-        $dbAdapter->storePlayerTempStr($playerId, "dice_roll_input", $rollData->toJson());
-    }
-
-    private function getRollData(int $playerId): DiceRollData
-    {
-        $json = DBAdapter::getInstance()->getPlayerTempStr($playerId, "dice_roll_input");
-        return DiceRollData::fromJson($json);
     }
 }
 
@@ -164,5 +133,38 @@ class DiceRollData
         $otherAttribute = TeamAttribute::from($data["otherAttribute"]);
 
         return new DiceRollData($requiredPower, $finishTransition, $distance, $blockingPieces, $selfAttribute, $otherAttribute, $rollForBoth);
+    }
+}
+
+class DiceRollServices
+{
+    public static function storeRollResult(int $player_id, DiceRollResult $rollRes)
+    {
+        DBAdapter::getInstance()->storePlayerTempStr($player_id, 'dice_result', $rollRes->toJson());
+    }
+
+    public static function getRollResult(int $player_id): DiceRollResult
+    {
+        $json = DBAdapter::getInstance()->getPlayerTempStr($player_id, 'dice_result');
+
+        $result = new DiceRollResult();
+        $result->fromJson($json);
+
+        return $result;
+    }
+
+    public static function storeRollInput(int $playerId, RequiredPower $requiredPower, string $finishTransition, TeamAttribute $selfAttribute, TeamAttribute $otherAttribute, bool $bothPlayers)
+    {
+        $rollData = new DiceRollData($requiredPower->getTotal(), $finishTransition, $requiredPower->distance, \count($requiredPower->blockingHexes), $selfAttribute, $otherAttribute, $bothPlayers);
+
+        $dbAdapter = DBAdapter::getInstance();
+        $dbAdapter->setGameStateValue('required_power', $requiredPower->getTotal());
+        $dbAdapter->storePlayerTempStr($playerId, "dice_roll_input", $rollData->toJson());
+    }
+
+    public static function getRollData(int $playerId): DiceRollData
+    {
+        $json = DBAdapter::getInstance()->getPlayerTempStr($playerId, "dice_roll_input");
+        return DiceRollData::fromJson($json);
     }
 }

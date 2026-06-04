@@ -30,8 +30,8 @@ class ShootPerform extends GameState
         $attacker = $board->getAttacker();
         $defender = $board->getDefender();
 
-        $attackerRollResult = DiceRoll::getRollResult($attacker);
-        $defenderRollResult = DiceRoll::getRollResult($defender);
+        $attackerRollResult = DiceRollServices::getRollResult($attacker);
+        $defenderRollResult = DiceRollServices::getRollResult($defender);
         $powerRequired = $this->game->getGameStateValue('required_power');
 
         if ($attackerRollResult->getTotal() >= $defenderRollResult->getTotal() + $powerRequired) 

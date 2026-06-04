@@ -69,7 +69,7 @@ class DribbleTargetSelection extends GameState
 
         DBAdapter::getInstance()->storeSelectedHex($hexColumn ,$hexRow);
         MoraleAssignment::storeMoraleAssignData(addslashes(DiceRoll::class), true);
-        DiceRoll::storeRollInput($activePlayer, new RequiredPower(-1, []), PerformDribble::class, TeamAttribute::Dribble, TeamAttribute::Tackle, true);
+        DiceRollServices::storeRollInput($activePlayer, new RequiredPower(-1, []), PerformDribble::class, TeamAttribute::Dribble, TeamAttribute::Tackle, true);
 
         return ActiveNextGoMorale::class;
     }

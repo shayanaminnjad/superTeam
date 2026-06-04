@@ -71,7 +71,7 @@ class TacklePerformerSelection extends GameState
 
         DBAdapter::getInstance()->storeSelectedHex($hexColumn ,$hexRow);
         MoraleAssignment::storeMoraleAssignData(addslashes(DiceRoll::class), true);
-        DiceRoll::storeRollInput(\intval($this->game->getActivePlayerId()), new RequiredPower(0, []), PerformTackle::class, TeamAttribute::Tackle, TeamAttribute::Dribble, true);
+        DiceRollServices::storeRollInput(\intval($this->game->getActivePlayerId()), new RequiredPower(0, []), PerformTackle::class, TeamAttribute::Tackle, TeamAttribute::Dribble, true);
 
         return ActiveNextGoMorale::class;
 }

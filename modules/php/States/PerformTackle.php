@@ -29,8 +29,8 @@ class PerformTackle extends GameState
     {
         $board = $this->game->getBoard();
 
-        $attackerRollRes = DiceRoll::getRollResult($board->getAttacker());
-        $defenderRollRes = DiceRoll::getRollResult($board->getDefender());
+        $attackerRollRes = DiceRollServices::getRollResult($board->getAttacker());
+        $defenderRollRes = DiceRollServices::getRollResult($board->getDefender());
 
         if ($defenderRollRes->getTotal() > $attackerRollRes->getTotal()) {
             $selectedHex = DBAdapter::getInstance()->getSelectedHexAsHexID();

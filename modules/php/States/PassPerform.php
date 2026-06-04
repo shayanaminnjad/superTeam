@@ -32,11 +32,13 @@ class PassPerform extends GameState
         
         $selectedHex = DBAdapter::getInstance()->getSelectedHexAsHexID();
         
-        $diceRes = DiceRoll::getRollResult($activePlayerId);
+        $diceRes = DiceRollServices::getRollResult($activePlayerId);
         $board = $this->game->getBoard();
         
         if ($diceRes->getTotal() >= $powerRequired)
         {
+            DBAdapter::getInstance()->setGameStateValue('lastPassResult', 1);
+
             $board->setBallLocation($selectedHex);
             $this->notify->all('successfulPass', "successful pass", [
                 "ballHex" => $selectedHex->convertToArray()
@@ -44,6 +46,8 @@ class PassPerform extends GameState
         }
         else
         {
+            DBAdapter::getInstance()->setGameStateValue('lastPassResult', 0);
+
             $newLocation = $board->getClosetBlockingPieceOrHalfWay($board->getBallHex(), $selectedHex, $this->game->getInactivePlayerId());
             $board->setBallLocation($newLocation);
             $this->notify->all('failedPass', "failed pass", [
