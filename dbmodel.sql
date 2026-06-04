@@ -56,7 +56,12 @@ CREATE TABLE IF NOT EXISTS `player_cards` (
 CREATE TABLE IF NOT EXISTS `st_globals` (
     `morale_assign_transition` TEXT,
     `selected_hex_column` INT DEFAULT -1,
-    `selected_hex_row` INT DEFAULT -1
+    `selected_hex_row` INT DEFAULT -1,
+    `tactic_in_play` INT DEFAULT -1,
+    `tactic_type` SMALLINT DEFAULT -1,
+    `tactic_progress` INT DEFAULT - 1,
+    `tactic_reward_in_progress` Boolean DEFAULT FALSE,
+    `rewards_used` TEXT
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `player_temp_data` (
@@ -64,7 +69,8 @@ CREATE TABLE IF NOT EXISTS `player_temp_data` (
     `assigned_morale` INT DEFAULT 0,
     `dice_result` TEXT,
     `dice_roll_input` TEXT,
-    `shootTarget` TEXT
+    `shootTarget` TEXT,
+    `forced_pass_targets` TEXT
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `logs` (
