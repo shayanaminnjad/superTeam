@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\PlayerRole;
 
 //TODO: rename this to Player basic turn.
@@ -121,7 +122,8 @@ class PlayerTurn extends PlayerBaseState
     public function actDebugAddMorale(int $amount)
     {
         if ($amount >= 0) {
-            $this->game->setCurrentPlayerMorale($amount, true);
+            $playerResources = new PlayerResources(\intval($this->game->getActivePlayerId()));
+            $playerResources->setMorale($amount , true);
         }
     }
 

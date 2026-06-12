@@ -6,6 +6,7 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 
@@ -47,7 +48,7 @@ class MoveAction extends PlayerBaseState
     }
 
     #[PossibleAction]
-    public function actPieceMoved(int $hexColumn, int $hexRow) : string
+    public function actPieceMoved(int $hexColumn, int $hexRow, int $activePlayerId) : string
     {
         //TODO: check if the moved location is valid.
 
@@ -81,8 +82,8 @@ class MoveAction extends PlayerBaseState
         $spentMorale = 0;
         if(!$isFresh && $numberOfMoves === 0) //player has moved an exhusted piece.
         {
-            $currentMorale = $this->game->getCurrentPlayerMorale();
-            $this->game->setCurrentPlayerMorale($currentMorale - 1, false);
+            $playerResources = new PlayerResources($activePlayerId);
+            $playerResources->addMorale(-1, false);
 
             $spentMorale = 1;
             $shouldEndMovement = true;

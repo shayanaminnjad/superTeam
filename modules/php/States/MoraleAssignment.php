@@ -8,7 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Game;
-
+use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Math\Math;
 use Bga\Games\SuperTeam\DBAdapter;
 
@@ -34,11 +34,11 @@ class MoraleAssignment extends GameState
         );
     }
 
-    public function getArgs(): array
+    public function getArgs(int $activePlayerId): array
     {
-        $currentPlayerMorale = $this->game->getCurrentPlayerMorale();
+        $playerResources = new PlayerResources($activePlayerId);
 
-        $maxMoraleAssignable = Math::clamp($currentPlayerMorale, 0, self::MAX_MORALE_PER_ACTION);
+        $maxMoraleAssignable = Math::clamp($playerResources->getMorale(), 0, self::MAX_MORALE_PER_ACTION);
 
         $requiredPower = $this->game->getGameStateValue('required_power');
 
@@ -55,9 +55,9 @@ class MoraleAssignment extends GameState
     }
 
     #[PossibleAction]
-    public function actMoraleAssigned(int $amount): string
+    public function actMoraleAssigned(int $amount, int $activePlayerId): string
     {
-        $maxMoraleAssignable = $this->getArgs()['maxMoraleAssignable'];
+        $maxMoraleAssignable = $this->getArgs($activePlayerId)['maxMoraleAssignable'];
 
         if ($amount > $maxMoraleAssignable || $amount < 0) {
             throw new \BgaUserException("$amount morale assigned, max morale assignable is $maxMoraleAssignable");
@@ -67,7 +67,8 @@ class MoraleAssignment extends GameState
 
         DBAdapter::getInstance()->setGameStateValue('moraleAssignRemaining', $assignData->moraleAssignRemaining - 1);
 
-        $this->game->setCurrentPlayerMorale($this->game->getCurrentPlayerMorale() - $amount, true);
+        $playerResources = new PlayerResources($activePlayerId);
+        $playerResources->addMorale(-$amount, true);
 
         //TODO: this is an important data to the current turn player! make sure that it is shown to him boldly!
 
