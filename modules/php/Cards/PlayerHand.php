@@ -4,7 +4,7 @@ namespace Bga\Games\SuperTeam\Cards;
 
 use Bga\Games\SuperTeam\Game;
 use Bga\GameFramework\Components\Deck;
-use ErrorException;
+use Bga\Games\SuperTeam\Cards\CardTypeHelper;
 
 class PlayerHand
 {
@@ -108,35 +108,42 @@ class PlayerHand
     {
         $cardDefinitions = [];
 
-        $BASIC_CARDS_PER_HAND = 5;
+        $BASIC_CARDS_PER_HAND = 4; /*TODO: 5*/
         for ($i = 0; $i < $BASIC_CARDS_PER_HAND; $i++) 
         {
-            $basicCardType = self::getBasicCardType($i);
+            $basicCardType = CardTypeHelper::getBasicCardType($i);
             $cardDefinitions[] = self::getCardDefinition($basicCardType);
         }
 
+        /*
         $CAPTAIN_CARDS_PER_BOARD = 3;
 
         for ($i = 0; $i < $CAPTAIN_CARDS_PER_BOARD; $i++) 
         {
-            $captainCardType = self::getCaptainCardType($captainBoardId, $i);
+            $captainCardType = CardTypeHelper::getCaptainCardType($captainBoardId, $i);
             $cardDefinitions[] = self::getCardDefinition($captainCardType);
         }
 
         $TEAM_CARDS_PER_BOARD = 3;
         for ($i = 0; $i < $TEAM_CARDS_PER_BOARD; $i++)
         {
-            $teamCardType = self::getTeamCardType($teamBoardId, $i);
+            $teamCardType = CardTypeHelper::getTeamCardType($teamBoardId, $i);
             $cardDefinitions[] =  self::getCardDefinition($teamCardType);
         }
 
-        $coachCardType = self::getCoachCardType($teamBoardId);
+        $coachCardType = CardTypeHelper::getCoachCardType($teamBoardId);
         $cardDefinitions[] =  self::getCardDefinition($coachCardType);
+        */
 
         $deckName = self::getPlayerDeck($playerId);
         $deck->createCards($cardDefinitions, $deckName);
         $deck->createCards([self::getCardDefinition("fatigue", 16)], 'supply');
         $deck->shuffle($deckName);
+    }
+
+    public function getCard(int $cardId)
+    {
+        return $this->cards->getCard($cardId);
     }
 
     public static function getPlayerDeck(int $playerId) : string
@@ -153,64 +160,4 @@ class PlayerHand
     {
         return ["type" => $cardType, 'type_arg' => 0, 'nbr' => $count];
     }
-
-    public static function getBasicCardType(int $num): string
-    {
-        $basicCategory = self::CardTypeToString(CardCategory::Basic);
-        $letter = \chr(\ord("A") + $num);
-
-        return "{$basicCategory}_{$letter}";
-    }
-
-    public static function getCaptainCardType($captainBoardId, $num): string 
-    {
-        $captainCategory = self::CardTypeToString(CardCategory::Captain);
-        
-        return "{$captainCategory}_{$captainBoardId}_{$num}";
-    }
-
-    public static function getCoachCardType($teamBoardId): string 
-    {
-        $coachCategory = self::CardTypeToString(CardCategory::Coach);
-
-        return "{$coachCategory}_{$teamBoardId}";
-    }
-
-    public static function getTeamCardType($teamBoardId, $num): string 
-    {
-        $teamCategory = self::CardTypeToString(CardCategory::Team);
-
-        return "{$teamCategory}_{$teamBoardId}_{$num}";
-    }
-
-    public static function CardTypeToString(CardCategory $type):string
-    {
-        switch ($type) {
-            case CardCategory::Basic:
-                return "Basic";
-            case CardCategory::Captain:
-                return "Captain";
-            case CardCategory::Coach:
-                return "Coach";
-            case CardCategory::Team:
-                return "Team";
-            default:
-                throw new ErrorException("Invalid Card category passed!");
-        }
-    }
-}
-
-enum CardCategory: int
-{
-    case Unknown = 0;
-
-    case Basic = 1;
-
-    case Captain = 2;
-
-    case Coach = 3;
-
-    case Team = 4;
-
-    case Fatigue = 5;
 }

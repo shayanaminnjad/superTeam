@@ -4,16 +4,7 @@ namespace Bga\Games\SuperTeam\Cards;
 
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Board;
-
-enum CardType : int
-{
-    case None = 0;
-    case Basic = 1;
-    case Captain = 2;
-    case Team = 3;
-    case Coach = 4;
-    case Fatigue = 5;
-}
+use Bga\Games\SuperTeam\Cards\CardType;
 
 final class CardReward
 {
@@ -22,6 +13,48 @@ final class CardReward
         public readonly int $move,
         public readonly int $action,
     ) {}
+
+    public function toJson() : string
+    {
+        return json_encode($this->toArray());
+    }
+
+    public function toArray() : array
+    {
+        return [ 
+            'morale' => $this->morale,
+            'move' => $this->move,
+            'action' => $this->action
+        ];
+    }
+
+    public function isEmpty() : bool
+    {
+        return $this->morale == 0 && $this->move == 0 && $this->action == 0;
+    }
+
+    public function diff(CardReward $rhs) : CardReward
+    {
+        return new CardReward(
+            $this->morale - $rhs->morale, 
+            $this->move - $rhs->move, 
+            $this->action - $rhs->action);
+    }
+
+    public static function fromJson(string $jsonInput) : CardReward
+    {
+        return CardReward::fromArray(json_decode($jsonInput, true));
+    }
+
+    public static function fromArray(array $input)
+    {
+        return new CardReward($input['morale'], $input['move'], $input['action']);
+    }
+
+    public static function empty(): CardReward
+    {
+        return new CardReward(0, 0, 0);
+    }
 }
 
 /* coach and captain has only instruction 
@@ -75,7 +108,6 @@ final class ExecutionResult
 class CardDefinition
 {
     public function __construct(
-        public readonly int $id,
         public readonly string $name,
         public readonly CardType $type,
         public readonly string $toolTip,
@@ -107,6 +139,8 @@ abstract class Card
     }
 
     abstract public function isOffensivePossible() : bool;
+
+    abstract public function getId() : string;
 
     public function execute(TacticType $type, int $index) : ExecutionResult
     {

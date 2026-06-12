@@ -7,14 +7,14 @@ use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\States\PassDestSelection;
+use Bga\Games\SuperTeam\Cards\CardType;
 
 
-class Basic_1 extends Card
+class Basic1 extends Card
 {
     public function __construct(Game $game, Board $board)
     {
         parent::__construct(new CardDefinition(
-            0,
             "Basic 1",
             CardType::Basic,
             "",
@@ -31,6 +31,16 @@ class Basic_1 extends Card
         $currentPlayer = $this->game->getCurrentPlayerId();
 
         return \count(BoardSpatial::GetPiecesInFrontColumns($this->board, $startHex->getColumn(), $currentPlayer)) > 0;
+    }
+
+    public static function staticId() : string
+    {
+        return CardTypeHelper::getBasicCardType(0);
+    }
+
+    public function getId() : string
+    {
+        return self::staticId();
     }
 
     protected function getOffensiveCommands() : array
