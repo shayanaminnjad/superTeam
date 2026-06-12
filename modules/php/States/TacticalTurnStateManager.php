@@ -31,12 +31,13 @@ class TacticalTurnStateManager extends GameState
     {
         $dbAdapter = DBAdapter::getInstance();
 
-        $cardInPlay = $dbAdapter->getGlobalInt("tactic_in_play");
+        $cardInPlay = $dbAdapter->getGlobalString("tactic_in_play");
         assert($cardInPlay >= 0);
 
         $tacticProgress = $dbAdapter->getGlobalInt("tactic_progress");
         assert($tacticProgress >= 0, "tactic progress can't be negative!");
 
+        //TODO: tactic type can be inferred there is no need to store it.
         $tacticType = $dbAdapter->getGlobalInt("tactic_type");
         assert($tacticType >= 0 && $tacticType <=1, "tactic type should be either 0 or 1");
 
@@ -51,6 +52,8 @@ class TacticalTurnStateManager extends GameState
         }
         else
         {
+            //TODO: apply fatigue too.
+            
             if ($result->action == ExecutionAction::Success) 
             {
                 return TacticRewardResolve::class;
@@ -67,7 +70,7 @@ class TacticalTurnStateManager extends GameState
     {
         $dbAdapter = DBAdapter::getInstance();
 
-        $dbAdapter->storeGlobalInt("tactic_in_play", -1);
+        $dbAdapter->storeGlobalString("tactic_in_play", "");
         $dbAdapter->storeGlobalInt("tactic_progress", -1);
     }
 }

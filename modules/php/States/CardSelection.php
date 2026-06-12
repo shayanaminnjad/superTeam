@@ -7,9 +7,11 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
+use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\States\PlayerBaseState;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Utility\Logger;
+use Bga\Games\SuperTeam\Cards\TacticType;
 
 class CardSelection extends PlayerBaseState
 {
@@ -35,6 +37,8 @@ class CardSelection extends PlayerBaseState
     {
         $playerHand = $this->game->getPlayerHand(\intval($this->game->getActivePlayerId()));
 
+        //TODO: also send which cards can be played by the player.
+
         $cardsInHand = $playerHand->CountCardsInHand();
         $canPass =  $cardsInHand < PlayerHand::$MAX_CARDS_IN_HAND;
         $canPlayCard = $cardsInHand > 1;
@@ -46,29 +50,44 @@ class CardSelection extends PlayerBaseState
     }
 
     #[PossibleAction]
-    public function actCardSelected(int $cardId, bool $asBasic): string
+    public function actCardSelected(int $cardId, string $cardType, bool $asBasic): string
     {
         $playerHand = $this->game->getPlayerHand(\intval($this->game->getActivePlayerId()));
 
+        $cardDef = $playerHand->getCard($cardId);
+
         if ($playerHand->CountCardsInHand() == 1)
             throw new \BgaUserException("You can't play more than 3 cards in a turn!");
-
+        
         Logger::logInfo("Card " . $cardId . "selected to be performed as" . ($asBasic ? 'as basic.' : 'as tactic.'));
-
+        
         $activePlayer = \intval($this->game->getActivePlayerId());
         $playerHand = $this->game->getPlayerHand($activePlayer);
-
+        
         $playerHand->discardCard($cardId);
-
+        
         $this->game->notify->all("cardPlayed", "card {$cardId} played", [
             'discards' => $playerHand->getDiscardedCards(),
             'cardsInHandCount' => $playerHand->CountCardsInHand()
-        ]);
+            ]);
+            
+            
+            if ($asBasic)
+                return PlayerTurn::class;
+            else
+            {
+                $dbAdapter = DBAdapter::getInstance();
+                //TODO: encapsulate this logic
+                $dbAdapter->storeGlobalString('tactic_in_play', $cardDef['type']);
+                //TODO: I should check whether I need to store this or infer it.
+                //the edge case is pass forward, I am not sure if you become defender at that moment or not.
+                $dbAdapter->storeGlobalInt('tactic_type', TacticType::Offensive->value); 
+                $dbAdapter->storeGlobalInt("tactic_progress", 0);
+                $dbAdapter->storeGlobalInt("tactic_reward_in_progress", 0);
+                $dbAdapter->storeGlobalString("rewards_used", "");
 
-        if ($asBasic)
-            return PlayerTurn::class;
-        else
-            return TacticalTurnStateManager::class;
+                return TacticalTurnStateManager::class;
+            }
     }
 
     #[PossibleAction]
