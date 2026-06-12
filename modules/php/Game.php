@@ -22,14 +22,14 @@ namespace Bga\Games\SuperTeam;
 
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Cards\CardFactory;
-use Bga\Games\SuperTeam\Cards\Basic_1;
+use Bga\Games\SuperTeam\Cards\Basic1;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\TeamBoard;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\Utility\Logger;
-
 
 use Exception;
 
@@ -56,6 +56,10 @@ class Game extends \Table
             fn($sql) => $this->getCollectionFromDB($sql),
             fn($name, $value) => $this->setGameStateValue($name, $value),
             fn($name) => $this->getGameStateValue($name)
+        );
+
+        NotificationAdapter::getInstance()->init(
+            fn($name, $message, $args) => $this->notify->all($name, $message, $args)
         );
 
         Logger::init(DBAdapter::getInstance(), 'logs');
@@ -116,9 +120,10 @@ class Game extends \Table
     {
         $board = $this->getBoard();
 
-        $activePlayerPieces = $board->getPlayerPiecesByOwner(intval($this->getActivePlayerId()));
+        $activePlayerId = \intval($this->getActivePlayerId());
+        $activePlayerPieces = $board->getPlayerPiecesByOwner($activePlayerId);
 
-        $currentPlayerMorale = $this->getCurrentPlayerMorale();
+        $playerResources = new PlayerResources($activePlayerId);
 
         $freshPieceIDs = [];
         $exhaustedSelectablePieceIds = [];
@@ -128,7 +133,7 @@ class Game extends \Table
             if ($currentPiece->getRole() != PlayerRole::GoalKeeper->value) {
                 if ($currentPiece->isFresh() && (!$additionalPredicate || $additionalPredicate($currentPiece))) {
                     $freshPieceIDs[] = $currentPiece->getId();
-                } else if (!$currentPiece->isFresh() && $currentPlayerMorale > 0 && (!$additionalPredicate || $additionalPredicate($currentPiece))) {
+                } else if (!$currentPiece->isFresh() && $playerResources->getMorale() > 0 && (!$additionalPredicate || $additionalPredicate($currentPiece))) {
                     $exhaustedSelectablePieceIds[] = $currentPiece->getId();
                 }
             }
@@ -435,44 +440,7 @@ class Game extends \Table
         return new Board($piecesData, $ballHex, DBAdapter::getInstance());
     }
 
-    //TODO: Move this functions to player class, when implemented. 
-    public function getCurrentPlayerMorale(): int
-    {
-        $current_player_id = $this->getActivePlayerId();
-
-        $playerMorale = $this->getUniqueValueFromDB(
-            "SELECT `resource_morale` FROM `player` WHERE `player_id` = {$current_player_id}"
-        );
-
-        $result = intval($playerMorale);
-
-        assert($result >= 0, "morale must be always equal or greater than 0!");
-
-        return $result;
-    }
-
-    public function setCurrentPlayerMorale(int $amount, bool $notify): void
-    {
-        assert($amount >= 0, "morale should always be greater or equal to zero!");
-
-        $current_player_id = (int) $this->getActivePlayerId();
-
-        $this->DbQuery(
-            "UPDATE `player` SET `resource_morale` = {$amount} WHERE `player_id` = {$current_player_id}"
-        );
-
-        if ($notify) {
-            $this->notify->all(
-                "moraleChanged",
-                "morale changed to {$amount}",
-                [
-                    "amount" => $amount,
-                    "playerId" => $current_player_id
-                ]
-            );
-        }
-    }
-
+    //TODO: Move this function to playerResources.
     public function AddOneGoal(int $playerId): int
     {
         $goalsScored = $this->getUniqueValueFromDB(
@@ -541,8 +509,7 @@ class Game extends \Table
     {
         $cardFactory = new CardFactory();
 
-        $cardFactory->registerCard(0, fn() => new Basic_1($this, $this->getBoard()));
-        
+        $cardFactory->registerCard(Basic1::staticId(), fn() => new Basic1($this, $this->getBoard()));
         
         $this->cardFactory = $cardFactory;
     }
@@ -550,5 +517,10 @@ class Game extends \Table
     public function getCardFactory() : CardFactory
     {
         return $this->cardFactory;
+    }
+
+    function debug_setMorale(int $amount) {
+        $playerResource  =new PlayerResources(\intval($this->getActivePlayerId()));
+        $playerResource->setMorale($amount, true);
     }
 }
