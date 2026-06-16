@@ -38,7 +38,7 @@ class PieceSelection extends PlayerBaseState
     #[PossibleAction]
     public function actCancel(): string
     {
-        return PlayerTurn::class;
+        return PlayerBasicTurn::class;
     }
 
     #[PossibleAction]

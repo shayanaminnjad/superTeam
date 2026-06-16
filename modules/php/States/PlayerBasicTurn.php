@@ -12,15 +12,15 @@ use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\PlayerRole;
 
 //TODO: rename this to Player basic turn.
-class PlayerTurn extends PlayerBaseState
+class PlayerBasicTurn extends PlayerBaseState
 {
     function __construct(
         protected Game $game,
     ) {
         parent::__construct(
             $game,
-            name: 'playerTurn',
-            id: ST_PLAYER_TURN,
+            name: 'playerBasicTurn',
+            id: ST_PLAYER_BASIC_TURN,
             type: StateType::ACTIVE_PLAYER,
 
             // optional
