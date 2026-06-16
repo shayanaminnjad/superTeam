@@ -15,7 +15,7 @@ class CardFactory
         $this->registry[$id] = $cardCreator;
     }
 
-    public function getCard(string $id)
+    public function getCard(string $id) : Card
     {
         if (!isset($this->registry[$id]))
             throw new \RuntimeException("Card not found: $id");

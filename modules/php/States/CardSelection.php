@@ -8,10 +8,10 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\DBAdapter;
-use Bga\Games\SuperTeam\States\PlayerBaseState;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Utility\Logger;
 use Bga\Games\SuperTeam\Cards\TacticType;
+use Bga\Games\SuperTeam\Cards\CardTypeHelper;
 
 class CardSelection extends PlayerBaseState
 {
@@ -37,7 +37,19 @@ class CardSelection extends PlayerBaseState
     {
         $playerHand = $this->game->getPlayerHand(\intval($this->game->getActivePlayerId()));
 
-        //TODO: also send which cards can be played by the player.
+        $playableTactics = [];
+        $playableTactics[] = CardTypeHelper::getBasicCardType(0);
+        /*
+        $cardsInHand = $playerHand->getCardsInHand();
+        foreach($cardsInHand as $cardDef)
+        {
+            $card = $this->game->getCardFactory()->getCard($cardDef["type"]);
+
+            if ($card->isOffensivePossible())
+            {
+                $playableTactics[] = $card->getId();
+            }
+        }*/
 
         $cardsInHand = $playerHand->CountCardsInHand();
         $canPass =  $cardsInHand < PlayerHand::$MAX_CARDS_IN_HAND;
@@ -45,7 +57,8 @@ class CardSelection extends PlayerBaseState
 
         return [
             'canPass' => $canPass,
-            'canPlayCard' => $canPlayCard
+            'canPlayCard' => $canPlayCard,
+            'playableTactics' => $playableTactics
         ];
     }
 
@@ -73,7 +86,7 @@ class CardSelection extends PlayerBaseState
             
             
             if ($asBasic)
-                return PlayerTurn::class;
+                return PlayerBasicTurn::class;
             else
             {
                 $dbAdapter = DBAdapter::getInstance();
