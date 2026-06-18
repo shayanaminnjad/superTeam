@@ -13,7 +13,6 @@ use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Cards\TacticType;
 use Bga\Games\SuperTeam\Cards\CardReward;
-use Bga\Games\SuperTeam\States\CardSelection;
 
 class TacticRewardResolve extends PlayerBaseState
 {
@@ -46,7 +45,7 @@ class TacticRewardResolve extends PlayerBaseState
             return CardSelection::class;
         }
 
-        $this->claimMoraleIfNotClaimed($activePlayerId, $reward->morale, $claimedReward->morale);
+        $this->claimMoraleIfNotClaimed($activePlayerId, $reward, $claimedReward);
     }
 
     public function selfGetArgs() : array
@@ -97,7 +96,7 @@ class TacticRewardResolve extends PlayerBaseState
         $claimedReward->action += 1;
         $this->storeRewardClaimed($claimedReward);
 
-        DBAdapter::getInstance()->storeActionReturnState($activePlayerId, addslashes(self::class));
+        DBAdapter::getInstance()->storeActionReturnState($activePlayerId, self::class);
 
         return PlayerBasicTurn::class;
     }
@@ -116,7 +115,7 @@ class TacticRewardResolve extends PlayerBaseState
         $claimedReward->move += 1;
         $this->storeRewardClaimed($claimedReward);
 
-        DBAdapter::getInstance()->storeActionReturnState($activePlayerId, addslashes(self::class));
+        DBAdapter::getInstance()->storeActionReturnState($activePlayerId, self::class);
 
         return PieceSelection::class;
     }
@@ -177,13 +176,15 @@ class TacticRewardResolve extends PlayerBaseState
         return TacticType::from($tacticType) == TacticType::Offensive ? $cardDef->offensiveReward : $cardDef->defensiveReward;
     }
 
-    private function claimMoraleIfNotClaimed(int $activePlayerId,int $amount, int $claimedMorale) : void
+    private function claimMoraleIfNotClaimed(int $activePlayerId,CardReward $rewardToClaim, CardReward $claimedReward) : void
     {
-        if ($amount - $claimedMorale > 0)
+        if ($rewardToClaim->morale - $claimedReward->morale > 0)
         {
             $playerResources = new PlayerResources($activePlayerId);
+            $playerResources->addMorale($rewardToClaim->morale - $claimedReward->morale, true);
 
-            $playerResources->addMorale($amount - $claimedMorale, true);
+            $claimedReward->morale = $rewardToClaim->morale;
+            $this->storeRewardClaimed($claimedReward);
         }
     }
 }
