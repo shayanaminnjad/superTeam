@@ -68,7 +68,7 @@ class DribbleTargetSelection extends GameState
             throw new \BgaUserException("Invalid tackle target `" . $selectedHex->toString() . "` selected.");
 
         DBAdapter::getInstance()->storeSelectedHex($hexColumn ,$hexRow);
-        MoraleAssignment::storeMoraleAssignData(addslashes(DiceRoll::class), true);
+        MoraleAssignment::storeMoraleAssignData(DiceRoll::class, true);
         DiceRollServices::storeRollInput($activePlayer, new RequiredPower(-1, []), PerformDribble::class, TeamAttribute::Dribble, TeamAttribute::Tackle, true);
 
         return ActiveNextGoMorale::class;

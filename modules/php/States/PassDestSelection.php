@@ -89,7 +89,7 @@ class PassDestSelection extends PlayerBaseState
         //and perform must also notice that. (it must skip reading dice roll and morale assign)
 
         DiceRollServices::storeRollInput(\intval($this->game->getActivePlayerId()), $requiredPower,PassPerform::class,TeamAttribute::Pass, TeamAttribute::None, false);
-        MoraleAssignment::storeMoraleAssignData(addslashes(DiceRoll::class), false);
+        MoraleAssignment::storeMoraleAssignData(DiceRoll::class, false);
         
         $dbAdapter = DBAdapter::getInstance();
         $dbAdapter->storeSelectedHex($hexColumn, $hexRow);
