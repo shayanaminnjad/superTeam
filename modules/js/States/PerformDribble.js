@@ -39,11 +39,11 @@ define(["dojo/_base/declare",
                 let animations = this._root.pieceManager.swapPeicesAndGetAnimation(lhsHex, rhsHex);
 
                 if (Board.getHexWithBall().equals(lhsHex)) {
-                    animations.push(this._root.slideToObject('ball', Board.convertOffsetCoordToHexId(rhsHex)));
+                    animations.push(this._root.slideToObject('ballParent', Board.convertOffsetCoordToHexId(rhsHex)));
                     Board.setHexWithBall(rhsHex);
                 }
                 else {
-                    animations.push(this._root.slideToObject('ball', Board.convertOffsetCoordToHexId(lhsHex)));
+                    animations.push(this._root.slideToObject('ballParent', Board.convertOffsetCoordToHexId(lhsHex)));
                     Board.setHexWithBall(lhsHex);
                 }
 

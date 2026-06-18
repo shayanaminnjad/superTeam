@@ -159,15 +159,21 @@
     transform: scale(1.1);
 }
 
+#ballParent
+{
+    position: absolute;
+}
+
 .ball {
     width: 18px;
     height: 18px;
-    position: absolute;
+    position: relative;
     background-image: url('img/ball.png');
     background-size: contain;
     background-repeat: no-repeat;
     pointer-events: none;
     z-index: 101;
+    transform: translate(8px, 15px);
 }
 
 /*TODO: probably this should also be selectable*/
