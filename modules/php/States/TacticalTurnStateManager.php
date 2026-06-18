@@ -47,6 +47,7 @@ class TacticalTurnStateManager extends GameState
 
         if ($result->action == ExecutionAction::GoToState)
         {
+            $dbAdapter->storeActionReturnState($activePlayerId, self::class);
             $dbAdapter->storeGlobalInt("tactic_progress", $result->index);
             return $result->requestedState;
         }
