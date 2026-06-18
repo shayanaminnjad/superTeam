@@ -116,7 +116,11 @@ class DBAdapter
     public function getPlayerTempStr(int $playerId, string $entry): string
     {
         $row = $this->getObjectFromDB("SELECT `$entry` FROM `player_temp_data` WHERE `player_id` = $playerId");
-        return $row[$entry];
+
+        if ($row == null || $row[$entry] == null)
+            return '';
+        else
+            return $row[$entry];
     }
 
     public function getPlayerTempInt(int $playerId, string $entry): int
