@@ -152,7 +152,7 @@ class DBAdapter
 
     public function storeActionReturnState(int $playerId, string $class) : void
     {
-        $this->storePlayerTempStr($playerId, `action_return_state`, $class);
+        $this->storePlayerTempStr($playerId, 'action_return_state', $class);
     }
 
     public function getPlayerActionReturnState(int $playerId): string
