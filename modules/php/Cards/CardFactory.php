@@ -22,4 +22,9 @@ class CardFactory
 
         return ($this->registry[$id])();
     }
+
+    public function hasCard(string $id) : bool
+    {
+        return isset($this->registry[$id]);
+    }
 }
