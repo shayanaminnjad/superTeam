@@ -43,6 +43,6 @@ class PerformDribble extends GameState
             ]);
         }
 
-        return CardSelection::class;
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 }

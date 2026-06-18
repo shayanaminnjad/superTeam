@@ -6,6 +6,7 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
+use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 
 class ShootPerform extends GameState
@@ -58,7 +59,7 @@ class ShootPerform extends GameState
                 "ballHex" => $newLocation->convertToArray()
             ]);
 
-            return playerBasicTurn::class;
+            return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
         }
     }
 }
