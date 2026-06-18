@@ -9,9 +9,9 @@ use Bga\Games\SuperTeam\Cards\CardType;
 final class CardReward
 {
     public function __construct(
-        public readonly int $morale,
-        public readonly int $move,
-        public readonly int $action,
+        public int $morale,
+        public int $move,
+        public int $action,
     ) {}
 
     public function toJson() : string
