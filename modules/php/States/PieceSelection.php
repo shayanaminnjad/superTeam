@@ -6,8 +6,10 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 
+//TODO: This should be named movePieceSelection
 class PieceSelection extends PlayerBaseState
 {
     function __construct(
@@ -36,9 +38,9 @@ class PieceSelection extends PlayerBaseState
     }
 
     #[PossibleAction]
-    public function actCancel(): string
+    public function actCancel(int $activePlayerId): string
     {
-        return PlayerBasicTurn::class;
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 
     #[PossibleAction]
@@ -57,8 +59,8 @@ class PieceSelection extends PlayerBaseState
         return MoveAction::class;
     }
 
-    function zombie(int $playerId): string {
-        // the code to run when the player is a Zombie
-        return '';
+    function zombie(int $playerId): string
+    {
+        return $this->actCancel();
     }
 }

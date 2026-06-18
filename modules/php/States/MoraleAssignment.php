@@ -85,8 +85,7 @@ class MoraleAssignment extends GameState
 
     function zombie(int $playerId): string
     {
-        // the code to run when the player is a Zombie
-        return '';
+        return $this->actMoraleAssigned(0, $playerId);
     }
     
     //TODO: these function can be inside another file named morale assign services

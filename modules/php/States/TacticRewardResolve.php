@@ -76,7 +76,7 @@ class TacticRewardResolve extends PlayerBaseState
     }
 
     #[PossibleAction]
-    public function actForfeitReward()
+    public function actForfeitReward() : string
     {
         $this->cleanup();
 
@@ -84,27 +84,29 @@ class TacticRewardResolve extends PlayerBaseState
     }
 
     #[PossibleAction]
-    public function actDoOneAction()
+    public function actDoOneAction(int $activePlayerId) : string
     {
-        //TODO: Complete this
-        $this->cleanup();
+        //TODO: store the usage
+        DBAdapter::getInstance()->storeActionReturnState($activePlayerId, addslashes(self::class));
 
-        return CardSelection::class;
+        return PlayerBasicTurn::class;
     }
         
     #[PossibleAction]
-    public function actDoOneMove()
+    public function actDoOneMove(int $activePlayerId) : string
     {
+        //TODO: store the usage!
+        DBAdapter::getInstance()->storeActionReturnState($activePlayerId, addslashes(self::class));
+
         return PieceSelection::class;
     }
 
     function zombie(int $playerId): string
     {
-        // the code to run when the player is a Zombie
-        return '';
+        return $this->actForfeitReward();
     }
 
-    private function cleanup()
+    private function cleanup() : void
     {
         $dbAdapter = DBAdapter::getInstance();
 

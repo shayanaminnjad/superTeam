@@ -6,6 +6,7 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
+use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 
 class MoveFinished extends GameState
@@ -36,6 +37,6 @@ class MoveFinished extends GameState
             "pieceId" => $selectedPiece,
         ));
 
-        return CardSelection::class;
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 }

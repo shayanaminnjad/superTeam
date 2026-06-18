@@ -70,7 +70,8 @@ CREATE TABLE IF NOT EXISTS `player_temp_data` (
     `dice_result` TEXT,
     `dice_roll_input` TEXT,
     `shootTarget` TEXT,
-    `forced_pass_targets` TEXT
+    `forced_pass_targets` TEXT,
+    `action_return_state` TEXT
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `logs` (

@@ -26,7 +26,7 @@ class PassPerform extends GameState
         );
     }
 
-    function onEnteringState(int $activePlayerId)
+    function onEnteringState(int $activePlayerId) : string
     {
         $powerRequired = $this->game->getGameStateValue('required_power');
         
@@ -55,6 +55,6 @@ class PassPerform extends GameState
             ]);
         }
 
-        return CardSelection::class;
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 }
