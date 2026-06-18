@@ -38,18 +38,23 @@ class CardSelection extends PlayerBaseState
         $playerHand = $this->game->getPlayerHand(\intval($this->game->getActivePlayerId()));
 
         $playableTactics = [];
-        $playableTactics[] = CardTypeHelper::getBasicCardType(0);
-        /*
+
         $cardsInHand = $playerHand->getCardsInHand();
         foreach($cardsInHand as $cardDef)
         {
-            $card = $this->game->getCardFactory()->getCard($cardDef["type"]);
+            $cardFactory = $this->game->getCardFactory();
 
-            if ($card->isOffensivePossible())
+            //TODO: remove this, this is only for the ease of development, should not end up in production code.
+            if ($cardFactory->hasCard($cardDef["type"]))
             {
-                $playableTactics[] = $card->getId();
+                $card = $cardFactory->getCard($cardDef["type"]);
+
+                if ($card->isOffensivePossible())
+                {
+                    $playableTactics[] = $card->getId();
+                }
             }
-        }*/
+        }
 
         $cardsInHand = $playerHand->CountCardsInHand();
         $canPass =  $cardsInHand < PlayerHand::$MAX_CARDS_IN_HAND;
@@ -89,7 +94,7 @@ class CardSelection extends PlayerBaseState
         $dbAdapter = DBAdapter::getInstance();
         if ($asBasic)
         {
-            $dbAdapter->storeActionReturnState($activePlayer, addslashes(self::class));
+            $dbAdapter->storeActionReturnState($activePlayer, CardSelection::class);
             return PlayerBasicTurn::class;
         }
         else
