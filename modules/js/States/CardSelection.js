@@ -56,7 +56,7 @@ define(["dojo/_base/declare",
 
                     this._root.statusBar.addActionButton('Perform tactic', () => {
                         this._root.performServerAction("actCardSelected", { cardId: this._selectedCard.id, cardType: this._selectedCard.type, asBasic: false })
-                    }, { id: 'performTacticButton', color: 'primary', disabled: this._selectedCard && !this._args.playableTactics.includes(this._selectedCard.type)});
+                    }, { id: 'performTacticButton', color: 'primary', disabled: !this._selectedCard || (this._selectedCard && !this._args.playableTactics.includes(this._selectedCard.type))});
                 }
 
                 if (this._args.canPass) {
