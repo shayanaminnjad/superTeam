@@ -33,6 +33,16 @@ class CardSelection extends PlayerBaseState
         );
     }
 
+    public function onEnteringState(int $activePlayerId)
+    {
+        $dbAdapter = DBAdapter::getInstance();
+
+        $dbAdapter->storeGlobalString("tactic_in_play", "");
+        $dbAdapter->storeGlobalInt("tactic_progress", -1);
+        $dbAdapter->storeGlobalInt("tactic_reward_in_progress", 0);
+        $dbAdapter->storeGlobalString("rewards_used", "");
+    }
+
     public function selfGetArgs(): array
     {
         $playerHand = $this->game->getPlayerHand(\intval($this->game->getActivePlayerId()));

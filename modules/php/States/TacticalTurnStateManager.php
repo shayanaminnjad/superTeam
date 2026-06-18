@@ -61,17 +61,8 @@ class TacticalTurnStateManager extends GameState
             } 
             else if ($result->action == ExecutionAction::Failure) 
             {
-                $this->cleanup();
                 return CardSelection::class;
             }
         }
-    }
-
-    private function cleanup()
-    {
-        $dbAdapter = DBAdapter::getInstance();
-
-        $dbAdapter->storeGlobalString("tactic_in_play", "");
-        $dbAdapter->storeGlobalInt("tactic_progress", -1);
     }
 }

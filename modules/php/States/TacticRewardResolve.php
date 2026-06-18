@@ -40,8 +40,6 @@ class TacticRewardResolve extends PlayerBaseState
 
         if ($reward->isEmpty() || $this->rewardHasBeenClaimed($reward, $claimedReward))
         {
-            $this->cleanup();
-
             return CardSelection::class;
         }
 
@@ -77,8 +75,6 @@ class TacticRewardResolve extends PlayerBaseState
     #[PossibleAction]
     public function actForfeitReward() : string
     {
-        $this->cleanup();
-
         return CardSelection::class;
     }
 
@@ -123,16 +119,6 @@ class TacticRewardResolve extends PlayerBaseState
     function zombie(int $playerId): string
     {
         return $this->actForfeitReward();
-    }
-
-    private function cleanup() : void
-    {
-        $dbAdapter = DBAdapter::getInstance();
-
-        $dbAdapter->storeGlobalString("tactic_in_play", "");
-        $dbAdapter->storeGlobalInt("tactic_progress", -1);
-        $dbAdapter->storeGlobalInt("tactic_reward_in_progress", 0);
-        $dbAdapter->storeGlobalString("rewards_used", "");
     }
 
     private function getRewardClaimed() : CardReward
