@@ -11,16 +11,30 @@ define(["dojo/_base/declare",
 
             //State Overrides
             _onActivePlayerEnter: function (args) {
-                let allBlockedSpaces = [];
+                let allForcedPositions = [];
 
-                for (const space of args.blockedSpaces) {
-                    allBlockedSpaces.push(Board.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(space.hex_row, space.hex_column)));
+                for(const forcedSpace of args.forcedPositions)
+                {
+                    allForcedPositions.push(Board.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(forcedSpace.hex_row, forcedSpace.hex_column)))
                 }
 
-                this.hexWithBall = STHexLib.createOffsetCoord(args.hexWithBall.hex_row, args.hexWithBall.hex_column)
-                allBlockedSpaces.push(Board.convertOffsetCoordToHexId(this.hexWithBall));
+                if (allForcedPositions.length > 0)
+                {
+                    Board.makeHexesSelectable(allForcedPositions);
+                }
+                else
+                {
+                    let allBlockedSpaces = [];
 
-                Board.makeAllHexesSelectableExcept(allBlockedSpaces);
+                    for (const space of args.blockedSpaces) {
+                        allBlockedSpaces.push(Board.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(space.hex_row, space.hex_column)));
+                    }
+
+                    this.hexWithBall = STHexLib.createOffsetCoord(args.hexWithBall.hex_row, args.hexWithBall.hex_column)
+                    allBlockedSpaces.push(Board.convertOffsetCoordToHexId(this.hexWithBall));
+
+                    Board.makeAllHexesSelectableExcept(allBlockedSpaces);
+                }
             },
 
             _onInactivePlayerEnter: function (args) {
