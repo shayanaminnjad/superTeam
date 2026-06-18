@@ -173,7 +173,7 @@
     background-repeat: no-repeat;
     pointer-events: none;
     z-index: 101;
-    transform: translate(8px, 15px);
+    transform: translate(0px, 10px);
 }
 
 /*TODO: probably this should also be selectable*/
