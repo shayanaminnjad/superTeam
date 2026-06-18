@@ -58,7 +58,7 @@ class ShootPerform extends GameState
                 "ballHex" => $newLocation->convertToArray()
             ]);
 
-            return playerTurn::class;
+            return playerBasicTurn::class;
         }
     }
 }

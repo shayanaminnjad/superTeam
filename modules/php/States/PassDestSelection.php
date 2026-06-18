@@ -100,7 +100,7 @@ class PassDestSelection extends PlayerBaseState
     #[PossibleAction]
     public function actCancel() : string
     {
-        return PlayerTurn::class;
+        return PlayerBasicTurn::class;
     }
 
     function zombie(int $playerId): string {

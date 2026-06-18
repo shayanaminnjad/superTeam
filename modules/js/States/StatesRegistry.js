@@ -1,7 +1,7 @@
 define([
     "dojo/_base/declare",
     g_gamethemeurl + "modules/js/States/PlayerPieceSetupState.js",
-    g_gamethemeurl + "modules/js/States/PlayerTurnState.js",
+    g_gamethemeurl + "modules/js/States/PlayerBasicTurnState.js",
     g_gamethemeurl + "modules/js/States/PieceSelectionState.js",
     g_gamethemeurl + "modules/js/States/PassDestinationSelection.js",
     g_gamethemeurl + "modules/js/States/MoveActionState.js",
@@ -19,7 +19,7 @@ define([
 ], function (
     declare,
     PlayerPieceSetupState,
-    PlayerTurnState,
+    PlayerBasicTurnState,
     PieceSelectionState,
     PassDestinationSelection,
     MoveActionState,
@@ -43,7 +43,7 @@ define([
             this._registry = new Map();
 
             this.registerState(PlayerPieceSetupState);
-            this.registerState(PlayerTurnState);
+            this.registerState(PlayerBasicTurnState);
             this.registerState(PieceSelectionState);
             this.registerState(PassDestinationSelection);
             this.registerState(MoveActionState);
