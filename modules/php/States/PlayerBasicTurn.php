@@ -79,13 +79,7 @@ class PlayerBasicTurn extends PlayerBaseState
             $this->addClientButton('move', [$this, 'actMove']);
         }
 
-        return [
-            '_private' => [
-                $activePlayerId => [
-                    'playerHand' => $this->game->getPlayerHand($activePlayerId)->getCardsInHand()
-                ]
-            ]
-        ];
+        return [];
     }
 
     #[PossibleAction]
