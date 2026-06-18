@@ -86,7 +86,17 @@ class TacticRewardResolve extends PlayerBaseState
     #[PossibleAction]
     public function actDoOneAction(int $activePlayerId) : string
     {
-        //TODO: store the usage
+        $cardReward = $this->getCardInPlayReward();
+        $claimedReward = $this->getRewardClaimed();
+
+        $rewardRemaining = $cardReward->diff($claimedReward);
+
+        if ($rewardRemaining->action == 0)
+            throw new \BgaUserException("Card has no more action rewards");
+
+        $claimedReward->action += 1;
+        $this->storeRewardClaimed($claimedReward);
+
         DBAdapter::getInstance()->storeActionReturnState($activePlayerId, addslashes(self::class));
 
         return PlayerBasicTurn::class;
@@ -95,7 +105,17 @@ class TacticRewardResolve extends PlayerBaseState
     #[PossibleAction]
     public function actDoOneMove(int $activePlayerId) : string
     {
-        //TODO: store the usage!
+        $cardReward = $this->getCardInPlayReward();
+        $claimedReward = $this->getRewardClaimed();
+
+        $rewardRemaining = $cardReward->diff($claimedReward);
+
+        if ($rewardRemaining->move == 0)
+            throw new \BgaUserException("Card has no more move rewards");
+
+        $claimedReward->move += 1;
+        $this->storeRewardClaimed($claimedReward);
+
         DBAdapter::getInstance()->storeActionReturnState($activePlayerId, addslashes(self::class));
 
         return PieceSelection::class;
@@ -122,10 +142,17 @@ class TacticRewardResolve extends PlayerBaseState
 
         $rewardJson = $dbAdapter->getGlobalString("rewards_used");
 
-        if ($rewardJson === null || $rewardJson === '')
+        if ($rewardJson == null || $rewardJson == '')
             return CardReward::empty();
         else
             return CardReward::fromJson($rewardJson);
+    }
+
+    private function storeRewardClaimed(CardReward $reward) : void
+    {
+        $dbAdapter = DBAdapter::getInstance();
+
+        $dbAdapter->storeGlobalString("rewards_used", $reward->toJson());
     }
 
     private function rewardHasBeenClaimed(CardReward $reward, CardReward $claimedReward) : bool
@@ -150,7 +177,7 @@ class TacticRewardResolve extends PlayerBaseState
         return TacticType::from($tacticType) == TacticType::Offensive ? $cardDef->offensiveReward : $cardDef->defensiveReward;
     }
 
-    private function claimMoraleIfNotClaimed(int $activePlayerId,int $amount, int $claimedMorale)
+    private function claimMoraleIfNotClaimed(int $activePlayerId,int $amount, int $claimedMorale) : void
     {
         if ($amount - $claimedMorale > 0)
         {
