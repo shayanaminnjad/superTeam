@@ -29,7 +29,14 @@ class BoardReset extends GameState
 
     function onEnteringState(int $activePlayerId): string
     {
-        
+        //remove two fatigue cards if possible.
+        //all coach markers can be re-arranged.
+        //player piece setup (this is handled)
+        //all cards go to draw deck, and shuffled, then 4 new cards are drawn.
+        //change the starting player.
+
+        //TODO: This class must reset tactics in use! since we might end up here from a reward!
+
         DBAdapter::getInstance()->DbQuery(PlayerPiecesDBManager::resetPiecesDataQuery());
         $ballPos = BoardInfo::$CENTER_POSITION;
         DBAdapter::getInstance()->DbQuery("UPDATE `ball` SET `hex_column`={$ballPos->getColumn()}, `hex_row`={$ballPos->getRow()}");

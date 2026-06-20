@@ -79,6 +79,8 @@ class CardSelection extends PlayerBaseState
     #[PossibleAction]
     public function actCardSelected(int $cardId, string $cardType, bool $asBasic): string
     {
+        //TODO: probalby I should give the active player extra time per card.
+
         $activePlayer = \intval($this->game->getActivePlayerId());
 
         $playerHand = $this->game->getPlayerHand($activePlayer);

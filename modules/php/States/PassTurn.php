@@ -7,8 +7,10 @@
  use Bga\GameFramework\StateType;
  use Bga\GameFramework\States\GameState;
  use Bga\Games\SuperTeam\Game;
+ use Bga\Games\SuperTeam\NotificationAdapter;
  use Bga\Games\SuperTeam\PlayerPiecesDBManager;
- 
+ use Bga\Games\SuperTeam\TimeTrack;
+
  class PassTurn extends GameState
  {
      function __construct(
@@ -42,10 +44,30 @@
         $this->game->DbQuery(PlayerPiecesDBManager::refreshPiecesQuery($nextPlayer));
         $this->game->notify->all("piecesRefreshed", "pieces refreshed", ["playerId" => $nextPlayer]);
 
-        //if ($wasDiscardShuffled)
-            //TODO: go to the state that handles halftime, fulltime!
+        if ($wasDiscardShuffled)
+        {
+            $timeTrackPosition = TimeTrack::AdvanceTimeTrack();
 
-        return CardSelection::class;
+            NotificationAdapter::getInstance()->notifyAll(
+                "timeTrackAdvance", 'time track advanced', ['currentPosition' => $timeTrackPosition]);
+
+            if (TimeTrack::IsHalfTime($timeTrackPosition))
+            {
+                //TODO: go to the state that handles halftime, fulltime!
+            }
+            else if (TimeTrack::IsGameFinished($timeTrackPosition))
+            {
+                //TODO: finish the game, determine the winner
+            }
+            else
+            {
+                return CardSelection::class;
+            }
+        }
+        else
+        {
+            return CardSelection::class;
+        }
      }
  }
  
