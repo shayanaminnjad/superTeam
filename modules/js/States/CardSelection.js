@@ -5,11 +5,11 @@ define(["dojo/_base/declare",
         const CardSelection = declare("st.CardSelection", BaseState, {
 
             constructor: function (root, stateData) {
+                this._cardManager = this._root.cardsManager;
             },
 
             //State Overrides
             _onActivePlayerEnter: function (args) {
-                this._cardManager = this._root.cardsManager;
 
                 this._cardManager.setHandCardsSelectability(true);
                 this._cardManager.setHandCardClickHandler(this._onCardClick.bind(this));
