@@ -63,7 +63,7 @@ class TacticContext
         //TOOD: do all this in a single query
         $this->setTacticInPlay('');
         $this->setTacticProgress(0);
-        $this->setRewardUsed(0);
+        $this->setRewardUsed(CardReward::empty());
         $this->setTacticType(-1);
     }
 }
