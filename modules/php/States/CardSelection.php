@@ -6,12 +6,13 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\Cards\CardReward;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Utility\Logger;
 use Bga\Games\SuperTeam\Cards\TacticType;
-use Bga\Games\SuperTeam\Cards\CardTypeHelper;
+use Bga\Games\SuperTeam\Cards\TacticContext;
 
 class CardSelection extends PlayerBaseState
 {
@@ -35,12 +36,10 @@ class CardSelection extends PlayerBaseState
 
     public function onEnteringState(int $activePlayerId)
     {
-        $dbAdapter = DBAdapter::getInstance();
+        $tacticContext = new TacticContext();
+        $tacticContext->reset();
 
-        $dbAdapter->storeGlobalString("tactic_in_play", "");
-        $dbAdapter->storeGlobalInt("tactic_progress", -1);
-        $dbAdapter->storeGlobalInt("tactic_reward_in_progress", 0);
-        $dbAdapter->storeGlobalString("rewards_used", "");
+        //TODO: if there is only card in player's hand, then pass the turn automatically!
     }
 
     public function selfGetArgs(): array
@@ -101,22 +100,25 @@ class CardSelection extends PlayerBaseState
             ]);
             
 
-        $dbAdapter = DBAdapter::getInstance();
+        //TODO: save last played card and send it to the player, or give the cards an index indicating
+        //the order of discard.
         if ($asBasic)
         {
+            $dbAdapter = DBAdapter::getInstance();
             $dbAdapter->storeActionReturnState($activePlayer, CardSelection::class);
             return PlayerBasicTurn::class;
         }
         else
         {
-            //TODO: encapsulate this logic
-            $dbAdapter->storeGlobalString('tactic_in_play', $cardDef['type']);
+            $tacticContext = new TacticContext();
+
+            $tacticContext->setTacticInPlay($cardDef['type']);
+            $tacticContext->setTacticProgress(0);
+            $tacticContext->setRewardUsed(CardReward::empty());
+            $tacticContext->setTacticType(TacticType::Offensive->value);
+
             //TODO: I should check whether I need to store this or infer it.
             //the edge case is pass forward, I am not sure if you become defender at that moment or not.
-            $dbAdapter->storeGlobalInt('tactic_type', TacticType::Offensive->value);
-            $dbAdapter->storeGlobalInt("tactic_progress", 0);
-            $dbAdapter->storeGlobalInt("tactic_reward_in_progress", 0);
-            $dbAdapter->storeGlobalString("rewards_used", "");
 
             return TacticalTurnStateManager::class;
         }

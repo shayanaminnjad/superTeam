@@ -8,6 +8,7 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 
+use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PlayerResources;
@@ -123,21 +124,16 @@ class TacticRewardResolve extends PlayerBaseState
 
     private function getRewardClaimed() : CardReward
     {
-        $dbAdapter = DBAdapter::getInstance();
+        $tacticContext = new TacticContext();
 
-        $rewardJson = $dbAdapter->getGlobalString("rewards_used");
-
-        if ($rewardJson == null || $rewardJson == '')
-            return CardReward::empty();
-        else
-            return CardReward::fromJson($rewardJson);
+        return $tacticContext->getRewardUsed();
     }
 
     private function storeRewardClaimed(CardReward $reward) : void
     {
-        $dbAdapter = DBAdapter::getInstance();
+        $tacticContext = new TacticContext();
 
-        $dbAdapter->storeGlobalString("rewards_used", $reward->toJson());
+        $tacticContext->setRewardUsed($reward);
     }
 
     private function rewardHasBeenClaimed(CardReward $reward, CardReward $claimedReward) : bool
@@ -147,13 +143,13 @@ class TacticRewardResolve extends PlayerBaseState
 
     private function getCardInPlayReward() : CardReward
     {
-        $dbAdapter = DBAdapter::getInstance();
+        $tacticContext = new TacticContext();
 
-        $cardInPlay = $dbAdapter->getGlobalString("tactic_in_play");
+        $cardInPlay = $tacticContext->getTacticInPlay();
         assert($cardInPlay >= 0);
 
         //TODO: tactic type can be inferred there is no need to store it.
-        $tacticType = $dbAdapter->getGlobalInt("tactic_type");
+        $tacticType = $tacticContext->getTacticType();
         assert($tacticType >= 0 && $tacticType <=1, "tactic type should be either 0 or 1");
 
         $card = $this->game->getCardFactory()->getCard($cardInPlay);

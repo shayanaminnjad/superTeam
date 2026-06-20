@@ -7,6 +7,7 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\StateType;
+use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Cards\TacticType;
@@ -29,16 +30,16 @@ class TacticalTurnStateManager extends GameState
 
     function onEnteringState(int $activePlayerId)
     {
-        $dbAdapter = DBAdapter::getInstance();
+        $tacticContext = new TacticContext();
 
-        $cardInPlay = $dbAdapter->getGlobalString("tactic_in_play");
+        $cardInPlay = $tacticContext->getTacticInPlay();
         assert($cardInPlay >= 0);
 
-        $tacticProgress = $dbAdapter->getGlobalInt("tactic_progress");
+        $tacticProgress = $tacticContext->getTacticProgress();
         assert($tacticProgress >= 0, "tactic progress can't be negative!");
 
         //TODO: tactic type can be inferred there is no need to store it.
-        $tacticType = $dbAdapter->getGlobalInt("tactic_type");
+        $tacticType = $tacticContext->getTacticType();
         assert($tacticType >= 0 && $tacticType <=1, "tactic type should be either 0 or 1");
 
         $card = $this->game->getCardFactory()->getCard($cardInPlay);
@@ -47,8 +48,10 @@ class TacticalTurnStateManager extends GameState
 
         if ($result->action == ExecutionAction::GoToState)
         {
+            $dbAdapter = DBAdapter::getInstance();
             $dbAdapter->storeActionReturnState($activePlayerId, self::class);
-            $dbAdapter->storeGlobalInt("tactic_progress", $result->index);
+            $tacticContext->setTacticProgress( $result->index);
+
             return $result->requestedState;
         }
         else
