@@ -10,7 +10,7 @@ class TacticContext
 
     public function __construct()
     {
-        $dbAdapter = DBAdapter::getInstance();
+        $this->dbAdapter = DBAdapter::getInstance();
     }
 
     public function setTacticInPlay(string $id)
