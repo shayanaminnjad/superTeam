@@ -330,7 +330,7 @@ define([
             notif_handRefill: function (notifData) {
                 if (notifData.wasDiscardShuffled)
                 {
-                    this.cardsManager.shuffleDeck().then(()=> {
+                    return this.cardsManager.shuffleDeck().then(()=> {
                         this.cardsManager.placeCards(notifData.playerHand)});
                 }
                 else
