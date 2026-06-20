@@ -389,6 +389,11 @@ define([
                 return this.pieceManager.animateResetPieces(parseInt(notifData.goalieRow));
             },
 
+            notif_timeTrackAdvance: async function(notifData) {
+                //notifData.currentPosition
+                //IMMEDIATE TODO: implement this.
+            },
+
             forwardNotification(funcName, notifData) {
                 this.assert(this.currentState && typeof this.currentState[funcName] === "function", `Server call "${funcName}" not handled in current state`);
 
