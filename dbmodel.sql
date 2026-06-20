@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `morale_assign_transition` TEXT,
     `selected_hex_column` INT DEFAULT -1,
     `selected_hex_row` INT DEFAULT -1,
+    `time_track_position` INT DEFAULT 0,
     `tactic_in_play` TEXT,
     `tactic_type` SMALLINT DEFAULT -1,
     `tactic_progress` INT DEFAULT - 1,
