@@ -24,20 +24,27 @@
              initialPrivate: null,
          );
      }
- 
+
      function onEnteringState(int $activePlayerId)
      {
          $playerHand = $this->game->getPlayerHand($activePlayerId);
-         $playerHand->drawToFour();
-         
+         $wasDiscardShuffled = $playerHand->drawToFour();
+
          $this->game->notify->player($activePlayerId, "handRefill", "",
-         ['playerHand' => $playerHand->getCardsInHand()]);
+         [
+             'playerHand' => $playerHand->getCardsInHand(),
+             'wasDiscardShuffled' => $wasDiscardShuffled,
+             'deckCardCount' => $playerHand->CountCardsInDeck()
+         ]);
          
         $this->game->giveExtraTime($activePlayerId);
         $nextPlayer = $this->game->activeNextPlayer();
 
         $this->game->DbQuery(PlayerPiecesDBManager::refreshPiecesQuery($nextPlayer));
         $this->game->notify->all("piecesRefreshed", "pieces refreshed", ["playerId" => $nextPlayer]);
+
+        //if ($wasDiscardShuffled)
+            //TODO: go to the state that handles halftime, fulltime!
 
         return CardSelection::class;
      }

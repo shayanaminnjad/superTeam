@@ -67,7 +67,8 @@ define([
 
                 DiceUI.construct(this);
 
-                this.cardsManager = new STCardsManager(this, Object.values(gamedatas.player_hand).concat(Object.values(gamedatas.player_discard)));
+                this.cardsManager = new STCardsManager(this,
+                    Object.values(gamedatas.player_hand).concat(Object.values(gamedatas.player_discard)).concat(gamedatas.player_deck));
                 
                 this.setupNotifications();
 
@@ -324,7 +325,20 @@ define([
             },
 
             notif_handRefill: function (notifData) {
-                this.cardsManager.placeCards(Object.values(notifData.playerHand));
+                console.log(notifData);
+                if (notifData.wasDiscardShuffled)
+                {
+                    this.cardsManager.shuffleDeck().then(
+                        this.cardsManager.placeCards(Object.values(notifData.playerHand)));
+                }
+                else
+                {
+                    this.cardsManager.placeCards(Object.values(notifData.playerHand));
+                }
+                notifData.playerHand
+                notifData.deckCardCount
+
+
             },
 
             notif_pieceExhausted: function (notifData) {

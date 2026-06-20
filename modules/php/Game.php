@@ -288,7 +288,7 @@ class Game extends \Table
 
         $result['other_deck_count'] = $otherHand->CountCardsInDeck();
         $result['other_discard'] = $otherHand->getDiscardedCards();
-        $result['player_deck_count'] = $playerHand->CountCardsInDeck();
+        $result['player_deck'] = $playerHand->GetCardsInDeckSecret();
         $result['player_discard'] = $playerHand->getDiscardedCards();
         $result['player_hand'] = $playerHand->getCardsInHand();
         $result['player_pieces'] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");

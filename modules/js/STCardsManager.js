@@ -10,8 +10,8 @@ define(["dojo/_base/declare",
 
                 this._initAnimationsManager();
                 this._initCardsManager();
-                this._initDiscardStock();
                 this._initHiddenDeck();
+                this._initDiscardStock();
                 this._initHandStock();
 
                 this._cardsManager.placeCards(cards);
@@ -165,8 +165,7 @@ define(["dojo/_base/declare",
 
             _initHiddenDeck: function () {
                 this._hiddenDeck = new BgaCards.Deck(this._cardsManager, document.getElementById('hiddenDeck'), {
-                    cardNumber: 15,
-                    autoRemovePreviousCards: true,
+                    autoRemovePreviousCards: false,
                     counter: {
                         position: 'center',
                         extraClasses: 'text-shadow',
