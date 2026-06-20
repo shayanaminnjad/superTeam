@@ -171,6 +171,7 @@ define(["dojo/_base/declare",
                         extraClasses: 'text-shadow',
                     },
                     autoPlace: card => card.location === `${this._root.player_id}_deck`,
+                    autoUpdateCardNumber: true
                 });
             },
 

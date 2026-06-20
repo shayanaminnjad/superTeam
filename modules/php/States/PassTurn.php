@@ -34,7 +34,6 @@
          [
              'playerHand' => $playerHand->getCardsInHand(),
              'wasDiscardShuffled' => $wasDiscardShuffled,
-             'deckCardCount' => $playerHand->CountCardsInDeck()
          ]);
          
         $this->game->giveExtraTime($activePlayerId);
