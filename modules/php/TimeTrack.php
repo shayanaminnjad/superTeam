@@ -3,9 +3,9 @@
 namespace Bga\Games\SuperTeam;
 class TimeTrack
 {
-    public function AdvanceTimeTrack() : int
+    static public function AdvanceTimeTrack() : int
     {
-        $timeTrack = $this->GetTimeTrackPosition();
+        $timeTrack = self::GetTimeTrackPosition();
         $timeTrack += 1;
 
         $dbAdapter = DBAdapter::getInstance();
@@ -14,10 +14,20 @@ class TimeTrack
         return $timeTrack;
     }
 
-    public function GetTimeTrackPosition() : int
+    static public function GetTimeTrackPosition() : int
     {
         $dbAdapter = DBAdapter::getInstance();
 
         $dbAdapter->getGlobalInt('time_track_position');
+    }
+
+    static public function IsHalfTime(int $currentPosition) : bool
+    {
+        return $currentPosition == 3;
+    }
+
+    static public function IsGameFinished(int $currentPosition) : bool
+    {
+        return $currentPosition == 7;
     }
 }
