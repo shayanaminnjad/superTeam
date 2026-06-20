@@ -85,7 +85,21 @@ class PlayerHand
 
     public function CountCardsInDeck(): int 
     {
-        return $this->cards->countCardInLocation($this->deckName, $this->ownerId);
+        return $this->cards->countCardInLocation($this->deckName);
+    }
+
+    public function GetCardsInDeckSecret() : array
+    {
+        $cards = $this->cards->getCardsInLocation($this->deckName);
+
+        $secretCards = [];
+        foreach($cards as &$card)
+        {
+            $card['location_arg'] = -1;
+            $secretCards[] = $card;
+        }
+
+        return $secretCards;
     }
 
     public function shuffleDeck() 
@@ -108,14 +122,13 @@ class PlayerHand
     {
         $cardDefinitions = [];
 
-        $BASIC_CARDS_PER_HAND = 4; /*TODO: 5*/
+        $BASIC_CARDS_PER_HAND = 5;
         for ($i = 0; $i < $BASIC_CARDS_PER_HAND; $i++) 
         {
             $basicCardType = CardTypeHelper::getBasicCardType($i);
             $cardDefinitions[] = self::getCardDefinition($basicCardType);
         }
 
-        /*
         $CAPTAIN_CARDS_PER_BOARD = 3;
 
         for ($i = 0; $i < $CAPTAIN_CARDS_PER_BOARD; $i++) 
@@ -133,7 +146,6 @@ class PlayerHand
 
         $coachCardType = CardTypeHelper::getCoachCardType($teamBoardId);
         $cardDefinitions[] =  self::getCardDefinition($coachCardType);
-        */
 
         $deckName = self::getPlayerDeck($playerId);
         $deck->createCards($cardDefinitions, $deckName);
