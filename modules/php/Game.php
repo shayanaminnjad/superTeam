@@ -524,4 +524,8 @@ class Game extends \Table
         $playerResource  =new PlayerResources(\intval($this->getActivePlayerId()));
         $playerResource->setMorale($amount, true);
     }
+
+    function debug_advanceTimeTracker() {
+        TimeTrack::AdvanceTimeTrack(true);
+    }
 }
