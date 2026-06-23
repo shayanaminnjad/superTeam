@@ -63,28 +63,4 @@ $machinestates = [
         "action" => "stGameSetup",
         "transitions" => ["" => ST_PLAYER_PIECE_SETUP]
     ),
-
-    //TODO: add after player turn, here we draw back to player hand size
-
-    //TODO: add half game state. fatigus are removed.
-
-    ST_NEXT_PLAYER_TURN => [
-        "name" => "nextPlayer",
-        "description" => '',
-        "type" => "game",
-        "action" => "stNextPlayer",
-        "updateGameProgression" => true,
-        "transitions" => ["endGame" => ST_END_GAME, "nextPlayer" => ST_BEFORE_PLAYER_TURN]
-    ],
-
-    // Final state.
-    // Please do not modify (and do not overload action/args methods).
-    ST_END_GAME => [
-        "name" => "gameEnd",
-        "description" => clienttranslate("End of game"),
-        "type" => "manager",
-        "action" => "stGameEnd",
-        "args" => "argGameEnd"
-    ],
-
 ];
