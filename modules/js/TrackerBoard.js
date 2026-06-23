@@ -7,21 +7,26 @@ define([
         //Public Functions
         construct: function (root, timeIndex, orangeGoals, blueGoals) {
             this._root = root;
-            this._initTrackerBoard(timeIndex);
+            this._initTrackerBoard();
+            this.setTrackerTo(timeIndex);
         },
 
-        AnimateTrackerTo(timeIndex)
+        animateTrackerTo(timeIndex)
         {
+            let positionEl = this._positions[timeIndex];
 
+            return this._root.bgaPlayDojoAnimation(this._root.slideToObject(this._timeTrackCubeEl, positionEl));
         },
 
-        SetTrackerTo(timeIndex)
+        setTrackerTo(timeIndex)
         {
+            let positionEl = this._positions[timeIndex];
 
+            this._root.placeOnObject(this._timeTrackCubeEl, positionEl);
         },
 
         //Private Functions
-        _initTrackerBoard: function(timeIndex)
+        _initTrackerBoard: function()
         {
             this._root.getGameAreaElement().insertAdjacentHTML('beforeend', `<div id="trackerBoard"></div>`);
 
@@ -29,25 +34,47 @@ define([
             const BOARD_WIDTH = parseFloat(getComputedStyle(TRACKER_BOARD).width);
             const BOARD_HEIGHT = parseFloat(getComputedStyle(TRACKER_BOARD).height);
 
-            this._leftMargin = UIConstants.TRACKER_FIRST_CUBE_POSITION_FROM_LEFT_PERCENT * BOARD_WIDTH;
-            this._topMargin = UIConstants.TRACKER_FIRST_CUBE_POSITION_FROM_TOP_PERCENT * BOARD_HEIGHT;
-            this._positionSpacing = UIConstants.TRACKER_SPACE_BETWEEN_POSITIONS_PERCENT * BOARD_WIDTH;
-            this._middleSectionLength = UIConstants.TRACKER_MIDDLE_SECTION_LENGTH_PERCENT * BOARD_WIDTH;
+            const CUBE_POS_LEFT_MARGIN = UIConstants.TRACKER_FIRST_CUBE_POSITION_FROM_LEFT_PERCENT * BOARD_WIDTH;
+            const CUBE_POS_TOP_MARGIN = UIConstants.TRACKER_FIRST_CUBE_POSITION_FROM_TOP_PERCENT * BOARD_HEIGHT;
+            const CUBE_POS_SPACING = UIConstants.TRACKER_SPACE_BETWEEN_POSITIONS_PERCENT * BOARD_WIDTH;
+            const MIDDLE_SECTION_LENGTH = UIConstants.TRACKER_MIDDLE_SECTION_LENGTH_PERCENT * BOARD_WIDTH;
 
-            const CUBE_SIDE = UIConstants.TRACKER_TIME_CUBE_SIDE_TO_WIDTH_PERCENT * BOARD_WIDTH;
+            const CUBE_SIDE = UIConstants.TRACKER_TIME_CUBE_SIDE_TO_WIDTH_PERCENT * BOARD_WIDTH; //move down!
 
-            const timeTrackCube = document.createElement('div');
-            timeTrackCube.id = 'timeTrackCube';
-            timeTrackCube.className = 'cube';
-            timeTrackCube.width = `${CUBE_SIDE}px`;
-            timeTrackCube.height = `${CUBE_SIDE}px`;
+            const CUBE_POSITIONS_COUNT = 8;
+            const POSITION_ON_EACH_SIDE = 4;
+            let distanceSoFar = CUBE_POS_LEFT_MARGIN;
+            for(let i = 0; i < CUBE_POSITIONS_COUNT; i++)
+            {
+                let cubePosEl = document.createElement('div');
 
-            TRACKER_BOARD.appendChild(timeTrackCube);
+                cubePosEl.style.position = 'absolute';
+                cubePosEl.style.left = `${distanceSoFar}px`;
+                cubePosEl.style.top = `${CUBE_POS_TOP_MARGIN}px`;
+                cubePosEl.style.width = `${CUBE_SIDE}px`;
+                cubePosEl.style.height = `${CUBE_SIDE}px`;
+
+                TRACKER_BOARD.appendChild(cubePosEl);
+                this._positions.push(cubePosEl)
+
+                distanceSoFar += CUBE_SIDE + CUBE_POS_SPACING;
+
+                if (i == (POSITION_ON_EACH_SIDE - 1))
+                    distanceSoFar += MIDDLE_SECTION_LENGTH - CUBE_POS_SPACING;
+            }
+
+            this._initTimeTracker(CUBE_SIDE, TRACKER_BOARD);
         },
 
-        _initTimeTracker: function(timeIndex)
+        _initTimeTracker: function(sideSize, trackerBoard)
         {
+            this._timeTrackCubeEl = document.createElement('div');
+            this._timeTrackCubeEl.id = 'timeTrackCube';
+            this._timeTrackCubeEl.className = 'cube';
+            this._timeTrackCubeEl.style.width = `${sideSize}px`;
+            this._timeTrackCubeEl.style.height = `${sideSize}px`;
 
+            trackerBoard.appendChild(this._timeTrackCubeEl);
         },
 
         _initGoalTracker: function(orangeGoals, blueGoals)
@@ -56,12 +83,7 @@ define([
         },
 
         _root: null,
-
-        _leftMargin: 0,
-        _topMargin: 0,
-        _positionSpacing: 0,
-        _middleSectionLength: 0,
-        _positionsOnEachSide: 4
-
+        _timeTrackCubeEl: null,
+        _positions: []
     };
 });
