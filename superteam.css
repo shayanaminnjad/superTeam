@@ -17,7 +17,7 @@
 :root {
     --main-bg-ratio-x: 5;
     --main-bg-ratio-y: 4;
-    --main-bg-scale: 148px;
+    --main-bg-scale: 160px;
     /*260px for the original size, however board game arena doesn't encourage size above 740px*/
 }
 
@@ -31,6 +31,7 @@
     background-repeat: no-repeat;
     width: calc(var(--scale) * var(--tracker-board-aspect-ratio));
     height: var(--scale);
+    margin: 0 auto 10px auto;
     overflow: visible;
 }
 
@@ -49,6 +50,7 @@
     width: calc(var(--main-bg-ratio-x) * var(--main-bg-scale));
     height: calc(var(--main-bg-ratio-y) * var(--main-bg-scale));
     border-radius: 8px;
+    margin: 0 auto 0 auto;
     overflow: visible;
 }
 
