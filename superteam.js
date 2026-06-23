@@ -80,13 +80,6 @@ define([
                 console.log('end setup');
             },
 
-            reform: function()
-            {
-                console.log(this.cardsManager._hiddenDeck);
-                //this.cardsManager.shuffleDeck().then(() => console.log('shuffle ended'));
-            },
-
-
             ///////////////////////////////////////////////////
             //// Game & client states
 
@@ -393,8 +386,7 @@ define([
             },
 
             notif_timeTrackAdvance: async function(notifData) {
-                //notifData.currentPosition
-                //IMMEDIATE TODO: implement this.
+                return TrackerBoard.animateTrackerTo(notifData.currentPosition);
             },
 
             forwardNotification(funcName, notifData) {
