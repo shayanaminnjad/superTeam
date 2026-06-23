@@ -18,7 +18,7 @@ class TimeTrack
     {
         $dbAdapter = DBAdapter::getInstance();
 
-        $dbAdapter->getGlobalInt('time_track_position');
+        return $dbAdapter->getGlobalInt('time_track_position');
     }
 
     static public function IsHalfTime(int $currentPosition) : bool
