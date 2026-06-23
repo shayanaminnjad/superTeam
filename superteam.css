@@ -21,6 +21,26 @@
     /*260px for the original size, however board game arena doesn't encourage size above 740px*/
 }
 
+#trackerBoard {
+    --tracker-board-aspect-ratio: 5.6186;
+    --scale: 118px;
+
+    position: relative;
+    background-image: url('img/topBoard.jpg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: calc(var(--scale) * var(--tracker-board-aspect-ratio));
+    height: var(--scale);
+    overflow: visible;
+}
+
+#timeTrackCube {
+    --size: 10px;
+
+    width: var(--size);
+    height: var(--size);
+}
+
 #mainBoard {
     position: relative;
     background-image: url('img/mainBoard.jpg');
@@ -430,7 +450,7 @@
     --scale: 75;
 
     position: relative;
-    background-image: url("img/coachBoard.png");
+    background-image: url("img/coachBoard.jpg");
     background-size: contain;
     background-repeat: no-repeat;
     overflow: visible;
