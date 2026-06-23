@@ -32,14 +32,8 @@
     width: calc(var(--scale) * var(--tracker-board-aspect-ratio));
     height: var(--scale);
     margin: 0 auto 10px auto;
+    border-radius: 8px;
     overflow: visible;
-}
-
-#timeTrackCube {
-    --size: 10px;
-
-    width: var(--size);
-    height: var(--size);
 }
 
 #mainBoard {
@@ -509,6 +503,7 @@
     background-image: url('img/coachCube.png');
     background-repeat: no-repeat;
     background-size: contain;
+    background-position: center;
     overflow: visible;
     z-index: 104;
 }
