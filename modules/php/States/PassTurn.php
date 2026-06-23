@@ -46,10 +46,7 @@
 
         if ($wasDiscardShuffled)
         {
-            $timeTrackPosition = TimeTrack::AdvanceTimeTrack();
-
-            NotificationAdapter::getInstance()->notifyAll(
-                "timeTrackAdvance", 'time track advanced', ['currentPosition' => $timeTrackPosition]);
+            $timeTrackPosition = TimeTrack::AdvanceTimeTrack(true);
 
             if (TimeTrack::IsHalfTime($timeTrackPosition))
             {
