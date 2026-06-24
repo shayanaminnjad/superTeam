@@ -63,8 +63,12 @@ define([
                 }
             },
 
-            makeAvailableBoxesSelectable: function () {
+            makeAvailableBoxesSelectable: function (isGKAssignable) {
                 for (let i = 0; i < Skills.Count; i++) {
+
+                    if (i === Skills.GK && !isGKAssignable)
+                        continue;
+
                     const topRowSkill = this._skillSlots[i];
                     const bottomRowSkill = this._skillSlots[i + Skills.Count];
 
