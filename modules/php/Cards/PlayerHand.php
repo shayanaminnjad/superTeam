@@ -105,7 +105,7 @@ class PlayerHand
     public function MoveAllCardsToDeck() : void
     {
         $this->cards->moveAllCardsInLocation($this->discardName, $this->deckName);
-        $this->cards->moveAllCardsInLocation('hand', $this->deckName);
+        $this->cards->moveAllCardsInLocation('hand', $this->deckName, $this->getOwner());
     }
 
     public function shuffleDeck() 
