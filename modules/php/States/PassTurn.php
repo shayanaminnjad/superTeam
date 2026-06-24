@@ -22,7 +22,7 @@
              name: 'passTurn',
              type: StateType::GAME,
              transitions: [],
-             updateGameProgression: false,
+             updateGameProgression: true,
              initialPrivate: null,
          );
      }
@@ -50,7 +50,7 @@
 
             if (TimeTrack::IsHalfTime($timeTrackPosition))
             {
-                //TODO: go to the state that handles halftime, fulltime!
+                return HalfTime::class;
             }
             else if (TimeTrack::IsGameFinished($timeTrackPosition))
             {
