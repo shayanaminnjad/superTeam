@@ -3,6 +3,9 @@
 namespace Bga\Games\SuperTeam;
 class TimeTrack
 {
+    static private int $HALF_TIME_INDEX = 3;
+    static private int $FULL_TIME_INDEX = 7;
+
     static public function AdvanceTimeTrack(bool $withNotify) : int
     {
         $timeTrack = self::GetTimeTrackPosition();
@@ -30,11 +33,21 @@ class TimeTrack
 
     static public function IsHalfTime(int $currentPosition) : bool
     {
-        return $currentPosition == 3;
+        return $currentPosition == TimeTrack::$HALF_TIME_INDEX;
     }
 
     static public function IsGameFinished(int $currentPosition) : bool
     {
-        return $currentPosition == 7;
+        return $currentPosition == TimeTrack::$FULL_TIME_INDEX;
+    }
+
+    static public function GetProgressToEndGame() : int
+    {
+        $currentProgress = self::GetTimeTrackPosition();
+
+        if ($currentProgress > self::$HALF_TIME_INDEX) //this accounts for the duplicated 45 min
+            $currentProgress -= 1;
+
+        return ($currentProgress / (self::$FULL_TIME_INDEX - 1)) * 100;
     }
 }
