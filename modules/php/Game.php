@@ -204,9 +204,7 @@ class Game extends \Bga\GameFramework\Table
      */
     public function getGameProgression()
     {
-        // TODO: compute and return the game progression
-
-        return 0;
+        return TimeTrack::GetProgressToEndGame();
     }
 
     /**
