@@ -39,8 +39,7 @@ define([
                 for (let i = 0; i < count; i++) {
                     let slot = this._getEmptyCubeSlot(skill);
 
-                    slot.isFilled = true;
-                    this._createCube(slot.element);
+                    slot.cubeEl = this._createCube(slot.element);
                 }
             },
 
@@ -49,11 +48,11 @@ define([
 
                 animations = [];
 
-                animations.push(...this._getCubePlacementAnimation(Skills.Dribble, this._ownerData.team_attr_dribble - this._getCubesAssigned(Skills.Dribble)));
-                animations.push(...this._getCubePlacementAnimation(Skills.Pass, this._ownerData.team_attr_pass - this._getCubesAssigned(Skills.Pass)));
-                animations.push(...this._getCubePlacementAnimation(Skills.GK, this._ownerData.team_attr_gk - this._getCubesAssigned(Skills.GK)));
-                animations.push(...this._getCubePlacementAnimation(Skills.Shoot, this._ownerData.team_attr_shoot - this._getCubesAssigned(Skills.Shoot)));
-                animations.push(...this._getCubePlacementAnimation(Skills.Tackle, this._ownerData.team_attr_tackle - this._getCubesAssigned(Skills.Tackle)));
+                animations.push(...this._getCubeChangeAnimation(Skills.Dribble, this._ownerData.team_attr_dribble - this._getCubesAssigned(Skills.Dribble)));
+                animations.push(...this._getCubeChangeAnimation(Skills.Pass, this._ownerData.team_attr_pass - this._getCubesAssigned(Skills.Pass)));
+                animations.push(...this._getCubeChangeAnimation(Skills.GK, this._ownerData.team_attr_gk - this._getCubesAssigned(Skills.GK)));
+                animations.push(...this._getCubeChangeAnimation(Skills.Shoot, this._ownerData.team_attr_shoot - this._getCubesAssigned(Skills.Shoot)));
+                animations.push(...this._getCubeChangeAnimation(Skills.Tackle, this._ownerData.team_attr_tackle - this._getCubesAssigned(Skills.Tackle)));
 
                 return this._root.bgaPlayDojoAnimation(dojo.fx.combine(animations));
             },
@@ -69,8 +68,8 @@ define([
                     const topRowSkill = this._skillSlots[i];
                     const bottomRowSkill = this._skillSlots[i + Skills.Count];
 
-                    topRowSkill.element.classList.toggle('selectable', !topRowSkill.isFilled);
-                    bottomRowSkill.element.classList.toggle('selectable', topRowSkill.isFilled && !bottomRowSkill.isFilled)
+                    topRowSkill.element.classList.toggle('selectable', !topRowSkill.isFilled());
+                    bottomRowSkill.element.classList.toggle('selectable', topRowSkill.isFilled() && !bottomRowSkill.isFilled())
                 }
             },
 
@@ -85,12 +84,33 @@ define([
 
             //Private Methods
             _getEmptyCubeSlot: function (skill) {
-                if (this._skillSlots[skill].isFilled === false)
+                if (this._skillSlots[skill].isFilled() === false)
                     return this._skillSlots[skill];
-                else if (this._skillSlots[Skills.Count + skill].isFilled === false)
+                else if (this._skillSlots[Skills.Count + skill].isFilled() === false)
                     return this._skillSlots[Skills.Count + skill];
                 else
                     return null;
+            },
+
+            _getFilledCubeSlot: function(skill) {
+                if (this._skillSlots[skill].isFilled())
+                    return this._skillSlots[skill];
+                else if (this._skillSlots[Skills.Count + skill].isFilled())
+                    return this._skillSlots[Skills.Count + skill];
+                else
+                    return null;
+            },
+
+            _getCubeChangeAnimation: function(skill, count)
+            {
+                if (count > 0)
+                {
+                    return this._getCubePlacementAnimation(skill, count);
+                }
+                else
+                {
+                    return this._getCubeRemovalAnimation(skill, Math.abs(count));
+                }
             },
 
             _getCubePlacementAnimation: function (skill, count) {
@@ -98,11 +118,27 @@ define([
                 for (let i = 0; i < count; i++) {
                     const slot = this._getEmptyCubeSlot(skill);
 
-                    slot.isFilled = true;
+                    slot.cubeEl = this._createCube(this._area.getElement());
+                    this._root.placeOnObject(slot.cubeEl, this._root.getPlayerPanelElement(this._ownerId));
+                    anim.push(this._root.slideToObject(slot.cubeEl, slot.element));
+                }
 
-                    let cube = this._createCube(this._area.getElement());
-                    this._root.placeOnObject(cube, this._root.getPlayerPanelElement(this._ownerId));
-                    anim.push(this._root.slideToObject(cube, slot.element));
+                return anim;
+            },
+
+            _getCubeRemovalAnimation: function (skill, count) {
+                let anim = [];
+                for (let i = 0; i < count; i++) {
+                    const slot = this._getFilledCubeSlot(skill);
+
+                    let cube = slot.cubeEl;
+
+                    let animation = this._root.slideToObject(cube, this._root.getPlayerPanelElement(this._ownerId));
+                    animation.onEnd = ()=> cube.remove();
+
+                    slot.cubeEl = null;
+
+                    anim.push(animation);
                 }
 
                 return anim;
@@ -153,7 +189,12 @@ define([
                     skillIndex: skillIndex,
                     skillRow: skillRow,
                     element: element,
-                    isFilled: false
+                    cubeEl: null,
+
+                    isFilled: function()
+                    {
+                        return this.cubeEl != null;
+                    }
                 };
             },
 
@@ -187,10 +228,10 @@ define([
             _getCubesAssigned: function (skill) {
                 total = 0;
 
-                if (this._skillSlots[skill].isFilled)
+                if (this._skillSlots[skill].isFilled())
                     total += 1;
 
-                if (this._skillSlots[Skills.Count + skill].isFilled)
+                if (this._skillSlots[Skills.Count + skill].isFilled())
                     total += 1;
 
                 return total;
