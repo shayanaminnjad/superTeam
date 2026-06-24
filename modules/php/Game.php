@@ -20,14 +20,9 @@ declare(strict_types=1);
 
 namespace Bga\Games\SuperTeam;
 
-use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Cards\CardFactory;
 use Bga\Games\SuperTeam\Cards\Basic1;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
-use Bga\Games\SuperTeam\DBAdapter;
-use Bga\Games\SuperTeam\HexID;
-use Bga\Games\SuperTeam\PlayerResources;
-use Bga\Games\SuperTeam\TeamBoard;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\Utility\Logger;
 
@@ -41,7 +36,7 @@ class Game extends \Bga\GameFramework\Table
 
     private CardFactory $cardFactory;
 
-    private array $playerHands = [];
+    private array $playerHands = []; //TODO: this should be removed!
     
     public function __construct()
     {
@@ -424,7 +419,12 @@ class Game extends \Bga\GameFramework\Table
     /** @var array<PlayerHand> */
     public function getPlayerHands(): array
     {
-        return $this->playerHands;
+        $hands = [];
+
+        $hands[] = new PlayerHand(\intval($this->getGameStateValue("user_in_left_id")), $this);
+        $hands[] = new PlayerHand(\intval($this->getGameStateValue("user_in_right_id")), $this);
+
+        return $hands;
     }
 
     public function getTeamBoard() : TeamBoard
@@ -542,5 +542,9 @@ class Game extends \Bga\GameFramework\Table
 
     function debug_advanceTimeTracker() {
         TimeTrack::AdvanceTimeTrack(true);
+    }
+
+    function debug_triggerHalfTime() {
+        return ST_HALF_TIME;
     }
 }
