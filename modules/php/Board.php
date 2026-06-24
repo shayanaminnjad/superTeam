@@ -2,8 +2,8 @@
 
 namespace Bga\Games\SuperTeam;
 
-use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\HexLib\HexLib;
 
 class Board
 {
@@ -229,6 +229,23 @@ class Board
         else
         {
             $this->updateAttackerAndDefender();
+        }
+    }
+
+    public static function resetBoard(bool $withNotify)
+    {
+        DBAdapter::getInstance()->DbQuery(PlayerPiecesDBManager::resetPiecesDataQuery());
+        $ballPos = BoardInfo::$CENTER_POSITION;
+        DBAdapter::getInstance()->DbQuery("UPDATE `ball` SET `hex_column`={$ballPos->getColumn()}, `hex_row`={$ballPos->getRow()}");
+
+        if ($withNotify)
+        {
+            NotificationAdapter::getInstance()->notifyAll(
+                "resetBoard",
+                "",
+                [
+                    "ballHex" => $ballPos->convertToArray(),
+                    "goalieRow" => 5]);
         }
     }
 
