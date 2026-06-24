@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardInfo;
+use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PlayerPiecesDBManager;
@@ -30,7 +31,8 @@ class BoardReset extends GameState
 
     function onEnteringState(int $activePlayerId): string
     {
-        //TODO: This class must reset tactics in use! since we might end up here from a reward!
+        $tacticContext = new TacticContext();
+        $tacticContext->reset();
 
         Board::resetBoard(true);
 
