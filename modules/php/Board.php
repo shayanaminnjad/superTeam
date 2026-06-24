@@ -232,6 +232,22 @@ class Board
         }
     }
 
+    public function doAllPiecesHaveValidPosition(int $playerId) : bool
+    {
+        $res = true;
+
+        $playerPieces = $this->getPlayerPiecesByOwner($playerId);
+
+        for ($i = 0; $i < count($playerPieces); $i++) {
+            if (!$playerPieces[$i]->hasValidPosition()) {
+                $res = false;
+                break;
+            }
+        }
+
+        return $res;
+    }
+
     public static function resetBoard(bool $withNotify)
     {
         DBAdapter::getInstance()->DbQuery(PlayerPiecesDBManager::resetPiecesDataQuery());
