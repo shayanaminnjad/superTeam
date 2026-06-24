@@ -474,23 +474,6 @@ class Game extends \Bga\GameFramework\Table
         $this->setGameStateInitialValue('starter_player', $newStarterPlayer);
     }
 
-    //TODO: This probably must be a private function of player piece setup.
-    public function isPlayerSetupComplete(int $playerId): bool
-    {
-        $isComplete = true;
-
-        $playerPieces = $this->getBoard()->getPlayerPiecesByOwner($playerId);
-
-        for ($i = 0; $i < count($playerPieces); $i++) {
-            if (!$playerPieces[$i]->hasValidPosition()) {
-                $isComplete = false;
-                break;
-            }
-        }
-
-        return $isComplete;
-    }
-
     private function initCardFactory()
     {
         $cardFactory = new CardFactory();
@@ -505,6 +488,7 @@ class Game extends \Bga\GameFramework\Table
         return $this->cardFactory;
     }
 
+    //debug functions
     function debug_setMorale(int $amount) {
         $playerResource  =new PlayerResources(\intval($this->getActivePlayerId()));
         $playerResource->setMorale($amount, true);
@@ -516,5 +500,16 @@ class Game extends \Bga\GameFramework\Table
 
     function debug_triggerHalfTime() {
         return ST_HALF_TIME;
+    }
+
+    function debug_defaultPieceSetup() {
+        if(!$this->getBoard()->doAllPiecesHaveValidPosition($this->getActivePlayerId()))
+        {
+
+        }
+    }
+
+    function debug_defaultAttributeSetup() {
+
     }
 }
