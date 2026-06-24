@@ -6,28 +6,24 @@ use Bga\Games\SuperTeam\NotificationAdapter;
 
 class PlayerResources
 {
+    private DBAdapter $dbAdapter;
     private int $playerId;
-    private int $morale;
 
     //======================================================
 
     public function __construct(int $currentPlayerId)
     {
+        $this->dbAdapter = DBAdapter::getInstance();
         $this->playerId = $currentPlayerId;
-
-        $dbAdapter = DBAdapter::getInstance();
-
-        $playerMorale = $dbAdapter->getUniqueValueFromDB(
-            "SELECT `resource_morale` FROM `player` WHERE `player_id` = {$currentPlayerId}"
-        );
-
-        $this->morale = \intval($playerMorale);
-        assert($this->morale >= 0, "morale must be always equal or greater than 0!");
     }
 
     public function getMorale() : int
     {
-        return $this->morale;
+        $playerMorale = $this->dbAdapter->getUniqueValueFromDB(
+            "SELECT `resource_morale` FROM `player` WHERE `player_id` = {$this->playerId}"
+        );
+
+        return \intval($playerMorale);
     }
 
     public function setMorale(int $amount, bool $notify) 
@@ -53,5 +49,32 @@ class PlayerResources
     public function addMorale(int $amount, bool $notify)
     {
         $this->setMorale($this->getMorale() + $amount, $notify);
+    }
+
+    public function getGoals() : int
+    {
+        $goalsScored = $this->getUniqueValueFromDB(
+            "SELECT `goals_scored` FROM `player` WHERE `player_id` = {$this->playerId}"
+        );
+
+        return $goalsScored = intval($goalsScored);
+    }
+
+    public function addOneGoal(bool $notify)
+    {
+        $currentGoals = getGoals();
+        $currentGoals += 1;
+
+        $this->DbQuery(
+            "UPDATE `player` SET `goals_scored` = {$currentGoals} WHERE player_id = {$this->playerId}"
+        );
+
+        if ($notify)
+        {
+            $this->notify->all('goalScored', 'goal scored!', array(
+                "playerId" => $this->playerId,
+                "goals" => $currentGoals
+            ));
+        }
     }
 }

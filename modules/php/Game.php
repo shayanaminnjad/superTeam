@@ -429,23 +429,6 @@ class Game extends \Bga\GameFramework\Table
         return new Board($piecesData, $ballHex, DBAdapter::getInstance());
     }
 
-    //TODO: Move this function to playerResources.
-    public function AddOneGoal(int $playerId): int
-    {
-        $goalsScored = $this->getUniqueValueFromDB(
-            "SELECT `goals_scored` FROM `player` WHERE `player_id` = {$playerId}"
-        );
-
-        $goalsScored = intval($goalsScored);
-        $goalsScored += 1;
-
-        $this->DbQuery(
-            "UPDATE `player` SET `goals_scored` = {$goalsScored} WHERE player_id = {$playerId}"
-        );
-
-        return $goalsScored;
-    }
-
     public function getPlayerSide(int $userId): PlayerSide
     {
         $userInLeftID = intval($this->getGameStateValue('user_in_left_id'));

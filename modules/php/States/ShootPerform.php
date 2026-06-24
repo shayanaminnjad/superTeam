@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\PlayerResources;
 
 class ShootPerform extends GameState
 {
@@ -37,12 +38,9 @@ class ShootPerform extends GameState
 
         if ($attackerRollResult->getTotal() >= $defenderRollResult->getTotal() + $powerRequired) 
         {
-            $playerGoals = $this->game->AddOneGoal($attacker);
+            $playerResources = new PlayerResources($attacker);
 
-            $this->notify->all('goalScored', 'goal scored!', array(
-                "playerId" => $attacker,
-                "goals" => $playerGoals
-            ));
+            $playerResources->addOneGoal(true);
 
             $this->game->activeNextPlayer();
 
