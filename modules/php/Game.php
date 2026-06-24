@@ -71,7 +71,7 @@ class Game extends \Bga\GameFramework\Table
         $this->teamBoard = new TeamBoard(DBAdapter::getInstance());
 
         $this->initGameStateLabels([
-            "game_half" => 10,
+            "starter_player" => 10,
             "user_in_left_id" => 11,
             "user_in_right_id" => 12,
             "selected_piece" => 13,
@@ -348,7 +348,11 @@ class Game extends \Bga\GameFramework\Table
 
         $this->initBoard($players);
 
-        $this->activeNextPlayer();
+        $starterPlayer = \intval($this->getGameStateValue('starter_player'));
+        $activePlayerId = $this->activeNextPlayer();
+
+        if ($activePlayerId != $starterPlayer)
+            $this->activeNextPlayer();
 
         return ST_PLAYER_PIECE_SETUP;
     }
@@ -356,11 +360,12 @@ class Game extends \Bga\GameFramework\Table
     private function initGameState(array $players): void
     {
         list($redPlayer, $bluePlayer) = array_keys($players);
+        $starterPlayerIndex = bga_rand(0, 1);
 
         $this->setGameStateInitialValue('number_of_moves', 0);
         $this->setGameStateInitialValue('selected_piece', -1);
         $this->setGameStateInitialValue('required_power', -1);
-        $this->setGameStateInitialValue('game_half', 1);
+        $this->setGameStateInitialValue('starter_player', array_keys($players)[$starterPlayerIndex]);
         $this->setGameStateInitialValue('user_in_left_id', $redPlayer);
         $this->setGameStateInitialValue('attacker', $redPlayer);
         $this->setGameStateInitialValue('user_in_right_id', $bluePlayer);
@@ -414,6 +419,12 @@ class Game extends \Bga\GameFramework\Table
         $this->playerHands[] = $playerHand;
 
         return $playerHand;
+    }
+
+    /** @var array<PlayerHand> */
+    public function getPlayerHands(): array
+    {
+        return $this->playerHands;
     }
 
     public function getTeamBoard() : TeamBoard
