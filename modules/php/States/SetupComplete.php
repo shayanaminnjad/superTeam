@@ -30,7 +30,7 @@ class SetupComplete extends GameState
                
         $playerId = intval($this->game->activeNextPlayer());
 
-        if (!$this->game->isPlayerSetupComplete($playerId)) 
+        if (!$this->game->getBoard()->doAllPiecesHaveValidPosition($playerId))
         {
             return PlayerPieceSetup::class;
         } 

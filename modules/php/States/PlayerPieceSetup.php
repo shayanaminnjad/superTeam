@@ -129,7 +129,7 @@ class PlayerPieceSetup extends GameState
             "hex_row" => $hexRow,
         ]);
 
-        if (!$this->game->isPlayerSetupComplete($playerId))
+        if (!$this->game->getBoard()->doAllPiecesHaveValidPosition($playerId))
         {
             return PlayerPieceSetup::class;
         }
