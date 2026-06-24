@@ -102,6 +102,12 @@ class PlayerHand
         return $secretCards;
     }
 
+    public function MoveAllCardsToDeck() : void
+    {
+        $this->cards->moveAllCardsInLocation($this->discardName, $this->deckName);
+        $this->cards->moveAllCardsInLocation('hand', $this->deckName);
+    }
+
     public function shuffleDeck() 
     {
         return $this->cards->shuffle($this->deckName);
