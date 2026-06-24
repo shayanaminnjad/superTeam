@@ -2,6 +2,7 @@
 
 namespace Bga\Games\SuperTeam;
 
+use Bga\Games\SuperTeam\Utility\Logger;
 use ErrorException;
 
 class TeamBoard
@@ -57,7 +58,7 @@ class TeamBoard
 
     public function resetAttributes(int $player_id, TeamAttribute $except = TeamAttribute::None) : void
     {
-        $playerAttributes = $this->attributes[$player_id];
+        $playerAttributes = &$this->attributes[$player_id];
 
         $setQuery = '';
         for ($i = 0; $i < TeamAttribute::Count->value; $i++) 
