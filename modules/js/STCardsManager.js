@@ -38,6 +38,27 @@ define(["dojo/_base/declare",
                 return this._cardsManager.placeCards(cards);
             },
 
+            placeAllToDeck: function() {
+                let discardedCards = this._discardStock.getCards()
+                for(card of discardedCards)
+                {
+                    card.location = `${this._root.player_id}_deck`;
+                }
+
+                let discardPromise =  this._hiddenDeck.addCards(this._discardStock.getCards());
+
+                let cardsInhand = this._handStock.getCards();
+
+                for(card of cardsInhand)
+                {
+                    card.location = `${this._root.player_id}_deck`;
+                }
+
+                let handPromise = this._hiddenDeck.addCards(this._handStock.getCards());
+
+                return Promise.all([discardPromise, handPromise]);
+            },
+
             shuffleDeck: function () {
                 let cards = this._discardStock.getCards()
                 for(card of cards)
