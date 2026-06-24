@@ -521,6 +521,22 @@ class Game extends \Bga\GameFramework\Table
     }
 
     function debug_defaultAttributeSetup() {
+        $currentPlayerId = \intval($this->getCurrentPlayerId());
+        $teamBoard = $this->getTeamBoard();
+        $attributesAssigned = $teamBoard->getTotalAttributesAssigned($currentPlayerId);
 
+        if ($attributesAssigned < TeamBoard::MAX_ALLOWED_ATTRIBUTES)
+        {
+            for($i = $attributesAssigned; $i < TeamBoard::MAX_ALLOWED_ATTRIBUTES; $i++)
+            {
+                $teamBoard->tryIncreaseAttribute($currentPlayerId, TeamAttribute::from($i % TeamAttribute::Count->value), true);
+            }
+
+            $this->gamestate->setPlayerNonMultiactive($currentPlayerId, ST_TEAM_ATTRIBUTE_REVEAL);
+        }
+        else
+        {
+            throw new \BgaUserException("This cheat method can only be called in default attribute setup state!");
+        }
     }
 }
