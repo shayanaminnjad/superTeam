@@ -58,7 +58,8 @@ class Game extends \Bga\GameFramework\Table
         );
 
         NotificationAdapter::getInstance()->init(
-            fn($name, $message, $args) => $this->notify->all($name, $message, $args)
+            fn($name, $message, $args) => $this->notify->all($name, $message, $args),
+            fn($playerId, $name, $message, $args) => $this->notify->player($playerId, $name, $message, $args)
         );
 
         Logger::init(DBAdapter::getInstance(), 'logs');
