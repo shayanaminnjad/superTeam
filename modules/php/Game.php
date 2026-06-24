@@ -36,8 +36,6 @@ class Game extends \Bga\GameFramework\Table
 
     private CardFactory $cardFactory;
 
-    private array $playerHands = []; //TODO: this should be removed!
-    
     public function __construct()
     {
         parent::__construct();
@@ -402,18 +400,7 @@ class Game extends \Bga\GameFramework\Table
 
     public function getPlayerHand(int $playerId) : PlayerHand
     {
-        for($i = 0; $i < \count($this->playerHands); $i++)
-        {
-            if ($this->playerHands[$i]->getOwner() === $playerId)
-            {
-                return $this->playerHands[$i];
-            }
-        }
-
-        $playerHand = new PlayerHand($playerId, $this);
-        $this->playerHands[] = $playerHand;
-
-        return $playerHand;
+        return new PlayerHand($playerId, $this);
     }
 
     /** @var array<PlayerHand> */
