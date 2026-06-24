@@ -483,11 +483,25 @@ class Game extends \Bga\GameFramework\Table
         }
     }
 
+    public function getStarterPlayer() : int
+    {
+        return \intval($this->getGameStateValue('starter_player'));
+    }
+
     public function isCurrentPlayerFirstPlayer(): bool
     {
-        $firstPlayerId = $this->getUniqueValueFromDB("SELECT `player_id` FROM `player` WHERE `player_no` = 1");
+        return $this->getStarterPlayer() === \intval($this->getActivePlayerId());
+    }
 
-        return $firstPlayerId === $this->getActivePlayerId();
+    public function swapStarterPlayer() : void
+    {
+        $currentStarterPlayer = $this->getStarterPlayer();
+        $newStarterPlayer = \intval($this->getGameStateValue('user_in_right_id'));;
+
+        if ($currentStarterPlayer == $newStarterPlayer)
+            $newStarterPlayer = $this->getGameStateValue('user_in_left_id');
+
+        $this->setGameStateInitialValue('starter_player', $newStarterPlayer);
     }
 
     //TODO: This probably must be a private function of player piece setup.
