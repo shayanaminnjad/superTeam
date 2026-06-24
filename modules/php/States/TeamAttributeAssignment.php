@@ -59,18 +59,11 @@ class TeamAttributeAssignment extends PlayerBaseState
             throw new BgaUserException("Invalid skill Id passed! $attributeId");
         }
         
-        if (!$teamBoard->tryIncreaseAttribute($currentPlayer, TeamAttribute::from($attributeId))) 
+        if (!$teamBoard->tryIncreaseAttribute($currentPlayer, TeamAttribute::from($attributeId),true))
         {
             throw new BgaUserException("You cannot assign more than two cubes to an attribute!");
         }
 
-        $this->game->notify->player(
-            $currentPlayer,
-            "cubePlaced",
-            "",
-            ["skill" => $attributeId]
-        );
-        
         $attributesRemaining = TeamBoard::MAX_ALLOWED_ATTRIBUTES - ($totalCubesAssigned + 1);
 
         if ($attributesRemaining == 0) 
