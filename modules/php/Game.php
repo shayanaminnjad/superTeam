@@ -503,9 +503,20 @@ class Game extends \Bga\GameFramework\Table
     }
 
     function debug_defaultPieceSetup() {
-        if(!$this->getBoard()->doAllPiecesHaveValidPosition($this->getActivePlayerId()))
-        {
+        $board = $this->getBoard();
 
+        $activePlayerId = \intval($this->getActivePlayerId());
+        if(!$board->doAllPiecesHaveValidPosition($activePlayerId))
+        {
+            $pieceSetupLogic = new PlayerPieceSetupLogic($board);
+
+            $pieceSetupLogic->debugDefaultSetup($this, $activePlayerId);
+
+            return ST_SETUP_COMPLETE;
+        }
+        else
+        {
+            throw new \BgaUserException("This cheat method can only be called in piece setup state!");
         }
     }
 
