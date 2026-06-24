@@ -271,19 +271,6 @@ define([
                 }
             },
 
-            //// Player's action
-
-            /*
-            
-                Here, you are defining methods to handle player's action (ex: results of mouse click on 
-                game objects).
-                
-                Most of the time, these methods:
-                _ check the action is possible at this game state.
-                _ make a call to the game server
-            
-            */
-
             ///////////////////////////////////////////////////
             //// Reaction to cometD notifications
 
@@ -389,71 +376,25 @@ define([
                 return TrackerBoard.animateTrackerTo(notifData.currentPosition);
             },
 
+            notif_cardReset: async function(notifData) {
+                return this.cardsManager.placeAllToDeck();
+            },
+
+            notif_attributesReset: async function(notifData) {
+                const myAttributes = notifData[this.player_id];
+                const myCoachBoard = this.myPlayerArea.getCoachBoard();
+                myCoachBoard.updateOwnerDataAnimated(myAttributes);
+
+                const opponentAttributes = notifData[this.opponentId];
+
+                const opponentCoachBoard = this.opponentPlayerArea.getCoachBoard();
+                return opponentCoachBoard.updateOwnerDataAnimated(opponentAttributes);
+            },
+
             forwardNotification(funcName, notifData) {
                 this.assert(this.currentState && typeof this.currentState[funcName] === "function", `Server call "${funcName}" not handled in current state`);
 
                 return this.currentState[funcName](notifData);
-            },
-
-            ///////////////////////////////////////////////////
-            //// Debugging features
-
-            setupDebugFeatures: function () {
-
-                const game = this;
-
-                this.myDebug = {};
-
-                window.help = function () {
-                    console.log("debug.showCoords = 1; shows the coordinates of the hexes.\n" +
-                        "debug.defaultSetup= 1; sets up pieces and attributes for both sides. \n" +
-                        "debug.setMorale= x; sets morale for current player\n" +
-                        "debug.moveBall= {column: x, row:y}; sets ball position\n" +
-                        "debug.defaultAttribute = 1; fast attribute setup");
-
-                    return 'success';
-                };
-
-                Object.defineProperty(this.myDebug, 'showCoords', {
-                    get: function () {
-                        return this._val;
-                    },
-                    set: function (val) {
-                        this._val = val;
-
-                        let hexes = document.getElementsByClassName('hex');
-
-                        Array.from(hexes).forEach(hex => {
-                            let offsetCoord = Board.convertHexIdToOffsetCoord(hex.id);
-                            let cubeCoord = STHexLib.oddqToCubic(offsetCoord);
-
-                            hex.innerHTML = val ? offsetCoord + '<br>' + cubeCoord : "";
-                        });
-                    }.bind(this)
-                })
-
-                Object.defineProperty(this.myDebug, 'setMorale', {
-                    get: function () {
-                        return this._val;
-                    },
-                    set: function (val) {
-                        this._val = val;
-
-                        console.log('calling actDebugAddMorale');
-                        this.bgaPerformAction("actDebugAddMorale", { amount: val });
-                    }.bind(this)
-                })
-
-                Object.defineProperty(this.myDebug, 'moveBall', {
-                    get: function () {
-                        return this._val;
-                    },
-                    set: function (input) {
-                        this._val = input;
-                        console.log(`calling actDebugMoveBall with values (${input.column}, ${input.row})`);
-                        this.bgaPerformAction("actDebugMoveBall", { column: input.column, row: input.row });
-                    }.bind(this)
-                })
             },
 
             ///////////////////////////////////////////////////
