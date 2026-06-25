@@ -29,6 +29,8 @@ class DealInitialHand extends GameState
 
         foreach($playerHands as &$playerHand)
         {
+            $playerHand->shuffleDeck();
+
             $wasDiscardShuffled = $playerHand->drawToFour();
 
             $this->game->notify->player($playerHand->getOwner(), "handRefill", "",
