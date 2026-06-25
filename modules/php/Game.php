@@ -310,9 +310,9 @@ class Game extends \Bga\GameFramework\Table
                 addslashes($player["player_avatar"]),
             ]);
 
+            //TODO: it will be nice to force cards to appear inside player hand, for testing purposes.
             //TODO: this must change, it should be initialized when we have selected captain board and team board.
             PlayerHand::createPlayerHand($playersDeck, $player_id, 0, 0);
-            $this->getPlayerHand($player_id)->drawToFour();
         }
 
         static::DbQuery(
