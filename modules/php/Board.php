@@ -265,6 +265,13 @@ class Board
         }
     }
 
+    public static function isPlayerAttacker(int $playerId) : bool
+    {
+        $attackerId = DBAdapter::getInstance()->getGameStateValue(('attacker'));
+
+        return $playerId == $attackerId;
+    }
+
     //TODO: This can be inside a utility function instead of board itself!
     public function getPiecesThatCanTackle(int $tacklingPlayer, int $opponentId)
     {
@@ -366,7 +373,7 @@ class Board
         }
     }
 
-    public function movePieceToHex(int $pieceId, HexID $hex)
+    public function movePieceToHex(int $pieceId, HexID $hex) : void
     {
         $piece = $this->getPlayerPieceData($pieceId);
         $piece->setPosition($hex, true);
