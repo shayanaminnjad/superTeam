@@ -48,7 +48,7 @@ class TacticContext
             return CardReward::fromJson($rewardJson);
     }
 
-    public function setTacticType(TacticType $type)
+    public function setTacticType(TacticType $type) : void
     {
         $this->dbAdapter->storeGlobalInt("tactic_type", $type->value);
     }
@@ -67,6 +67,6 @@ class TacticContext
         $this->setTacticInPlay('');
         $this->setTacticProgress(0);
         $this->setRewardUsed(CardReward::empty());
-        $this->setTacticType(-1);
+        $this->setTacticType(TacticType::Unknown);
     }
 }
