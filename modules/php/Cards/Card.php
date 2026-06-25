@@ -6,7 +6,7 @@ use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Cards\CardType;
 
-final class CardReward
+class CardReward
 {
     public function __construct(
         public int $morale,
@@ -57,6 +57,12 @@ final class CardReward
     }
 }
 
+class DefensiveReward extends CardReward
+{}
+
+class OffensiveReward extends CardReward
+{}
+
 /* coach and captain has only instruction 
 captian has a requirement and a reward if it is satisfied
 
@@ -94,6 +100,7 @@ enum TacticType : int
 {
     case Offensive = 0;
     case Defensive = 1;
+    case Unknown = 2;
 }
 
 final class ExecutionResult
@@ -112,10 +119,10 @@ class CardDefinition
         public readonly CardType $type,
         public readonly string $toolTip,
 
-        public readonly CardReward $defensiveReward,
+        public readonly DefensiveReward $defensiveReward,
         public readonly bool $defenseHasFatigue,
 
-        public readonly CardReward $offensiveReward,
+        public readonly OffensiveReward $offensiveReward,
         public readonly bool $offenseHasFatigue,
     ) {}
 }
@@ -149,7 +156,7 @@ abstract class Card
         $steps = null;
         if ($type == TacticType::Defensive)
         {
-            $steps = $this->getDeffensiveCommands();
+            $steps = $this->getDefensiveCommands();
         }
         else
         {
@@ -190,7 +197,7 @@ abstract class Card
     /**
      * @return array<callable(): ?ExecutionResult>
      */
-    abstract protected function getDeffensiveCommands() : array;
+    abstract protected function getDefensiveCommands() : array;
 
     abstract protected function cleanup();
 }
