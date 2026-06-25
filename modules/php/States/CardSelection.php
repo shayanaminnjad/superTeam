@@ -6,6 +6,7 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Cards\CardReward;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\DBAdapter;
@@ -44,10 +45,11 @@ class CardSelection extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
-        $playerHand = $this->game->getPlayerHand(\intval($this->game->getActivePlayerId()));
+        $activePlayer = \intval($this->game->getActivePlayerId());
+        $playerHand = $this->game->getPlayerHand($activePlayer);
+        $isAttacker = Board::isPlayerAttacker($activePlayer);
 
         $playableTactics = [];
-
         $cardsInHand = $playerHand->getCardsInHand();
         foreach($cardsInHand as $cardDef)
         {
@@ -58,7 +60,7 @@ class CardSelection extends PlayerBaseState
             {
                 $card = $cardFactory->getCard($cardDef["type"]);
 
-                if ($card->isOffensivePossible())
+                if (($isAttacker && $card->isOffensivePossible()) || (!$isAttacker && $card->isDefensivePossible()))
                 {
                     $playableTactics[] = $card->getId();
                 }
@@ -90,8 +92,6 @@ class CardSelection extends PlayerBaseState
         if ($playerHand->CountCardsInHand() == 1)
             throw new \BgaUserException("You can't play more than 3 cards in a turn!");
 
-        Logger::logInfo("Card " . $cardId . "selected to be performed as" . ($asBasic ? 'as basic.' : 'as tactic.'));
-
         $playerHand = $this->game->getPlayerHand($activePlayer);
         
         $playerHand->discardCard($cardId);
@@ -112,12 +112,14 @@ class CardSelection extends PlayerBaseState
         }
         else
         {
+            $isAttacker = Board::isPlayerAttacker($activePlayer);
+
             $tacticContext = new TacticContext();
 
             $tacticContext->setTacticInPlay($cardDef['type']);
             $tacticContext->setTacticProgress(0);
             $tacticContext->setRewardUsed(CardReward::empty());
-            $tacticContext->setTacticType(TacticType::Offensive);
+            $tacticContext->setTacticType($isAttacker ? TacticType::Offensive : TacticType::Defensive);
 
             return TacticalTurnStateManager::class;
         }
