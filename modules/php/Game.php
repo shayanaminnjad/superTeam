@@ -354,15 +354,16 @@ class Game extends \Bga\GameFramework\Table
     {
         list($redPlayer, $bluePlayer) = array_keys($players);
         $starterPlayerIndex = bga_rand(0, 1);
+        $defenderPlayerIndex = $starterPlayerIndex == 0 ? 1 : 0;
 
         $this->setGameStateInitialValue('number_of_moves', 0);
         $this->setGameStateInitialValue('selected_piece', -1);
         $this->setGameStateInitialValue('required_power', -1);
         $this->setGameStateInitialValue('starter_player', array_keys($players)[$starterPlayerIndex]);
         $this->setGameStateInitialValue('user_in_left_id', $redPlayer);
-        $this->setGameStateInitialValue('attacker', $redPlayer);
+        $this->setGameStateInitialValue('attacker', array_keys($players)[$starterPlayerIndex]);
         $this->setGameStateInitialValue('user_in_right_id', $bluePlayer);
-        $this->setGameStateInitialValue('defender', $bluePlayer);
+        $this->setGameStateInitialValue('defender', array_keys($players)[$defenderPlayerIndex]);
         $this->setGameStateInitialValue("moraleAssignRemaining", 0);
         $this->setGameStateInitialValue("isAttributesAssignmentFinished", 0);
         $this->setGameStateInitialValue("lastPassResult", 0);
