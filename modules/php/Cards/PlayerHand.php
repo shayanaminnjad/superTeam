@@ -156,7 +156,6 @@ class PlayerHand
         $deckName = self::getPlayerDeck($playerId);
         $deck->createCards($cardDefinitions, $deckName);
         $deck->createCards([self::getCardDefinition("fatigue", 16)], 'supply');
-        $deck->shuffle($deckName);
     }
 
     public function getCard(int $cardId)
