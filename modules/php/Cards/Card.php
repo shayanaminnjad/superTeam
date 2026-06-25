@@ -140,13 +140,23 @@ abstract class Card
 
     abstract public function isOffensivePossible() : bool;
 
+    abstract public function isDefensivePossible() : bool;
+
     abstract public function getId() : string;
 
     public function execute(TacticType $type, int $index) : ExecutionResult
     {
-        //TODO: get steps based on the type!
-        //TODO: check for index outside of the command list range.
-        $steps = $this->getOffensiveCommands();
+        $steps = null;
+        if ($type == TacticType::Defensive)
+        {
+            $steps = $this->getDeffensiveCommands();
+        }
+        else
+        {
+            $steps = $this->getOffensiveCommands();
+        }
+
+        assert($index < \count($steps) && $index >= 0);
 
         for ($i = $index; $i < \count($steps); $i++)
         {
@@ -176,6 +186,11 @@ abstract class Card
  * @return array<callable(): ?ExecutionResult>
  */
     abstract protected function getOffensiveCommands() : array;
+
+    /**
+     * @return array<callable(): ?ExecutionResult>
+     */
+    abstract protected function getDeffensiveCommands() : array;
 
     abstract protected function cleanup();
 }

@@ -80,8 +80,18 @@ class Basic1 extends Card
         return new ExecutionResult($passResult ? ExecutionAction::Continue : ExecutionAction::Failure);
     }
 
-    protected function cleanup()
+    protected function cleanup() : void
     {
         DBAdapter::GetInstance()->storePlayerTempStr(\intval($this->game->getActivePlayerId()), "forced_pass_targets", "");
+    }
+
+    public function isDefensivePossible(): bool
+    {
+        // TODO: Implement isDefensivePossible() method.
+    }
+
+    protected function getDeffensiveCommands(): array
+    {
+        // TODO: Implement getDeffensiveCommands() method.
     }
 }
