@@ -117,10 +117,7 @@ class CardSelection extends PlayerBaseState
             $tacticContext->setTacticInPlay($cardDef['type']);
             $tacticContext->setTacticProgress(0);
             $tacticContext->setRewardUsed(CardReward::empty());
-            $tacticContext->setTacticType(TacticType::Offensive->value);
-
-            //TODO: I should check whether I need to store this or infer it.
-            //the edge case is pass forward, I am not sure if you become defender at that moment or not.
+            $tacticContext->setTacticType(TacticType::Offensive);
 
             return TacticalTurnStateManager::class;
         }

@@ -48,14 +48,17 @@ class TacticContext
             return CardReward::fromJson($rewardJson);
     }
 
-    public function setTacticType(int $type)
+    public function setTacticType(TacticType $type)
     {
-        $this->dbAdapter->storeGlobalInt("tactic_type", $type);
+        $this->dbAdapter->storeGlobalInt("tactic_type", $type->value);
     }
 
-    public function getTacticType(): int
+    public function getTacticType(): TacticType
     {
-        return $this->dbAdapter->getGlobalInt("tactic_type");
+        $typeVal = $this->dbAdapter->getGlobalInt("tactic_type");
+        assert($typeVal >= 0 && $typeVal <=1, "tactic type should be either 0 or 1");
+
+        return TacticType::from($typeVal);
     }
 
     public function reset()

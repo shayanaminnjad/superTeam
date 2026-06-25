@@ -148,14 +148,12 @@ class TacticRewardResolve extends PlayerBaseState
         $cardInPlay = $tacticContext->getTacticInPlay();
         assert($cardInPlay >= 0);
 
-        //TODO: tactic type can be inferred there is no need to store it.
         $tacticType = $tacticContext->getTacticType();
-        assert($tacticType >= 0 && $tacticType <=1, "tactic type should be either 0 or 1");
 
         $card = $this->game->getCardFactory()->getCard($cardInPlay);
         $cardDef = $card->getDefinition();
 
-        return TacticType::from($tacticType) == TacticType::Offensive ? $cardDef->offensiveReward : $cardDef->defensiveReward;
+        return $tacticType == TacticType::Offensive ? $cardDef->offensiveReward : $cardDef->defensiveReward;
     }
 
     private function claimMoraleIfNotClaimed(int $activePlayerId,CardReward $rewardToClaim, CardReward $claimedReward) : void

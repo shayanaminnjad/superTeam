@@ -38,13 +38,11 @@ class TacticalTurnStateManager extends GameState
         $tacticProgress = $tacticContext->getTacticProgress();
         assert($tacticProgress >= 0, "tactic progress can't be negative!");
 
-        //TODO: tactic type can be inferred there is no need to store it.
         $tacticType = $tacticContext->getTacticType();
-        assert($tacticType >= 0 && $tacticType <=1, "tactic type should be either 0 or 1");
 
         $card = $this->game->getCardFactory()->getCard($cardInPlay);
 
-        $result = $card->execute(TacticType::from($tacticType), $tacticProgress);
+        $result = $card->execute($tacticType, $tacticProgress);
 
         if ($result->action == ExecutionAction::GoToState)
         {
