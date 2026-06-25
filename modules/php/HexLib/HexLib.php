@@ -163,9 +163,7 @@ class HexLib
         return true;
     }
 
-    public static function getMinMaxProjections(array $verticesArray, array $axis) {}
-
-    public static function getOffsetDistance(HexID $start, HexID $end)
+    public static function getOffsetDistance(HexID $start, HexID $end) : float
     {
         $startCubic = self::offsetToCubic($start);
         $endCubic = self::offsetToCubic($end);
