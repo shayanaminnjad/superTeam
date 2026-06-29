@@ -2,12 +2,13 @@
 
 namespace Bga\Games\SuperTeam\Cards;
 
+use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\States\PassDestSelection;
-use Bga\Games\SuperTeam\Cards\CardType;
 
 
 class Basic1 extends Card
@@ -15,22 +16,26 @@ class Basic1 extends Card
     public function __construct(Game $game, Board $board)
     {
         parent::__construct(new CardDefinition(
-            "Basic 1",
+            "Basic A",
             CardType::Basic,
             "",
-            new CardReward(1, 0, 0),
+            new DefensiveReward(1, 0, 0),
             false,
-            new CardReward(1, 2, 0),
+            new OffensiveReward(1, 2, 0),
             false)
             , $board, $game);
     }
 
     public function isOffensivePossible() : bool
     {
-        $startHex = $this->board->getBallHex();
-        $currentPlayer = $this->game->getCurrentPlayerId();
+        $board = $this->board;
+        $currentPlayer =  $this->game->getCurrentPlayerId();
+        $playerHasTheBall = BoardEvaluator::DoesPlayerHasTheBall($board, $currentPlayer);
+        $startHex = $board->getBallHex();
 
-        return \count(BoardSpatial::GetPiecesInFrontColumns($this->board, $startHex->getColumn(), $currentPlayer)) > 0;
+        return
+            $playerHasTheBall &&
+            \count(BoardSpatial::GetPiecesInFrontColumns($this->board, $startHex->getColumn(), $currentPlayer, $this->game->getPlayerSide($currentPlayer))) > 0;
     }
 
     public static function staticId() : string
@@ -55,8 +60,8 @@ class Basic1 extends Card
     private function forceForwardPassTargets() : ExecutionResult
     {
         $startHex = $this->board->getBallHex();
-        $currentPlayer = $this->game->getCurrentPlayerId();
-        $piecesForward = BoardSpatial::GetPiecesInFrontColumns($this->board, $startHex->getColumn(), $currentPlayer);
+        $currentPlayer = \intval($this->game->getCurrentPlayerId());
+        $piecesForward = BoardSpatial::GetPiecesInFrontColumns($this->board, $startHex->getColumn(), $currentPlayer, $this->game->getPlayerSide($currentPlayer));
 
         $forcedTargets = [];
         foreach($piecesForward as $piece)
@@ -87,11 +92,21 @@ class Basic1 extends Card
 
     public function isDefensivePossible(): bool
     {
-        // TODO: Implement isDefensivePossible() method.
+        $predicate = function(PlayerPiece $playerPiece, PlayerPiece $opponentPiece) : bool {
+            return $playerPiece->getPosition()->getColumn() < ($opponentPiece->getPosition()->getColumn() - 1);
+        };
+
+        $currentPlayer = \intval($this->game->getCurrentPlayerId());
+
+
+
+        $canMoveAPieceToAdjacency = BoardEvaluator::canMoveAPieceNearAnOpponentPiece($this->board, $currentPlayer, $predicate);
     }
 
-    protected function getDeffensiveCommands(): array
+    protected function getDefensiveCommands(): array
     {
         // TODO: Implement getDeffensiveCommands() method.
+
+        return [];
     }
 }
