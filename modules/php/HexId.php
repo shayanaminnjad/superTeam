@@ -65,4 +65,9 @@ class HexID
     {
         return "({$this->row}, {$this->column})";
     }
+
+    public function getId() : int
+    {
+        return $this->row * 10 + $this->column;
+    }
 }
