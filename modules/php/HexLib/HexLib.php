@@ -168,6 +168,11 @@ class HexLib
         $startCubic = self::offsetToCubic($start);
         $endCubic = self::offsetToCubic($end);
 
+        return self::getCubicDistance($startCubic, $endCubic);
+    }
+
+    public static function getCubicDistance(CubicCoordinate $startCubic, CubicCoordinate $endCubic) : float
+    {
         $diff = $endCubic->subtract($startCubic);
 
         return (abs($diff->getQ()) + abs($diff->getR()) + abs($diff->getS())) * 0.5;
