@@ -6,6 +6,8 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\BoardEvaluator;
+use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
@@ -32,11 +34,21 @@ class MoveAction extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
+        $activePlayerId = \intval($this->game->getActivePlayerId());
+
         $selectedPiece = intval($this->game->getGameStateValue('selected_piece'));
 
         assert($selectedPiece != -1, "move action must have a valid piece selected, before it gets called!");
 
-        $moveableHexes = $this->game->getBoard()->getMoveableHexesByPiece($selectedPiece);
+        $board = $this->game->getBoard();
+        $pieceData = $board->getPlayerPieceData($selectedPiece);
+
+        if ($pieceData === null)
+            throw new \BgaUserException("Invalid piece selected!");
+
+        $maxPossibleMovement = BoardEvaluator::getPieceMaxPossibleMovement($board, $pieceData);
+        $pieceHasTheBall = ($board->getBallHex()->equals($pieceData->getPosition()));
+        $moveableHexes = BoardSpatial::getMoveableHexes($board, $pieceData->getPosition(), $maxPossibleMovement, $pieceHasTheBall, $activePlayerId);
 
         $numberOfMoves = intval($this->game->getGameStateValue('number_of_moves'));
 

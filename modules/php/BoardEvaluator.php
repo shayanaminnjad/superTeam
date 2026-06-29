@@ -28,7 +28,7 @@ class BoardEvaluator
 
     public static function canMoveAPieceNearAnOpponentPiece(Board $board, int $playerId, callable $opponentPredicate) : bool
     {
-        $playerPieces = self::getPlayerPieces($board, $playerId);
+        $playerPieces = $board->getPlayerPiecesByOwner($playerId);
         $opponentPieces = self::getOpponentPieces($board, $playerId);
 
         foreach ($playerPieces as $playerPiece)
@@ -56,15 +56,7 @@ class BoardEvaluator
         if ($distance == 1)
             return false; //already adjacent!
 
-        $pieceMaxMoveDistance = 2;
-
-        $resources = new PlayerResources($piece->getOwner());
-        if (!$piece->isFresh())
-        {
-            $ownerMorale = $resources->getMorale();
-
-            $pieceMaxMoveDistance = $ownerMorale > 0 ? 1 : 0;
-        }
+        $pieceMaxMoveDistance = self::getPieceMaxPossibleMovement($board, $piece);
 
         if (($distance - 1) > $pieceMaxMoveDistance)
             return false;
@@ -72,31 +64,34 @@ class BoardEvaluator
         return BoardSpatial::canFindPathToTargetAdjacency($board, $piece->getPosition(), $targetPos, $pieceMaxMoveDistance);
     }
 
-    public static function countPiecesThatCanBeMovedForward($board, int $playerId): int
+    public static function getPieceMaxPossibleMovement(Board $board, PlayerPiece $piece) : int
     {
-        $playerPieces = self::getPlayerPieces($board, $playerId);
+        $pieceMaxMoveDistance = 2;
+
+        if (!$piece->isFresh())
+        {
+            $resources = new PlayerResources($piece->getOwner());
+
+            $ownerMorale = $resources->getMorale();
+
+            $pieceMaxMoveDistance = $ownerMorale > 0 ? 1 : 0;
+        }
+
+        return $pieceMaxMoveDistance;
+    }
+
+    public static function countPiecesThatCanBeMovedForward(Board $board, int $playerId): int
+    {
+        $playerPieces = $board->getPlayerPiecesByOwner($playerId);
 
         foreach ($playerPieces as $playerPiece)
         {
 
         }
-    }
 
-    private static function getPlayerPieces(Board $board, int $ownerId) : array
-    {
-        $result = [];
+        //todo; implement this:
 
-        $pieces = $board->getPieces();
-
-        foreach ($pieces as $piece)
-        {
-            if ($piece->getOwner() == $ownerId)
-            {
-                $result[] = $piece;
-            }
-        }
-
-        return $result;
+        return 0;
     }
 
     private static function getOpponentPieces(Board $board, int $ownerId) : array

@@ -87,39 +87,6 @@ class Board
         return null;
     }
 
-    public function getPlayerPiecesInBackwardColumns(int $startColumn, $ownerId): array
-    {
-        $result = [];
-
-        for ($i = 0; $i < \count($this->playerPieces); $i++) {
-            $currentPiece = $this->playerPieces[$i];
-            $pieceCol = $currentPiece->getPosition()->getColumn();
-
-            if ($currentPiece->getOwner() === $ownerId &&  $currentPiece->hasValidPosition() && $pieceCol < $startColumn) {
-                $result[] = $currentPiece;
-                break;
-            }
-        }
-
-        return $result;
-    }
-
-    public function getPlayerPiecesInTheSameColumn(int $column, $ownerId): array
-    {
-        $result = [];
-
-        for ($i = 0; $i < \count($this->playerPieces); $i++) {
-            $currentPiece = $this->playerPieces[$i];
-
-            if ($currentPiece->getOwner() === $ownerId && $currentPiece->getPosition()->getColumn() === $column) {
-                $result[] = $currentPiece;
-                break;
-            }
-        }
-
-        return $result;
-    }
-
     public function getPlayerPiecesByOwner(int $owner): array
     {
         $result = [];
@@ -138,28 +105,6 @@ class Board
     public function getPlayerPieceData(int $pieceId): ?PlayerPiece
     {
         return array_find($this->playerPieces, fn($x) => $pieceId === $x->getId());
-    }
-
-    public function getMoveableHexesByPiece(int $pieceId): array
-    {
-        $result = [];
-
-        $playerPiece = $this->getPlayerPieceData($pieceId);
-
-        $piecePosition = $playerPiece->getPosition();
-
-        $neighbourHexes = HexLib::getNeighbours(HexLib::offsetToCubic($piecePosition), 1);
-
-        for ($i = 0; $i < \count($neighbourHexes); $i++) {
-            $hexId = HexLib::cubicToHexID($neighbourHexes[$i]);
-
-            //TODO: I might be able to show this by red!
-            if ($this->canMoveToHex($hexId)) {
-                $result[] = $hexId->convertToArray();
-            }
-        }
-
-        return $result;
     }
 
     public function getAdjacentOpponentPieces(HexID $reference, int $playerId, bool $includeGoalie): array
@@ -379,19 +324,5 @@ class Board
         $piece->setPosition($hex, true);
         
         $this->updateAttackerAndDefender();
-    }
-
-    private function canMoveToHex(HexID $hexID): bool
-    {
-        return !$this->hasPlayerInHex($hexID) && !$this->isGoalieSpecificSpace($hexID);
-    }
-
-    private function isGoalieSpecificSpace(HexID $hexID): bool
-    {
-        if ($hexID->getColumn() === 0 || $hexID->getColumn() === 16)
-            if ($hexID->getRow() >= 4 && $hexID->getRow() <= 6)
-                return true;
-
-        return false;
     }
 }

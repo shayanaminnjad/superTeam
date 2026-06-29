@@ -11,7 +11,7 @@ final class BoardSpatial
     {
         $result = [];
 
-        $playerPieces = BoardSpatial::getPlayerPieces($board, $ownerId);
+        $playerPieces = $board->getPlayerPiecesByOwner($ownerId);
 
         foreach($playerPieces as $piece)
         {
@@ -29,6 +29,46 @@ final class BoardSpatial
                     $result[] = $piece;
                 }
             }
+        }
+
+        return $result;
+    }
+
+    public static function getPlayerPiecesInBackwardColumns(Board $board, int $startColumn, int $ownerId, PlayerSide $playerSide): array
+    {
+        $result = [];
+        $playerPieces = $board->getPlayerPiecesByOwner($ownerId);
+
+        foreach($playerPieces as $piece)
+        {
+            if ($playerSide == PlayerSide::Left)
+            {
+                if ($piece->getPosition()->getColumn() < $startColumn)
+                {
+                    $result[] = $piece;
+                }
+            }
+            else
+            {
+                if ($piece->getPosition()->getColumn() > $startColumn)
+                {
+                    $result[] = $piece;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    public static function getPlayerPiecesInTheSameColumn(Board $board, int $column, int $ownerId): array
+    {
+        $result = [];
+        $playerPieces = $board->getPlayerPiecesByOwner($ownerId);
+
+        foreach($playerPieces as $piece)
+        {
+            if ($piece->getPosition()->getColumn() === $column)
+                $result[] = $piece;
         }
 
         return $result;
@@ -63,7 +103,7 @@ final class BoardSpatial
             foreach($currentNeighbors as $cubicNeighbor)
             {
                 $neighborHex = HexLib::cubicToHexID($cubicNeighbor);
-                if (!isset($visited[$neighborHex->getId()]) && !$board->hasPlayerInHex($neighborHex))
+                if (!isset($visited[$neighborHex->getId()]) && self::isHexMoveable($board, $neighborHex))
                 {
                     $queue[] = [$neighborHex, $currentDepth + 1];
                     $visited[$neighborHex->getId()] = true;
@@ -116,7 +156,7 @@ final class BoardSpatial
             foreach ($currentNeighbors as $cubicNeighbor)
             {
                 $neighborHex = HexLib::cubicToHexID($cubicNeighbor);
-                if (!isset($visited[$neighborHex->getId()]) && !$board->hasPlayerInHex($neighborHex))
+                if (!isset($visited[$neighborHex->getId()]) && self::isHexMoveable($board, $neighborHex))
                 {
                     $queue[] = [new GraphNode($neighborHex, $currentNode), $currentDepth + 1];
                     $visited[$neighborHex->getId()] = true;
@@ -152,7 +192,7 @@ final class BoardSpatial
             foreach($currentNeighbors as $cubicNeighbor)
             {
                 $neighborHex = HexLib::cubicToHexID($cubicNeighbor);
-                if (!isset($visited[$neighborHex->getId()]) && !$board->hasPlayerInHex($neighborHex))
+                if (!isset($visited[$neighborHex->getId()]) && self::isHexMoveable($board, $neighborHex))
                 {
                     $res[] = $neighborHex;
                     $queue[] = [$neighborHex, $currentDepth + 1];
@@ -164,21 +204,18 @@ final class BoardSpatial
         return $res;
     }
 
-    private static function getPlayerPieces(Board $board, int $ownerId) : array
+    public static function isHexMoveable(Board $board, HexID $hexID): bool
     {
-        $result = [];
+        return !$board->hasPlayerInHex($hexID) && !self::isGoalieSpecificSpace($hexID);
+    }
 
-        $pieces = $board->getPieces();
+    public static function isGoalieSpecificSpace(HexID $hexID): bool
+    {
+        if ($hexID->getColumn() === 0 || $hexID->getColumn() === 16)
+            if ($hexID->getRow() >= 4 && $hexID->getRow() <= 6)
+                return true;
 
-        foreach ($pieces as $piece)
-        {
-            if ($piece->getOwner() == $ownerId)
-            {
-                $result[] = $piece;
-            }
-        }
-
-        return $result;
+        return false;
     }
 
     private static function shouldPieceEndMovement(Board $board, array $neighbors, int $movesSofar, bool $hasBall, int $playerId) : bool
@@ -198,7 +235,6 @@ final class BoardSpatial
 
         return $shouldStop;
     }
-
 }
 
 readonly class GraphNode
