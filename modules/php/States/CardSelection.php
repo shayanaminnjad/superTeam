@@ -8,7 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Cards\CardReward;
-use Bga\Games\SuperTeam\Cards\Moves\DefensiveMovesContext;
+use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
@@ -41,7 +41,7 @@ class CardSelection extends PlayerBaseState
         $tacticContext = new TacticContext();
         $tacticContext->reset();
 
-        $moveContext = new DefensiveMovesContext();
+        $moveContext = new MoveActionContext();
         $moveContext->reset();
     }
 
