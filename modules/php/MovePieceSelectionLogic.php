@@ -149,7 +149,7 @@ final class MovePieceSelectionLogic
 
         foreach($moveablePieces as $piece)
         {
-            if (!in_array($piece->getId(), $piecesMoved, true))
+            if (!array_any($piecesMoved, fn($pieceMoved) => $pieceMoved->id === $piece->getId()))
             {
                 $res[] = $piece;
             }

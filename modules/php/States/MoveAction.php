@@ -9,6 +9,7 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
+use Bga\Games\SuperTeam\MoveHexSelectionLogic;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
@@ -37,12 +38,11 @@ class MoveAction extends PlayerBaseState
     {
         $activePlayerId = \intval($this->game->getActivePlayerId());
 
-        $selectedPiece = intval($this->game->getGameStateValue('selected_piece'));
-
-        assert($selectedPiece != -1, "move action must have a valid piece selected, before it gets called!");
+        $moveActionContext = new MoveActionContext();
+        $selectedPiece = $moveActionContext->getSelectedPieceData();
 
         $board = $this->game->getBoard();
-        $pieceData = $board->getPlayerPieceData($selectedPiece);
+        $pieceData = $board->getPlayerPieceData($selectedPiece->id);
 
         if ($pieceData === null)
             throw new \BgaUserException("Invalid piece selected!");
@@ -55,8 +55,7 @@ class MoveAction extends PlayerBaseState
         $moveActionContext = new MoveActionContext();
         $moveType = $moveActionContext->getCurrentMoveType();
 
-        $pieceHasTheBall = ($board->getBallHex()->equals($pieceData->getPosition()));
-        $moveableHexes = BoardSpatial::getMoveableHexes($board, $pieceData->getPosition(), 1, $pieceHasTheBall, $activePlayerId);
+        $moveableHexes = MoveHexSelectionLogic::GetAvailableHexes($board, $pieceData->getId(), $moveType);
 
         $hexesToSend = [];
         foreach ($moveableHexes as $hex)
@@ -70,7 +69,7 @@ class MoveAction extends PlayerBaseState
             $this->addClientButton('Finish Movement', [$this, 'actFinishMove']);
 
         return ["moveableHexes" => $hexesToSend,
-                "selectedPiece" => $selectedPiece];
+                "selectedPiece" => $selectedPiece->id];
     }
 
     #[PossibleAction]
@@ -78,11 +77,12 @@ class MoveAction extends PlayerBaseState
     {
         //TODO: check if the moved location is valid.
 
-        $selectedPiece = intval($this->game->getGameStateValue('selected_piece'));
-        
+        $moveActionContext = new MoveActionContext();
+        $selectedPiece = $moveActionContext->getSelectedPieceData();
+
         $board = $this->game->getBoard();
         $ballLocation = $board->getBallHex();
-        $pieceOldData = $board->getPlayerPieceData($selectedPiece);
+        $pieceOldData = $board->getPlayerPieceData($selectedPiece->id);
 
         $ballMoved = 0;
 
@@ -118,12 +118,12 @@ class MoveAction extends PlayerBaseState
             $shouldEndMovement = true;
         }
 
-        $board->movePieceToHex($selectedPiece, new HexID($hexColumn, $hexRow));
+        $board->movePieceToHex($selectedPiece->id, new HexID($hexColumn, $hexRow));
         $this->game->setGameStateValue('number_of_moves', $numberOfMoves + 1);
 
         $this->notify->all("movedPiece", \clienttranslate('${player_name} moves a piece'), array(
             "player_name" => $this->game->getActivePlayerName(),
-            "movedPiece" => $selectedPiece,
+            "movedPiece" => $selectedPiece->id,
             "hex_column" => $hexColumn,
             "hex_row" => $hexRow,
             "ballMoved" => $ballMoved,

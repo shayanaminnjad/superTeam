@@ -67,14 +67,13 @@ class Game extends \Bga\GameFramework\Table
             "starter_player" => 10,
             "user_in_left_id" => 11,
             "user_in_right_id" => 12,
-            "selected_piece" => 13,
-            "number_of_moves" => 14,
-            "required_power" => 15,
-            "attacker" => 16,
-            "defender" => 17,
-            "moraleAssignRemaining" => 18,
-            "isAttributesAssignmentFinished" => 19,
-            "lastPassResult" => 20
+            "number_of_moves" => 13,
+            "required_power" => 14,
+            "attacker" => 15,
+            "defender" => 16,
+            "moraleAssignRemaining" => 17,
+            "isAttributesAssignmentFinished" => 18,
+            "lastPassResult" => 19
         ]);
 
         /* example of notification decorator.
@@ -328,7 +327,6 @@ class Game extends \Bga\GameFramework\Table
         $defenderPlayerIndex = $starterPlayerIndex == 0 ? 1 : 0;
 
         $this->setGameStateInitialValue('number_of_moves', 0);
-        $this->setGameStateInitialValue('selected_piece', -1);
         $this->setGameStateInitialValue('required_power', -1);
         $this->setGameStateInitialValue('starter_player', array_keys($players)[$starterPlayerIndex]);
         $this->setGameStateInitialValue('user_in_left_id', $redPlayer);

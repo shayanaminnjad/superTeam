@@ -72,10 +72,8 @@ class MovePieceSelection extends PlayerBaseState
         if (!in_array($pieceId, $moveablePiecesIds, true))
             throw new \BgaUserException("Piece Id {$pieceId} is not selectable.");
 
-        $moveContext = new MoveActionContext();
-        $moveContext->addPieceMoved($pieceId);
-
-        $this->game->setGameStateValue('selected_piece', $pieceId);
+        $board = $this->game->getBoard();
+        $moveActionContext->setSelectedPieceData($board->getPlayerPieceData($pieceId));
 
         return MoveAction::class;
     }
