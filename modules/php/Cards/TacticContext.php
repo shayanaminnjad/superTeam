@@ -4,16 +4,16 @@ namespace Bga\Games\SuperTeam\Cards;
 
 use Bga\Games\SuperTeam\DBAdapter;
 
-class TacticContext
+readonly class TacticContext
 {
-    private readonly DBAdapter $dbAdapter;
+    private DBAdapter $dbAdapter;
 
     public function __construct()
     {
         $this->dbAdapter = DBAdapter::getInstance();
     }
 
-    public function setTacticInPlay(string $id)
+    public function setTacticInPlay(string $id) : void
     {
         $this->dbAdapter->storeGlobalString("tactic_in_play", $id);
     }
@@ -23,7 +23,7 @@ class TacticContext
         return $this->dbAdapter->getGlobalString("tactic_in_play");
     }
 
-    public function setTacticProgress(int $progress)
+    public function setTacticProgress(int $progress): void
     {
         $this->dbAdapter->storeGlobalInt("tactic_progress", $progress);
     }
@@ -33,7 +33,7 @@ class TacticContext
         return $this->dbAdapter->getGlobalInt("tactic_progress");
     }
 
-    public function setRewardUsed(CardReward $reward)
+    public function setRewardUsed(CardReward $reward) : void
     {
         $this->dbAdapter->storeGlobalString("rewards_used", $reward->toJson());
     }
@@ -61,7 +61,7 @@ class TacticContext
         return TacticType::from($typeVal);
     }
 
-    public function reset()
+    public function reset(): void
     {
         //TOOD: do all this in a single query
         $this->setTacticInPlay('');
