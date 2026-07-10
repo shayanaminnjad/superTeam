@@ -3,11 +3,14 @@
 namespace Bga\Games\SuperTeam\Cards;
 
 use Bga\Games\SuperTeam\BoardEvaluator;
+use Bga\Games\SuperTeam\Cards\Moves\CardDefensiveMoves;
+use Bga\Games\SuperTeam\Cards\Moves\DefensiveMovesContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\PlayerPiece;
+use Bga\Games\SuperTeam\States\MultiMove;
 use Bga\Games\SuperTeam\States\PassDestSelection;
 
 
@@ -19,10 +22,11 @@ class Basic1 extends Card
             "Basic A",
             CardType::Basic,
             "",
+            new CardDefensiveMoves(0, 1, 0, 1, 0),
             new DefensiveReward(1, 0, 0),
             false,
             new OffensiveReward(1, 2, 0),
-            false)
+            false,)
             , $board, $game);
     }
 
@@ -30,7 +34,7 @@ class Basic1 extends Card
     {
         $board = $this->board;
         $currentPlayer =  $this->game->getCurrentPlayerId();
-        $playerHasTheBall = BoardEvaluator::DoesPlayerHasTheBall($board, $currentPlayer);
+        $playerHasTheBall = BoardEvaluator::doesPlayerHasTheBall($board, $currentPlayer);
         $startHex = $board->getBallHex();
 
         return
@@ -98,15 +102,29 @@ class Basic1 extends Card
 
         $currentPlayer = \intval($this->game->getCurrentPlayerId());
 
-
-
         $canMoveAPieceToAdjacency = BoardEvaluator::canMoveAPieceNearAnOpponentPiece($this->board, $currentPlayer, $predicate);
+
+        //TODO: complete this:
+        return true;
     }
 
     protected function getDefensiveCommands(): array
     {
-        // TODO: Implement getDeffensiveCommands() method.
+        //we don't want this function at all! all moves are resolved the same.
+        return [
+            $this->goToMultiMoveState(...),
+            $this->evaluateMoves(...)];
+    }
 
-        return [];
+    private function goToMultiMoveState() : ExecutionResult
+    {
+        return new ExecutionResult(ExecutionAction::GoToState, MultiMove::class);
+    }
+
+    private function evaluateMoves() : ExecutionResult
+    {
+        //TODO: get pieces moved, and compare their position with original for forward/backward movement, and their current position for opponent adjacency.
+
+        return new ExecutionResult(ExecutionAction::Success);
     }
 }

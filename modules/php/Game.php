@@ -531,6 +531,9 @@ class Game extends \Bga\GameFramework\Table
 
         $playerHand->drawCard($cardType);
 
+        //TODO: this notification must change, I need to also send whether the played card can be played for tactics or not.
+        //that happens in the state on enter, so I need a refresh in web browser right now.
+
         $this->notify->player($currentPlayerId, "handRefill", "",
             [
                 'playerHand' => $playerHand->getCardsInHand(),

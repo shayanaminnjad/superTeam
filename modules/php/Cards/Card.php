@@ -2,9 +2,9 @@
 
 namespace Bga\Games\SuperTeam\Cards;
 
+use Bga\Games\SuperTeam\Cards\Moves\CardDefensiveMoves;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Board;
-use Bga\Games\SuperTeam\Cards\CardType;
 
 class CardReward
 {
@@ -46,7 +46,7 @@ class CardReward
         return CardReward::fromArray(json_decode($jsonInput, true));
     }
 
-    public static function fromArray(array $input)
+    public static function fromArray(array $input) : CardReward
     {
         return new CardReward($input['morale'], $input['move'], $input['action']);
     }
@@ -84,7 +84,7 @@ coach has a cost and a reward, which might be moving, reward is optional*/
 
 //there is a pass that you pass back, then pass forward.
 
-//There are or and and in rewards
+//There are or and in rewards
 
 //This is actually Team and basic cards
 
@@ -112,18 +112,19 @@ final class ExecutionResult
     ) {}
 }
 
-class CardDefinition
+readonly class CardDefinition
 {
     public function __construct(
-        public readonly string $name,
-        public readonly CardType $type,
-        public readonly string $toolTip,
+        public string $name,
+        public CardType $type,
+        public string $toolTip,
 
-        public readonly DefensiveReward $defensiveReward,
-        public readonly bool $defenseHasFatigue,
+        public CardDefensiveMoves $cardDefensiveMoves,
+        public DefensiveReward $defensiveReward,
+        public bool $defenseHasFatigue,
 
-        public readonly OffensiveReward $offensiveReward,
-        public readonly bool $offenseHasFatigue,
+        public OffensiveReward $offensiveReward,
+        public bool $offenseHasFatigue
     ) {}
 }
 
