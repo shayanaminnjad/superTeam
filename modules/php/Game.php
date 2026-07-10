@@ -109,35 +109,6 @@ class Game extends \Bga\GameFramework\Table
     }
 
     //(sha) TODO: probably this must be a part of board? or a piece manager?
-    public function getSelectablePieces(?callable $additionalPredicate): array
-    {
-        $board = $this->getBoard();
-
-        $activePlayerId = \intval($this->getActivePlayerId());
-        $activePlayerPieces = $board->getPlayerPiecesByOwner($activePlayerId);
-
-        $playerResources = new PlayerResources($activePlayerId);
-
-        $freshPieceIDs = [];
-        $exhaustedSelectablePieceIds = [];
-
-        for ($i = 0; $i < count($activePlayerPieces); $i++) {
-            $currentPiece = $activePlayerPieces[$i];
-            if ($currentPiece->getRole() != PlayerRole::GoalKeeper->value) {
-                if ($currentPiece->isFresh() && (!$additionalPredicate || $additionalPredicate($currentPiece))) {
-                    $freshPieceIDs[] = $currentPiece->getId();
-                } else if (!$currentPiece->isFresh() && $playerResources->getMorale() > 0 && (!$additionalPredicate || $additionalPredicate($currentPiece))) {
-                    $exhaustedSelectablePieceIds[] = $currentPiece->getId();
-                }
-            }
-        }
-
-        return [
-            'selectablePieces' => $freshPieceIDs,
-            'selectableExhaustedPieces' => $exhaustedSelectablePieceIds
-        ];
-    }
-
     public function getValidPassTargets(?callable $additionalCondition): array
     {
         $currentPlayer = \intval($this->getActivePlayerId());
@@ -489,19 +460,27 @@ class Game extends \Bga\GameFramework\Table
         return $this->cardFactory;
     }
 
-    //debug functions
+    //========================================================================================================
+    //-------------------------------------- cheats ----------------------------------------------------------
+    //========================================================================================================
     function debug_setMorale(int $amount) {
         $playerResource  =new PlayerResources(\intval($this->getActivePlayerId()));
         $playerResource->setMorale($amount, true);
     }
 
+    //---------------------------------------------------------------------------------------------------------
+
     function debug_advanceTimeTracker() {
         TimeTrack::AdvanceTimeTrack(true);
     }
 
+    //---------------------------------------------------------------------------------------------------------
+
     function debug_triggerHalfTime() {
         return ST_HALF_TIME;
     }
+
+    //---------------------------------------------------------------------------------------------------------
 
     function debug_defaultPieceSetup() {
         $board = $this->getBoard();
@@ -520,6 +499,8 @@ class Game extends \Bga\GameFramework\Table
             throw new \BgaUserException("This cheat method can only be called in piece setup state!");
         }
     }
+
+    //---------------------------------------------------------------------------------------------------------
 
     function debug_defaultAttributeSetup() {
         $currentPlayerId = \intval($this->getCurrentPlayerId());
@@ -540,4 +521,22 @@ class Game extends \Bga\GameFramework\Table
             throw new \BgaUserException("This cheat method can only be called in default attribute setup state!");
         }
     }
+
+    //---------------------------------------------------------------------------------------------------------
+
+    function debug_pickCard(string $cardType) : void
+    {
+        $currentPlayerId = \intval($this->getCurrentPlayerId());
+        $playerHand = $this->getPlayerHand($currentPlayerId);
+
+        $playerHand->drawCard($cardType);
+
+        $this->notify->player($currentPlayerId, "handRefill", "",
+            [
+                'playerHand' => $playerHand->getCardsInHand(),
+                'wasDiscardShuffled' => false,
+            ]);
+    }
+
+    //========================================================================================================
 }
