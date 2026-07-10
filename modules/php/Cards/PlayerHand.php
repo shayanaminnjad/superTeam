@@ -18,6 +18,8 @@ class PlayerHand
 
     private $discardName;
 
+    private static string $handName = 'hand';
+
     private $wasShuffled;
 
     public function __construct(int $playerId, Game $game) 
@@ -68,6 +70,21 @@ class PlayerHand
         return $this->wasShuffled;
     }
 
+    public function drawCard(string $cardType) : void
+    {
+        $cards = $this->cards->getCardsOfTypeInLocation($cardType, null, $this->deckName, null);
+
+        if (count($cards) == 0)
+            $cards = $this->cards->getCardsOfTypeInLocation($cardType, null, $this->discardName, null);
+
+        if (count($cards) == 0)
+            throw new \BgaUserException("card type `$cardType` does not exist, or is already inside your hand!");
+
+        $card = array_values($cards)[0];
+
+        $this->cards->moveCard($card["id"], self::$handName, $this->ownerId);
+    }
+
     public function discardCard(int $cardId) :void
     {
         $this->cards->moveCard($cardId, $this->discardName);
@@ -75,7 +92,7 @@ class PlayerHand
 
     public function CountCardsInHand(): int 
     {
-        return $this->cards->countCardInLocation('hand', $this->ownerId);
+        return $this->cards->countCardInLocation(self::$handName, $this->ownerId);
     }
 
     public function CountCardsDiscarded(): int 
@@ -105,7 +122,7 @@ class PlayerHand
     public function MoveAllCardsToDeck() : void
     {
         $this->cards->moveAllCardsInLocation($this->discardName, $this->deckName);
-        $this->cards->moveAllCardsInLocation('hand', $this->deckName, $this->getOwner());
+        $this->cards->moveAllCardsInLocation(self::$handName, $this->deckName, $this->getOwner());
     }
 
     public function shuffleDeck() 
