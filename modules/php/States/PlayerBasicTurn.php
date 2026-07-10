@@ -6,8 +6,11 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\BoardEvaluator;
+use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\MoveLogic;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\PlayerRole;
 use function count;
@@ -35,18 +38,13 @@ class PlayerBasicTurn extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
-        $pieceSelectableForMove = $this->game->getSelectablePieces(null);
-
-        //TODO: If the player with ball is the goal keeper, then only pass is possible!
-
-        $activePlayerId = intval($this->game->getActivePlayerId());
-
         $board = $this->game->getBoard();
+        $activePlayerId = intval($this->game->getActivePlayerId());
+        $pieceSelectableForMove = MoveLogic::extractFreeMoveMoveablePieces($board, $activePlayerId);
+
         $playerPieceWithBall = null;
         if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPieceWithBall)) 
         {
-            assert($playerPieceWithBall !== null); // useless, juse supress a warning.
-
             if ($playerPieceWithBall->getOwner() === $activePlayerId)
             {
                 $this->addClientButton('pass ball', [$this, 'actPassBall']);
@@ -55,7 +53,7 @@ class PlayerBasicTurn extends PlayerBaseState
                 {
                     $this->addClientButton('shoot', [$this, 'actShootBall']);
 
-                    if ($board->doesOpponentExistInNeighbours($board->getBallHex(), $activePlayerId, false)) 
+                    if (BoardEvaluator::doesOpponentExistInNeighbours($board, $board->getBallHex(), $activePlayerId, false))
                     {
                         $this->addClientButton('dribble', [$this, 'actDribble']);
                     }
@@ -63,7 +61,7 @@ class PlayerBasicTurn extends PlayerBaseState
             }
             else //so opponent has the ball!
             {
-                $anyoneCanTackle = count($board->getPiecesThatCanTackle(intval($this->game->getActivePlayerId()), $this->game->getInactivePlayerId())) > 0;
+                $anyoneCanTackle = count(BoardEvaluator::getPiecesThatCanTackle($board, intval($this->game->getActivePlayerId()), $this->game->getInactivePlayerId())) > 0;
 
                 if ($anyoneCanTackle)
                 {
@@ -73,7 +71,7 @@ class PlayerBasicTurn extends PlayerBaseState
         }
         
         //TODO: what if the other goalie has the ball?
-        if ((count($pieceSelectableForMove['selectablePieces']) > 0 || count($pieceSelectableForMove['selectableExhaustedPieces'])) > 0 &&
+        if (count($pieceSelectableForMove) > 0 &&
             ($playerPieceWithBall == null || $playerPieceWithBall->getRole() !== PlayerRole::GoalKeeper->value)) //FIXME: if opponent's goalie has the ball we should be able to move! 
         {
             $this->addClientButton('move', [$this, 'actMove']);
@@ -83,8 +81,10 @@ class PlayerBasicTurn extends PlayerBaseState
     }
 
     #[PossibleAction]
-    public function actMove(): string
+    public function actMove(int $activePlayerId): string
     {
+        MoveLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $activePlayerId, MoveTypes::FREE);
+
         return PieceSelection::class;
     }
 

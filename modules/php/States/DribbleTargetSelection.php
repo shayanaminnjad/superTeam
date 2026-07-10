@@ -7,6 +7,7 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
@@ -36,7 +37,7 @@ class DribbleTargetSelection extends GameState
     public function getArgs(): array
     {
         $board = $this->game->getBoard();
-        $adjacentOpponents = $board->getAdjacentOpponentPieces($board->getBallHex(), \intval($this->game->getActivePlayerId()), false);
+        $adjacentOpponents = BoardEvaluator::getAdjacentOpponentPieces($board, $board->getBallHex(), \intval($this->game->getActivePlayerId()), false);
 
         $adjacentOpponentsAsArray = [];
         foreach ($adjacentOpponents as $opponent) {
@@ -51,7 +52,7 @@ class DribbleTargetSelection extends GameState
     {
         $activePlayer = \intval($this->game->getActivePlayerId());
         $board = $this->game->getBoard();
-        $adjacentOpponents = $board->getAdjacentOpponentPieces($board->getBallHex(),$activePlayer, false);
+        $adjacentOpponents = BoardEvaluator::getAdjacentOpponentPieces($board, $board->getBallHex(),$activePlayer, false);
         $selectedHex = new HexID($hexColumn, $hexRow);
 
         $found = false;

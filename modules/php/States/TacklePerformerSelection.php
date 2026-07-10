@@ -7,6 +7,8 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\DBAdapter;
@@ -37,7 +39,7 @@ class TacklePerformerSelection extends GameState
     {
         $board = $this->game->getBoard();
 
-        $piecesThatCanTackle = $board->getPiecesThatCanTackle(\intval($this->game->getActivePlayerId()), $this->game->getInactivePlayerId());
+        $piecesThatCanTackle = BoardEvaluator::getPiecesThatCanTackle($board, \intval($this->game->getActivePlayerId()), $this->game->getInactivePlayerId());
 
         $piecesThatCanTackleIds = [];
         foreach($piecesThatCanTackle as $piece)
@@ -53,7 +55,7 @@ class TacklePerformerSelection extends GameState
     public function actPieceSelected(int $hexColumn, int $hexRow): string
     {
         $board = $this->game->getBoard();
-        $piecesThatCanTackle = $board->getPiecesThatCanTackle(\intval($this->game->getActivePlayerId()), $this->game->getInactivePlayerId());
+        $piecesThatCanTackle = BoardEvaluator::getPiecesThatCanTackle($board, \intval($this->game->getActivePlayerId()), $this->game->getInactivePlayerId());
         $selectedHex = new HexID($hexColumn, $hexRow);
 
         $found = false;

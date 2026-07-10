@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\MoveLogic;
 
 //TODO: This should be named movePieceSelection
 class PieceSelection extends PlayerBaseState
@@ -34,7 +35,25 @@ class PieceSelection extends PlayerBaseState
     {
         $this->addClientButton('cancel', [$this, 'actCancel']);
 
-        return $this->game->getSelectablePieces(null);
+        $moveablePiecesIds = MoveLogic::loadMoveablePiecesIds();
+        $board = $this->game->getBoard();
+
+        $freshPieceIDs = [];
+        $exhaustedSelectablePieceIds = [];
+        foreach($moveablePiecesIds as $moveablePieceId)
+        {
+            $pieceData = $board->getPlayerPieceData($moveablePieceId);
+
+            if ($pieceData->isFresh())
+                $freshPieceIDs[] = $pieceData->getId();
+            else
+                $exhaustedSelectablePieceIds[] = $pieceData->getId();
+        }
+
+        return [
+            'selectablePieces' => $freshPieceIDs,
+            'selectableExhaustedPieces' => $exhaustedSelectablePieceIds
+        ];
     }
 
     #[PossibleAction]
@@ -46,14 +65,17 @@ class PieceSelection extends PlayerBaseState
     #[PossibleAction]
     public function actPieceSelected(int $pieceId) : string
     {
-        $selectablePieces = $this->game->getSelectablePieces(null);
+        //TODO: validate the move.
 
+        /*
         if (!in_array($pieceId, $selectablePieces['selectablePieces'], true) &&
             !in_array($pieceId, $selectablePieces['selectableExhaustedPieces'], true))
         {
             throw new \BgaUserException("Piece Id {$pieceId} is not selectable.");
         }
+        */
 
+        //TODO: store the piece inside 'pieces_moved' too.
         $this->game->setGameStateValue('selected_piece', $pieceId);
 
         return MoveAction::class;
