@@ -63,9 +63,10 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `tactic_progress` INT DEFAULT - 1,
     `rewards_used` TEXT,
     `moves_performed` TEXT,
-    `pieces_moved` TEXT,
     `moveable_pieces` TEXT,
-    `current_move_type` TEXT
+    `current_move_type` TEXT,
+    `pieces_moved` TEXT,
+    `move_selected_piece_data` TEXT
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `player_temp_data` (
