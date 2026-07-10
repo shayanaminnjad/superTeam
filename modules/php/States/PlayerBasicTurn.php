@@ -85,7 +85,7 @@ class PlayerBasicTurn extends PlayerBaseState
     {
         MoveLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $activePlayerId, MoveTypes::FREE);
 
-        return PieceSelection::class;
+        return MovePieceSelection::class;
     }
 
     #[PossibleAction]

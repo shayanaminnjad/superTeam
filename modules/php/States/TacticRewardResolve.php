@@ -116,10 +116,9 @@ class TacticRewardResolve extends PlayerBaseState
 
         DBAdapter::getInstance()->storeActionReturnState($activePlayerId, self::class);
 
-        //TODO: here probably I should empty selected pieces, as the reward can contain a move, and I am not sure if that move should be unique.
         MoveLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $activePlayerId, MoveTypes::FREE);
 
-        return PieceSelection::class;
+        return MovePieceSelection::class;
     }
 
     function zombie(int $playerId): string
