@@ -113,6 +113,7 @@ final class MovePieceSelectionLogic
 
             $maxMoves = BoardEvaluator::getPieceMaxPossibleMovement($board, $playerId, $piece, $resources);
 
+            //hasBall is set to false, cause a move with ball also can at least one movement, so it is a moveable piece anyway.
             $moveableHexes = BoardSpatial::getMoveableHexes($board, $position, $maxMoves,false, $playerId);
 
             foreach ($moveableHexes as $hex)

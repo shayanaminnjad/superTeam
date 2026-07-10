@@ -7,14 +7,14 @@ use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 
 final class MoveHexSelectionLogic
 {
-    public static function GetAvailableHexes(Board $board, int $pieceId, MoveTypes $moveType): array
+    public static function GetAvailableHexes(Board $board, int $pieceId, MoveTypes $moveType, int $maxMovesPossible): array
     {
         $availableHexes = [];
 
         switch ($moveType)
         {
             case MoveTypes::BACKWARD:
-                $availableHexes = self::extractBackwardMoveablePieces($board, $pieceId);
+                $availableHexes = self::getBackwardMoveHexes($board, $pieceId);
                 break;
             case MoveTypes::FORWARD:
                 $availableHexes = self::getForwardMoveHexes($board, $pieceId);
@@ -23,10 +23,10 @@ final class MoveHexSelectionLogic
                 $availableHexes = self::getFreeMoveHexes($board, $pieceId);
                 break;
             case MoveTypes::FORWARD_NEAR_OPPONENT:
-                $availableHexes = self::extractForwardNearOpponentPieces($board, $pieceId);
+                $availableHexes = self::getForwardNearOpponentHexes($board, $pieceId, $maxMovesPossible);
                 break;
             case MoveTypes::BACKWARD_NEAR_OPPONENT:
-                $availableHexes = self::extractBackwardNearOpponentPieces($board, $pieceId);
+                $availableHexes = self::getBackwardNearOpponentHexes($board, $pieceId, $maxMovesPossible);
                 break;
             default:
                 throw new \BgaUserException("Invalid move type!");
@@ -65,7 +65,7 @@ final class MoveHexSelectionLogic
         return $res;
     }
 
-    private static function extractBackwardMoveablePieces(Board $board, int $pieceId): array
+    private static function getBackwardMoveHexes(Board $board, int $pieceId): array
     {
         $res = [];
 
@@ -87,26 +87,32 @@ final class MoveHexSelectionLogic
         return $res;
     }
 
-    private static function extractForwardNearOpponentPieces(Board $board, int $playerId): array
+    private static function getForwardNearOpponentHexes(Board $board, int $pieceId, int $movesRemaining): array
     {
-        /*
-        return self::extractMoveablePieces($board, $playerId,
-            fn(int $pieceColumn, HexID $hex, PlayerSide $side) => self::isColumnInPieceForward($pieceColumn, $hex->getColumn(), $side)
-                && BoardEvaluator::hasAdjacentOpponentPieces($board, $hex, $playerId, true)
-        );*/
+        $playerPiece = $board->getPlayerPieceData($pieceId);
+        $pieceHasBall = BoardEvaluator::doesPieceHasTheBall($board, $playerPiece);
 
-        return [];
+        $moveActionContext = new MoveActionContext();
+        $selectedPieceData = $moveActionContext->getSelectedPieceData();
+        $playerSide = Board::getPlayerSide($playerPiece->getOwner());
+
+        return BoardSpatial::findAdjacentMoveableHexesLeadToNearOpponent($board, $playerPiece->getPosition() , $movesRemaining, $pieceHasBall, $playerPiece->getOwner(),
+            fn(HexID $hex) => MoveHexSelectionLogic::isColumnInPieceForward($selectedPieceData->initialPosition->getColumn(), $hex->getColumn(), $playerSide)
+        );
     }
 
-    private static function extractBackwardNearOpponentPieces(Board $board, int $playerId): array
+    private static function getBackwardNearOpponentHexes(Board $board, int $pieceId, int $movesRemaining): array
     {
-        /*
-        return self::extractMoveablePieces($board, $playerId,
-            fn(int $pieceColumn, HexID $hex, PlayerSide $side) => self::isColumnInPieceBackward($pieceColumn, $hex->getColumn(), $side)
-                && BoardEvaluator::hasAdjacentOpponentPieces($board, $hex, $playerId, true)
-        );*/
+        $playerPiece = $board->getPlayerPieceData($pieceId);
+        $pieceHasBall = BoardEvaluator::doesPieceHasTheBall($board, $playerPiece);
 
-        return [];
+        $moveActionContext = new MoveActionContext();
+        $selectedPieceData = $moveActionContext->getSelectedPieceData();
+        $playerSide = Board::getPlayerSide($playerPiece->getOwner());
+
+        return BoardSpatial::findAdjacentMoveableHexesLeadToNearOpponent($board, $playerPiece->getPosition() , $movesRemaining, $pieceHasBall, $playerPiece->getOwner(),
+            fn(HexID $hex) => MoveHexSelectionLogic::isColumnInPieceBackward($selectedPieceData->initialPosition->getColumn(), $hex->getColumn(), $playerSide)
+        );
     }
 
     private static function isColumnInPieceForward(int $pieceColumn, int $column, PlayerSide $playerSide): bool

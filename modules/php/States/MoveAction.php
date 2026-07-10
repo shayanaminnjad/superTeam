@@ -7,7 +7,6 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\BoardEvaluator;
-use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\MoveHexSelectionLogic;
 use Bga\Games\SuperTeam\PlayerResources;
@@ -55,7 +54,9 @@ class MoveAction extends PlayerBaseState
         $moveActionContext = new MoveActionContext();
         $moveType = $moveActionContext->getCurrentMoveType();
 
-        $moveableHexes = MoveHexSelectionLogic::GetAvailableHexes($board, $pieceData->getId(), $moveType);
+        $movesTaken = intval($this->game->getGameStateValue('number_of_moves')); //TODO: move this to MoveActionContext class
+
+        $moveableHexes = MoveHexSelectionLogic::GetAvailableHexes($board, $pieceData->getId(), $moveType, $maxPossibleMovement - $movesTaken);
 
         $hexesToSend = [];
         foreach ($moveableHexes as $hex)
@@ -63,11 +64,10 @@ class MoveAction extends PlayerBaseState
             $hexesToSend[] = $hex->convertToArray();
         }
 
-        $numberOfMoves = intval($this->game->getGameStateValue('number_of_moves'));
-
-        if ($numberOfMoves > 0)
+        if ($movesTaken > 0) //TODO: allow finish movement, if move condition is met! (piece is near a target)
             $this->addClientButton('Finish Movement', [$this, 'actFinishMove']);
 
+        //TODO: send target hexes too.
         return ["moveableHexes" => $hexesToSend,
                 "selectedPiece" => $selectedPiece->id];
     }
