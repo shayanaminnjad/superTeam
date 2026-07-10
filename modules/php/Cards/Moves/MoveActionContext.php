@@ -3,6 +3,7 @@
 namespace Bga\Games\SuperTeam\Cards\Moves;
 
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\PlayerPiece;
 use http\Exception\RuntimeException;
 
 //(sha) consider whether caching is required at all.
@@ -16,6 +17,7 @@ class MoveActionContext
     private const string PIECES_MOVED_KEY = 'pieces_moved';
     private const string MOVES_PERFORMED_KEY = 'moves_performed';
     private const string CURRENT_MOVE_TYPE_KEY = 'current_move_type';
+    private const string SELECTED_PIECE_DATA_KEY = 'move_selected_piece_data';
 
     public function __construct()
     {
@@ -24,16 +26,6 @@ class MoveActionContext
         $this->loadPiecesMoved();
 
         $this->loadMovesPerformed();
-    }
-
-    public function addPieceMoved(int $pieceId) : void
-    {
-        if (in_array($pieceId, $this->piecesMoved, true))
-            return;
-
-        $this->piecesMoved[] = $pieceId;
-
-        $this->dbAdapter->storeGlobalString(self::PIECES_MOVED_KEY, json_encode($this->piecesMoved));
     }
 
     public function getPiecesMoved() : array
@@ -91,6 +83,39 @@ class MoveActionContext
         $this->dbAdapter->storeGlobalString(self::CURRENT_MOVE_TYPE_KEY, $moveTypes->value);
     }
 
+    public function setSelectedPieceData(PlayerPiece $piece) : void
+    {
+        $movedPieceInfo = new MovedPieceInfo($piece->getId(), $piece->getPosition());
+
+        $this->dbAdapter->storeGlobalString(self::SELECTED_PIECE_DATA_KEY, $movedPieceInfo->toJson());
+    }
+
+    public function getSelectedPieceData() : MovedPieceInfo
+    {
+        $movedPieceInfo = $this->dbAdapter->getGlobalString(self::SELECTED_PIECE_DATA_KEY);
+
+        if (empty($movedPieceInfo))
+            throw new RuntimeException('selected piece has not been set!');
+
+        return MovedPieceInfo::fromJson($movedPieceInfo);
+    }
+
+    public function moveSelectedPieceDataToMovedPieces() : void
+    {
+        $selectedPieceData = $this->getSelectedPieceData();
+        $this->piecesMoved[] = $selectedPieceData;
+
+        $this->storeMovedPieces();
+
+        $this->dbAdapter->storeGlobalString(self::SELECTED_PIECE_DATA_KEY, '');
+    }
+
+    private function storeMovedPieces() : void
+    {
+        $this->dbAdapter->storeGlobalString(self::PIECES_MOVED_KEY,
+            json_encode(array_map(fn(MovedPieceInfo $p) => $p->toArray(), $this->piecesMoved)));
+    }
+
     public function reset(): void
     {
         //TODO: do it in one query
@@ -101,16 +126,25 @@ class MoveActionContext
         $this->dbAdapter->storeGlobalString(self::MOVES_PERFORMED_KEY, '');
         $this->dbAdapter->storeGlobalString(self::MOVEABLE_PIECES_KEY, '');
         $this->dbAdapter->storeGlobalString(self::CURRENT_MOVE_TYPE_KEY, '');
+        $this->dbAdapter->storeGlobalString(self::SELECTED_PIECE_DATA_KEY, '');
     }
 
     private function loadPiecesMoved(): void
     {
         $piecesMovedJson = $this->dbAdapter->getGlobalString(self::PIECES_MOVED_KEY);
 
-        if (!empty($piecesMovedJson))
+        if (empty($piecesMovedJson))
         {
-            $this->piecesMoved = json_decode($piecesMovedJson, true) ?? [];
+            $this->piecesMoved = [];
+            return;
         }
+
+        $piecesMoved = json_decode($piecesMovedJson, true);
+
+        $this->piecesMoved = array_map(
+            fn(array $pieceMoved) => MovedPieceInfo::fromArray($pieceMoved),
+            $piecesMoved ?? []
+        );
     }
 
     private function loadMovesPerformed(): void
