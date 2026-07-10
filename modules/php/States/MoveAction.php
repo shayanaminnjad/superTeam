@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\BoardSpatial;
+use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
@@ -50,6 +51,9 @@ class MoveAction extends PlayerBaseState
 
         if ($maxPossibleMovement == 0)
             throw new \BgaUserException("piece can't be moved!");
+
+        $moveActionContext = new MoveActionContext();
+        $moveType = $moveActionContext->getCurrentMoveType();
 
         $pieceHasTheBall = ($board->getBallHex()->equals($pieceData->getPosition()));
         $moveableHexes = BoardSpatial::getMoveableHexes($board, $pieceData->getPosition(), 1, $pieceHasTheBall, $activePlayerId);

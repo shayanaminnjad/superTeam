@@ -8,7 +8,7 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 use Bga\Games\SuperTeam\Cards\Moves\CardDefensiveMoves;
-use Bga\Games\SuperTeam\Cards\Moves\DefensiveMovesContext;
+use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\DBAdapter;
@@ -70,11 +70,11 @@ class MultiMove extends PlayerBaseState
         if ($movesRemaining->getMoves($moveType) <= 0)
             throw new \BgaUserException("invalid move selected `$key`");
 
-        $defensiveMoveContext = new DefensiveMovesContext();
+        $moveActionContext = new MoveActionContext();
 
-        $movesPerformed = $defensiveMoveContext->getMovesPerformed();
+        $movesPerformed = $moveActionContext->getMovesPerformed();
         $movesPerformed->increaseMoveByOne($moveType);
-        $defensiveMoveContext->storeMovesPerformed($movesPerformed);
+        $moveActionContext->storeMovesPerformed($movesPerformed);
 
         $playerId = \intval($this->game->getActivePlayerId());
 
@@ -85,12 +85,14 @@ class MultiMove extends PlayerBaseState
 
         DBAdapter::getInstance()->storeActionReturnState($playerId, self::class);
 
+        $moveActionContext->setCurrentMoveType($moveType);
+
         return MovePieceSelection::class;
     }
 
     private function getRemainingMoves() : CardDefensiveMoves
     {
-        $defensiveMoveContext = new DefensiveMovesContext();
+        $defensiveMoveContext = new MoveActionContext();
         $tacticContext = new TacticContext();
 
         $cardInPlay = $tacticContext->getTacticInPlay();

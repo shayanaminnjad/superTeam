@@ -7,6 +7,7 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\BoardEvaluator;
+use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
@@ -84,6 +85,9 @@ class PlayerBasicTurn extends PlayerBaseState
     public function actMove(int $activePlayerId): string
     {
         MoveLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $activePlayerId, MoveTypes::FREE);
+
+        $moveActionContext = new MoveActionContext();
+        $moveActionContext->setCurrentMoveType(MoveTypes::FREE);
 
         return MovePieceSelection::class;
     }

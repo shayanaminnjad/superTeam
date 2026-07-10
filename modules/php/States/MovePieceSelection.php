@@ -6,10 +6,9 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
-use Bga\Games\SuperTeam\Cards\Moves\DefensiveMovesContext;
+use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
-use Bga\Games\SuperTeam\MoveLogic;
 
 class MovePieceSelection extends PlayerBaseState
 {
@@ -35,7 +34,9 @@ class MovePieceSelection extends PlayerBaseState
     {
         $this->addClientButton('cancel', [$this, 'actCancel']);
 
-        $moveablePiecesIds = MoveLogic::loadMoveablePiecesIds();
+        $moveActionContext = new MoveActionContext();
+        $moveablePiecesIds = $moveActionContext->getMoveablePiecesIds();
+
         $board = $this->game->getBoard();
 
         $freshPieceIDs = [];
@@ -65,12 +66,13 @@ class MovePieceSelection extends PlayerBaseState
     #[PossibleAction]
     public function actPieceSelected(int $pieceId) : string
     {
-        $moveablePiecesIds = MoveLogic::loadMoveablePiecesIds();
+        $moveActionContext = new MoveActionContext();
+        $moveablePiecesIds = $moveActionContext->getMoveablePiecesIds();
 
         if (!in_array($pieceId, $moveablePiecesIds, true))
             throw new \BgaUserException("Piece Id {$pieceId} is not selectable.");
 
-        $moveContext = new DefensiveMovesContext();
+        $moveContext = new MoveActionContext();
         $moveContext->addPieceMoved($pieceId);
 
         $this->game->setGameStateValue('selected_piece', $pieceId);
