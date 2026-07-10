@@ -6,6 +6,7 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\Cards\Moves\DefensiveMovesContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MoveLogic;
@@ -65,17 +66,14 @@ class PieceSelection extends PlayerBaseState
     #[PossibleAction]
     public function actPieceSelected(int $pieceId) : string
     {
-        //TODO: validate the move.
+        $moveablePiecesIds = MoveLogic::loadMoveablePiecesIds();
 
-        /*
-        if (!in_array($pieceId, $selectablePieces['selectablePieces'], true) &&
-            !in_array($pieceId, $selectablePieces['selectableExhaustedPieces'], true))
-        {
+        if (!in_array($pieceId, $moveablePiecesIds, true))
             throw new \BgaUserException("Piece Id {$pieceId} is not selectable.");
-        }
-        */
 
-        //TODO: store the piece inside 'pieces_moved' too.
+        $moveContext = new DefensiveMovesContext();
+        $moveContext->addPieceMoved($pieceId);
+
         $this->game->setGameStateValue('selected_piece', $pieceId);
 
         return MoveAction::class;
