@@ -25,7 +25,7 @@ class Board
         $this->dbadapter = $dBAdapter;
     }
 
-    public function setBallLocation(HexID $location)
+    public function setBallLocation(HexID $location) : void
     {
         $this->dbadapter->DbQuery("UPDATE ball SET `hex_column` = {$location->getColumn()}, `hex_row` = {$location->getRow()} ");
 
@@ -107,32 +107,7 @@ class Board
         return array_find($this->playerPieces, fn($x) => $pieceId === $x->getId());
     }
 
-    public function getAdjacentOpponentPieces(HexID $reference, int $playerId, bool $includeGoalie): array
-    {
-        $res = [];
-
-        $neighbourHexes = HexLib::getNeighbours(HexLib::offsetToCubic($reference), 1);
-
-        for ($i = 0; $i < \count($neighbourHexes); $i++) {
-            $playerPiece = null;
-            if ($this->tryGetPlayerPieceInHex(HexLib::cubicToHexID($neighbourHexes[$i]), $playerPiece)) {
-                if ($playerPiece && $playerPiece->getOwner() !== $playerId) {
-                    if ($playerPiece->getRole() !== PlayerRole::GoalKeeper->value || $includeGoalie) {
-                        $res[] = $playerPiece;
-                    }
-                }
-            }
-        }
-
-        return $res;
-    }
-
-    public function doesOpponentExistInNeighbours(HexID $reference, int $currentPlayer, bool $includeGoalie): bool
-    {
-        return \count($this->getAdjacentOpponentPieces($reference, $currentPlayer, $includeGoalie)) > 0;
-    }
-
-    public function swapHexesContent(HexID $lhs, HexID $rhs, bool $swapBall)
+    public function swapHexesContent(HexID $lhs, HexID $rhs, bool $swapBall) : void
     {
         $lhsPlayerPiece = null;
         $this->tryGetPlayerPieceInHex($lhs, $lhsPlayerPiece);
@@ -193,7 +168,7 @@ class Board
         return $res;
     }
 
-    public static function resetBoard(bool $withNotify)
+    public static function resetBoard(bool $withNotify) : void
     {
         DBAdapter::getInstance()->DbQuery(PlayerPiecesDBManager::resetPiecesDataQuery());
         $ballPos = BoardInfo::$CENTER_POSITION;
@@ -217,35 +192,18 @@ class Board
         return $playerId == $attackerId;
     }
 
-    //TODO: This can be inside a utility function instead of board itself!
-    public function getPiecesThatCanTackle(int $tacklingPlayer, int $opponentId)
+    public static function getPlayerSide(int $playerId) : PlayerSide
     {
-        $res = [];
-        $playerPiece = null;
+        $dbAdapter = DBAdapter::getInstance();
+        $userInLeftID = intval($dbAdapter->getGameStateValue('user_in_left_id'));
 
-        if ($this->tryGetPlayerPieceInHex($this->getBallHex(), $playerPiece)) 
-        {
-            assert($playerPiece !== null); //to supress a warning!
-
-            if ($playerPiece->getOwner() !== $tacklingPlayer && $playerPiece->getRole() !== PlayerRole::GoalKeeper->value)
-            {
-                //Here is a bit confusing, to we want our pieces, so we get opponent pieces regarding opponent Id!
-                //getAdjacentOpponentPieces, saves us a call to get inactive player with current implementation, maybe I need to change it.
-                $adjacentOpponents = $this->getAdjacentOpponentPieces($this->getBallHex(), $opponentId, false);
-
-                foreach($adjacentOpponents as $opponent)
-                {
-                    if ($opponent->getCanTackle())
-                    {
-                        $res[] = $opponent;
-                    }
-                }
-            }
-        }
-
-        return $res;
+        if ($userInLeftID === $playerId)
+            return PlayerSide::Left;
+        else
+            return PlayerSide::Right;
     }
 
+    //TODO: move these two to a helper class.
     public function getClosetBlockingPieceOrHalfWay(HexID $start, HexID $end, int $opponentId): HexID
     {
         $res = null;
