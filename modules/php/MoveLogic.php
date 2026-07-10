@@ -2,6 +2,7 @@
 
 namespace Bga\Games\SuperTeam;
 
+use Bga\Games\SuperTeam\Cards\Moves\DefensiveMovesContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 
 final class MoveLogic
@@ -31,17 +32,10 @@ final class MoveLogic
                 throw new \BgaUserException("Invalid move type!");
         }
 
-        //TODO: exclude pieces moved previously this tactic (if tactic was in play!)
+        $moveablePieces = self::excludePiecesMoveThisTurn($moveablePieces);
+        self::storeMoveablePiecesIds($moveablePieces);
 
-        if (\count($moveablePieces) > 0)
-        {
-            self::storeMoveablePiecesIds($moveablePieces);
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return \count($moveablePieces) > 0;
     }
 
     public static function storeMoveablePiecesIds(array $pieces) : void
@@ -167,5 +161,23 @@ final class MoveLogic
     {
         return $playerSide == PlayerSide::Left && $column < $pieceColumn ||
         $playerSide == PlayerSide::Right && $column > $pieceColumn;
+    }
+
+    private static function excludePiecesMoveThisTurn(array $moveablePieces) : array
+    {
+        $res = [];
+
+        $defensiveMoveContext = new DefensiveMovesContext();
+        $piecesMoved = $defensiveMoveContext->getPiecesMoved();
+
+        foreach($moveablePieces as $piece)
+        {
+            if (!in_array($piece->getId(), $piecesMoved, true))
+            {
+                $res[] = $piece;
+            }
+        }
+
+        return $res;
     }
 }
