@@ -8,9 +8,11 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 
+use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\MoveLogic;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Cards\TacticType;
 use Bga\Games\SuperTeam\Cards\CardReward;
@@ -113,6 +115,9 @@ class TacticRewardResolve extends PlayerBaseState
         $this->storeRewardClaimed($claimedReward);
 
         DBAdapter::getInstance()->storeActionReturnState($activePlayerId, self::class);
+
+        //TODO: here probably I should empty selected pieces, as the reward can contain a move, and I am not sure if that move should be unique.
+        MoveLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $activePlayerId, MoveTypes::FREE);
 
         return PieceSelection::class;
     }
