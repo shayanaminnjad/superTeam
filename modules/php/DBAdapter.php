@@ -139,7 +139,10 @@ class DBAdapter
     {
         $row = $this->getObjectFromDB("SELECT `$entry` FROM `st_globals`");
 
-        return $row[$entry];
+        if ($row[$entry] == null)
+            return '';
+        else
+            return $row[$entry];
     }
 
     public function storeGlobalInt(string $entry, int $value) : void
