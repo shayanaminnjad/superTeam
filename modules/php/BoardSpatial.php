@@ -114,6 +114,68 @@ final class BoardSpatial
         return false;
     }
 
+    public static function findAdjacentMoveableHexesLeadToNearOpponent(Board $board, HexID $startPos, int $maxMoveDist, bool $hasBall, int $playerId, ?callable $additionalConditions): array
+    {
+        $res = [];
+
+        $queue = [];
+        $head = 0;
+        $visited = [];
+
+        $queue[] = [new GraphNode($startPos, null), 0];
+        $visited[$startPos->getId()] = true;
+
+        while ($head < count($queue))
+        {
+            [$currentNode, $currentDepth] = $queue[$head++];
+
+            //TODO: account for when we start movement and we are near opponent. (this should be handled in piece selection, is it handled?)
+
+            $currentNeighbors = HexLib::getNeighbours(HexLib::offsetToCubic($currentNode->node), 1);
+
+            if (!$startPos->equals($currentNode->node))
+            {
+                foreach ($currentNeighbors as $cubicNeighbor)
+                {
+                    if (BoardEvaluator::hasOpponentPieceInHex($board, HexLib::cubicToHexID($cubicNeighbor), $playerId))
+                    {
+                        $startAdjacentNode = $currentNode;
+                        $parentNode = $startAdjacentNode->parent;
+
+                        while($parentNode->parent != null) //we don't want to have root node.
+                        {
+                            $startAdjacentNode = $parentNode;
+                            $parentNode = $startAdjacentNode->parent;
+                        }
+
+                        if (!array_any($res, fn(HexID $foundHex) => $startAdjacentNode->node->equals($foundHex)))
+                            $res[] = $startAdjacentNode->node;
+
+                        break;
+                    }
+                }
+            }
+
+            if ($currentDepth == $maxMoveDist)
+                continue;
+
+            if (self::shouldPieceEndMovement($board, $currentNeighbors, $currentDepth, $hasBall, $playerId))
+                continue;
+
+            foreach ($currentNeighbors as $cubicNeighbor)
+            {
+                $neighborHex = HexLib::cubicToHexID($cubicNeighbor);
+                if (!isset($visited[$neighborHex->getId()]) && self::isHexMoveable($board, $neighborHex) && (!$additionalConditions || $additionalConditions($neighborHex)))
+                {
+                    $queue[] = [new GraphNode($neighborHex, $currentNode), $currentDepth + 1];
+                    $visited[$neighborHex->getId()] = true;
+                }
+            }
+        }
+
+        return $res;
+    }
+
     public static function findPathToTarget(Board $board, HexID $startPos, HexID $targetHex, int $maxMoveDist, bool $hasBall, int $playerId): array
     {
         if ($targetHex->equals($startPos))
@@ -246,5 +308,5 @@ readonly class GraphNode
     }
 
     public HexID $node;
-    public GraphNode $parent;
+    public ?GraphNode $parent;
 }
