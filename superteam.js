@@ -172,13 +172,13 @@ define([
                     let clientButton = clientButtons[i];
                     this.statusBar.addActionButton(clientButton['name'], async () => {
                         if (!this.clientButtonNeedsConfirm) {
-                            this.performServerAction(clientButton['action']);
+                            this.performServerAction(clientButton['action'], clientButton['paramsToSendBack']);
                         }
                         else {
                             this.statusBar.removeActionButtons();
                             topic.publish('serverActionRequested', clientButton['name']);
                             this.statusBar.addActionButton('confirm', async () => {
-                                this.performServerAction(clientButton['action']);
+                                this.performServerAction(clientButton['action'], clientButton['paramsToSendBack']);
                             });
 
                             this.statusBar.addActionButton('cancel', () => {
