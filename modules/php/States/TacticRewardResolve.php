@@ -13,7 +13,7 @@ use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
-use Bga\Games\SuperTeam\MoveLogic;
+use Bga\Games\SuperTeam\MovePieceSelectionLogic;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Cards\TacticType;
 use Bga\Games\SuperTeam\Cards\CardReward;
@@ -117,7 +117,7 @@ class TacticRewardResolve extends PlayerBaseState
 
         DBAdapter::getInstance()->storeActionReturnState($activePlayerId, self::class);
 
-        MoveLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $activePlayerId, MoveTypes::FREE);
+        MovePieceSelectionLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $activePlayerId, MoveTypes::FREE);
 
         $moveActionContext = new MoveActionContext();
         $moveActionContext->setCurrentMoveType(MoveTypes::FREE);

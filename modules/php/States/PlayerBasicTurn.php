@@ -11,7 +11,7 @@ use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
-use Bga\Games\SuperTeam\MoveLogic;
+use Bga\Games\SuperTeam\MovePieceSelectionLogic;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\PlayerRole;
 use function count;
@@ -41,7 +41,7 @@ class PlayerBasicTurn extends PlayerBaseState
     {
         $board = $this->game->getBoard();
         $activePlayerId = intval($this->game->getActivePlayerId());
-        $pieceSelectableForMove = MoveLogic::extractFreeMoveMoveablePieces($board, $activePlayerId);
+        $pieceSelectableForMove = MovePieceSelectionLogic::extractFreeMoveMoveablePieces($board, $activePlayerId);
 
         $playerPieceWithBall = null;
         if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPieceWithBall)) 
@@ -84,7 +84,7 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actMove(int $activePlayerId): string
     {
-        MoveLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $activePlayerId, MoveTypes::FREE);
+        MovePieceSelectionLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $activePlayerId, MoveTypes::FREE);
 
         $moveActionContext = new MoveActionContext();
         $moveActionContext->setCurrentMoveType(MoveTypes::FREE);

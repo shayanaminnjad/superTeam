@@ -2,10 +2,10 @@
 
 namespace Bga\Games\SuperTeam;
 
-use Bga\Games\SuperTeam\Cards\Moves\DefensiveMovesContext;
+use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 
-final class MoveLogic
+final class MovePieceSelectionLogic
 {
     public static function enforceMovePieceSelectionConstraints(Board $board, int $playerId, MoveTypes $moveType, bool $excludePreviouslyMoved = false) : bool
     {
@@ -38,31 +38,6 @@ final class MoveLogic
         self::storeMoveablePiecesIds($moveablePieces);
 
         return \count($moveablePieces) > 0;
-    }
-
-    public static function storeMoveablePiecesIds(array $pieces) : void
-    {
-        $dbAdapter = DBAdapter::getInstance();
-
-        $res = [];
-        foreach ($pieces as $piece)
-        {
-            $res[] = $piece->getId();
-        }
-
-        $dbAdapter->storeGlobalString('moveable_pieces', json_encode($res));
-    }
-
-    public static function loadMoveablePiecesIds() : array
-    {
-        $dbAdapter = DBAdapter::getInstance();
-
-        $json = $dbAdapter->getGlobalString('moveable_pieces');
-
-        if (empty($json))
-            return [];
-
-        return json_decode($json, true);
     }
 
     public static function extractFreeMoveMoveablePieces(Board $board, int $playerId) : array
@@ -169,7 +144,7 @@ final class MoveLogic
     {
         $res = [];
 
-        $defensiveMoveContext = new DefensiveMovesContext();
+        $defensiveMoveContext = new MoveActionContext();
         $piecesMoved = $defensiveMoveContext->getPiecesMoved();
 
         foreach($moveablePieces as $piece)
@@ -181,5 +156,12 @@ final class MoveLogic
         }
 
         return $res;
+    }
+
+    private static function storeMoveablePiecesIds(array $pieces) : void
+    {
+        $moveActionContext = new MoveActionContext();
+
+        $moveActionContext->storeMoveablePieces($pieces);
     }
 }
