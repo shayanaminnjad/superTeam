@@ -27,6 +27,8 @@ final class MoveLogic
             case MoveTypes::BACKWARD_NEAR_OPPONENT:
                 $moveablePieces = self::extractBackwardNearOpponentPieces($board, $playerId);
                 break;
+            default:
+                throw new \BgaUserException("Invalid move type!");
         }
 
         //TODO: exclude pieces moved previously this tactic (if tactic was in play!)
@@ -137,7 +139,6 @@ final class MoveLogic
                 continue;
 
             $position = $piece->getPosition();
-            $pieceColumn = $position->getColumn();
 
             $maxMoves = BoardEvaluator::getPieceMaxPossibleMovement($board, $playerId, $piece, $resources);
 
@@ -145,7 +146,7 @@ final class MoveLogic
 
             foreach ($moveableHexes as $hex)
             {
-                if ($isValidDestination($pieceColumn, $hex, $side))
+                if ($isValidDestination === null || $isValidDestination($position->getColumn(), $hex, $side))
                 {
                     $res[] = $piece;
                     break;
