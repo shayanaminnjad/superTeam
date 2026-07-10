@@ -7,7 +7,7 @@ use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 
 final class MoveLogic
 {
-    public static function enforceMovePieceSelectionConstraints(Board $board, int $playerId, MoveTypes $moveType) : bool
+    public static function enforceMovePieceSelectionConstraints(Board $board, int $playerId, MoveTypes $moveType, bool $excludePreviouslyMoved = false) : bool
     {
         $moveablePieces = [];
 
@@ -32,7 +32,9 @@ final class MoveLogic
                 throw new \BgaUserException("Invalid move type!");
         }
 
-        $moveablePieces = self::excludePiecesMoveThisTurn($moveablePieces);
+        if ($excludePreviouslyMoved)
+            $moveablePieces = self::excludePiecesMoveThisTurn($moveablePieces);
+
         self::storeMoveablePiecesIds($moveablePieces);
 
         return \count($moveablePieces) > 0;
