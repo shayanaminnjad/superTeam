@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Cards\CardReward;
+use Bga\Games\SuperTeam\Cards\Moves\DefensiveMovesContext;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
@@ -40,7 +41,8 @@ class CardSelection extends PlayerBaseState
         $tacticContext = new TacticContext();
         $tacticContext->reset();
 
-        //TODO: if there is only card in player's hand, then pass the turn automatically!
+        $moveContext = new DefensiveMovesContext();
+        $moveContext->reset();
     }
 
     public function selfGetArgs(): array
