@@ -87,8 +87,6 @@ class CardSelection extends PlayerBaseState
 
         $playerHand = $this->game->getPlayerHand($activePlayer);
 
-        $cardDef = $playerHand->getCard($cardId);
-
         if ($playerHand->CountCardsInHand() == 1)
             throw new \BgaUserException("You can't play more than 3 cards in a turn!");
 
@@ -115,6 +113,8 @@ class CardSelection extends PlayerBaseState
             $isAttacker = Board::isPlayerAttacker($activePlayer);
 
             $tacticContext = new TacticContext();
+
+            $cardDef = $playerHand->getCard($cardId);
 
             $tacticContext->setTacticInPlay($cardDef['type']);
             $tacticContext->setTacticProgress(0);
