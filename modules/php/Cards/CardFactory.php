@@ -10,8 +10,6 @@ class CardFactory
 
     public function registerCard(string $id, callable $cardCreator)
     {
-        Logger::logInfo("Card " . $id . "registered");
-
         $this->registry[$id] = $cardCreator;
     }
 

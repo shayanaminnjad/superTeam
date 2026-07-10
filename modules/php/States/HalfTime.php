@@ -36,7 +36,6 @@ class HalfTime extends GameState
         {
             $hand->MoveAllCardsToDeck();
 
-            Logger::logInfo('player hand reset notification sent!');
             NotificationAdapter::getInstance()->notifyPlayer($hand->getOwner(), 'cardReset', '',[]);
         }
 
