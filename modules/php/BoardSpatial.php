@@ -114,9 +114,11 @@ final class BoardSpatial
         return false;
     }
 
-    public static function findAdjacentMoveableHexesLeadToNearOpponent(Board $board, HexID $startPos, int $maxMoveDist, bool $hasBall, int $playerId, ?callable $additionalConditions): array
+    public static function findMoveableHexesToTarget(Board $board, HexID $startPos, int $maxMoveDist, bool $hasBall, int $playerId, callable $targetPredicate): array
     {
         $res = [];
+
+        $validTargets = [];
 
         $queue = [];
         $head = 0;
@@ -130,34 +132,22 @@ final class BoardSpatial
             [$currentNode, $currentDepth] = $queue[$head++];
 
             //TODO: account for when we start movement and we are near opponent. (this should be handled in piece selection, is it handled?)
-
-            $currentNeighbors = HexLib::getNeighbours(HexLib::offsetToCubic($currentNode->node), 1);
-
             if (!$startPos->equals($currentNode->node))
             {
-                foreach ($currentNeighbors as $cubicNeighbor)
+                if ($targetPredicate($board, $currentNode->node,  $playerId))
                 {
-                    if (BoardEvaluator::hasOpponentPieceInHex($board, HexLib::cubicToHexID($cubicNeighbor), $playerId))
-                    {
-                        $startAdjacentNode = $currentNode;
-                        $parentNode = $startAdjacentNode->parent;
+                    $validTargets[] = $currentNode->node;
+                    $startAdjacentNode = self::TraverseToAdjacent($currentNode);
 
-                        while($parentNode->parent != null) //we don't want to have root node.
-                        {
-                            $startAdjacentNode = $parentNode;
-                            $parentNode = $startAdjacentNode->parent;
-                        }
-
-                        if (!array_any($res, fn(HexID $foundHex) => $startAdjacentNode->node->equals($foundHex)))
-                            $res[] = $startAdjacentNode->node;
-
-                        break;
-                    }
+                    if (!array_any($res, fn(HexID $foundHex) => $startAdjacentNode->node->equals($foundHex)))
+                        $res[] = $startAdjacentNode->node;
                 }
             }
 
             if ($currentDepth == $maxMoveDist)
                 continue;
+
+            $currentNeighbors = HexLib::getNeighbours(HexLib::offsetToCubic($currentNode->node), 1);
 
             if (self::shouldPieceEndMovement($board, $currentNeighbors, $currentDepth, $hasBall, $playerId))
                 continue;
@@ -165,10 +155,20 @@ final class BoardSpatial
             foreach ($currentNeighbors as $cubicNeighbor)
             {
                 $neighborHex = HexLib::cubicToHexID($cubicNeighbor);
-                if (!isset($visited[$neighborHex->getId()]) && self::isHexMoveable($board, $neighborHex) && (!$additionalConditions || $additionalConditions($neighborHex)))
+                if (!isset($visited[$neighborHex->getId()]))
                 {
-                    $queue[] = [new GraphNode($neighborHex, $currentNode), $currentDepth + 1];
-                    $visited[$neighborHex->getId()] = true;
+                    if (self::isHexMoveable($board, $neighborHex))
+                    {
+                        $queue[] = [new GraphNode($neighborHex, $currentNode), $currentDepth + 1];
+                        $visited[$neighborHex->getId()] = true;
+                    }
+                }
+                else if (array_any($validTargets, fn($target) => $target->equals($neighborHex)))
+                {
+                    $startAdjacentNode = self::TraverseToAdjacent($currentNode);
+
+                    if (!array_any($res, fn(HexID $foundHex) => $startAdjacentNode->node->equals($foundHex)))
+                        $res[] = $startAdjacentNode->node;
                 }
             }
         }
@@ -296,6 +296,19 @@ final class BoardSpatial
         }
 
         return $shouldStop;
+    }
+
+    private static function TraverseToAdjacent(GraphNode $currentNode): GraphNode
+    {
+        $startAdjacentNode = $currentNode;
+        $parentNode = $startAdjacentNode->parent;
+
+        while ($parentNode->parent != null) //we don't want to have root node.
+        {
+            $startAdjacentNode = $parentNode;
+            $parentNode = $startAdjacentNode->parent;
+        }
+        return $startAdjacentNode;
     }
 }
 
