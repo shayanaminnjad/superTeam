@@ -73,45 +73,6 @@ class BoardEvaluator
         return false;
     }
 
-    public static function canMoveAPieceNearAnOpponentPiece(Board $board, int $playerId, callable $opponentPredicate) : bool
-    {
-        $playerPieces = $board->getPlayerPiecesByOwner($playerId);
-        $opponentPieces = self::getOpponentPieces($board, $playerId);
-
-        foreach ($playerPieces as $playerPiece)
-        {
-            foreach ($opponentPieces as $opponentPiece)
-            {
-                if ($opponentPredicate($playerPiece, $opponentPiece))
-                {
-                    if (self::canMoveToAdjacentPosition($board, $playerId, $playerPiece, $opponentPiece->getPosition()))
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    public static function canMoveToAdjacentPosition(Board $board, int $playerId, PlayerPiece $piece, HexID $targetPos): bool
-    {
-        $distance = (int)HexLib::getOffsetDistance($piece->getPosition(), $targetPos);
-
-        //TODO: if we are adjacent and move to another adjacent position with move forward/backward rule, it is ok.
-        if ($distance == 1)
-            return false; //already adjacent!
-
-        $pieceMaxMoveDistance = self::getPieceMaxPossibleMovement($board, $playerId, $piece, new PlayerResources($playerId));
-
-        if (($distance - 1) > $pieceMaxMoveDistance)
-            return false;
-
-        $hasBall = self::doesPieceHasTheBall($board, $piece);
-        return BoardSpatial::canFindPathToTargetAdjacency($board, $piece->getPosition(), $targetPos, $pieceMaxMoveDistance, $hasBall, $playerId);
-    }
-
     public static function getPieceMaxPossibleMovement(Board $board, int $playerId, PlayerPiece $piece, PlayerResources $resources) : int
     {
         $pieceMaxMoveDistance = 2;
@@ -132,20 +93,6 @@ class BoardEvaluator
         }
 
         return $pieceMaxMoveDistance;
-    }
-
-    public static function countPiecesThatCanBeMovedForward(Board $board, int $playerId): int
-    {
-        $playerPieces = $board->getPlayerPiecesByOwner($playerId);
-
-        foreach ($playerPieces as $playerPiece)
-        {
-
-        }
-
-        //todo; implement this:
-
-        return 0;
     }
 
     public static function getAdjacentOpponentPieces(Board $board, HexID $reference, int $playerId, bool $includeGoalie): array
