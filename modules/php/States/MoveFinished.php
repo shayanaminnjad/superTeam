@@ -31,14 +31,10 @@ class MoveFinished extends GameState
     {
         $moveActionContext = new MoveActionContext();
         $movePieceData = $moveActionContext->getSelectedPieceData();
-
-        $this->game->DbQuery("UPDATE player_pieces SET is_fresh = FALSE  WHERE `id` = $movePieceData->id");
+        $piece = $this->game->getBoard()->getPiece($movePieceData->id);
+        $piece->setFreshness(false, true);
 
         $this->game->setGameStateValue('number_of_moves', 0);
-
-        $this->notify->all("pieceExhausted", \clienttranslate('piece was exhausted'), array(
-            "pieceId" => $movePieceData->id,
-        ));
 
         $moveActionContext->moveSelectedPieceDataToMovedPieces();
 
