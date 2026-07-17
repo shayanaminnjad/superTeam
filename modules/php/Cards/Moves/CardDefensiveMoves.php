@@ -42,6 +42,18 @@ class CardDefensiveMoves
         $this->moves[$id->value] = $this->moves[$id->value] + 1;
     }
 
+    public function getTotalMoves() : int
+    {
+        $total = 0;
+
+        foreach ($this->moves as $value)
+        {
+            $total += $value;
+        }
+
+        return $total;
+    }
+
     public function isEmpty() : bool
     {
         return array_all($this->moves, fn($value) => $value <= 0);
