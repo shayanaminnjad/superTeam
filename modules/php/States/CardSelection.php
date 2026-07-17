@@ -12,9 +12,9 @@ use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
-use Bga\Games\SuperTeam\Utility\Logger;
 use Bga\Games\SuperTeam\Cards\TacticType;
 use Bga\Games\SuperTeam\Cards\TacticContext;
+use Bga\Games\SuperTeam\PlayerResources;
 
 class CardSelection extends PlayerBaseState
 {
@@ -104,9 +104,9 @@ class CardSelection extends PlayerBaseState
 
         //TODO: save last played card and send it to the player, or give the cards an index indicating
         //the order of discard.
+        $dbAdapter = DBAdapter::getInstance();
         if ($asBasic)
         {
-            $dbAdapter = DBAdapter::getInstance();
             $dbAdapter->storeActionReturnState($activePlayer, CardSelection::class);
             return PlayerBasicTurn::class;
         }
@@ -122,6 +122,15 @@ class CardSelection extends PlayerBaseState
             $tacticContext->setTacticProgress(0);
             $tacticContext->setRewardUsed(CardReward::empty());
             $tacticContext->setTacticType($isAttacker ? TacticType::Offensive : TacticType::Defensive);
+
+            if ($tacticContext->getTacticType() == TacticType::Defensive)
+            {
+                $moveActionContext = new MoveActionContext();
+                $moveActionContext->setBallInitialLocation($this->game->getBoard()->getBallHex());
+
+                $playerResource = new PlayerResources($activePlayer);
+                $moveActionContext->setMoraleInitialAmount($playerResource->getMorale());
+            }
 
             return TacticalTurnStateManager::class;
         }
