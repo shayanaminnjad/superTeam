@@ -29,10 +29,11 @@ define([
     g_gamethemeurl + "modules/js/PlayerArea.js",
     g_gamethemeurl + "modules/js/STCardsManager.js",
     g_gamethemeurl + "modules/js/TrackerBoard.js",
+    g_gamethemeurl + "modules/js/GameEventProcessor.js",
     "ebg/core/gamegui",
     "ebg/counter"
 ],
-    function (dojo, declare, topic, STHexLib, PieceManager, STHUIHelpers, Board, DiceUI, PlayerPanelManager, StatesRegistry, PlayerArea, STCardsManager, TrackerBoard) {
+    function (dojo, declare, topic, STHexLib, PieceManager, STHUIHelpers, Board, DiceUI, PlayerPanelManager, StatesRegistry, PlayerArea, STCardsManager, TrackerBoard, GameEventProcessor) {
         return declare("bgagame.superteam", ebg.core.gamegui, {
             constructor: function () {
                 console.log('superteam constructor');
@@ -62,6 +63,11 @@ define([
                 PlayerPanelManager.construct(this, gamedatas);
 
                 TrackerBoard.construct(this, gamedatas.time_index, 0, 0);
+
+                this.pieceManager = PieceManager.getPieceManager();
+                this.pieceManager.construct(this);
+
+                GameEventProcessor.construct(this, this.pieceManager);
 
                 this.setupMainBoard(gamedatas);
 
@@ -235,9 +241,6 @@ define([
             },
 
             setPiecesData: async function (gameDatas) {
-                this.pieceManager = PieceManager.getPieceManager();
-                this.pieceManager.construct(this);
-
                 let piecesData = gameDatas["player_pieces"];
 
                 for (let i = 0; i < piecesData.length; ++i) {
@@ -370,6 +373,32 @@ define([
             notif_resetBoard: async function (notifData) {
                 Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
                 return this.pieceManager.animateResetPieces(parseInt(notifData.goalieRow));
+            },
+
+            notif_undoMove: async function (notifData) {
+                Board.passBall(
+                    STHexLib.createOffsetCoord(
+                        notifData.ballHex.hex_row,
+                        notifData.ballHex.hex_column
+                    )
+                );
+
+                let piecesToHexes = [];
+
+                for (let piecesTohex of notifData.piecesToHexes)
+                {
+                    piecesToHexes.push({
+                        pieceId: piecesTohex.pieceId,
+                        hex: STHexLib.createOffsetCoord(
+                            piecesTohex.position.hex_row,
+                            piecesTohex.position.hex_column
+                        )
+                    });
+                }
+
+                let undoAnimation = GameEventProcessor.UndoMoveAnimated(piecesToHexes, notifData.freshPieces);
+
+                await this.bgaPlayDojoAnimation(undoAnimation);
             },
 
             notif_timeTrackAdvance: async function(notifData) {
