@@ -44,6 +44,17 @@ class Board
         return $this->playerPieces;
     }
 
+    public function getPiece(int $id) : PlayerPiece | null
+    {
+        foreach($this->playerPieces as $piece)
+        {
+            if ($piece->getId() == $id)
+                return $piece;
+        }
+
+        return null;
+    }
+
     public function hasPlayerInHex(HexID $hexID): bool
     {
         for ($i = 0; $i < \count($this->playerPieces); $i++) {
