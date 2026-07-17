@@ -3,6 +3,7 @@
 namespace Bga\Games\SuperTeam\Cards\Moves;
 
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\PlayerPiece;
 use http\Exception\RuntimeException;
 
@@ -18,6 +19,9 @@ class MoveActionContext
     private const string MOVES_PERFORMED_KEY = 'moves_performed';
     private const string CURRENT_MOVE_TYPE_KEY = 'current_move_type';
     private const string SELECTED_PIECE_DATA_KEY = 'move_selected_piece_data';
+    private const string BALL_BEFORE_MOVE_lOCATION_KEY = 'ball_before_tactic_location';
+    private const string MORALE_BEFORE_MOVE_KEY = 'morale_before_tactic';
+
 
     public function __construct()
     {
@@ -28,24 +32,24 @@ class MoveActionContext
         $this->loadMovesPerformed();
     }
 
-    public function getPiecesMoved() : array
+    public function getPiecesMoved(): array
     {
         return $this->piecesMoved;
     }
 
-    public function getMovesPerformed() : CardDefensiveMoves
+    public function getMovesPerformed(): CardDefensiveMoves
     {
         return $this->movesPerformed;
     }
 
-    public function storeMovesPerformed(CardDefensiveMoves $movesPerformed) : void
+    public function storeMovesPerformed(CardDefensiveMoves $movesPerformed): void
     {
         $this->movesPerformed = $movesPerformed;
 
         $this->dbAdapter->storeGlobalString(self::MOVES_PERFORMED_KEY, $movesPerformed->toJson());
     }
 
-    public function storeMoveablePieces(array $pieces) : void
+    public function storeMoveablePieces(array $pieces): void
     {
         $res = [];
         foreach ($pieces as $piece)
@@ -56,7 +60,7 @@ class MoveActionContext
         $this->dbAdapter->storeGlobalString(self::MOVEABLE_PIECES_KEY, json_encode($res));
     }
 
-    public function getMoveablePiecesIds() : array
+    public function getMoveablePiecesIds(): array
     {
         $json = $this->dbAdapter->getGlobalString(self::MOVEABLE_PIECES_KEY);
 
@@ -66,7 +70,7 @@ class MoveActionContext
         return json_decode($json, true);
     }
 
-    public function getCurrentMoveType() : MoveTypes
+    public function getCurrentMoveType(): MoveTypes
     {
         $moveTypeStr = $this->dbAdapter->getGlobalString(self::CURRENT_MOVE_TYPE_KEY);
 
@@ -78,19 +82,19 @@ class MoveActionContext
         return $moveType;
     }
 
-    public function setCurrentMoveType(MoveTypes $moveTypes) : void
+    public function setCurrentMoveType(MoveTypes $moveTypes): void
     {
         $this->dbAdapter->storeGlobalString(self::CURRENT_MOVE_TYPE_KEY, $moveTypes->value);
     }
 
-    public function setSelectedPieceData(PlayerPiece $piece) : void
+    public function setSelectedPieceData(PlayerPiece $piece): void
     {
-        $movedPieceInfo = new MovedPieceInfo($piece->getId(), $piece->getPosition());
+        $movedPieceInfo = new MovedPieceInfo($piece->getId(), $piece->getPosition(), $piece->isFresh());
 
         $this->dbAdapter->storeGlobalString(self::SELECTED_PIECE_DATA_KEY, $movedPieceInfo->toJson());
     }
 
-    public function getSelectedPieceData() : MovedPieceInfo
+    public function getSelectedPieceData(): MovedPieceInfo
     {
         $movedPieceInfo = $this->dbAdapter->getGlobalString(self::SELECTED_PIECE_DATA_KEY);
 
@@ -100,7 +104,7 @@ class MoveActionContext
         return MovedPieceInfo::fromJson($movedPieceInfo);
     }
 
-    public function moveSelectedPieceDataToMovedPieces() : void
+    public function moveSelectedPieceDataToMovedPieces(): void
     {
         $selectedPieceData = $this->getSelectedPieceData();
         $this->piecesMoved[] = $selectedPieceData;
@@ -108,6 +112,28 @@ class MoveActionContext
         $this->storeMovedPieces();
 
         $this->dbAdapter->storeGlobalString(self::SELECTED_PIECE_DATA_KEY, '');
+    }
+
+    public function setBallInitialLocation(HexID $ballHex) : void
+    {
+        $this->dbAdapter->storeGlobalString(self::BALL_BEFORE_MOVE_lOCATION_KEY, $ballHex->toJson());
+    }
+
+    public function getBallInitialLocation() : HexID
+    {
+        $ballHexJson = $this->dbAdapter->getGlobalString(self::BALL_BEFORE_MOVE_lOCATION_KEY);
+
+        return HexID::fromJson($ballHexJson);
+    }
+
+    public function setMoraleInitialAmount(int $amount) : void
+    {
+        $this->dbAdapter->storeGlobalInt(self::MORALE_BEFORE_MOVE_KEY, $amount);
+    }
+
+    public function getMoraleInitialAmount() : int
+    {
+        return $this->dbAdapter->getGlobalInt(self::MORALE_BEFORE_MOVE_KEY);
     }
 
     private function storeMovedPieces() : void
@@ -127,6 +153,8 @@ class MoveActionContext
         $this->dbAdapter->storeGlobalString(self::MOVEABLE_PIECES_KEY, '');
         $this->dbAdapter->storeGlobalString(self::CURRENT_MOVE_TYPE_KEY, '');
         $this->dbAdapter->storeGlobalString(self::SELECTED_PIECE_DATA_KEY, '');
+        $this->dbAdapter->storeGlobalString(self::BALL_BEFORE_MOVE_lOCATION_KEY, '');
+        $this->dbAdapter->storeGlobalInt(self::MORALE_BEFORE_MOVE_KEY, -1);
     }
 
     private function loadPiecesMoved(): void
