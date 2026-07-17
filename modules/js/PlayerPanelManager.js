@@ -24,10 +24,12 @@ define([], function () {
 
         //------------------------------------------------------------------------------------
 
-        reducePlayerMorale: async function (amount, PlaceSpentOn) {
+        reducePlayerMoraleAnimated: function (amount, PlaceSpentOn) {
             let activePlayer = this._root.getActivePlayerId();
             let currentMorale = this.getPlayerMorale(activePlayer);
             this.setPlayerMorale(activePlayer, currentMorale - amount);
+
+            let animations = [];
 
             for (let i = 0; i < amount; i++) {
                 let tempEl = document.createElement("div");
@@ -38,12 +40,16 @@ define([], function () {
 
                 this._root.placeOnObject(moraleEl, playerMoraleEl);
 
-                const anim = this._root.slideToObject(moraleEl, PlaceSpentOn);
-
-                await this._root.bgaPlayDojoAnimation(anim);
+                animations.push(this._root.slideToObject(moraleEl, PlaceSpentOn));
             }
 
-            document.querySelectorAll(".spentMorale").forEach(el => el.remove());
+            let animation = dojo.fx.combine(animations);
+
+            dojo.connect(animation, "onEnd", this, function() {
+                document.querySelectorAll(".spentMorale").forEach(el => el.remove());
+            });
+
+            return animation;
         },
 
         setPlayerScoredGoals: function (playerId, amount) {
