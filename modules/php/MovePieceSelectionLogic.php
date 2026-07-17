@@ -9,33 +9,16 @@ final class MovePieceSelectionLogic
 {
     public static function enforceMovePieceSelectionConstraints(Board $board, int $playerId, MoveTypes $moveType, bool $excludePreviouslyMoved = false) : bool
     {
-        $moveablePieces = [];
-
-        switch ($moveType)
-        {
-            case MoveTypes::BACKWARD:
-                $moveablePieces = self::extractBackwardMoveablePieces($board, $playerId);
-                break;
-            case MoveTypes::FORWARD:
-                $moveablePieces = self::extractForwardMoveablePieces($board, $playerId);
-                break;
-            case MoveTypes::FREE:
-                $moveablePieces = self::extractFreeMoveMoveablePieces($board, $playerId);
-                break;
-            case MoveTypes::FORWARD_NEAR_OPPONENT:
-                $moveablePieces = self::extractForwardNearOpponentPieces($board, $playerId);
-                break;
-            case MoveTypes::BACKWARD_NEAR_OPPONENT:
-                $moveablePieces = self::extractBackwardNearOpponentPieces($board, $playerId);
-                break;
-            default:
-                throw new \BgaUserException("Invalid move type!");
-        }
-
-        if ($excludePreviouslyMoved)
-            $moveablePieces = self::excludePiecesMoveThisTurn($moveablePieces);
+        $moveablePieces = self::routeDataToTypeExtraction($moveType, $board, $playerId, $excludePreviouslyMoved);
 
         self::storeMoveablePiecesIds($moveablePieces);
+
+        return \count($moveablePieces) > 0;
+    }
+    
+    public static function HasPieceToMove(Board $board, int $playerId, MoveTypes $moveType, bool $excludePreviouslyMoved = false) : bool
+    {
+        $moveablePieces = self::routeDataToTypeExtraction($moveType, $board, $playerId, $excludePreviouslyMoved);
 
         return \count($moveablePieces) > 0;
     }
@@ -164,5 +147,44 @@ final class MovePieceSelectionLogic
         $moveActionContext = new MoveActionContext();
 
         $moveActionContext->storeMoveablePieces($pieces);
+    }
+
+    /**
+     * @param MoveTypes $moveType
+     * @param Board $board
+     * @param int $playerId
+     * @param bool $excludePreviouslyMoved
+     * @return array
+     * @throws \BgaUserException
+     */
+    public static function routeDataToTypeExtraction(MoveTypes $moveType, Board $board, int $playerId, bool $excludePreviouslyMoved): array
+    {
+        $moveablePieces = [];
+
+        switch ($moveType)
+        {
+            case MoveTypes::BACKWARD:
+                $moveablePieces = self::extractBackwardMoveablePieces($board, $playerId);
+                break;
+            case MoveTypes::FORWARD:
+                $moveablePieces = self::extractForwardMoveablePieces($board, $playerId);
+                break;
+            case MoveTypes::FREE:
+                $moveablePieces = self::extractFreeMoveMoveablePieces($board, $playerId);
+                break;
+            case MoveTypes::FORWARD_NEAR_OPPONENT:
+                $moveablePieces = self::extractForwardNearOpponentPieces($board, $playerId);
+                break;
+            case MoveTypes::BACKWARD_NEAR_OPPONENT:
+                $moveablePieces = self::extractBackwardNearOpponentPieces($board, $playerId);
+                break;
+            default:
+                throw new \BgaUserException("Invalid move type!");
+        }
+
+        if ($excludePreviouslyMoved)
+            $moveablePieces = self::excludePiecesMoveThisTurn($moveablePieces);
+
+        return $moveablePieces;
     }
 }
