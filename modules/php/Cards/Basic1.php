@@ -2,16 +2,19 @@
 
 namespace Bga\Games\SuperTeam\Cards;
 
+use Bga\Games\SuperTeam\Algorithm\BipartiteMatcher;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\Moves\CardDefensiveMoves;
-use Bga\Games\SuperTeam\Cards\Moves\DefensiveMovesContext;
+use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\DBAdapter;
-use Bga\Games\SuperTeam\PlayerPiece;
+use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\States\MultiMove;
 use Bga\Games\SuperTeam\States\PassDestSelection;
+use function count;
+use function intval;
 
 
 class Basic1 extends Card
@@ -39,7 +42,7 @@ class Basic1 extends Card
 
         return
             $playerHasTheBall &&
-            \count(BoardSpatial::GetPiecesInFrontColumns($this->board, $startHex->getColumn(), $currentPlayer, $this->game->getPlayerSide($currentPlayer))) > 0;
+            count(BoardSpatial::GetPiecesInFrontColumns($this->board, $startHex->getColumn(), $currentPlayer, $this->game->getPlayerSide($currentPlayer))) > 0;
     }
 
     public static function staticId() : string
@@ -64,7 +67,7 @@ class Basic1 extends Card
     private function forceForwardPassTargets() : ExecutionResult
     {
         $startHex = $this->board->getBallHex();
-        $currentPlayer = \intval($this->game->getCurrentPlayerId());
+        $currentPlayer = intval($this->game->getCurrentPlayerId());
         $piecesForward = BoardSpatial::GetPiecesInFrontColumns($this->board, $startHex->getColumn(), $currentPlayer, $this->game->getPlayerSide($currentPlayer));
 
         $forcedTargets = [];
@@ -91,29 +94,22 @@ class Basic1 extends Card
 
     protected function cleanup() : void
     {
-        DBAdapter::GetInstance()->storePlayerTempStr(\intval($this->game->getActivePlayerId()), "forced_pass_targets", "");
+        DBAdapter::GetInstance()->storePlayerTempStr(intval($this->game->getActivePlayerId()), "forced_pass_targets", "");
     }
 
     public function isDefensivePossible(): bool
     {
-        $predicate = function(PlayerPiece $playerPiece, PlayerPiece $opponentPiece) : bool {
-            return $playerPiece->getPosition()->getColumn() < ($opponentPiece->getPosition()->getColumn() - 1);
-        };
+        $piecesAvailableMoves = $this->getPiecesPossibleMoves();
+        $demand = $this->getDefinition()->cardDefensiveMoves->toArray();
 
-        $currentPlayer = \intval($this->game->getCurrentPlayerId());
-
-        $canMoveAPieceToAdjacency = BoardEvaluator::canMoveAPieceNearAnOpponentPiece($this->board, $currentPlayer, $predicate);
-
-        //TODO: complete this:
-        return true;
+        return (new BipartiteMatcher())->canSatisfyDemand($piecesAvailableMoves, $demand);
     }
 
     protected function getDefensiveCommands(): array
     {
         //we don't want this function at all! all moves are resolved the same.
         return [
-            $this->goToMultiMoveState(...),
-            $this->evaluateMoves(...)];
+            $this->goToMultiMoveState(...)];
     }
 
     private function goToMultiMoveState() : ExecutionResult
@@ -121,10 +117,68 @@ class Basic1 extends Card
         return new ExecutionResult(ExecutionAction::GoToState, MultiMove::class);
     }
 
-    private function evaluateMoves() : ExecutionResult
+    private function getPiecesPossibleMoves() : array
     {
-        //TODO: get pieces moved, and compare their position with original for forward/backward movement, and their current position for opponent adjacency.
+        $playerId = intval($this->game->getCurrentPlayerId());
+        $playerPieces = $this->board->getPlayerPiecesByOwner($playerId);
+        $resources = new PlayerResources($playerId);
 
-        return new ExecutionResult(ExecutionAction::Success);
+        $defensiveMoves = $this->definition->cardDefensiveMoves;
+        $piecesAvailableMoves = [];
+
+        $playerSide = Board::getPlayerSide($playerId);
+
+        foreach ($playerPieces as $playerPiece)
+        {
+            $playerPieceId = $playerPiece->getId();
+            $pieceHasBall = BoardEvaluator::doesPieceHasTheBall($this->board, $playerPiece);
+            $maxMoves = BoardEvaluator::getPieceMaxPossibleMovement($this->board, $playerId, $playerPiece, $resources);
+
+            if ($defensiveMoves->getMoves(MoveTypes::FREE) > 0)
+            {
+                if (count(BoardSpatial::getMoveableHexes($this->board, $playerPiece->getPosition(),  $maxMoves, $pieceHasBall, $playerId)) > 0)
+                {
+                    $piecesAvailableMoves[$playerPieceId][] = MoveTypes::FREE->value;
+                }
+            }
+            if ($defensiveMoves->getMoves(MoveTypes::BACKWARD) > 0)
+            {
+                if (BoardSpatial::canFindPathToTarget($this->board, $playerPiece->getPosition(), $maxMoves, $pieceHasBall, $playerId,
+                    fn($board, $hex, $playerId) => BoardSpatial::isColumnInPieceBackward($playerPiece->getPosition()->getColumn(), $hex->getColumn(), $playerSide)))
+                {
+                    $piecesAvailableMoves[$playerPieceId][] = MoveTypes::BACKWARD->value;
+                }
+            }
+            if ($defensiveMoves->getMoves(MoveTypes::FORWARD) > 0)
+            {
+                if (BoardSpatial::canFindPathToTarget($this->board, $playerPiece->getPosition(), $maxMoves, $pieceHasBall, $playerId,
+                    fn($board, $hex, $playerId) => BoardSpatial::isColumnInPieceForward($playerPiece->getPosition()->getColumn(), $hex->getColumn(), $playerSide)))
+                {
+                    $piecesAvailableMoves[$playerPieceId][] = MoveTypes::FORWARD->value;
+
+                }
+            }
+            if ($defensiveMoves->getMoves(MoveTypes::BACKWARD_NEAR_OPPONENT) > 0)
+            {
+                if (BoardSpatial::canFindPathToTarget($this->board, $playerPiece->getPosition(), $maxMoves, $pieceHasBall, $playerId,
+                    fn($board, $hex, $playerId) => BoardSpatial::isColumnInPieceBackward($playerPiece->getPosition()->getColumn(), $hex->getColumn(), $playerSide) &&
+                        BoardEvaluator::hasAdjacentOpponentPieces($board, $hex, $playerId, true)))
+                {
+                    $piecesAvailableMoves[$playerPieceId][] = MoveTypes::BACKWARD_NEAR_OPPONENT->value;
+
+                }
+            }
+            if ($defensiveMoves->getMoves(MoveTypes::FORWARD_NEAR_OPPONENT) > 0)
+            {
+                if (BoardSpatial::canFindPathToTarget($this->board, $playerPiece->getPosition(), $maxMoves, $pieceHasBall, $playerId,
+                    fn($board, $hex, $playerId) => BoardSpatial::isColumnInPieceForward($playerPiece->getPosition()->getColumn(), $hex->getColumn(), $playerSide) &&
+                        BoardEvaluator::hasAdjacentOpponentPieces($board, $hex, $playerId, true)))
+                {
+                    $piecesAvailableMoves[$playerPieceId][] = MoveTypes::FORWARD_NEAR_OPPONENT->value;
+                }
+            }
+        }
+
+        return $piecesAvailableMoves;
     }
 }
