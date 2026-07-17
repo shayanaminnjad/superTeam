@@ -14,7 +14,8 @@ use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
-use Bga\Games\SuperTeam\Utility\Logger;
+use Bga\Games\SuperTeam\NotificationAdapter;
+use Bga\Games\SuperTeam\PlayerResources;
 
 class MultiMove extends PlayerBaseState
 {
@@ -44,16 +45,24 @@ class MultiMove extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
+        $activePlayerId = \intval($this->game->getActivePlayerId());
+        $board = $this->game->getBoard();
         $movesRemainingArr = $this->getRemainingMoves()->toArray();
 
         foreach($movesRemainingArr as $key => $value)
         {
             if ($value > 0)
             {
-                //TOOD: moves that cannot be performed anymore must be flagged.
-                $this->addClientButton("{$value}X [$key]", [$this, 'actMoveChosen'], ['key' => $key]);
+                $hasPiece = MovePieceSelectionLogic::HasPieceToMove($board, $activePlayerId, MoveTypes::from($key), true);
+                $buttonParams = [];
+                if (!$hasPiece)
+                    $buttonParams[] = ['notDoable'];
+
+                $this->addClientButton("{$value}X [$key]", [$this, 'actMoveChosen'], ['key' => $key], $buttonParams);
             }
         }
+
+        $this->addClientButton("Undo", [$this, 'actUndo']);
 
         return [];
     }
@@ -88,6 +97,55 @@ class MultiMove extends PlayerBaseState
         $moveActionContext->setCurrentMoveType($moveType);
 
         return MovePieceSelection::class;
+    }
+
+    #[PossibleAction]
+    public function actUndo(int $activePlayerId) : string
+    {
+        $tacticContext = new TacticContext();
+        $tacticInPlay = $tacticContext->getTacticInPlay();
+
+        $hand = $this->game->getPlayerHand($activePlayerId);
+        $hand->drawCard($tacticInPlay);
+
+        $this->notify->player($activePlayerId, "handRefill", "",
+            [
+                'playerHand' => $hand->getCardsInHand(),
+                'wasDiscardShuffled' => false,
+            ]);
+
+        $moveActionContext = new MoveActionContext();
+        $ballPos = $moveActionContext->getBallInitialLocation();
+        $board = $this->game->getBoard();
+        $board->setBallLocation($ballPos);
+
+        $piecesMoved = $moveActionContext->getPiecesMoved();
+
+        $pieceMovedToSend = [];
+        $freshPieces = [];
+        foreach($piecesMoved as $pieceMoved)
+        {
+            $board->movePieceToHex($pieceMoved->id, $pieceMoved->initialPosition);
+            $pieceMovedToSend[] = ["pieceId" => $pieceMoved->id, "position" => $pieceMoved->initialPosition->convertToArray()];
+            if ($pieceMoved->wasFresh)
+            {
+                $freshPieces [] = $pieceMoved->id;
+                $board->getPiece($pieceMoved->id)->setFreshness(true, false);
+            }
+        }
+
+        $moraleBeforeTactic = $moveActionContext->getMoraleInitialAmount();
+        $playerResources = new PlayerResources($activePlayerId);
+        $playerResources->setMorale($moraleBeforeTactic, true);
+
+        NotificationAdapter::getInstance()->notifyAll("undoMove", "undoMoves",
+        [
+            "ballHex" => $board->getBallHex(),
+            "piecesToHexes" => $pieceMovedToSend,
+            "freshPieces" => $freshPieces
+        ]);
+
+        return CardSelection::class;
     }
 
     private function getRemainingMoves() : CardDefensiveMoves
