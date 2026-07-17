@@ -7,15 +7,17 @@ class MovedPieceInfo
 {
     public function __construct(
         public int $id,
-        public HexId $initialPosition
-    ) {
-    }
+        public HexId $initialPosition,
+        public bool $wasFresh
+    )
+    {}
 
     public function toArray(): array
     {
         return [
             'id' => $this->id,
             'position' => $this->initialPosition->convertToArray(),
+            'wasFresh' => $this->wasFresh
         ];
     }
 
@@ -23,7 +25,8 @@ class MovedPieceInfo
     {
         return new self(
             $data['id'],
-            HexId::fromArray($data['position'])
+            HexId::fromArray($data['position']),
+            $data['wasFresh']
         );
     }
 
