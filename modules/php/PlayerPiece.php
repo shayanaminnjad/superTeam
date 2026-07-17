@@ -41,6 +41,30 @@ class PlayerPiece
         return $this->data['is_fresh'];
     }
 
+    public function setFreshness(bool $isFresh, bool $withNotify) : void
+    {
+        $dbAdapter = DBAdapter::getInstance();
+        $isFreshValue = $isFresh ? 'TRUE' : 'FALSE';
+        $dbAdapter->DbQuery("UPDATE player_pieces SET is_fresh = $isFreshValue WHERE `id` = {$this->getId()}");
+
+        if ($withNotify)
+        {
+            $notificationAdapter = NotificationAdapter::getInstance();
+            if ($isFresh)
+            {
+                $notificationAdapter->notifyAll("pieceFreshed", \clienttranslate('piece was freshed'), array(
+                    "pieceId" => $this->getId(),
+                ));
+            }
+            else
+            {
+                $notificationAdapter->notifyAll("pieceExhausted", \clienttranslate('piece was exhausted'), array(
+                    "pieceId" => $this->getId(),
+                ));
+            }
+        }
+    }
+
     public function getCanTackle(): bool
     {
         return $this->canTackle;
