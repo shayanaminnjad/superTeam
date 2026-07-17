@@ -74,38 +74,38 @@ final class BoardSpatial
         return $result;
     }
 
-    public static function canFindPathToTargetAdjacency(Board $board, HexID $startPos, HexID $targetHex, int $maxMoveDist, bool $hasBall, int $playerId): bool
+    public static function canFindPathToTarget(Board $board, HexID $startPos, int $maxMoveDist, bool $hasBall, int $playerId, callable $targetPredicate): bool
     {
         $queue = [];
         $head = 0;
         $visited = [];
 
-        $queue[] = [$startPos, 0];
+        $queue[] = [new GraphNode($startPos, null), 0];
         $visited[$startPos->getId()] = true;
 
         while ($head < count($queue))
         {
-            [$currentHex, $currentDepth] = $queue[$head++];
+            [$currentNode, $currentDepth] = $queue[$head++];
 
-            $currentDistance = HexLib::getOffsetDistance($currentHex, $targetHex);
-
-            if ($currentDistance == 1)
+            if (!$startPos->equals($currentNode->node) && $targetPredicate($board, $currentNode->node,  $playerId))
+            {
                 return true;
+            }
 
             if ($currentDepth == $maxMoveDist)
                 continue;
 
-            $currentNeighbors = HexLib::getNeighbours(HexLib::offsetToCubic($currentHex), 1);
+            $currentNeighbors = HexLib::getNeighbours(HexLib::offsetToCubic($currentNode->node), 1);
 
             if (self::shouldPieceEndMovement($board, $currentNeighbors, $currentDepth, $hasBall, $playerId))
                 continue;
 
-            foreach($currentNeighbors as $cubicNeighbor)
+            foreach ($currentNeighbors as $cubicNeighbor)
             {
                 $neighborHex = HexLib::cubicToHexID($cubicNeighbor);
                 if (!isset($visited[$neighborHex->getId()]) && self::isHexMoveable($board, $neighborHex))
                 {
-                    $queue[] = [$neighborHex, $currentDepth + 1];
+                    $queue[] = [new GraphNode($neighborHex, $currentNode), $currentDepth + 1];
                     $visited[$neighborHex->getId()] = true;
                 }
             }
@@ -118,7 +118,7 @@ final class BoardSpatial
     {
         $res = [];
 
-        $validTargets = [];
+        $validTargetsCache = [];
 
         $queue = [];
         $head = 0;
@@ -136,7 +136,7 @@ final class BoardSpatial
             {
                 if ($targetPredicate($board, $currentNode->node,  $playerId))
                 {
-                    $validTargets[] = $currentNode->node;
+                    $validTargetsCache[] = $currentNode->node;
                     $startAdjacentNode = self::TraverseToAdjacent($currentNode);
 
                     if (!array_any($res, fn(HexID $foundHex) => $startAdjacentNode->node->equals($foundHex)))
@@ -163,7 +163,7 @@ final class BoardSpatial
                         $visited[$neighborHex->getId()] = true;
                     }
                 }
-                else if (array_any($validTargets, fn($target) => $target->equals($neighborHex)))
+                else if (array_any($validTargetsCache, fn($target) => $target->equals($neighborHex)))
                 {
                     $startAdjacentNode = self::TraverseToAdjacent($currentNode);
 
@@ -278,6 +278,18 @@ final class BoardSpatial
                 return true;
 
         return false;
+    }
+
+    public static function isColumnInPieceForward(int $pieceColumn, int $column, PlayerSide $playerSide): bool
+    {
+        return $playerSide == PlayerSide::Left && $column > $pieceColumn ||
+            $playerSide == PlayerSide::Right && $column < $pieceColumn;
+    }
+
+    public static function isColumnInPieceBackward(int $pieceColumn, int $column, PlayerSide $playerSide): bool
+    {
+        return $playerSide == PlayerSide::Left && $column < $pieceColumn ||
+            $playerSide == PlayerSide::Right && $column > $pieceColumn;
     }
 
     private static function shouldPieceEndMovement(Board $board, array $neighbors, int $movesSofar, bool $hasBall, int $playerId) : bool
