@@ -13,9 +13,7 @@ use Bga\Games\SuperTeam\Cards\DefensiveReward;
 use Bga\Games\SuperTeam\Cards\OffensiveReward;
 use Bga\Games\SuperTeam\Cards\TacticCard;
 use Bga\Games\SuperTeam\Game;
-use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\PassTargetSelectionLogic;
-use Bga\Games\SuperTeam\States\PassDestSelection;
 use PassTypes;
 use function count;
 use function intval;
@@ -76,8 +74,4 @@ class BasicA extends TacticCard
         return new ExecutionResult(ExecutionAction::Continue);
     }
 
-    protected function cleanup() : void
-    {
-        DBAdapter::GetInstance()->storePlayerTempStr(intval($this->game->getActivePlayerId()), "forced_pass_targets", "");
-    }
 }

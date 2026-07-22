@@ -21,7 +21,6 @@ abstract class TacticCard extends Card
     }
 
     abstract protected function getOffensiveCommands() : array;
-    abstract protected function cleanup() : void;
     abstract protected function isOffensiveMovePossible(): bool;
 
 
@@ -139,5 +138,10 @@ abstract class TacticCard extends Card
         }
 
         return $piecesAvailableMoves;
+    }
+
+    protected function cleanup() : void
+    {
+        DBAdapter::GetInstance()->storePlayerTempStr(intval($this->game->getActivePlayerId()), "forced_pass_targets", "");
     }
 }
