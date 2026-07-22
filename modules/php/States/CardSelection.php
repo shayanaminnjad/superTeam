@@ -49,7 +49,6 @@ class CardSelection extends PlayerBaseState
     {
         $activePlayer = \intval($this->game->getActivePlayerId());
         $playerHand = $this->game->getPlayerHand($activePlayer);
-        $isAttacker = Board::isPlayerAttacker($activePlayer);
 
         $playableTactics = [];
         $cardsInHand = $playerHand->getCardsInHand();
@@ -62,7 +61,7 @@ class CardSelection extends PlayerBaseState
             {
                 $card = $cardFactory->getCard($cardDef["type"]);
 
-                if (($isAttacker && $card->isOffensivePossible()) || (!$isAttacker && $card->isDefensivePossible()))
+                if ($card->isExecutionPossible())
                 {
                     $playableTactics[] = $card->getId();
                 }

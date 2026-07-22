@@ -42,7 +42,7 @@ class TacticalTurnStateManager extends GameState
 
         $card = $this->game->getCardFactory()->getCard($cardInPlay);
 
-        $result = $card->execute($tacticType, $tacticProgress);
+        $result = $card->execute($tacticProgress);
 
         if ($result->action == ExecutionAction::GoToState)
         {

@@ -119,6 +119,7 @@ readonly class CardDefinition
         public CardType $type,
         public string $toolTip,
 
+        //TODO: This part is really relevant to tactics cards.
         public CardDefensiveMoves $cardDefensiveMoves,
         public DefensiveReward $defensiveReward,
         public bool $defenseHasFatigue,
@@ -146,23 +147,13 @@ abstract class Card
         return $this->definition;
     }
 
-    abstract public function isOffensivePossible() : bool;
-
-    abstract public function isDefensivePossible() : bool;
+    abstract public function isExecutionPossible() : bool;
 
     abstract public function getId() : string;
 
-    public function execute(TacticType $type, int $index) : ExecutionResult
+    public function execute(int $index) : ExecutionResult
     {
-        $steps = null;
-        if ($type == TacticType::Defensive)
-        {
-            $steps = $this->getDefensiveCommands();
-        }
-        else
-        {
-            $steps = $this->getOffensiveCommands();
-        }
+        $steps = $this->getCommands();
 
         assert($index < \count($steps) && $index >= 0);
 
@@ -193,12 +184,7 @@ abstract class Card
     /**
  * @return array<callable(): ?ExecutionResult>
  */
-    abstract protected function getOffensiveCommands() : array;
-
-    /**
-     * @return array<callable(): ?ExecutionResult>
-     */
-    abstract protected function getDefensiveCommands() : array;
+    abstract protected function getCommands() : array;
 
     abstract protected function cleanup();
 }

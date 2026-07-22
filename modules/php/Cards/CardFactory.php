@@ -1,7 +1,6 @@
 <?php
 
 namespace Bga\Games\SuperTeam\Cards;
-use Bga\Games\SuperTeam\Utility\Logger;
 
 class CardFactory
 {

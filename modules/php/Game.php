@@ -19,9 +19,8 @@
 declare(strict_types=1);
 
 namespace Bga\Games\SuperTeam;
-
+use Bga\Games\SuperTeam\Cards\GameCards\BasicA;
 use Bga\Games\SuperTeam\Cards\CardFactory;
-use Bga\Games\SuperTeam\Cards\Basic1;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\Utility\Logger;
@@ -448,7 +447,7 @@ class Game extends \Bga\GameFramework\Table
     {
         $cardFactory = new CardFactory();
 
-        $cardFactory->registerCard(Basic1::staticId(), fn() => new Basic1($this, $this->getBoard()));
+        $cardFactory->registerCard(BasicA::staticId(), fn() => new BasicA($this, $this->getBoard()));
         
         $this->cardFactory = $cardFactory;
     }
