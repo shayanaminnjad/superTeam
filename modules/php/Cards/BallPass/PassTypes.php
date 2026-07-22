@@ -1,5 +1,7 @@
 <?php
 
+namespace Bga\Games\SuperTeam\Cards\BallPass;
+
 enum PassTypes: string
 {
     case BACKWARD = 'backward';

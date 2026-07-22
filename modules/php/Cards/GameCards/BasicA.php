@@ -3,6 +3,7 @@
 namespace Bga\Games\SuperTeam\Cards\GameCards;
 
 use Bga\Games\SuperTeam\BoardEvaluator;
+use Bga\Games\SuperTeam\Cards\BallPass\PassTypes;
 use Bga\Games\SuperTeam\Cards\CardTypeHelper;
 use Bga\Games\SuperTeam\Cards\ExecutionAction;
 use Bga\Games\SuperTeam\Cards\ExecutionResult;
@@ -14,9 +15,7 @@ use Bga\Games\SuperTeam\Cards\OffensiveReward;
 use Bga\Games\SuperTeam\Cards\TacticCard;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PassTargetSelectionLogic;
-use PassTypes;
 use function count;
-use function intval;
 
 
 class BasicA extends TacticCard

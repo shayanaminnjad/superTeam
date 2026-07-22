@@ -1,9 +1,9 @@
 <?php
 
 namespace Bga\Games\SuperTeam;
+use Bga\Games\SuperTeam\Cards\BallPass\PassTypes;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use http\Exception\RuntimeException;
-use PassTypes;
 
 class PassTargetSelectionLogic
 {
