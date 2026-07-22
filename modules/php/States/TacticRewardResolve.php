@@ -60,7 +60,7 @@ class TacticRewardResolve extends PlayerBaseState
         if ($remainingReward->action > 0)
         {
             $this->addClientButton(
-                \sprintf(_('%dx Action'), $remainingReward->move),
+                \sprintf(_('%dx Action'), $remainingReward->action),
                 [$this,'actDoOneAction']);
         }
 
