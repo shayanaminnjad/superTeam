@@ -105,7 +105,7 @@ class Game extends \Bga\GameFramework\Table
         $this->gamestate->nextState("pass");
     }
 
-    //(sha) TODO: probably this must be a part of board? or a piece manager?
+    //(sha) TODO: probably this must be a part of board? or a piece manager? probably moveLogic!
     public function getValidPassTargets(?callable $additionalCondition): array
     {
         $currentPlayer = \intval($this->getActivePlayerId());

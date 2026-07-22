@@ -82,12 +82,6 @@ coach has a cost and a reward, which might be moving, reward is optional*/
 
 //TODO: another command is push, move an adjacent opponent token, once space in any direction
 
-//there is a pass that you pass back, then pass forward.
-
-//There are or and in rewards
-
-//This is actually Team and basic cards
-
 enum ExecutionAction
 {
     case Continue;

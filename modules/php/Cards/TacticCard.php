@@ -7,9 +7,11 @@ use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
+use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\States\MultiMove;
+use Bga\Games\SuperTeam\States\PassDestSelection;
 
 abstract class TacticCard extends Card
 {
@@ -17,6 +19,12 @@ abstract class TacticCard extends Card
     {
         parent::__construct($definition, $game);
     }
+
+    abstract protected function getOffensiveCommands() : array;
+    abstract protected function cleanup() : void;
+    abstract protected function isOffensiveMovePossible(): bool;
+
+
     final public function isExecutionPossible(): bool
     {
         //This is checked before playing the card, so I know whether I am defender or attacker.
@@ -38,9 +46,19 @@ abstract class TacticCard extends Card
             return $this->getOffensiveCommands();
     }
 
-    abstract function getOffensiveCommands() : array;
 
-    protected function getDefensiveCommands(): array
+    final protected function goToPassState() : ExecutionResult
+    {
+        return new ExecutionResult(ExecutionAction::GoToState, PassDestSelection::class);
+    }
+
+    final protected function checkPassResult() : ExecutionResult
+    {
+        $passResult = DBAdapter::getInstance()->getGameStateValue("lastPassResult") == 1;
+        return new ExecutionResult($passResult ? ExecutionAction::Continue : ExecutionAction::Failure);
+    }
+
+    private function getDefensiveCommands(): array
     {
         return [$this->goToMultiMoveState(...)];
     }
@@ -49,11 +67,6 @@ abstract class TacticCard extends Card
     {
         return new ExecutionResult(ExecutionAction::GoToState, MultiMove::class);
     }
-
-    abstract protected function cleanup() : void;
-
-    abstract protected function isOffensiveMovePossible(): bool;
-
 
     private function isDefensivePossible(): bool
     {

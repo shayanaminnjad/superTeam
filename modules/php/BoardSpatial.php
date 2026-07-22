@@ -7,7 +7,7 @@ use function count;
 
 final class BoardSpatial
 {
-    public static function GetPiecesInFrontColumns(Board $board, int $startColumn, int $ownerId, playerSide $playerSide): array
+    public static function getPlayerOwnedPiecesInFrontColumns(Board $board, int $startColumn, int $ownerId, playerSide $playerSide): array
     {
         $result = [];
 
@@ -34,7 +34,7 @@ final class BoardSpatial
         return $result;
     }
 
-    public static function getPlayerPiecesInBackwardColumns(Board $board, int $startColumn, int $ownerId, PlayerSide $playerSide): array
+    public static function getPlayerOwnedPiecesInBackwardColumns(Board $board, int $startColumn, int $ownerId, PlayerSide $playerSide): array
     {
         $result = [];
         $playerPieces = $board->getPlayerPiecesByOwner($ownerId);
@@ -60,7 +60,7 @@ final class BoardSpatial
         return $result;
     }
 
-    public static function getPlayerPiecesInTheSameColumn(Board $board, int $column, int $ownerId): array
+    public static function getPlayerOwnedPiecesInTheSameColumn(Board $board, int $column, int $ownerId): array
     {
         $result = [];
         $playerPieces = $board->getPlayerPiecesByOwner($ownerId);

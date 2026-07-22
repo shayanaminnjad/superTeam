@@ -13,10 +13,10 @@ use Bga\Games\SuperTeam\Cards\DefensiveReward;
 use Bga\Games\SuperTeam\Cards\OffensiveReward;
 use Bga\Games\SuperTeam\Cards\TacticCard;
 use Bga\Games\SuperTeam\Game;
-use Bga\Games\SuperTeam\Board;
-use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\PassTargetSelectionLogic;
 use Bga\Games\SuperTeam\States\PassDestSelection;
+use PassTypes;
 use function count;
 use function intval;
 
@@ -47,58 +47,37 @@ class BasicA extends TacticCard
         return self::staticId();
     }
 
-    //TODO: this can be a free reusable function
-    private function forceForwardPassTargets() : ExecutionResult
-    {
-        $startHex = $this->board->getBallHex();
-        $currentPlayer = intval($this->game->getCurrentPlayerId());
-        $piecesForward = BoardSpatial::GetPiecesInFrontColumns($this->board, $startHex->getColumn(), $currentPlayer, $this->game->getPlayerSide($currentPlayer));
-
-        $forcedTargets = [];
-        foreach($piecesForward as $piece)
-        {
-            $forcedTargets[] = $piece->getPosition()->toJson();
-        }
-
-        DBAdapter::GetInstance()->storePlayerTempStr($currentPlayer, "forced_pass_targets", json_encode($forcedTargets));
-
-        return new ExecutionResult(ExecutionAction::Continue);
-    }
-
-    private function goToPassState() : ExecutionResult
-    {
-        return new ExecutionResult(ExecutionAction::GoToState, PassDestSelection::class);
-    }
-
-    private function checkPassResult() : ExecutionResult
-    {
-        $passResult = DBAdapter::getInstance()->getGameStateValue("lastPassResult") == 1;
-        return new ExecutionResult($passResult ? ExecutionAction::Continue : ExecutionAction::Failure);
-    }
-
-    protected function cleanup() : void
-    {
-        DBAdapter::GetInstance()->storePlayerTempStr(intval($this->game->getActivePlayerId()), "forced_pass_targets", "");
-    }
-
     protected function isOffensiveMovePossible(): bool
     {
-        $board = $this->board;
-        $currentPlayer =  $this->game->getCurrentPlayerId();
-        $playerHasTheBall = BoardEvaluator::doesPlayerHasTheBall($board, $currentPlayer);
-        $startHex = $board->getBallHex();
+        $currentPlayer =  \intval($this->game->getCurrentPlayerId());
+        $playerHasTheBall = BoardEvaluator::doesPlayerHasTheBall($this->board, $currentPlayer);
+        $startHex = $this->board->getBallHex();
 
         return
             $playerHasTheBall &&
-            count(BoardSpatial::GetPiecesInFrontColumns($this->board, $startHex->getColumn(), $currentPlayer, $this->game->getPlayerSide($currentPlayer))) > 0;
+            count(PassTargetSelectionLogic::getPassTargetsHexes($this->board, PassTypes::FORWARD, $currentPlayer, $startHex, $this->game->getPlayerSide($currentPlayer))) > 0;
     }
 
-    function getOffensiveCommands(): array
+    protected function getOffensiveCommands(): array
     {
         return [
             $this->forceForwardPassTargets(...),
             $this->goToPassState(...),
             $this->checkPassResult(...)
         ];
+    }
+
+    private function forceForwardPassTargets() : ExecutionResult
+    {
+        $playerId = \intval($this->game->getCurrentPlayerId());
+        $startHex = $this->board->getBallHex();
+
+        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::FORWARD, $playerId, $startHex, $this->game->getPlayerSide($playerId));
+        return new ExecutionResult(ExecutionAction::Continue);
+    }
+
+    protected function cleanup() : void
+    {
+        DBAdapter::GetInstance()->storePlayerTempStr(intval($this->game->getActivePlayerId()), "forced_pass_targets", "");
     }
 }
