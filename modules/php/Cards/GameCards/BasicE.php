@@ -2,15 +2,19 @@
 
 namespace Bga\Games\SuperTeam\Cards\GameCards;
 
-use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\CardDefinition;
 use Bga\Games\SuperTeam\Cards\CardType;
 use Bga\Games\SuperTeam\Cards\CardTypeHelper;
 use Bga\Games\SuperTeam\Cards\DefensiveReward;
+use Bga\Games\SuperTeam\Cards\ExecutionAction;
+use Bga\Games\SuperTeam\Cards\ExecutionResult;
 use Bga\Games\SuperTeam\Cards\Moves\CardDefensiveMoves;
 use Bga\Games\SuperTeam\Cards\OffensiveReward;
 use Bga\Games\SuperTeam\Cards\TacticCard;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\PassTargetSelectionLogic;
+use PassTypes;
 
 class BasicE extends TacticCard
 {
@@ -36,23 +40,32 @@ class BasicE extends TacticCard
     {
         return static::staticId();
     }
-
-    function getOffensiveCommands(): array
-    {
-        // TODO: Implement getOffensiveCommands() method.
-
-        return [];
-    }
-
-    protected function cleanup(): void
-    {
-        // TODO: Implement cleanup() method.
-    }
-
     protected function isOffensiveMovePossible(): bool
     {
-        // TODO: Implement isOffensiveMovePossible() method.
+        $currentPlayer =  \intval($this->game->getCurrentPlayerId());
+        $playerHasTheBall = BoardEvaluator::doesPlayerHasTheBall($this->board, $currentPlayer);
+        $startHex = $this->board->getBallHex();
 
-        return false;
+        return
+            $playerHasTheBall &&
+            count(PassTargetSelectionLogic::getPassTargetsHexes($this->board, PassTypes::THROUGH, $currentPlayer, $startHex, $this->game->getPlayerSide($currentPlayer))) > 0;
+    }
+
+    protected function getOffensiveCommands(): array
+    {
+        return [
+            $this->forceThroughPassTargets(...),
+            $this->goToPassState(...),
+            $this->checkPassResult(...)
+        ];
+    }
+
+    private function forceThroughPassTargets() : ExecutionResult
+    {
+        $playerId = \intval($this->game->getCurrentPlayerId());
+        $startHex = $this->board->getBallHex();
+
+        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::THROUGH, $playerId, $startHex, $this->game->getPlayerSide($playerId));
+        return new ExecutionResult(ExecutionAction::Continue);
     }
 }
