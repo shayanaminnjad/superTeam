@@ -4,6 +4,7 @@ namespace Bga\Games\SuperTeam;
 
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexLib\HexLib;
+use Bga\Games\SuperTeam\Math\HexInfo;
 
 class Board
 {
