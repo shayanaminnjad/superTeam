@@ -3,6 +3,8 @@
 namespace Bga\Games\SuperTeam\Cards\GameCards;
 
 use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\BoardEvaluator;
+use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\Cards\CardDefinition;
 use Bga\Games\SuperTeam\Cards\CardType;
 use Bga\Games\SuperTeam\Cards\CardTypeHelper;
@@ -39,20 +41,19 @@ class BasicC extends TacticCard
 
     function getOffensiveCommands(): array
     {
-        // TODO: Implement getOffensiveCommands() method.
-
-        return [];
-    }
-
-    protected function cleanup(): void
-    {
-        // TODO: Implement cleanup() method.
+        return [
+            $this->goToPassState(...),
+            $this->checkPassResult(...)
+        ];
     }
 
     protected function isOffensiveMovePossible(): bool
     {
-        // TODO: Implement isOffensiveMovePossible() method.
+        $currentPlayer =  \intval($this->game->getCurrentPlayerId());
+        $playerHasTheBall = BoardEvaluator::doesPlayerHasTheBall($this->board, $currentPlayer);
+        $startHex = $this->board->getBallHex();
 
-        return false;
+        return $playerHasTheBall &&
+            BoardEvaluator::doesOpponentExistInNeighbours($this->board, $startHex, $currentPlayer, true);
     }
 }
