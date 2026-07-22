@@ -3,14 +3,19 @@
 namespace Bga\Games\SuperTeam\Cards\GameCards;
 
 use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\CardDefinition;
 use Bga\Games\SuperTeam\Cards\CardType;
 use Bga\Games\SuperTeam\Cards\CardTypeHelper;
 use Bga\Games\SuperTeam\Cards\DefensiveReward;
+use Bga\Games\SuperTeam\Cards\ExecutionAction;
+use Bga\Games\SuperTeam\Cards\ExecutionResult;
 use Bga\Games\SuperTeam\Cards\Moves\CardDefensiveMoves;
 use Bga\Games\SuperTeam\Cards\OffensiveReward;
 use Bga\Games\SuperTeam\Cards\TacticCard;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\PassTargetSelectionLogic;
+use PassTypes;
 
 class BasicB extends TacticCard
 {
@@ -37,22 +42,32 @@ class BasicB extends TacticCard
         return self::staticId();
     }
 
-    function getOffensiveCommands(): array
+    protected function getOffensiveCommands(): array
     {
-        // TODO: Implement getOffensiveCommands() method.
-
-        return [];
+        return [
+            $this->forceBackwardPassTargets(...),
+            $this->goToPassState(...),
+            $this->checkPassResult(...)
+        ];
     }
 
-    protected function cleanup(): void
+    private function forceBackwardPassTargets() : ExecutionResult
     {
-        // TODO: Implement cleanup() method.
+        $playerId = \intval($this->game->getCurrentPlayerId());
+        $startHex = $this->board->getBallHex();
+
+        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::BACKWARD, $playerId, $startHex, $this->game->getPlayerSide($playerId));
+        return new ExecutionResult(ExecutionAction::Continue);
     }
 
     protected function isOffensiveMovePossible(): bool
     {
-        // TODO: Implement isOffensiveMovePossible() method.
+        $currentPlayer =  \intval($this->game->getCurrentPlayerId());
+        $playerHasTheBall = BoardEvaluator::doesPlayerHasTheBall($this->board, $currentPlayer);
+        $startHex = $this->board->getBallHex();
 
-        return false;
+        return
+            $playerHasTheBall &&
+            count(PassTargetSelectionLogic::getPassTargetsHexes($this->board, PassTypes::BACKWARD, $currentPlayer, $startHex, $this->game->getPlayerSide($currentPlayer))) > 0;
     }
 }
