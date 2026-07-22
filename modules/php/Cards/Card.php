@@ -135,11 +135,11 @@ abstract class Card
     protected readonly Game $game;
     protected readonly Board $board;
 
-    public function __construct(CardDefinition $definition, Board $board, Game $game)
+    public function __construct(CardDefinition $definition, Game $game)
     {
         $this->definition = $definition;
         $this->game = $game;
-        $this->board = $board;
+        $this->board = $game->getBoard();
     }
 
     public function getDefinition() : CardDefinition

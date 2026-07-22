@@ -23,7 +23,7 @@ use function intval;
 
 class BasicA extends TacticCard
 {
-    public function __construct(Game $game, Board $board)
+    public function __construct(Game $game)
     {
         parent::__construct(new CardDefinition(
             "Basic A",
@@ -34,7 +34,7 @@ class BasicA extends TacticCard
             false,
             new OffensiveReward(1, 2, 0),
             false,),
-            $game, $board);
+            $game);
     }
 
     public static function staticId() : string

@@ -13,9 +13,9 @@ use Bga\Games\SuperTeam\States\MultiMove;
 
 abstract class TacticCard extends Card
 {
-    public function __construct(CardDefinition $definition, Game $game, Board $board)
+    public function __construct(CardDefinition $definition, Game $game)
     {
-        parent::__construct($definition, $board, $game);
+        parent::__construct($definition, $game);
     }
     final public function isExecutionPossible(): bool
     {
