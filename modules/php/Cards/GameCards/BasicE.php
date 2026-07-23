@@ -53,11 +53,10 @@ class BasicE extends TacticCard
 
     protected function getOffensiveCommands(): array
     {
-        //TODO: simply checking pass result here won't do the job, since this is a through ball, it might fail to get to the desired location, but still be in front of a piece
         return [
             $this->forceThroughPassTargets(...),
             $this->goToPassState(...),
-            $this->checkPassResult(...)
+            $this->checkThroughPassResult(...)
         ];
     }
 }
