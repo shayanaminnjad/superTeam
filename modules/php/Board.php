@@ -180,6 +180,11 @@ class Board
         return $res;
     }
 
+        public function isHexEmpty(HexID $hexID) : bool
+        {
+            return !$this->hasPlayerInHex($hexID) && !$this->getBallHex()->equals($hexID);
+        }
+
     public static function resetBoard(bool $withNotify) : void
     {
         DBAdapter::getInstance()->DbQuery(PlayerPiecesDBManager::resetPiecesDataQuery());
