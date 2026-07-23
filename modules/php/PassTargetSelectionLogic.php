@@ -3,7 +3,6 @@
 namespace Bga\Games\SuperTeam;
 use Bga\Games\SuperTeam\Cards\BallPass\PassTypes;
 use Bga\Games\SuperTeam\HexLib\HexLib;
-use http\Exception\RuntimeException;
 
 class PassTargetSelectionLogic
 {
@@ -26,7 +25,15 @@ class PassTargetSelectionLogic
                 $passTargetHexes = self::getThroughPassTargets($board, $playerId, $playerSide);
                 break;
             case PassTypes::NEAR_OPPONENT:
-                throw new RuntimeException("near opponent is not implemented yet!");
+            {
+                $playerPieces = $board->getPlayerPiecesByOwner($playerId);
+
+                foreach($playerPieces as $piece)
+                    if ($piece->getRole() !== PlayerRole::GoalKeeper->value)
+                        $passTargetHexes[] = $piece->getPosition();
+            }
+            break;
+
         }
 
         return $passTargetHexes;
@@ -67,32 +74,10 @@ class PassTargetSelectionLogic
 
         foreach ($playerPieces as $piece)
         {
-            $pos = $piece->getPosition();
+            if ($piece->getRole() === PlayerRole::GoalKeeper->value || BoardEvaluator::doesPieceHasTheBall($board, $piece))
+                continue;
 
-            $hexOneSpaceAhead = null;
-            $hexTwoSpacesAhead = null;
-
-            if($playerSide == PlayerSide::Left)
-            {
-                $hexOneSpaceAhead = new HexID($pos->getColumn() + 1, $pos->getRow());
-                $hexTwoSpacesAhead = new HexID($pos->getColumn() + 2, $pos->getRow());
-            }
-            else
-            {
-                $hexOneSpaceAhead = new HexID($pos->getColumn() - 1, $pos->getRow());
-                $hexTwoSpacesAhead = new HexID($pos->getColumn() - 2, $pos->getRow());
-            }
-
-            $offsetExtent = HexLib::getOffsetExtent();
-            if ($offsetExtent->isInsideExtent($hexOneSpaceAhead) && !$board->hasPlayerInHex($hexOneSpaceAhead))
-            {
-                $targets[] = $hexOneSpaceAhead;
-            }
-
-            if ($offsetExtent->isInsideExtent($hexTwoSpacesAhead) && !$board->hasPlayerInHex($hexTwoSpacesAhead))
-            {
-                $targets[] = $hexTwoSpacesAhead;
-            }
+            $targets = array_merge($targets, HexLib::getFrontArc($piece->getPosition(), ($playerSide === PlayerSide::Left) ? 1 : -1));
         }
 
         return $targets;
