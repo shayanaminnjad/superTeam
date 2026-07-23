@@ -53,19 +53,11 @@ class BasicE extends TacticCard
 
     protected function getOffensiveCommands(): array
     {
+        //TODO: simply checking pass result here won't do the job, since this is a through ball, it might fail to get to the desired location, but still be in front of a piece
         return [
             $this->forceThroughPassTargets(...),
             $this->goToPassState(...),
             $this->checkPassResult(...)
         ];
-    }
-
-    private function forceThroughPassTargets() : ExecutionResult
-    {
-        $playerId = \intval($this->game->getCurrentPlayerId());
-        $startHex = $this->board->getBallHex();
-
-        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::THROUGH, $playerId, $startHex, $this->game->getPlayerSide($playerId));
-        return new ExecutionResult(ExecutionAction::Continue);
     }
 }

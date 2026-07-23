@@ -52,15 +52,6 @@ class BasicC extends TacticCard
         ];
     }
 
-    private function forceNearOpponentTargets() : ExecutionResult
-    {
-        $playerId = \intval($this->game->getCurrentPlayerId());
-        $startHex = $this->board->getBallHex();
-
-        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::NEAR_OPPONENT, $playerId, $startHex, $this->game->getPlayerSide($playerId));
-        return new ExecutionResult(ExecutionAction::Continue);
-    }
-
     protected function isOffensiveMovePossible(): bool
     {
         $currentPlayer =  \intval($this->game->getCurrentPlayerId());

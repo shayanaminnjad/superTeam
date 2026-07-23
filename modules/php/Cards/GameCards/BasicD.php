@@ -61,13 +61,4 @@ class BasicD extends TacticCard
             $this->checkPassResult(...)
         ];
     }
-
-    private function forceCrossPassTargets() : ExecutionResult
-    {
-        $playerId = \intval($this->game->getCurrentPlayerId());
-        $startHex = $this->board->getBallHex();
-
-        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::CROSS, $playerId, $startHex, $this->game->getPlayerSide($playerId));
-        return new ExecutionResult(ExecutionAction::Continue);
-    }
 }

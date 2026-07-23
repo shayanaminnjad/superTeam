@@ -64,13 +64,4 @@ class BasicA extends TacticCard
         ];
     }
 
-    private function forceForwardPassTargets() : ExecutionResult
-    {
-        $playerId = \intval($this->game->getCurrentPlayerId());
-        $startHex = $this->board->getBallHex();
-
-        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::FORWARD, $playerId, $startHex, $this->game->getPlayerSide($playerId));
-        return new ExecutionResult(ExecutionAction::Continue);
-    }
-
 }

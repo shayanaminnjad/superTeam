@@ -6,9 +6,11 @@ use Bga\Games\SuperTeam\Algorithm\BipartiteMatcher;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\BoardSpatial;
+use Bga\Games\SuperTeam\Cards\BallPass\PassTypes;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\PassTargetSelectionLogic;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\States\MultiMove;
 use Bga\Games\SuperTeam\States\PassDestSelection;
@@ -48,6 +50,7 @@ abstract class TacticCard extends Card
 
     final protected function goToPassState() : ExecutionResult
     {
+        DBAdapter::getInstance()->setGameStateValue('lastPassResult', 0);
         return new ExecutionResult(ExecutionAction::GoToState, PassDestSelection::class);
     }
 
@@ -55,6 +58,51 @@ abstract class TacticCard extends Card
     {
         $passResult = DBAdapter::getInstance()->getGameStateValue("lastPassResult") == 1;
         return new ExecutionResult($passResult ? ExecutionAction::Continue : ExecutionAction::Failure);
+    }
+
+    final protected function forceThroughPassTargets() : ExecutionResult
+    {
+        $playerId = \intval($this->game->getCurrentPlayerId());
+        $startHex = $this->board->getBallHex();
+
+        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::THROUGH, $playerId, $startHex, $this->game->getPlayerSide($playerId));
+        return new ExecutionResult(ExecutionAction::Continue);
+    }
+
+    final protected function forceForwardPassTargets() : ExecutionResult
+    {
+        $playerId = \intval($this->game->getCurrentPlayerId());
+        $startHex = $this->board->getBallHex();
+
+        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::FORWARD, $playerId, $startHex, $this->game->getPlayerSide($playerId));
+        return new ExecutionResult(ExecutionAction::Continue);
+    }
+
+    final protected function forceBackwardPassTargets() : ExecutionResult
+    {
+        $playerId = \intval($this->game->getCurrentPlayerId());
+        $startHex = $this->board->getBallHex();
+
+        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::BACKWARD, $playerId, $startHex, $this->game->getPlayerSide($playerId));
+        return new ExecutionResult(ExecutionAction::Continue);
+    }
+
+    final protected function forceNearOpponentTargets() : ExecutionResult
+    {
+        $playerId = \intval($this->game->getCurrentPlayerId());
+        $startHex = $this->board->getBallHex();
+
+        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::NEAR_OPPONENT, $playerId, $startHex, $this->game->getPlayerSide($playerId));
+        return new ExecutionResult(ExecutionAction::Continue);
+    }
+
+    final protected function forceCrossPassTargets() : ExecutionResult
+    {
+        $playerId = \intval($this->game->getCurrentPlayerId());
+        $startHex = $this->board->getBallHex();
+
+        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::CROSS, $playerId, $startHex, $this->game->getPlayerSide($playerId));
+        return new ExecutionResult(ExecutionAction::Continue);
     }
 
     private function getDefensiveCommands(): array
