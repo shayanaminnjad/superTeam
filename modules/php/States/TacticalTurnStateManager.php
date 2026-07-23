@@ -7,12 +7,14 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\StateType;
+use Bga\Games\SuperTeam\Cards\TacticCard;
 use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Cards\TacticType;
 use Bga\Games\SuperTeam\Cards\ExecutionAction;
 
+//TODO: This is really card Action tunStateManager
 class TacticalTurnStateManager extends GameState
 {
     function __construct(protected Game $game,
@@ -56,11 +58,11 @@ class TacticalTurnStateManager extends GameState
         {
             //TODO: apply fatigue too.
             
-            if ($result->action == ExecutionAction::Success) 
+            if ($result->action == ExecutionAction::Success && $card instanceof TacticCard)
             {
                 return TacticRewardResolve::class;
             } 
-            else if ($result->action == ExecutionAction::Failure) 
+            else
             {
                 return CardSelection::class;
             }
