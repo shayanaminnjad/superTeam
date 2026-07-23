@@ -80,7 +80,7 @@ class PassTargetSelectionLogic
             $targets = array_merge($targets, HexLib::getFrontArc($piece->getPosition(), ($playerSide === PlayerSide::Left) ? 1 : -1));
         }
 
-        return $targets;
+        return array_filter($targets, fn($hex) => $board->isHexEmpty($hex));
     }
 
     private static function storeForcedTargets(int $playerId, string $jsonTargets) : void
