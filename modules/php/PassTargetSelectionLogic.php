@@ -29,7 +29,7 @@ class PassTargetSelectionLogic
                 $playerPieces = $board->getPlayerPiecesByOwner($playerId);
 
                 foreach($playerPieces as $piece)
-                    if ($piece->getRole() !== PlayerRole::GoalKeeper->value)
+                    if ($piece->getRole() !== PlayerRole::GoalKeeper->value && !BoardEvaluator::doesPieceHasTheBall($board, $piece))
                         $passTargetHexes[] = $piece->getPosition();
             }
             break;
