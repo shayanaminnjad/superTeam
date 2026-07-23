@@ -15,7 +15,7 @@ class CardTypeHelper
         return "{$basicCategory}_{$letter}";
     }
 
-    public static function getCaptainCardType($captainBoardId, $num): string 
+    public static function getCaptainCardType(int $captainBoardId, int $num): string
     {
         $captainCategory = self::CardTypeToString(CardType::Captain);
         
