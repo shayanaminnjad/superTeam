@@ -42,12 +42,12 @@ class TacticRewardResolve extends PlayerBaseState
         $reward = $this->getCardInPlayReward();
         $claimedReward = $this->getRewardClaimed();
 
+        $this->claimMoraleIfNotClaimed($activePlayerId, $reward, $claimedReward);
+
         if ($reward->isEmpty() || $this->rewardHasBeenClaimed($reward, $claimedReward))
         {
             return CardSelection::class;
         }
-
-        $this->claimMoraleIfNotClaimed($activePlayerId, $reward, $claimedReward);
     }
 
     public function selfGetArgs() : array
