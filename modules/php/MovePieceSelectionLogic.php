@@ -71,6 +71,21 @@ final class MovePieceSelectionLogic
         );
     }
 
+    public static function extractMoveableNotAdjacentToOpponentPieces(Board $board, int $playerId) : array
+    {
+        $res = [];
+
+        $moveablePieces = self::extractMoveablePieces($board, $playerId, fn(int $pieceColumn, HexID $hex, PlayerSide $side) => true);
+
+        foreach ($moveablePieces as $piece)
+        {
+            if (!BoardEvaluator::hasAdjacentOpponentPieces($board, $piece->getPosition(), $playerId, false))
+                $res[] = $piece;
+        }
+
+        return $res;
+    }
+
     private static function extractBackwardNearOpponentPieces(Board $board, int $playerId) : array
     {
         return self::extractMoveablePieces($board, $playerId,
