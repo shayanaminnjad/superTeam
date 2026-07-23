@@ -229,4 +229,49 @@ class HexLib
 
         return $result;
     }
+
+    public static function getFrontArc(HexID $start, int $frontSign): array
+    {
+        $hexResult = [];
+        $cubicCoordinates = [];
+
+        $startCubic = self::offsetToCubic($start);
+        $cubicDirections = self::getCubicDirections();
+        $directionToInclude = null;
+        if ($frontSign > 0)
+        {
+            $directionToInclude = [
+                $cubicDirections[Direction::NORTHEAST->value],
+                $cubicDirections[Direction::NORTHEAST->value]->scale(2),
+                $cubicDirections[Direction::SOUTHEAST->value],
+                $cubicDirections[Direction::SOUTHEAST->value]->scale(2)];
+        }
+        else
+        {
+            $directionToInclude = [
+                $cubicDirections[Direction::NORTHWEST->value],
+                $cubicDirections[Direction::NORTHWEST->value]->scale(2),
+                $cubicDirections[Direction::SOUTHWEST->value],
+                $cubicDirections[Direction::SOUTHWEST->value]->scale(2)];
+        }
+
+        foreach ($directionToInclude as $direction)
+        {
+            $cubicCoordinates[] = self::getNeighbour($startCubic, $direction);
+        }
+
+        $cubicCoordinates[] = self::getNeighbour(end($cubicCoordinates), $cubicDirections[Direction::NORTH->value]);
+
+        $offsetExtent = self::getOffsetExtent();
+        foreach($cubicCoordinates as $cubic)
+        {
+            $hexId = self::cubicToHexID($cubic);
+            if ($offsetExtent->isInsideExtent($hexId))
+            {
+                $hexResult[] = $hexId;
+            }
+        }
+
+        return $hexResult;
+    }
 }
