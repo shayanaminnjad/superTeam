@@ -6,12 +6,17 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
+use Bga\Games\SuperTeam\Cards\Moves\MovedPieceInfo;
+use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\MoveHexSelectionLogic;
+use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\PlayerSide;
 
 class MoveAction extends PlayerBaseState
 {
@@ -64,7 +69,7 @@ class MoveAction extends PlayerBaseState
             $hexesToSend[] = $hex->convertToArray();
         }
 
-        if ($movesTaken > 0) //TODO: allow finish movement, if move condition is met! (piece is near a target)
+        if ($movesTaken > 0 && $this->isMoveConditionMet($activePlayerId, $board, $moveActionContext))
             $this->addClientButton('Finish Movement', [$this, 'actFinishMove']);
 
         //TODO: send target hexes too.
@@ -149,5 +154,63 @@ class MoveAction extends PlayerBaseState
     function zombie(int $playerId): string {
         // the code to run when the player is a Zombie
         return '';
+    }
+
+    private function isMoveConditionMet(int $playerId, Board $board, MoveActionContext $moveActionContext) : bool
+    {
+        $moveType = $moveActionContext->getCurrentMoveType();
+
+        if ($moveType == MoveTypes::FREE)
+            return true;
+
+        $movedPieceInfo = $moveActionContext->getSelectedPieceData();
+        $playerSide = Board::getPlayerSide($playerId);
+        $piece = $board->getPiece($movedPieceInfo->id);
+
+        if ($moveType == MoveTypes::BACKWARD)
+        {
+            return $this->hasPieceMovedBackward($board, $movedPieceInfo, $piece, $playerSide);
+        }
+
+        if ($moveType == MoveTypes::FORWARD)
+        {
+            return $this->hasPieceMovedForward($board, $movedPieceInfo, $piece, $playerSide);
+        }
+
+        if ($moveType == MoveTypes::BACKWARD_NEAR_OPPONENT)
+        {
+            return $this->hasPieceMovedForward($board, $movedPieceInfo, $piece, $playerSide) &&
+                BoardEvaluator::hasAdjacentOpponentPieces($board, $piece->getPosition(), $playerId, true);
+        }
+
+        if ($moveType == MoveTypes::FORWARD_NEAR_OPPONENT)
+        {
+            return $this->hasPieceMovedBackward($board, $movedPieceInfo, $piece, $playerSide) &&
+                BoardEvaluator::hasAdjacentOpponentPieces($board, $piece->getPosition(), $playerId, true);
+        }
+    }
+
+    private function hasPieceMovedForward(Board $board, MovedPieceInfo $movedPieceInfo, PlayerPiece $piece,PlayerSide $playerSide) : bool
+    {
+        if ($playerSide == PlayerSide::Left)
+        {
+            return $movedPieceInfo->initialPosition->getColumn() < $piece->getPosition()->getColumn();
+        }
+        else
+        {
+            return $movedPieceInfo->initialPosition->getColumn() > $piece->getPosition()->getColumn();
+        }
+    }
+
+    private function hasPieceMovedBackward(Board $board, MovedPieceInfo $movedPieceInfo, PlayerPiece $piece, PlayerSide $playerSide) : bool
+    {
+        if ($playerSide == PlayerSide::Left)
+        {
+            return $movedPieceInfo->initialPosition->getColumn() > $piece->getPosition()->getColumn();
+        }
+        else
+        {
+            return $movedPieceInfo->initialPosition->getColumn() < $piece->getPosition()->getColumn();
+        }
     }
 }
