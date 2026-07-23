@@ -57,7 +57,7 @@ class TacticalTurnStateManager extends GameState
         else
         {
             //TODO: apply fatigue too.
-            
+            //TODO: this part must be part of the class instructions! no need to know about the cards here!
             if ($result->action == ExecutionAction::Success && $card instanceof TacticCard)
             {
                 return TacticRewardResolve::class;
