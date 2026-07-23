@@ -8,7 +8,7 @@ use function count;
 
 final class BoardSpatial
 {
-    public static function getPlayerOwnedPiecesInFrontColumns(Board $board, int $startColumn, int $ownerId, playerSide $playerSide, bool $includeGoalie = false): array
+    public static function getPlayerOwnedPiecesInFrontColumns(Board $board, int $startColumn, int $ownerId, playerSide $playerSide, bool $includeGoalie = false, bool $includeBallCarrier = false): array
     {
         $result = [];
 
@@ -16,7 +16,7 @@ final class BoardSpatial
 
         foreach($playerPieces as $piece)
         {
-            if ($piece->getRole() == PlayerRole::GoalKeeper->value && !$includeGoalie)
+            if (($piece->getRole() == PlayerRole::GoalKeeper->value && !$includeGoalie) || (!$includeBallCarrier && BoardEvaluator::doesPieceHasTheBall($board, $piece)))
                 continue;
 
             if ($playerSide == PlayerSide::Left)
@@ -38,14 +38,14 @@ final class BoardSpatial
         return $result;
     }
 
-    public static function getPlayerOwnedPiecesInBackwardColumns(Board $board, int $startColumn, int $ownerId, PlayerSide $playerSide, bool $includeGoalie = false): array
+    public static function getPlayerOwnedPiecesInBackwardColumns(Board $board, int $startColumn, int $ownerId, PlayerSide $playerSide, bool $includeGoalie = false, bool $includeBallCarrier = false): array
     {
         $result = [];
         $playerPieces = $board->getPlayerPiecesByOwner($ownerId);
 
         foreach($playerPieces as $piece)
         {
-            if ($piece->getRole() == PlayerRole::GoalKeeper->value && !$includeGoalie)
+            if (($piece->getRole() == PlayerRole::GoalKeeper->value && !$includeGoalie) || (!$includeBallCarrier && BoardEvaluator::doesPieceHasTheBall($board, $piece)))
                 continue;
 
             if ($playerSide == PlayerSide::Left)
@@ -67,14 +67,14 @@ final class BoardSpatial
         return $result;
     }
 
-    public static function getPlayerOwnedPiecesInTheSameColumn(Board $board, int $column, int $ownerId, bool $includeGoalie = false): array
+    public static function getPlayerOwnedPiecesInTheSameColumn(Board $board, int $column, int $ownerId, bool $includeGoalie = false, bool $includeBallCarrier = false): array
     {
         $result = [];
         $playerPieces = $board->getPlayerPiecesByOwner($ownerId);
 
         foreach($playerPieces as $piece)
         {
-            if ($piece->getRole() == PlayerRole::GoalKeeper->value && !$includeGoalie)
+            if (($piece->getRole() == PlayerRole::GoalKeeper->value && !$includeGoalie) || (!$includeBallCarrier && BoardEvaluator::doesPieceHasTheBall($board, $piece)))
                 continue;
 
             if ($piece->getPosition()->getColumn() === $column)
