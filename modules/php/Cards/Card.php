@@ -63,25 +63,6 @@ class DefensiveReward extends CardReward
 class OffensiveReward extends CardReward
 {}
 
-/* coach and captain has only instruction 
-captian has a requirement and a reward if it is satisfied
-
-coach has a cost and a reward, which might be moving, reward is optional*/
-
-//there is a coach, that allows you to move all exhuasted players
-//Some of the rewards are depenendt on how you satisfy the condition
-//Some coach effects give you a bonus for your entire turn
-
-//Probably it is best to have captain conditions as a list of function pointer,
-//then you get reward.
-//If you do captain card with the captain you get a morale.
-//seems captain rewards are a bit different than normal rewards, for example swap.
-//if captain cards do something to opponent pieces, they can target the same or different pieces.
-
-//Passes can have a modifier, which makes a pass stronger.
-
-//TODO: another command is push, move an adjacent opponent token, once space in any direction
-
 enum ExecutionAction
 {
     case Continue;
@@ -112,15 +93,24 @@ readonly class CardDefinition
         public string $name,
         public CardType $type,
         public string $toolTip,
+    ) {}
+}
 
-        //TODO: This part is really relevant to tactics cards.
+readonly class TacticCardDefinition extends CardDefinition
+{
+    public function __construct(
+        string $name,
+        CardType $type,
+        string $toolTip,
         public CardDefensiveMoves $cardDefensiveMoves,
         public DefensiveReward $defensiveReward,
         public bool $defenseHasFatigue,
 
         public OffensiveReward $offensiveReward,
         public bool $offenseHasFatigue
-    ) {}
+    ) {
+        parent::__construct($name, $type, $toolTip);
+    }
 }
 
 abstract class Card

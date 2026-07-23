@@ -12,6 +12,7 @@ use Bga\Games\SuperTeam\Cards\DefensiveReward;
 use Bga\Games\SuperTeam\Cards\Moves\CardDefensiveMoves;
 use Bga\Games\SuperTeam\Cards\OffensiveReward;
 use Bga\Games\SuperTeam\Cards\TacticCard;
+use Bga\Games\SuperTeam\Cards\TacticCardDefinition;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PassTargetSelectionLogic;
 
@@ -19,7 +20,7 @@ class TeamATactic2 extends TacticCard
 {
     public function __construct(Game $game)
     {
-        parent::__construct(new CardDefinition(
+        parent::__construct(new TacticCardDefinition(
             "Team B",
             CardType::Team,
             "",
