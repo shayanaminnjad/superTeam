@@ -124,7 +124,7 @@ final class MovePieceSelectionLogic
         $playerSide == PlayerSide::Right && $column > $pieceColumn;
     }
 
-    private static function excludePiecesMoveThisTurn(array $moveablePieces) : array
+    public static function excludePiecesMoveThisTurn(array $moveablePieces) : array
     {
         $res = [];
 
@@ -142,7 +142,7 @@ final class MovePieceSelectionLogic
         return $res;
     }
 
-    private static function storeMoveablePiecesIds(array $pieces) : void
+    public static function storeMoveablePiecesIds(array $pieces) : void
     {
         $moveActionContext = new MoveActionContext();
 
