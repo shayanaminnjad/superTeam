@@ -146,9 +146,15 @@ class MoveAction extends PlayerBaseState
     }
 
     #[PossibleAction]
-    public function actFinishMove(): string
+    public function actFinishMove(int $activePlayerId): string
     {
-        return MoveFinished::class;
+        $board = $this->game->getBoard();
+        $moveActionContext = new MoveActionContext();
+        $movesTaken = intval($this->game->getGameStateValue('number_of_moves')); //TODO: move this to MoveActionContext class
+        if ($movesTaken > 0 && $this->isMoveConditionMet($activePlayerId, $board, $moveActionContext))
+            return MoveFinished::class;
+        else
+            throw new \BgaUserException("You can't finish movement while you haven't met movement conditions and haven't moved at least once.");
     }
 
     function zombie(int $playerId): string {
