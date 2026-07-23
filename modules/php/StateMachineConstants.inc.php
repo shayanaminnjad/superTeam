@@ -35,4 +35,6 @@ const ST_HALF_TIME = 30;
 const ST_DEAL_INITIAL_HAND = 31;
 
 const ST_MULTI_MOVE = 32;
+const ST_COACH_CARD_RESOLVER = 33;
+
 const ST_END_GAME = 99;
