@@ -8,6 +8,7 @@ use Bga\Games\SuperTeam\Cards\GameCards\BasicB;
 use Bga\Games\SuperTeam\Cards\GameCards\BasicC;
 use Bga\Games\SuperTeam\Cards\GameCards\BasicD;
 use Bga\Games\SuperTeam\Cards\GameCards\BasicE;
+use Bga\Games\SuperTeam\Cards\GameCards\Captain_A_0;
 use Bga\Games\SuperTeam\Cards\GameCards\CoachA;
 use Bga\Games\SuperTeam\Cards\GameCards\CoachB;
 use Bga\Games\SuperTeam\Cards\GameCards\TeamATactic1;
@@ -41,5 +42,8 @@ class CardRegistrar
         //coach
         $cardFactory->registerCard(CoachA::staticId(), fn() => new CoachA($game));
         $cardFactory->registerCard(CoachB::staticId(), fn() => new CoachB($game));
+
+        //captain
+        $cardFactory->registerCard(Captain_A_0::staticId(), fn() => new Captain_A_0($game));
     }
 }
