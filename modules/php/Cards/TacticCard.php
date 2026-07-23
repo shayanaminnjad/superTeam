@@ -67,8 +67,12 @@ abstract class TacticCard extends Card
         $playerId = \intval($this->game->getCurrentPlayerId());
         $startHex = $this->board->getBallHex();
 
-        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::THROUGH, $playerId, $startHex, $this->game->getPlayerSide($playerId));
-        return new ExecutionResult(ExecutionAction::Continue);
+        $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::THROUGH, $playerId, $startHex, $this->game->getPlayerSide($playerId));
+
+        if ($forced)
+            return new ExecutionResult(ExecutionAction::Continue);
+        else
+            return new ExecutionResult(ExecutionAction::Failure);
     }
 
     final protected function forceForwardPassTargets() : ExecutionResult
@@ -76,8 +80,12 @@ abstract class TacticCard extends Card
         $playerId = \intval($this->game->getCurrentPlayerId());
         $startHex = $this->board->getBallHex();
 
-        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::FORWARD, $playerId, $startHex, $this->game->getPlayerSide($playerId));
-        return new ExecutionResult(ExecutionAction::Continue);
+        $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::FORWARD, $playerId, $startHex, $this->game->getPlayerSide($playerId));
+
+        if ($forced)
+            return new ExecutionResult(ExecutionAction::Continue);
+        else
+            return new ExecutionResult(ExecutionAction::Failure);
     }
 
     final protected function forceBackwardPassTargets() : ExecutionResult
@@ -85,8 +93,12 @@ abstract class TacticCard extends Card
         $playerId = \intval($this->game->getCurrentPlayerId());
         $startHex = $this->board->getBallHex();
 
-        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::BACKWARD, $playerId, $startHex, $this->game->getPlayerSide($playerId));
-        return new ExecutionResult(ExecutionAction::Continue);
+        $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::BACKWARD, $playerId, $startHex, $this->game->getPlayerSide($playerId));
+
+        if ($forced)
+            return new ExecutionResult(ExecutionAction::Continue);
+        else
+            return new ExecutionResult(ExecutionAction::Failure);
     }
 
     final protected function forceNearOpponentTargets() : ExecutionResult
@@ -94,8 +106,12 @@ abstract class TacticCard extends Card
         $playerId = \intval($this->game->getCurrentPlayerId());
         $startHex = $this->board->getBallHex();
 
-        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::NEAR_OPPONENT, $playerId, $startHex, $this->game->getPlayerSide($playerId));
-        return new ExecutionResult(ExecutionAction::Continue);
+        $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::NEAR_OPPONENT, $playerId, $startHex, $this->game->getPlayerSide($playerId));
+
+        if ($forced)
+            return new ExecutionResult(ExecutionAction::Continue);
+        else
+            return new ExecutionResult(ExecutionAction::Failure);
     }
 
     final protected function forceCrossPassTargets() : ExecutionResult
@@ -103,8 +119,12 @@ abstract class TacticCard extends Card
         $playerId = \intval($this->game->getCurrentPlayerId());
         $startHex = $this->board->getBallHex();
 
-        PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::CROSS, $playerId, $startHex, $this->game->getPlayerSide($playerId));
-        return new ExecutionResult(ExecutionAction::Continue);
+        $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::CROSS, $playerId, $startHex, $this->game->getPlayerSide($playerId));
+
+        if ($forced)
+            return new ExecutionResult(ExecutionAction::Continue);
+        else
+            return new ExecutionResult(ExecutionAction::Failure);
     }
 
     final protected function checkThroughPassResult() : ExecutionResult

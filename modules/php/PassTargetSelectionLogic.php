@@ -33,25 +33,30 @@ class PassTargetSelectionLogic
                         $passTargetHexes[] = $piece->getPosition();
             }
             break;
-
         }
 
         return $passTargetHexes;
     }
 
-    public static function forcePassTargets(Board $board, PassTypes $passType, int $playerId, HexId $passStart, PlayerSide $playerSide): void
+    public static function forcePassTargets(Board $board, PassTypes $passType, int $playerId, HexId $passStart, PlayerSide $playerSide): bool
     {
         $passTargetHexes = self::getPassTargetsHexes($board, $passType, $playerId, $passStart, $playerSide);
 
         if (!empty($passTargetHexes))
         {
             self::storeForcedTargets($playerId, self::getPositionsAsJson($passTargetHexes));
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 
     private static function getForwardPassTargets(Board $board, int $playerId, PlayerSide $playerSide, HexID $passStart) : array
     {
         $pieces = BoardSpatial::getPlayerOwnedPiecesInFrontColumns($board, $passStart->getColumn(), $playerId, $playerSide);
+
         return self::getPiecesPositions($pieces);
     }
 
