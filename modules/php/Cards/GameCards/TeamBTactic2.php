@@ -3,6 +3,8 @@
 namespace Bga\Games\SuperTeam\Cards\GameCards;
 
 use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\BoardEvaluator;
+use Bga\Games\SuperTeam\Cards\BallPass\PassTypes;
 use Bga\Games\SuperTeam\Cards\CardDefinition;
 use Bga\Games\SuperTeam\Cards\CardType;
 use Bga\Games\SuperTeam\Cards\CardTypeHelper;
@@ -11,6 +13,7 @@ use Bga\Games\SuperTeam\Cards\Moves\CardDefensiveMoves;
 use Bga\Games\SuperTeam\Cards\OffensiveReward;
 use Bga\Games\SuperTeam\Cards\TacticCard;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\PassTargetSelectionLogic;
 
 class TeamBTactic2 extends TacticCard
 {
@@ -22,9 +25,9 @@ class TeamBTactic2 extends TacticCard
             "",
             new CardDefensiveMoves(0, 1, 2, 0, 0),
             new DefensiveReward(1, 0, 1),
-            false,
-            new OffensiveReward(1, 2, 0),
-            false,),
+            true,
+            new OffensiveReward(2, 2, 0),
+            true,),
             $game);
     }
 
@@ -39,20 +42,24 @@ class TeamBTactic2 extends TacticCard
 
     function getOffensiveCommands(): array
     {
-        // TODO: Implement getOffensiveCommands() method.
-
-        return [];
-    }
-
-    protected function cleanup(): void
-    {
-        // TODO: Implement cleanup() method.
+        return [
+            $this->forceBackwardPassTargets(...),
+            $this->goToPassState(...),
+            $this->checkPassResult(...),
+            $this->forceForwardPassTargets(...),
+            $this->goToPassState(...),
+            $this->checkPassResult(...)
+        ];
     }
 
     protected function isOffensiveMovePossible(): bool
     {
-        // TODO: Implement isOffensiveMovePossible() method.
+        $currentPlayer =  \intval($this->game->getCurrentPlayerId());
+        $playerHasTheBall = BoardEvaluator::doesPlayerHasTheBall($this->board, $currentPlayer);
+        $startHex = $this->board->getBallHex();
 
-        return false;
+        return
+            $playerHasTheBall &&
+            count(PassTargetSelectionLogic::getPassTargetsHexes($this->board, PassTypes::BACKWARD, $currentPlayer, $startHex, $this->game->getPlayerSide($currentPlayer))) > 0;
     }
 }

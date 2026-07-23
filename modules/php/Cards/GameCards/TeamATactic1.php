@@ -25,9 +25,9 @@ class TeamATactic1 extends TacticCard
             "",
             new CardDefensiveMoves(1, 2, 0, 0, 0),
             new DefensiveReward(1, 0, 1),
-            false,
+            true,
             new OffensiveReward(0, 2, 1),
-            false,),
+            true,),
             $game);
     }
 
