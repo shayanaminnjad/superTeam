@@ -6,13 +6,16 @@ use Bga\Games\SuperTeam\HexLib\HexLib;
 
 class BoardEvaluator
 {
-    public static function getFreshPlayerPieces(Board $board, int $playerId) : array
+    public static function getFreshPlayerPieces(Board $board, int $playerId, bool $includeGoalie = false) : array
     {
         $playerPieces = $board->getPlayerPiecesByOwner($playerId);
 
         $freshPieces = [];
         foreach($playerPieces as $piece)
         {
+            if ($piece->getRole() == PlayerRole::GoalKeeper && !$includeGoalie)
+                continue;
+
             if ($piece->isFresh())
                 $freshPieces[] = $piece;
         }
