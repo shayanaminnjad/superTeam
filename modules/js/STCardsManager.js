@@ -144,7 +144,7 @@ define(["dojo/_base/declare",
                     const cardNum = Number(tokens[2]);
                     if (teamId === '0') {
                         rowMultiple = 1;
-                        colMultiple = 3 + cardNum;
+                        colMultiple = 4 + cardNum;
                     }
                     else if (teamId === '2') {
                         rowMultiple = 2;
