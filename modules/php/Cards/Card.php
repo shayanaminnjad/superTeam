@@ -69,6 +69,7 @@ enum ExecutionAction
     case GoToState;
     case Success;
     case Failure;
+    case Jump;
 }
 
 enum TacticType : int
@@ -145,7 +146,7 @@ abstract class Card
         {
             $result = $steps[$i]();
 
-            if ($result && $result->action != ExecutionAction::Continue)
+            if ($result && $result->action != ExecutionAction::Continue && $result->action != ExecutionAction::Jump)
             {
                 if ($result->action == ExecutionAction::GoToState)
                 {
@@ -158,6 +159,9 @@ abstract class Card
 
                 return $result;
             }
+
+            if ($result && $result->action == ExecutionAction::Jump)
+                $i = $result->index - 1; // this is incremented at the beggining of the loop.
         }
 
         $this->cleanup();
