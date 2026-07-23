@@ -15,6 +15,7 @@ use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Cards\TacticType;
 use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\PlayerResources;
+use Bga\Games\SuperTeam\Utility\Logger;
 
 class CardSelection extends PlayerBaseState
 {
@@ -65,6 +66,10 @@ class CardSelection extends PlayerBaseState
                 {
                     $playableTactics[] = $card->getId();
                 }
+            }
+            else
+            {
+                Logger::logError("card type does not exist in card factory " . $cardDef["type"]);
             }
         }
 
