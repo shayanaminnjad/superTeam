@@ -10,8 +10,10 @@ use Bga\Games\SuperTeam\Cards\BallPass\PassTypes;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\PassTargetSelectionLogic;
 use Bga\Games\SuperTeam\PlayerResources;
+use Bga\Games\SuperTeam\PlayerSide;
 use Bga\Games\SuperTeam\States\MultiMove;
 use Bga\Games\SuperTeam\States\PassDestSelection;
 
@@ -103,6 +105,34 @@ abstract class TacticCard extends Card
 
         PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::CROSS, $playerId, $startHex, $this->game->getPlayerSide($playerId));
         return new ExecutionResult(ExecutionAction::Continue);
+    }
+
+    final protected function checkThroughPassResult() : ExecutionResult
+    {
+        $passResult = false;
+
+        $playerId = \intval($this->game->getCurrentPlayerId());
+        $ballHex = $this->board->getBallHex();
+
+        $playerPieces = $this->board->getPlayerPiecesByOwner($playerId);
+        $playerSideSign = $this->game->getPlayerSide($playerId) === PlayerSide::Left ? 1 : -1;
+
+        for($i = 0; $i < count($playerPieces) && $passResult == false; ++$i)
+        {
+            $piece = $playerPieces[$i];
+            $frontHexes = HexLib::getFrontArc($piece->getPosition(), $playerSideSign);
+
+            foreach($frontHexes as $frontHex)
+            {
+                if ($ballHex->equals($frontHex))
+                {
+                    $passResult = true;
+                    break;
+                }
+            }
+        }
+
+        return new ExecutionResult($passResult ? ExecutionAction::Continue : ExecutionAction::Failure);
     }
 
     private function getDefensiveCommands(): array
