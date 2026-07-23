@@ -102,6 +102,6 @@ class CoachA extends Card
         $playerId = \intval($this->game->getCurrentPlayerId());
         $freshPieces =  BoardEvaluator::getFreshPlayerPieces($this->board, $playerId, false);
 
-        return MovePieceSelectionLogic::excludePiecesMoveThisTurn(array_filter($freshPieces, fn($piece) => $piece->getRole() !== PlayerRole::GoalKeeper->value));
+        return MovePieceSelectionLogic::excludePiecesMoveThisTurn($freshPieces);
     }
 }
