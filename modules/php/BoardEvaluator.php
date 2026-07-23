@@ -13,10 +13,27 @@ class BoardEvaluator
         $freshPieces = [];
         foreach($playerPieces as $piece)
         {
-            if ($piece->getRole() == PlayerRole::GoalKeeper && !$includeGoalie)
+            if ($piece->getRole() == PlayerRole::GoalKeeper->value && !$includeGoalie)
                 continue;
 
             if ($piece->isFresh())
+                $freshPieces[] = $piece;
+        }
+
+        return $freshPieces;
+    }
+
+    public static function getExhaustedPlayerPieces(Board $board, int $playerId, bool $includeGoalie = false) : array
+    {
+        $playerPieces = $board->getPlayerPiecesByOwner($playerId);
+
+        $freshPieces = [];
+        foreach($playerPieces as $piece)
+        {
+            if ($piece->getRole() == PlayerRole::GoalKeeper->value && !$includeGoalie)
+                continue;
+
+            if (!$piece->isFresh())
                 $freshPieces[] = $piece;
         }
 
