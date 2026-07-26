@@ -9,6 +9,7 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Cards\CardReward;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
+use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
@@ -44,6 +45,9 @@ class CardSelection extends PlayerBaseState
 
         $moveContext = new MoveActionContext();
         $moveContext->reset();
+
+        $pieceSelectionContext = new PieceSelectionContext();
+        $pieceSelectionContext->reset();
     }
 
     public function selfGetArgs(): array

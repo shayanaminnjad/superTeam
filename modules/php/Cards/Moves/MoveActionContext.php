@@ -14,7 +14,6 @@ class MoveActionContext
     private array $piecesMoved = [];
     private CardDefensiveMoves $movesPerformed;
 
-    private const string MOVEABLE_PIECES_KEY = 'moveable_pieces';
     private const string PIECES_MOVED_KEY = 'pieces_moved';
     private const string MOVES_PERFORMED_KEY = 'moves_performed';
     private const string CURRENT_MOVE_TYPE_KEY = 'current_move_type';
@@ -48,17 +47,6 @@ class MoveActionContext
         $this->movesPerformed = $movesPerformed;
 
         $this->dbAdapter->storeGlobalString(self::MOVES_PERFORMED_KEY, $movesPerformed->toJson());
-    }
-
-    public function storeMoveablePieces(array $pieces): void
-    {
-        $res = [];
-        foreach ($pieces as $piece)
-        {
-            $res[] = $piece->getId();
-        }
-
-        $this->dbAdapter->storeGlobalString(self::MOVEABLE_PIECES_KEY, json_encode($res));
     }
 
     public function getMoveablePiecesIds(): array
