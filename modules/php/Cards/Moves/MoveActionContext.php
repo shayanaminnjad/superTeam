@@ -21,6 +21,7 @@ class MoveActionContext
     private const string SELECTED_PIECE_DATA_KEY = 'move_selected_piece_data';
     private const string BALL_BEFORE_MOVE_lOCATION_KEY = 'ball_before_tactic_location';
     private const string MORALE_BEFORE_MOVE_KEY = 'morale_before_tactic';
+    private const string NO_MORALE_FOR_EXHAUSTED_KEY = 'no_morale_for_exhausted';
 
 
     public function __construct()
@@ -136,6 +137,16 @@ class MoveActionContext
         return $this->dbAdapter->getGlobalInt(self::MORALE_BEFORE_MOVE_KEY);
     }
 
+    public function doExhaustedNeedMoraleForMovement() : bool
+    {
+        return $this->dbAdapter->getGlobalInt(self::NO_MORALE_FOR_EXHAUSTED_KEY) == 0;
+    }
+
+    public function setExhaustedNeedMoraleForMovement(bool $needMorale) : void
+    {
+        $this->dbAdapter->storeGlobalInt(self::NO_MORALE_FOR_EXHAUSTED_KEY, $needMorale ? 0 : 1);
+    }
+
     private function storeMovedPieces() : void
     {
         $this->dbAdapter->storeGlobalString(self::PIECES_MOVED_KEY,
@@ -155,6 +166,7 @@ class MoveActionContext
         $this->dbAdapter->storeGlobalString(self::SELECTED_PIECE_DATA_KEY, '');
         $this->dbAdapter->storeGlobalString(self::BALL_BEFORE_MOVE_lOCATION_KEY, '');
         $this->dbAdapter->storeGlobalInt(self::MORALE_BEFORE_MOVE_KEY, -1);
+        $this->dbAdapter->storeGlobalInt(self::NO_MORALE_FOR_EXHAUSTED_KEY, 0);
     }
 
     private function loadPiecesMoved(): void

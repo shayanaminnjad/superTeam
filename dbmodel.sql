@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `moves_performed` TEXT,
     `moveable_pieces` TEXT,
     `current_move_type` TEXT,
+    `no_morale_for_exhausted` BOOLEAN DEFAULT FALSE,
     `pieces_moved` TEXT,
     `move_selected_piece_data` TEXT,
     `ball_before_tactic_location` TEXT,

@@ -134,7 +134,7 @@ define(["dojo/_base/declare",
                             colMultiple = cardNum - 2;
                         }
                     }
-                    else if (TeamId === '1') {
+                    else if (teamId === '1') {
                         rowMultiple = 1;
                         colMultiple = cardNum + 1;
                     }

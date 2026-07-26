@@ -65,6 +65,7 @@ class CoachB extends Card
 
         $moveActionContext = new MoveActionContext();
         $moveActionContext->setCurrentMoveType(MoveTypes::FREE);
+        $moveActionContext->setExhaustedNeedMoraleForMovement(false);
 
         return new ExecutionResult(ExecutionAction::GoToState, CoachCardResolver::class);
     }

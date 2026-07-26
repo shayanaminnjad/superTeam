@@ -109,8 +109,13 @@ class MoveAction extends PlayerBaseState
         $spentMorale = 0;
         if(!$pieceOldData->isFresh() && $numberOfMoves === 0) //player has moved an exhausted piece.
         {
-            $playerResources = new PlayerResources($activePlayerId);
-            $playerResources->addMorale(-1, false);
+            $moveActionContext = new MoveActionContext();
+
+            if ($moveActionContext->doExhaustedNeedMoraleForMovement())
+            {
+                $playerResources = new PlayerResources($activePlayerId);
+                $playerResources->addMorale(-1, false);
+            }
 
             $spentMorale = 1;
             $shouldEndMovement = true;

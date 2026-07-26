@@ -41,7 +41,8 @@ class MovePieceSelection extends PlayerBaseState
 
         $freshPieceIDs = [];
         $exhaustedSelectablePieceIds = [];
-        foreach($moveablePiecesIds as $moveablePieceId)
+
+        foreach ($moveablePiecesIds as $moveablePieceId)
         {
             $pieceData = $board->getPlayerPieceData($moveablePieceId);
 
@@ -51,9 +52,11 @@ class MovePieceSelection extends PlayerBaseState
                 $exhaustedSelectablePieceIds[] = $pieceData->getId();
         }
 
+
         return [
             'selectablePieces' => $freshPieceIDs,
-            'selectableExhaustedPieces' => $exhaustedSelectablePieceIds
+            'selectableExhaustedPieces' => $exhaustedSelectablePieceIds,
+            'showMorale' => $moveActionContext->doExhaustedNeedMoraleForMovement()
         ];
     }
 
