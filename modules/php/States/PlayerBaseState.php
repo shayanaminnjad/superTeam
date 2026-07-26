@@ -96,6 +96,11 @@ abstract class PlayerBaseState extends GameState
         $this->possibleActions[] = new ActionDescriptor($name, $ref->getName(), $paramsToSendBack, $buttonParams);
     }
 
+    protected function getClientButtons() : array
+    {
+        return $this->possibleActions;
+    }
+
     protected function serializePossibleActions(): array
     {
         $result = [];
