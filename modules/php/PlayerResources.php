@@ -26,13 +26,9 @@ class PlayerResources
         return \intval($playerMorale);
     }
 
-    public function setMorale(int $amount, bool $notify) 
+    public function setMorale(int $amount, bool $notify) : void
     {
-        $dbAdapter = DBAdapter::getInstance();
-
-        $this->morale = $amount;
-
-        $dbAdapter->DbQuery(
+        $this->dbAdapter->DbQuery(
             "UPDATE `player` SET `resource_morale` = {$amount} WHERE `player_id` = {$this->playerId}"
         );
 
@@ -46,34 +42,35 @@ class PlayerResources
         }
     }
 
-    public function addMorale(int $amount, bool $notify)
+    public function addMorale(int $amount, bool $notify) : void
     {
         $this->setMorale($this->getMorale() + $amount, $notify);
     }
 
     public function getGoals() : int
     {
-        $goalsScored = $this->getUniqueValueFromDB(
+        $goalsScored = $this->dbAdapter->getUniqueValueFromDB(
             "SELECT `goals_scored` FROM `player` WHERE `player_id` = {$this->playerId}"
         );
 
-        return $goalsScored = intval($goalsScored);
+        return intval($goalsScored);
     }
 
-    public function addOneGoal(bool $notify)
+    public function addOneGoal(bool $notify) : void
     {
-        $currentGoals = getGoals();
+        $currentGoals = $this->getGoals();
         $currentGoals += 1;
 
-        $this->DbQuery(
-            "UPDATE `player` SET `goals_scored` = {$currentGoals} WHERE player_id = {$this->playerId}"
-        );
+        $this->dbAdapter->DbQuery(
+            "UPDATE `player` SET `goals_scored` = {$currentGoals}, `player_score` = {$currentGoals}
+                WHERE player_id = {$this->playerId}");
 
         if ($notify)
         {
-            $this->notify->all('goalScored', 'goal scored!', array(
+            NotificationAdapter::getInstance()->notifyAll('goalScored', 'goal scored!', array(
                 "playerId" => $this->playerId,
-                "goals" => $currentGoals
+                "goals" => $currentGoals,
+                "score" => $currentGoals
             ));
         }
     }
