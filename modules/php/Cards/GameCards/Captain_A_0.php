@@ -11,6 +11,7 @@ use Bga\Games\SuperTeam\Cards\ExecutionAction;
 use Bga\Games\SuperTeam\Cards\ExecutionResult;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
+use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
@@ -49,13 +50,15 @@ class Captain_A_0 extends Card
     protected function getCommands(): array
     {
         return [
-            $this->goToMoveState(...),
-            $this->ifCaptainGiveMorale(...),
-            $this->goToBasicActionState(...)
+            $this->prepareMoveContext(...),
+            $this->goToMovePieceSelection(...),
+            $this->enforceLastPieceSelected(...),
+            $this->goToBasicActionState(...),
+            $this->ifCaptainGiveMorale(...)
         ];
     }
 
-    private function goToMoveState() : ExecutionResult
+    private function prepareMoveContext() : ExecutionResult
     {
         $playerId = intval($this->game->getCurrentPlayerId());
         DBAdapter::getInstance()->storeActionReturnState($playerId, TacticalTurnStateManager::class);
@@ -65,7 +68,23 @@ class Captain_A_0 extends Card
         $moveActionContext = new MoveActionContext();
         $moveActionContext->setCurrentMoveType(MoveTypes::FREE);
 
+        return new ExecutionResult(ExecutionAction::Continue);
+    }
+
+    private function goToMovePieceSelection() : ExecutionResult
+    {
         return new ExecutionResult(ExecutionAction::GoToState, MovePieceSelection::class);
+    }
+
+    private function enforceLastPieceSelected() : ExecutionResult
+    {
+        $moveActionContext = new MoveActionContext();
+        $piecesMoved = $moveActionContext->getPiecesMoved();
+
+        $pieceSelectionContext = new PieceSelectionContext();
+        $pieceSelectionContext->storeSelectablePiecesIds([$piecesMoved[count($piecesMoved) - 1]->id]);
+
+        return new ExecutionResult(ExecutionAction::Continue);
     }
 
     private function goToBasicActionState() : ExecutionResult
