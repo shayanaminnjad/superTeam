@@ -4,6 +4,7 @@ namespace Bga\Games\SuperTeam;
 
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
+use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 
 final class MovePieceSelectionLogic
 {
@@ -32,19 +33,24 @@ final class MovePieceSelectionLogic
         $playerPieces = $board->getPlayerPiecesByOwner($playerId);
         foreach($playerPieces as $piece)
         {
-            if ($piece->getRole() == PlayerRole::GoalKeeper->value)
-                continue;
-
-            if (!$piece->isFresh() && $playerMorale == 0)
-                continue;
-
-            $moveableHexes = BoardSpatial::getMoveableHexes($board, $piece->getPosition(),1, false, $playerId);
-
-            if (count($moveableHexes) > 0)
+            if (self::canPieceFreeMove($board, $playerId, $piece, $playerMorale))
                 $res[] = $piece;
         }
 
         return $res;
+    }
+
+    public static function canPieceFreeMove(Board $board, int $playerId, PlayerPiece $piece, int $playerMorale) : bool
+    {
+        if ($piece->getRole() == PlayerRole::GoalKeeper->value)
+            return false;
+
+        if (!$piece->isFresh() && $playerMorale == 0)
+            return false;
+
+        $moveableHexes = BoardSpatial::getMoveableHexes($board, $piece->getPosition(),1, false, $playerId);
+
+        return count($moveableHexes) > 0;
     }
 
     public static function extractForwardMoveablePieces(Board $board, int $playerId) : array
@@ -159,9 +165,8 @@ final class MovePieceSelectionLogic
 
     public static function storeMoveablePiecesIds(array $pieces) : void
     {
-        $moveActionContext = new MoveActionContext();
-
-        $moveActionContext->storeMoveablePieces($pieces);
+        $pieceSelectionContext = new PieceSelectionContext();
+        $pieceSelectionContext->storeSelectablePieces($pieces);
     }
 
     /**
