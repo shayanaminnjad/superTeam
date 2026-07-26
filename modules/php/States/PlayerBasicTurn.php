@@ -7,13 +7,18 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\BoardEvaluator;
+use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
+use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
+use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
+use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\PlayerRole;
+use Bga\Games\SuperTeam\Utility\Logger;
 use function count;
 use function intval;
 
@@ -39,43 +44,18 @@ class PlayerBasicTurn extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
-        $board = $this->game->getBoard();
-        $activePlayerId = intval($this->game->getActivePlayerId());
-        $pieceSelectableForMove = MovePieceSelectionLogic::extractFreeMoveMoveablePieces($board, $activePlayerId);
+        $pieceSelectionContext = new PieceSelectionContext();
+        $selectablePiecesIds = $pieceSelectionContext->getSelectablePieceIds();
 
-        $playerPieceWithBall = null;
-        if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPieceWithBall)) 
+        if (count($selectablePiecesIds) == 0)
         {
-            if ($playerPieceWithBall->getOwner() === $activePlayerId)
-            {
-                $this->addClientButton('pass ball', [$this, 'actPassBall']);
-
-                if ($playerPieceWithBall->getRole() !== PlayerRole::GoalKeeper->value) 
-                {
-                    $this->addClientButton('shoot', [$this, 'actShootBall']);
-
-                    if (BoardEvaluator::doesOpponentExistInNeighbours($board, $board->getBallHex(), $activePlayerId, false))
-                    {
-                        $this->addClientButton('dribble', [$this, 'actDribble']);
-                    }
-                }
-            }
-            else //so opponent has the ball!
-            {
-                $anyoneCanTackle = count(BoardEvaluator::getPiecesThatCanTackle($board, intval($this->game->getActivePlayerId()), $this->game->getInactivePlayerId())) > 0;
-
-                if ($anyoneCanTackle)
-                {
-                    $this->addClientButton('tackle', [$this, 'actTackle']);
-                }
-            }
+            Logger::logError("this is here!");
+            $this->addActionsDoableByAllPieces();
         }
-        
-        //TODO: what if the other goalie has the ball?
-        if (count($pieceSelectableForMove) > 0 &&
-            ($playerPieceWithBall == null || $playerPieceWithBall->getRole() !== PlayerRole::GoalKeeper->value)) //FIXME: if opponent's goalie has the ball we should be able to move! 
+        else
         {
-            $this->addClientButton('move', [$this, 'actMove']);
+            Logger::logInfo("we know the single piece and it is " . $selectablePiecesIds[0]);
+            $this->addActionsDoableByPiece($selectablePiecesIds[0]); //this only happens in captain actions
         }
 
         return [];
@@ -118,29 +98,97 @@ class PlayerBasicTurn extends PlayerBaseState
     }
 
     #[PossibleAction]
-    public function actDebugAddMorale(int $amount) : void
+    public function actPass(int $activePlayerId) : string
     {
-        if ($amount >= 0) {
-            $playerResources = new PlayerResources(intval($this->game->getActivePlayerId()));
-            $playerResources->setMorale($amount , true);
-        }
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
-
-    #[PossibleAction]
-    public function actDebugMoveBall(int $column, int $row) : void
-    {
-        $selectedHex = new HexID($column, $row);
-        $this->game->getBoard()->setBallLocation($selectedHex);
-
-        $this->notify->all('successfulPass', "successful pass", [
-            "ballHex" => $selectedHex->convertToArray()
-        ]);
-    }
-
 
     function zombie(int $playerId): string
     {
         // the code to run when the player is a Zombie
         return '';
+    }
+
+    private function addActionsDoableByAllPieces() : void
+    {
+        $board = $this->game->getBoard();
+        $activePlayerId = intval($this->game->getActivePlayerId());
+        $pieceSelectableForMove = MovePieceSelectionLogic::extractFreeMoveMoveablePieces($board, $activePlayerId);
+
+        $playerPieceWithBall = null;
+        if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPieceWithBall))
+        {
+            if ($playerPieceWithBall->getOwner() === $activePlayerId)
+            {
+                $this->addClientButton('pass ball', [$this, 'actPassBall']);
+
+                if ($playerPieceWithBall->getRole() !== PlayerRole::GoalKeeper->value)
+                {
+                    $this->addClientButton('shoot', [$this, 'actShootBall']);
+
+                    if (BoardEvaluator::doesOpponentExistInNeighbours($board, $board->getBallHex(), $activePlayerId, false))
+                    {
+                        $this->addClientButton('dribble', [$this, 'actDribble']);
+                    }
+                }
+            }
+            else //so opponent has the ball!
+            {
+                $anyoneCanTackle = count(BoardEvaluator::getPiecesThatCanTackle($board, intval($this->game->getActivePlayerId()), $this->game->getInactivePlayerId())) > 0;
+
+                if ($anyoneCanTackle)
+                {
+                    $this->addClientButton('tackle', [$this, 'actTackle']);
+                }
+            }
+        }
+
+        //todo: remove this, when you implemented goalie special pass in card selection
+        if (count($pieceSelectableForMove) > 0 &&
+            ($playerPieceWithBall == null || $playerPieceWithBall->getOwner() !== $activePlayerId || $playerPieceWithBall->getRole() !== PlayerRole::GoalKeeper->value))
+        {
+            $this->addClientButton('move', [$this, 'actMove']);
+        }
+    }
+
+    //todo: this can be the only logic for this class!
+    private function addActionsDoableByPiece(int $pieceId) : void
+    {
+        $board = $this->game->getBoard();
+        $activePlayerId = intval($this->game->getActivePlayerId());
+        $piece = $board->getPiece($pieceId);
+
+        $playerPieceWithBall = null;
+        if($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPieceWithBall))
+        {
+            if ($playerPieceWithBall->getId() === $pieceId)
+            {
+                $this->addClientButton('pass ball', [$this, 'actPassBall']);
+                $this->addClientButton('shoot', [$this, 'actShootBall']);
+
+                if (BoardEvaluator::doesOpponentExistInNeighbours($board, $board->getBallHex(), $activePlayerId, false))
+                {
+                    $this->addClientButton('dribble', [$this, 'actDribble']);
+                }
+            }
+            else
+            {
+                $piecesThatCanTackle = BoardEvaluator::getPiecesThatCanTackle($board, intval($this->game->getActivePlayerId()), $this->game->getInactivePlayerId());
+
+                if (array_any($piecesThatCanTackle, fn($v)=> $v->getId() === $pieceId))
+                {
+                    $this->addClientButton('tackle', [$this, 'actTackle']);
+                }
+            }
+        }
+
+        $playerResources = new PlayerResources($activePlayerId);
+        if (MovePieceSelectionLogic::canPieceFreeMove($board, $activePlayerId, $piece, $playerResources->getMorale()))
+            $this->addClientButton('move', [$this, 'actMove']);
+
+        if (count($this->getClientButtons()) == 0)
+        {
+            $this->addClientButton('Pass', [$this, 'actPass']);
+        }
     }
 }
