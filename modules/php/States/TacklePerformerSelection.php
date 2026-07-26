@@ -9,6 +9,7 @@ use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardEvaluator;
+use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\DBAdapter;
@@ -39,36 +40,44 @@ class TacklePerformerSelection extends GameState
     {
         $board = $this->game->getBoard();
 
-        $piecesThatCanTackle = BoardEvaluator::getPiecesThatCanTackle($board, \intval($this->game->getActivePlayerId()), $this->game->getInactivePlayerId());
+        $pieceSelectionContext = new PieceSelectionContext();
+        $piecesThatCanTackleIds = $pieceSelectionContext->getSelectablePieceIds();
 
-        $piecesThatCanTackleIds = [];
-        foreach($piecesThatCanTackle as $piece)
+        $piecesThatCanTackle = [];
+        foreach ($piecesThatCanTackleIds as $pieceId)
         {
-            $piecesThatCanTackleIds[] = $piece->getPosition()->convertToArray();
+            $piecesThatCanTackle[] = $board->getPiece($pieceId);
         }
 
-        return ["HexesWithTacklingPieces" => $piecesThatCanTackleIds];
+        if (empty($piecesThatCanTackle))
+        {
+            $piecesThatCanTackle = BoardEvaluator::getPiecesThatCanTackle($board, \intval($this->game->getActivePlayerId()), $this->game->getInactivePlayerId());
+        }
+
+        $hexesWithTacklingPieces = [];
+        foreach ($piecesThatCanTackle as $piece)
+        {
+            $hexesWithTacklingPieces[] = $piece->getPosition()->convertToArray();
+        }
+
+        return ["HexesWithTacklingPieces" => $hexesWithTacklingPieces];
     }
 
 
     #[PossibleAction]
     public function actPieceSelected(int $hexColumn, int $hexRow): string
     {
-        $board = $this->game->getBoard();
-        $piecesThatCanTackle = BoardEvaluator::getPiecesThatCanTackle($board, \intval($this->game->getActivePlayerId()), $this->game->getInactivePlayerId());
-        $selectedHex = new HexID($hexColumn, $hexRow);
+        $hexesWithTacklingPiecesAsArray = self::getArgs()["HexesWithTacklingPieces"];
 
-        $found = false;
-        foreach($piecesThatCanTackle as $piece)
+        $hexes = [];
+        foreach ($hexesWithTacklingPiecesAsArray as $hexAsArray)
         {
-            if ($piece->getPosition()->equals($selectedHex))
-            {
-                $found = true;
-                break;
-            }
+            $hexes[] = HexID::fromArray($hexAsArray);
         }
 
-        if (!$found)
+        $selectedHex = new HexID($hexColumn, $hexRow);
+
+        if (!array_any($hexes, fn($v) => $selectedHex->equals($v)))
             throw new \BgaUserException("selected invalid piece id for tackling");
 
         DBAdapter::getInstance()->storeSelectedHex($hexColumn ,$hexRow);
