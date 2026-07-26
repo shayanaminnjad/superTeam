@@ -54,7 +54,7 @@
             }
             else if (TimeTrack::IsGameFinished($timeTrackPosition))
             {
-                //TODO: finish the game, determine the winner
+                return ST_END_GAME;
             }
             else
             {
