@@ -367,6 +367,7 @@ define([
             },
 
             notif_goalScored: async function (notifData) {
+                this.scoreCtrl[notifData.playerId].toValue(notifData.score);
                 return PlayerPanelManager.setPlayerScoredGoals(notifData.playerId, notifData.goals);
             },
 
