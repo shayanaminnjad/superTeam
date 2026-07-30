@@ -188,6 +188,8 @@ class BoardEvaluator
                 return $row >= 2 && $row <= 7;
             }
         }
+
+        return false;
     }
 
     private static function getOpponentPieces(Board $board, int $ownerId) : array
