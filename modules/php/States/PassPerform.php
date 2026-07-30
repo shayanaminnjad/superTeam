@@ -9,7 +9,6 @@ use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\DBAdapter;
-use Bga\Games\SuperTeam\HexID;
 
 class PassPerform extends GameState
 {
@@ -53,13 +52,13 @@ class PassPerform extends GameState
             ]);
 
 
-            if ($board->hasPlayerInHex($board->getBallHex()))
+            if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPiece))
             {
-                $passActionContext->storeLastPassReceiverPosThisTurn($selectedHex);
+                $passActionContext->storeLastPassReceiverPieceData($playerPiece);
             }
             else
             {
-                $passActionContext->storeLastPassReceiverPosThisTurn(HexID::GetInvalidId());
+                $passActionContext->invalidateLastPassReceiverPieceData();
             }
         }
         else
@@ -72,7 +71,7 @@ class PassPerform extends GameState
                 "ballHex" => $newLocation->convertToArray()
             ]);
 
-            $passActionContext->storeLastPassReceiverPosThisTurn(HexID::GetInvalidId());
+            $passActionContext->invalidateLastPassReceiverPieceData();
         }
 
         return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);

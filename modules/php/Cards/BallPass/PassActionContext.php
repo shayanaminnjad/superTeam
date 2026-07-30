@@ -4,10 +4,12 @@ namespace Bga\Games\SuperTeam\Cards\BallPass;
 
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\PlayerPiece;
 
 class PassActionContext
 {
-    private const string LAST_PASS_RECEIVER_THIS_TURN_POS_KEY = 'last_pass_receiver_this_turn_pos';
+    private const string LAST_PASS_RECEIVER_THIS_TURN_ID_KEY = 'last_pass_receiver_this_turn_id';
+    private const string LAST_PASS_POS_THIS_TURN_KEY = 'last_pass_pos_this_turn';
     private const string PIECES_PASSED_KEY = 'pieces_passed';
 
     private DBAdapter $dbAdapter;
@@ -19,14 +21,26 @@ class PassActionContext
         $this->playerId = $playerId;
     }
 
-    public function storeLastPassReceiverPosThisTurn(HexID $pos) : void
+    public function storeLastPassReceiverPieceData(PlayerPiece $piece) : void
     {
-        $this->dbAdapter->storePlayerTempStr($this->playerId, self::LAST_PASS_RECEIVER_THIS_TURN_POS_KEY, $pos->toJson());
+        $this->dbAdapter->storePlayerTempInt($this->playerId, self::LAST_PASS_RECEIVER_THIS_TURN_ID_KEY, $piece->getId());
+        $this->dbAdapter->storePlayerTempStr($this->playerId, self::LAST_PASS_POS_THIS_TURN_KEY, $piece->getPosition()->toJson());
+    }
+
+    public function invalidateLastPassReceiverPieceData() : void
+    {
+        $this->dbAdapter->storePlayerTempInt($this->playerId, self::LAST_PASS_RECEIVER_THIS_TURN_ID_KEY, PlayerPiece::getInvalidPieceId());
+        $this->dbAdapter->storePlayerTempStr($this->playerId, self::LAST_PASS_POS_THIS_TURN_KEY, HexID::GetInvalidId()->toJson());
+    }
+
+    public function getLastPassReceiverIdThisTurn() : int
+    {
+        return $this->dbAdapter->getPlayerTempInt($this->playerId, self::LAST_PASS_RECEIVER_THIS_TURN_ID_KEY);
     }
 
     public function getLastPassReceiverPosThisTurn() : HexID
     {
-        $hexJson = $this->dbAdapter->getPlayerTempStr($this->playerId, self::LAST_PASS_RECEIVER_THIS_TURN_POS_KEY);
+        $hexJson = $this->dbAdapter->getPlayerTempStr($this->playerId, self::LAST_PASS_POS_THIS_TURN_KEY);
 
         if (empty($hexJson))
             return HexID::GetInvalidId();
@@ -55,7 +69,7 @@ class PassActionContext
     {
         if ($turnContexts)
         {
-            $this->dbAdapter->storePlayerTempStr($this->playerId, self::LAST_PASS_RECEIVER_THIS_TURN_POS_KEY, HexID::GetInvalidId()->toJson());
+            $this->invalidateLastPassReceiverPieceData();
         }
 
         $this->dbAdapter->storeGlobalString(self::PIECES_PASSED_KEY, '');

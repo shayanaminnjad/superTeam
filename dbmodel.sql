@@ -81,7 +81,8 @@ CREATE TABLE IF NOT EXISTS `player_temp_data` (
     `shootTarget` TEXT,
     `forced_pass_targets` TEXT,
     `action_return_state` TEXT,
-    `last_pass_receiver_this_turn_pos` TEXT
+    `last_pass_receiver_this_turn_id` INT DEFAULT -1,
+    `last_pass_pos_this_turn` TEXT
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `logs` (
