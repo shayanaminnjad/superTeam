@@ -51,9 +51,9 @@ class ShootPerform extends GameState
                 assert($stateToReturnTo == CardSelection::class);
             }
 
-            $this->game->activeNextPlayer();
+            DBAdapter::getInstance()->storeGlobalInt('is_restart_after_goal', 1);
 
-            return BoardReset::class;
+            return PassTurn::class;
         } 
         else 
         {

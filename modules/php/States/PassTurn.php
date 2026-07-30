@@ -7,6 +7,7 @@
  use Bga\GameFramework\StateType;
  use Bga\GameFramework\States\GameState;
  use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
+ use Bga\Games\SuperTeam\DBAdapter;
  use Bga\Games\SuperTeam\Game;
  use Bga\Games\SuperTeam\NotificationAdapter;
  use Bga\Games\SuperTeam\PlayerPiecesDBManager;
@@ -48,6 +49,14 @@
         $passActionContext = new PassActionContext($activePlayerId);
         $passActionContext->reset(true);
 
+         $isRestartAfterGoal = DBAdapter::getInstance()->getGlobalInt('is_restart_after_goal');
+
+         if ($isRestartAfterGoal)
+         {
+             if ($this->game->getStarterPlayer() != $nextPlayer)
+                 $this->game->swapStarterPlayer();
+         }
+
         if ($wasDiscardShuffled)
         {
             $timeTrackPosition = TimeTrack::AdvanceTimeTrack(true);
@@ -62,12 +71,26 @@
             }
             else
             {
-                return CardSelection::class;
+                if ($isRestartAfterGoal)
+                {
+                    return BoardReset::class;
+                }
+                else
+                {
+                    return CardSelection::class;
+                }
             }
         }
         else
         {
-            return CardSelection::class;
+            if ($isRestartAfterGoal)
+            {
+                return BoardReset::class;
+            }
+            else
+            {
+                return CardSelection::class;
+            }
         }
      }
  }
