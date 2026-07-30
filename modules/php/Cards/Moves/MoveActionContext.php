@@ -32,6 +32,9 @@ class MoveActionContext
         $this->loadMovesPerformed();
     }
 
+    /**
+     * @return MovedPieceInfo[]
+     */
     public function getPiecesMoved(): array
     {
         return $this->piecesMoved;
