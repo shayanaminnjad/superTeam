@@ -459,26 +459,26 @@ class Game extends \Bga\GameFramework\Table
     //========================================================================================================
     //-------------------------------------- cheats ----------------------------------------------------------
     //========================================================================================================
-    function debug_setMorale(int $amount) {
+    public function debug_setMorale(int $amount) {
         $playerResource  =new PlayerResources(\intval($this->getActivePlayerId()));
         $playerResource->setMorale($amount, true);
     }
 
     //---------------------------------------------------------------------------------------------------------
 
-    function debug_advanceTimeTracker() {
+    public function debug_advanceTimeTracker() {
         TimeTrack::AdvanceTimeTrack(true);
     }
 
     //---------------------------------------------------------------------------------------------------------
 
-    function debug_triggerHalfTime() {
+    public function debug_triggerHalfTime() {
         return ST_HALF_TIME;
     }
 
     //---------------------------------------------------------------------------------------------------------
 
-    function debug_defaultPieceSetup() {
+    public function debug_defaultPieceSetup() {
         $board = $this->getBoard();
 
         $activePlayerId = \intval($this->getActivePlayerId());
@@ -498,7 +498,7 @@ class Game extends \Bga\GameFramework\Table
 
     //---------------------------------------------------------------------------------------------------------
 
-    function debug_defaultAttributeSetup() {
+    public function debug_defaultAttributeSetup() {
         $currentPlayerId = \intval($this->getCurrentPlayerId());
         $teamBoard = $this->getTeamBoard();
         $attributesAssigned = $teamBoard->getTotalAttributesAssigned($currentPlayerId);
@@ -520,7 +520,7 @@ class Game extends \Bga\GameFramework\Table
 
     //---------------------------------------------------------------------------------------------------------
 
-    function debug_pickCard(string $cardType) : void
+    public function debug_pickCard(string $cardType) : void
     {
         $currentPlayerId = \intval($this->getCurrentPlayerId());
         $playerHand = $this->getPlayerHand($currentPlayerId);
@@ -538,7 +538,7 @@ class Game extends \Bga\GameFramework\Table
     }
 
     //---------------------------------------------------------------------------------------------------------
-    function debug_addOneGoal() : void
+    public function debug_addOneGoal() : void
     {
         $playerResources = new PlayerResources(\intval($this->getActivePlayerId()));
 
@@ -546,10 +546,52 @@ class Game extends \Bga\GameFramework\Table
     }
 
     //---------------------------------------------------------------------------------------------------------
-
-    function debug_endGame()
+    public function debug_endGame() : int
     {
         return ST_END_GAME;
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+    public function debug_movePieceTo(int $pieceId, int $row, int $column) : void
+    {
+        $selectedHex = new HexId($column, $row);
+
+        $offsetExtent = HexLib::getOffsetExtent();
+        if (!$offsetExtent->isInsideExtent($selectedHex))
+            throw new \BgaUserException("selected hex is not inside the board!");
+
+        $board = $this->getBoard();
+        $selectedPiece = $board->getPiece($pieceId);
+        if ($selectedPiece === null)
+            throw new \BgaUserException("selected piece id does not exist!");
+
+        $board->movePieceToHex($pieceId, $selectedHex);
+
+        $this->notify->all("movedPiece", \clienttranslate('${player_name} moves a piece'), array(
+            "player_name" => $this->getActivePlayerName(),
+            "movedPiece" => $pieceId,
+            "hex_column" => $column,
+            "hex_row" => $row,
+            "ballMoved" => false,
+            "spentMorale"=> 0
+        ));
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+    public function debug_moveBallTo(int $row, int $column) : void
+    {
+        $selectedHex = new HexId($column, $row);
+
+        $offsetExtent = HexLib::getOffsetExtent();
+        if (!$offsetExtent->isInsideExtent($selectedHex))
+            throw new \BgaUserException("selected hex is not inside the board!");
+
+        $board = $this->getBoard();
+        $board->setBallLocation($selectedHex);
+
+        $this->notify->all('successfulPass', "successful pass", [
+            "ballHex" => $selectedHex->convertToArray()
+        ]);
     }
 
     //---------------------------------------------------------------------------------------------------------
