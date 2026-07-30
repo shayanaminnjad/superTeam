@@ -108,4 +108,9 @@ class PlayerPiece
             DBAdapter::getInstance()->DbQuery("UPDATE `player_pieces` SET `hex_column` = {$hex->getColumn()}, `hex_row` = {$hex->getRow()} WHERE `id` = $myId ");
         }
     }
+
+    public static function getInvalidPieceId() : int
+    {
+        return -1;
+    }
 }
