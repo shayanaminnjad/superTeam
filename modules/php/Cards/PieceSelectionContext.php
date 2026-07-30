@@ -30,6 +30,9 @@ class PieceSelectionContext
         $this->dbAdapter->storeGlobalString(self::SELECTABLE_PIECES_KEY, json_encode($piecesIds));
     }
 
+    /**
+     * @return int[]
+     */
     public function getSelectablePieceIds(): array
     {
         $json = $this->dbAdapter->getGlobalString(self::SELECTABLE_PIECES_KEY);
