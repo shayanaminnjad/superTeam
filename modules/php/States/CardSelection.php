@@ -7,6 +7,7 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Cards\CardReward;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
@@ -48,6 +49,9 @@ class CardSelection extends PlayerBaseState
 
         $pieceSelectionContext = new PieceSelectionContext();
         $pieceSelectionContext->reset();
+
+        $passActionContext = new PassActionContext($activePlayerId);
+        $passActionContext->reset(false);
     }
 
     public function selfGetArgs(): array

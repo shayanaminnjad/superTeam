@@ -1,8 +1,10 @@
 <?php
 
 namespace Bga\Games\SuperTeam;
+use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Cards\BallPass\PassTypes;
 use Bga\Games\SuperTeam\HexLib\HexLib;
+use Bga\Games\SuperTeam\Utility\Logger;
 
 class PassTargetSelectionLogic
 {
@@ -28,9 +30,16 @@ class PassTargetSelectionLogic
             {
                 $playerPieces = $board->getPlayerPiecesByOwner($playerId);
 
+                $passActionContext = new PassActionContext($playerId);
+                $passedPiecesIds = $passActionContext->getPiecesPassedIds();
+
                 foreach($playerPieces as $piece)
-                    if ($piece->getRole() !== PlayerRole::GoalKeeper->value && !BoardEvaluator::doesPieceHasTheBall($board, $piece))
+                    if ($piece->getRole() !== PlayerRole::GoalKeeper->value &&
+                        !BoardEvaluator::doesPieceHasTheBall($board, $piece) &&
+                        !array_any($passedPiecesIds, fn($passedPieceId) => $piece->getId() == intval($passedPieceId)))
+                    {
                         $passTargetHexes[] = $piece->getPosition();
+                    }
             }
             break;
         }
@@ -57,19 +66,20 @@ class PassTargetSelectionLogic
     {
         $pieces = BoardSpatial::getPlayerOwnedPiecesInFrontColumns($board, $passStart->getColumn(), $playerId, $playerSide);
 
-        return self::getPiecesPositions($pieces);
+        return self::getPiecesPositions(self::filterNotPassedPieces($playerId,$pieces));
     }
 
     private static function getBackwardPassTargets(Board $board, int $playerId, PlayerSide $playerSide, HexID $passStart) : array
     {
         $pieces = BoardSpatial::getPlayerOwnedPiecesInBackwardColumns($board, $passStart->getColumn(), $playerId, $playerSide);
-        return self::getPiecesPositions($pieces);
+        return self::getPiecesPositions(self::filterNotPassedPieces($playerId,$pieces));
     }
     
     private static function getSameColumnPassTargets(Board $board, int $playerId, HexID $passStart) : array
     {
         $pieces = BoardSpatial::getPlayerOwnedPiecesInTheSameColumn($board, $passStart->getColumn(), $playerId);
-        return self::getPiecesPositions($pieces);
+
+        return self::getPiecesPositions(self::filterNotPassedPieces($playerId, $pieces));
     }
 
     private static function getThroughPassTargets(Board $board, int $playerId, PlayerSide $playerSide) : array
@@ -77,10 +87,17 @@ class PassTargetSelectionLogic
         $targets = [];
         $playerPieces = $board->getPlayerPiecesByOwner($playerId);
 
+        $passActionContext = new PassActionContext($playerId);
+        $piecesPassedIds = $passActionContext->getPiecesPassedIds();
+
         foreach ($playerPieces as $piece)
         {
-            if ($piece->getRole() === PlayerRole::GoalKeeper->value || BoardEvaluator::doesPieceHasTheBall($board, $piece))
+            if ($piece->getRole() === PlayerRole::GoalKeeper->value ||
+                BoardEvaluator::doesPieceHasTheBall($board, $piece) ||
+                array_any($piecesPassedIds, fn($passedPieceId) => $piece->getId() == intval($passedPieceId)))
+            {
                 continue;
+            }
 
             $targets = array_merge($targets, HexLib::getFrontArc($piece->getPosition(), ($playerSide === PlayerSide::Left) ? 1 : -1));
         }
@@ -113,5 +130,13 @@ class PassTargetSelectionLogic
         }
 
         return $positions;
+    }
+
+    private static function filterNotPassedPieces(int $playerId, array $pieces) : array
+    {
+        $passActionContext = new PassActionContext($playerId);
+        $piecesPassedIds = $passActionContext->getPiecesPassedIds();
+
+        return array_filter($pieces, fn($el) => !array_any($piecesPassedIds, fn($passedPieceId)=> $el->getId() == intval($passedPieceId)));
     }
 }

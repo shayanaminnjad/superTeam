@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `current_move_type` TEXT,
     `no_morale_for_exhausted` BOOLEAN DEFAULT FALSE,
     `pieces_moved` TEXT,
+    `pieces_passed` TEXT,
     `move_selected_piece_data` TEXT,
     `ball_before_tactic_location` TEXT,
     `morale_before_tactic` INT DEFAULT -1
@@ -79,7 +80,8 @@ CREATE TABLE IF NOT EXISTS `player_temp_data` (
     `dice_roll_input` TEXT,
     `shootTarget` TEXT,
     `forced_pass_targets` TEXT,
-    `action_return_state` TEXT
+    `action_return_state` TEXT,
+    `last_pass_receiver_this_turn_pos` TEXT
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `logs` (

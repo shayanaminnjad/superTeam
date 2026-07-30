@@ -6,6 +6,7 @@
  
  use Bga\GameFramework\StateType;
  use Bga\GameFramework\States\GameState;
+ use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
  use Bga\Games\SuperTeam\Game;
  use Bga\Games\SuperTeam\NotificationAdapter;
  use Bga\Games\SuperTeam\PlayerPiecesDBManager;
@@ -43,6 +44,9 @@
 
         $this->game->DbQuery(PlayerPiecesDBManager::refreshPiecesQuery($nextPlayer));
         $this->game->notify->all("piecesRefreshed", "pieces refreshed", ["playerId" => $nextPlayer]);
+
+        $passActionContext = new PassActionContext($activePlayerId);
+        $passActionContext->reset(true);
 
         if ($wasDiscardShuffled)
         {
