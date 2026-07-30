@@ -53,7 +53,7 @@ class Captain_A_0 extends CaptainCard
             $this->goToMovePieceSelection(...),
             $this->enforceLastPieceSelected(...),
             $this->goToBasicActionState(...),
-            $this->ifCaptainGiveMorale(...)
+            $this->ifCaptainMovedGiveMorale(...)
         ];
     }
 
@@ -89,21 +89,6 @@ class Captain_A_0 extends CaptainCard
     private function goToBasicActionState() : ExecutionResult
     {
         return new ExecutionResult(ExecutionAction::GoToState, PlayerBasicTurn::class);
-    }
-
-    private function ifCaptainGiveMorale() : ExecutionResult
-    {
-        $moveActionContext = new MoveActionContext();
-        $piecesMoved = $moveActionContext->getPiecesMoved();
-
-        if ($this->board->getPiece($piecesMoved[0]->id)->getRole() === PlayerRole::Captain->value)
-        {
-            $playerId = \intval($this->game->getCurrentPlayerId());
-            $playerResources = new PlayerResources($playerId);
-            $playerResources->addMorale(1, true);
-        }
-
-        return new ExecutionResult(ExecutionAction::Continue);
     }
 
     private function getPiecesNotAdjacentToOpponents() : array
