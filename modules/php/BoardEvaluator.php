@@ -115,6 +115,9 @@ class BoardEvaluator
         return $pieceMaxMoveDistance;
     }
 
+    /**
+     * @return PlayerPiece[]
+     */
     public static function getAdjacentOpponentPieces(Board $board, HexID $reference, int $playerId, bool $includeGoalie): array
     {
         $res = [];
@@ -133,6 +136,24 @@ class BoardEvaluator
         }
 
         return $res;
+    }
+
+    public static function getPlayerPiecesNotAdjacentToOpponent(Board $board, int $playerId, bool $includeGoalie = false): array
+    {
+        $result = [];
+
+        $playerPieces = $board->getPlayerPiecesByOwner($playerId);
+
+        foreach($playerPieces as $piece)
+        {
+            if (!$includeGoalie && $piece->getRole() == PlayerRole::GoalKeeper->value)
+                continue;
+
+            if (!self::hasAdjacentOpponentPieces($board, $piece->getPosition(), $playerId, true))
+                $result[] = $piece;
+        }
+
+        return $result;
     }
 
     public static function hasAdjacentOpponentPieces(Board $board, HexID $reference, int $playerId, bool $includeGoalie) : bool
