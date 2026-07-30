@@ -158,6 +158,38 @@ class BoardEvaluator
         return \count(self::getAdjacentOpponentPieces($board, $reference, $currentPlayer, $includeGoalie)) > 0;
     }
 
+    public static function isInsideOpponentPenaltyArea(int $playerId, HexID $hexToCheck) : bool
+    {
+        $playerSide = Board::getPlayerSide($playerId);
+        $column = $hexToCheck->getColumn();
+        $row = $hexToCheck->getRow();
+
+        $minColumn = -1;
+        $maxColumn = -1;
+
+        if ($playerSide == PlayerSide::Left)
+        {
+            $minColumn = 14;
+            $maxColumn = 16;
+        }
+        else
+        {
+            $minColumn = 0;
+            $maxColumn = 2;
+        }
+
+        if ($column >= $minColumn && $column <= $maxColumn)
+        {
+            if ($column % 2 == 0)
+            {
+                return $row >= 2 && $row <= 8;
+            } else
+            {
+                return $row >= 2 && $row <= 7;
+            }
+        }
+    }
+
     private static function getOpponentPieces(Board $board, int $ownerId) : array
     {
         $result = [];
