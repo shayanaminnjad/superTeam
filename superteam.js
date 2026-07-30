@@ -293,8 +293,17 @@ define([
                 return this.forwardNotification(this.notif_attributeAssignmentFinished.name, notifData);
             },
 
-            notif_movedPiece: function (notifData) {
-                return this.forwardNotification(this.notif_movedPiece.name, notifData);
+            notif_movedPiece: async function (notifData) {
+                let destHex = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);
+                let piece = this.pieceManager.getPiece(notifData.movedPiece);
+                let moraleSpent = parseInt(notifData.spentMorale) === 1;
+                let ballMoved = parseInt(notifData.ballMoved) === 1;
+
+                let animation = GameEventProcessor.MovePieceWithAnimation(piece, destHex, moraleSpent, ballMoved);
+
+                await this.bgaPlayDojoAnimation(animation);
+
+                //return this.forwardNotification(this.notif_movedPiece.name, notifData);
             },
 
             notif_dribblePerformed: function (notifData) {
