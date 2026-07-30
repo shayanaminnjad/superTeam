@@ -2,9 +2,8 @@ define(["dojo/_base/declare",
     g_gamethemeurl + "modules/js/States/BaseState.js",
     g_gamethemeurl + "modules/js/BoardPresentation.js",
     g_gamethemeurl + "modules/js/PlayerPanelManager.js",
-    g_gamethemeurl + "modules/js/STHexLib.js",
-    g_gamethemeurl + "modules/js/GameEventProcessor.js"],
-    function (declare, BaseState, Board, PlayerPanelManager, STHexLib, GameEventProcessor) {
+    g_gamethemeurl + "modules/js/STHexLib.js"],
+    function (declare, BaseState, Board, PlayerPanelManager, STHexLib) {
 
         const MoveActionState = declare("st.MoveActionState", BaseState, {
 
