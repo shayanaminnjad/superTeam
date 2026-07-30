@@ -6,6 +6,7 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
+use Bga\Games\SuperTeam\Cards\CardActionDriver;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PlayerResources;
@@ -41,6 +42,14 @@ class ShootPerform extends GameState
             $playerResources = new PlayerResources($attacker);
 
             $playerResources->addOneGoal(true);
+
+            $cardActionDriver = new CardActionDriver($activePlayerId, $this->game);
+
+            if ($cardActionDriver->isCardInProgress())
+            {
+                $stateToReturnTo = $cardActionDriver->progress();
+                assert($stateToReturnTo == CardSelection::class);
+            }
 
             $this->game->activeNextPlayer();
 
