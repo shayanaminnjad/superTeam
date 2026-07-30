@@ -85,7 +85,7 @@ class TacklePerformerSelection extends GameState
         DiceRollServices::storeRollInput(\intval($this->game->getActivePlayerId()), new RequiredPower(0, []), PerformTackle::class, TeamAttribute::Tackle, TeamAttribute::Dribble, true);
 
         return ActiveNextGoMorale::class;
-}
+    }
 
     function zombie(int $playerId): string {
         // the code to run when the player is a Zombie
