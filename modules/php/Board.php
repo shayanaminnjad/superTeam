@@ -153,10 +153,6 @@ class Board
             {
                 $this->setBallLocation($lhs);
             }
-            else 
-            {
-                assert(false, "when swap ball is enabled, ball should be in one of the hexes!");
-            }
         }
         else
         {
