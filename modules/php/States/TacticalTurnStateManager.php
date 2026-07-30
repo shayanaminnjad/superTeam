@@ -7,12 +7,8 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\StateType;
-use Bga\Games\SuperTeam\Cards\TacticCard;
-use Bga\Games\SuperTeam\Cards\TacticContext;
-use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\Cards\CardActionDriver;
 use Bga\Games\SuperTeam\Game;
-use Bga\Games\SuperTeam\Cards\TacticType;
-use Bga\Games\SuperTeam\Cards\ExecutionAction;
 
 //TODO: This is really card Action tunStateManager
 class TacticalTurnStateManager extends GameState
@@ -30,42 +26,9 @@ class TacticalTurnStateManager extends GameState
         );
     }
 
-    function onEnteringState(int $activePlayerId)
+    function onEnteringState(int $activePlayerId) : string
     {
-        $tacticContext = new TacticContext();
-
-        $cardInPlay = $tacticContext->getTacticInPlay();
-        assert($cardInPlay >= 0);
-
-        $tacticProgress = $tacticContext->getTacticProgress();
-        assert($tacticProgress >= 0, "tactic progress can't be negative!");
-
-        $tacticType = $tacticContext->getTacticType();
-
-        $card = $this->game->getCardFactory()->getCard($cardInPlay);
-
-        $result = $card->execute($tacticProgress);
-
-        if ($result->action == ExecutionAction::GoToState)
-        {
-            $dbAdapter = DBAdapter::getInstance();
-            $dbAdapter->storeActionReturnState($activePlayerId, self::class);
-            $tacticContext->setTacticProgress( $result->index);
-
-            return $result->requestedState;
-        }
-        else
-        {
-            //TODO: apply fatigue too.
-            //TODO: this part must be part of the class instructions! no need to know about the cards here!
-            if ($result->action == ExecutionAction::Success && $card instanceof TacticCard)
-            {
-                return TacticRewardResolve::class;
-            } 
-            else
-            {
-                return CardSelection::class;
-            }
-        }
+        $cardActionDriver = new CardActionDriver($activePlayerId, $this->game);
+        return $cardActionDriver->progress();
     }
 }
