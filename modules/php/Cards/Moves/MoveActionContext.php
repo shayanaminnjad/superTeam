@@ -49,16 +49,6 @@ class MoveActionContext
         $this->dbAdapter->storeGlobalString(self::MOVES_PERFORMED_KEY, $movesPerformed->toJson());
     }
 
-    public function getMoveablePiecesIds(): array
-    {
-        $json = $this->dbAdapter->getGlobalString(self::MOVEABLE_PIECES_KEY);
-
-        if (empty($json))
-            return [];
-
-        return json_decode($json, true);
-    }
-
     public function getCurrentMoveType(): MoveTypes
     {
         $moveTypeStr = $this->dbAdapter->getGlobalString(self::CURRENT_MOVE_TYPE_KEY);
@@ -149,7 +139,6 @@ class MoveActionContext
 
         $this->dbAdapter->storeGlobalString(self::PIECES_MOVED_KEY, '');
         $this->dbAdapter->storeGlobalString(self::MOVES_PERFORMED_KEY, '');
-        $this->dbAdapter->storeGlobalString(self::MOVEABLE_PIECES_KEY, '');
         $this->dbAdapter->storeGlobalString(self::CURRENT_MOVE_TYPE_KEY, '');
         $this->dbAdapter->storeGlobalString(self::SELECTED_PIECE_DATA_KEY, '');
         $this->dbAdapter->storeGlobalString(self::BALL_BEFORE_MOVE_lOCATION_KEY, '');
