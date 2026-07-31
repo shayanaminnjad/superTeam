@@ -2,7 +2,6 @@
 
 namespace Bga\Games\SuperTeam\Cards\GameCards;
 
-use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Cards\CaptainCard;
 use Bga\Games\SuperTeam\Cards\CardDefinition;
@@ -11,7 +10,6 @@ use Bga\Games\SuperTeam\Cards\CardTypeHelper;
 use Bga\Games\SuperTeam\Cards\ExecutionAction;
 use Bga\Games\SuperTeam\Cards\ExecutionResult;
 use Bga\Games\SuperTeam\Game;
-use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\PlayerRole;
 
@@ -27,26 +25,7 @@ class Captain_A_1 extends CaptainCard
 
     public function isExecutionPossible(): bool
     {
-        $result = false;
-
-        $playerId = intval($this->game->getActivePlayerId());
-        $passActionContext = new PassActionContext($playerId);
-
-        $pieceId = $passActionContext->getLastPassReceiverIdThisTurn();
-
-        if (PlayerPiece::getInvalidPieceId() != $pieceId &&
-            BoardEvaluator::isInsideOpponentPenaltyArea($playerId, $passActionContext->getLastPassReceiverPosThisTurn()))
-        {
-            $playerPiece = $this->board->getPlayerPieceData($pieceId);
-            if (BoardEvaluator::isInsideOpponentPenaltyArea($playerId, $playerPiece->getPosition()))
-            {
-                assert($playerPiece->getPosition()->equals($this->board->getBallHex()));
-
-                $result = true;
-            }
-        }
-
-        return $result;
+        return $this->isBallReceiverInsidePenaltyArea();
     }
 
     public static function staticId() : string

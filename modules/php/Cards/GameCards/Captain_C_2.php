@@ -2,11 +2,16 @@
 
 namespace Bga\Games\SuperTeam\Cards\GameCards;
 
+use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Cards\CaptainCard;
 use Bga\Games\SuperTeam\Cards\CardDefinition;
 use Bga\Games\SuperTeam\Cards\CardType;
 use Bga\Games\SuperTeam\Cards\CardTypeHelper;
+use Bga\Games\SuperTeam\Cards\ExecutionAction;
+use Bga\Games\SuperTeam\Cards\ExecutionResult;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\PlayerResources;
+use Bga\Games\SuperTeam\PlayerRole;
 
 class Captain_C_2 extends CaptainCard
 {
@@ -30,8 +35,7 @@ class Captain_C_2 extends CaptainCard
 
     public function isExecutionPossible(): bool
     {
-        // TODO: Implement isExecutionPossible() method.
-        return false;
+        return $this->isBallReceiverInsidePenaltyArea();
     }
 
     /**
@@ -39,13 +43,32 @@ class Captain_C_2 extends CaptainCard
      */
     protected function getCommands(): array
     {
-        // TODO: Implement getCommands() method.
-
-        return [];
+        return [
+            $this->enableSkip(...),
+            $this->goToShootState(...),
+            $this->giveMoraleIfWasCaptain(...)
+        ];
     }
 
     protected function cleanup() : void
     {
-        // TODO: Implement cleanup() method.
+    }
+
+    private function giveMoraleIfWasCaptain() : ExecutionResult
+    {
+        $playerId = intval($this->game->getActivePlayerId());
+
+        $passActionContext = new PassActionContext($playerId);
+        $pieceId = $passActionContext->getLastPassReceiverIdThisTurn();
+
+        $playerPiece = $this->board->getPlayerPieceData($pieceId);
+
+        if ($playerPiece->getRole() == PlayerRole::Captain->value)
+        {
+            $playerResources = new PlayerResources($playerId);
+            $playerResources->addMorale(1, true);
+        }
+
+        return new ExecutionResult(ExecutionAction::Success);
     }
 }
