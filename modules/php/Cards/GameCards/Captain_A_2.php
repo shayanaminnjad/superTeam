@@ -14,9 +14,7 @@ use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
 use Bga\Games\SuperTeam\PlayerPiece;
-use Bga\Games\SuperTeam\States\MovePieceSelection;
-use Bga\Games\SuperTeam\States\PieceToSwapSelection;
-use Bga\Games\SuperTeam\States\TacklePerformerSelection;
+use Bga\Games\SuperTeam\States\SwapPiece;
 
 
 class Captain_A_2 extends CaptainCard
@@ -56,7 +54,7 @@ class Captain_A_2 extends CaptainCard
         ];
     }
 
-    protected function cleanup()
+    protected function cleanup() : void
     {
     }
 
@@ -97,7 +95,7 @@ class Captain_A_2 extends CaptainCard
             $pieceSelectionContext = new PieceSelectionContext();
             $pieceSelectionContext->storeSelectablePiecesIds([$piecesMoved[0]->id]);
 
-            return new ExecutionResult(ExecutionAction::GoToState, PieceToSwapSelection::class);
+            return new ExecutionResult(ExecutionAction::GoToState, SwapPiece::class);
         }
         else
         {

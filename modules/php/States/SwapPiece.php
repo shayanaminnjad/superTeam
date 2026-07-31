@@ -12,15 +12,15 @@ use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\NotificationAdapter;
 use http\Exception\RuntimeException;
 
-class PieceToSwapSelection extends PlayerBaseState
+class SwapPiece extends PlayerBaseState
 {
     function __construct(
         protected Game $game,
     ) {
         parent::__construct(
             $game,
-            id: ST_PIECE_TO_SWAP_SELECTION,
-            name: 'pieceToSwapSelection',
+            id: ST_SWAP_PIECE,
+            name: 'swapPiece',
             type: StateType::ACTIVE_PLAYER,
 
             // optional

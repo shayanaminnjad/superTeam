@@ -50,7 +50,7 @@ define(["dojo/_base/declare",
         });
 
         PieceToSwapSelection.getName = function () {
-            return 'pieceToSwapSelection';
+            return 'swapPiece';
         };
 
         return PieceToSwapSelection;
