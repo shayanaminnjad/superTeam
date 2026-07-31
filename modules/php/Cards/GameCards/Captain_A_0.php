@@ -86,11 +86,6 @@ class Captain_A_0 extends CaptainCard
         return new ExecutionResult(ExecutionAction::Continue);
     }
 
-    private function goToBasicActionState() : ExecutionResult
-    {
-        return new ExecutionResult(ExecutionAction::GoToState, PlayerBasicTurn::class);
-    }
-
     private function getPiecesNotAdjacentToOpponents() : array
     {
         $playerId = \intval($this->game->getCurrentPlayerId());

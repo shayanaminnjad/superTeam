@@ -7,7 +7,9 @@ use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\PlayerRole;
+use Bga\Games\SuperTeam\States\CaptainCardPerformerSelection;
 use Bga\Games\SuperTeam\States\MovePieceSelection;
+use Bga\Games\SuperTeam\States\PlayerBasicTurn;
 use Bga\Games\SuperTeam\States\ShootTargetSelection;
 
 abstract class CaptainCard extends Card
@@ -53,5 +55,15 @@ abstract class CaptainCard extends Card
         }
 
         return new ExecutionResult(ExecutionAction::Continue);
+    }
+
+    protected function goToCaptainCardPerformerSelectionState() : ExecutionResult
+    {
+        return new ExecutionResult(ExecutionAction::GoToState, CaptainCardPerformerSelection::class);
+    }
+
+    protected function goToBasicActionState() : ExecutionResult
+    {
+        return new ExecutionResult(ExecutionAction::GoToState, PlayerBasicTurn::class);
     }
 }
