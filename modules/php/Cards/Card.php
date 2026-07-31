@@ -174,6 +174,6 @@ abstract class Card
  */
     abstract protected function getCommands() : array;
 
-    abstract protected function cleanup();
+    abstract protected function cleanup() : void;
 }
 
