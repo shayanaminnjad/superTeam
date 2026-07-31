@@ -52,7 +52,7 @@ class DiceRoll extends GameState
         $notifData["rollResult"] = $rollNotifData;
         $notifData["distance"] = $rollData->distance;
         $notifData["blockingPieces"] = $rollData->blockingPieces;
-        $notifData["skipEnabled"] = $rollData->skipEnabled;
+        $notifData["skipEnabledPlayerId"] = ($rollData->skipEnabled ? $activePlayerId : -1);
         $notifData["requiredPower"] = $rollData->requiredPower;
 
         $this->notify->all("diceRolled", \clienttranslate('diceRolled'), $notifData);

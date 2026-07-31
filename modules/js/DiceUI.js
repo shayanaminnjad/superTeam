@@ -7,7 +7,7 @@ define([
             this._root = root;
         },
 
-        showRollAndWait: async function (rollResults, requiredPower, blockingPieces, distance, skipEnabled) {
+        showRollAndWait: async function (rollResults, requiredPower, blockingPieces, distance, skipEnabledPlayerId) {
 
             //TODO: always show current player at top!
             Board.getMainBoardElement().insertAdjacentHTML('beforeend', `<div id='diceRollArea'></div>`);
@@ -37,7 +37,7 @@ define([
                     playerRollLine.insertAdjacentHTML('beforeend', `<div class="powerBlockingPieces">${blockingPieces}</div>`);
                 }
 
-                if (skipEnabled) {
+                if (skipEnabledPlayerId === result.playerId) {
                     playerRollLine.insertAdjacentHTML('beforeend', `<div style="color: white; font-size: 20px; font-weight: bold">SKIP</div>`);
                 }
 
