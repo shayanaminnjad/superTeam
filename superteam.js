@@ -79,7 +79,7 @@ define([
                 this.cardsManager = new STCardsManager(this,
                     Object.values(gamedatas.player_hand).
                     concat(Object.values(gamedatas.player_discard)).
-                    concat(gamedatas.player_deck).concat(Object.values(gamedatas.supply)));
+                    concat(gamedatas.player_deck).concat(Object.values(gamedatas.supply)).concat(Object.values(gamedatas.other_discard)));
                 
                 this.setupNotifications();
 

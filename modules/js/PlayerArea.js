@@ -70,7 +70,12 @@ define([
                     const playerHand = document.createElement('div');
                     playerHand.id = 'myHand';
                     playerCardsWrapper.appendChild(playerHand);
-
+                }
+                else
+                {
+                    const opponentDiscard = document.createElement('div');
+                    opponentDiscard.id = 'opponentDiscard';
+                    playerStuffContainer.appendChild(opponentDiscard);
                 }
             },
 
