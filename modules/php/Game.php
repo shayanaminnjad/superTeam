@@ -269,6 +269,7 @@ class Game extends \Bga\GameFramework\Table
         $default_colors = ['DD4720', '479ADA'];
 
         $teamBoard= 0;
+        $captainBoard = 0;
         foreach ($players as $player_id => $player) {
             // Now you can access both $player_id and $player array
             $query_values[] = vsprintf("('%s', '%s', '%s', '%s', '%s')", [
@@ -280,8 +281,9 @@ class Game extends \Bga\GameFramework\Table
             ]);
 
             //TODO: this must change, it should be initialized when we have selected captain board and team board.
-            PlayerHand::createPlayerHand($playersDeck, $player_id, 0, $teamBoard);
+            PlayerHand::createPlayerHand($playersDeck, $player_id, $captainBoard, $teamBoard);
             $teamBoard += 1;
+            $captainBoard = 2;
         }
 
         static::DbQuery(
