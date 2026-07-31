@@ -8,21 +8,35 @@ define([
         construct: function (root, timeIndex, orangeGoals, blueGoals) {
             this._root = root;
             this._initTrackerBoard();
+            this._initSupplyPile();
+            this._initGoalTracker(orangeGoals, blueGoals);
             this.setTrackerTo(timeIndex);
         },
 
-        animateTrackerTo(timeIndex)
+        animateTrackerTo: function(timeIndex)
         {
             let positionEl = this._positions[timeIndex];
 
             return this._root.bgaPlayDojoAnimation(this._root.slideToObject(this._timeTrackCubeEl, positionEl));
         },
 
-        setTrackerTo(timeIndex)
+        setTrackerTo: function(timeIndex)
         {
             let positionEl = this._positions[timeIndex];
 
             this._root.placeOnObject(this._timeTrackCubeEl, positionEl);
+        },
+
+        setOrangeGoals: function(goals)
+        {
+            let el = document.getElementById('orange_scoreBoard');
+            el.innerText = goals;
+        },
+
+        setBlueGoals: function(goals)
+        {
+            let el = document.getElementById('blue_scoreBoard');
+            el.innerText = goals;
         },
 
         //Private Functions
@@ -30,16 +44,16 @@ define([
         {
             this._root.getGameAreaElement().insertAdjacentHTML('beforeend', `<div id="trackerBoard"></div>`);
 
-            const TRACKER_BOARD = document.getElementById('trackerBoard');
-            const BOARD_WIDTH = parseFloat(getComputedStyle(TRACKER_BOARD).width);
-            const BOARD_HEIGHT = parseFloat(getComputedStyle(TRACKER_BOARD).height);
+            this._trackerBoard = document.getElementById('trackerBoard');
+            this._computedBoardWidth = parseFloat(getComputedStyle(this._trackerBoard).width);
+            this._computedBoardHeight = parseFloat(getComputedStyle(this._trackerBoard).height);
 
-            const CUBE_POS_LEFT_MARGIN = UIConstants.TRACKER_FIRST_CUBE_POSITION_FROM_LEFT_PERCENT * BOARD_WIDTH;
-            const CUBE_POS_TOP_MARGIN = UIConstants.TRACKER_FIRST_CUBE_POSITION_FROM_TOP_PERCENT * BOARD_HEIGHT;
-            const CUBE_POS_SPACING = UIConstants.TRACKER_SPACE_BETWEEN_POSITIONS_PERCENT * BOARD_WIDTH;
-            const MIDDLE_SECTION_LENGTH = UIConstants.TRACKER_MIDDLE_SECTION_LENGTH_PERCENT * BOARD_WIDTH;
+            const CUBE_POS_LEFT_MARGIN = UIConstants.TRACKER_FIRST_CUBE_POSITION_FROM_LEFT_PERCENT * this._computedBoardWidth;
+            const CUBE_POS_TOP_MARGIN = UIConstants.TRACKER_FIRST_CUBE_POSITION_FROM_TOP_PERCENT * this._computedBoardHeight;
+            const CUBE_POS_SPACING = UIConstants.TRACKER_SPACE_BETWEEN_POSITIONS_PERCENT * this._computedBoardWidth;
+            const MIDDLE_SECTION_LENGTH = UIConstants.TRACKER_MIDDLE_SECTION_LENGTH_PERCENT * this._computedBoardWidth;
 
-            const CUBE_SIDE = UIConstants.TRACKER_TIME_CUBE_SIDE_TO_WIDTH_PERCENT * BOARD_WIDTH; //move down!
+            const CUBE_SIDE = UIConstants.TRACKER_TIME_CUBE_SIDE_TO_WIDTH_PERCENT * this._computedBoardWidth; //move down!
 
             const CUBE_POSITIONS_COUNT = 8;
             const POSITION_ON_EACH_SIDE = 4;
@@ -54,7 +68,7 @@ define([
                 cubePosEl.style.width = `${CUBE_SIDE}px`;
                 cubePosEl.style.height = `${CUBE_SIDE}px`;
 
-                TRACKER_BOARD.appendChild(cubePosEl);
+                this._trackerBoard.appendChild(cubePosEl);
                 this._positions.push(cubePosEl)
 
                 distanceSoFar += CUBE_SIDE + CUBE_POS_SPACING;
@@ -63,12 +77,10 @@ define([
                     distanceSoFar += MIDDLE_SECTION_LENGTH - CUBE_POS_SPACING;
             }
 
-            this._initTimeTracker(CUBE_SIDE, TRACKER_BOARD);
-
-            this._initSupplyPile(BOARD_HEIGHT, BOARD_WIDTH , TRACKER_BOARD);
+            this._initTimeTracker(CUBE_SIDE);
         },
 
-        _initTimeTracker: function(sideSize, trackerBoard)
+        _initTimeTracker: function(sideSize)
         {
             this._timeTrackCubeEl = document.createElement('div');
             this._timeTrackCubeEl.id = 'timeTrackCube';
@@ -76,27 +88,49 @@ define([
             this._timeTrackCubeEl.style.width = `${sideSize}px`;
             this._timeTrackCubeEl.style.height = `${sideSize}px`;
 
-            trackerBoard.appendChild(this._timeTrackCubeEl);
+            this._trackerBoard.appendChild(this._timeTrackCubeEl);
         },
 
-        _initSupplyPile: function(boardHeight, boardWidth, trackerBoard) {
+        _initSupplyPile: function() {
             const supplyDeck = document.createElement('div');
             supplyDeck.id = 'supply';
             supplyDeck.style.position = 'absolute'
-            supplyDeck.style.left = `${UIConstants.TRACKER_FATIGUE_DECK_FROM_LEFT_PERCENT * boardWidth}px`;
-            supplyDeck.style.top = `${UIConstants.TRACKER_FATIGUE_DECK_FROM_TOP_PERCENT * boardHeight}px`;
+            supplyDeck.style.left = `${UIConstants.TRACKER_FATIGUE_DECK_FROM_LEFT_PERCENT * this._computedBoardWidth}px`;
+            supplyDeck.style.top = `${UIConstants.TRACKER_FATIGUE_DECK_FROM_TOP_PERCENT * this._computedBoardHeight}px`;
             supplyDeck.style.scale = "60%";
             supplyDeck.style.transform= "translateY(-48%) translateX(-10%) rotate(90deg)";
-            trackerBoard.appendChild(supplyDeck);
+            this._trackerBoard.appendChild(supplyDeck);
         },
 
         _initGoalTracker: function(orangeGoals, blueGoals)
         {
+            //todo: also compute width and heigh of each element based on the board size.
+            const orangeEl = document.createElement('div');
+            orangeEl.id = "orange_scoreBoard";
+            orangeEl.className = 'scoreBoard'
+            orangeEl.style.backgroundColor = '#e67e22';
+            orangeEl.style.left = `${0.43021148 * this._computedBoardWidth}px`
+            orangeEl.style.top = `${0.307627118 * this._computedBoardHeight}px`
+            orangeEl.innerText = orangeGoals;
 
+            this._trackerBoard.appendChild(orangeEl);
+
+            const blueEl = document.createElement('div');
+            blueEl.id = "blue_scoreBoard";
+            blueEl.className = 'scoreBoard';
+            blueEl.style.left = `${0.503323262839 * this._computedBoardWidth}px`;
+            blueEl.style.top = `${0.307627118 * this._computedBoardHeight}px`;
+            blueEl.style.backgroundColor = '#3498db';
+            blueEl.innerText = blueGoals;
+
+            this._trackerBoard.appendChild(blueEl);
         },
 
         _root: null,
         _timeTrackCubeEl: null,
-        _positions: []
+        _positions: [],
+        _trackerBoard: null,
+        _computedBoardWidth: 0,
+        _computedBoardHeight: 0
     };
 });

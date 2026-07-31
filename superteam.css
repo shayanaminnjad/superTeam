@@ -75,6 +75,28 @@
     z-index: 100;
 }
 
+.scoreBoard {
+    position: absolute;
+
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 2px solid white;
+    border-radius: 8px;
+
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    line-height: 1;
+
+    box-sizing: border-box;
+    user-select: none;
+}
+
 .hex_debug {
     position: absolute;
     background-color: red;

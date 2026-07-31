@@ -62,7 +62,16 @@ define([
 
                 PlayerPanelManager.construct(this, gamedatas);
 
-                TrackerBoard.construct(this, gamedatas.time_index, 0, 0);
+                let orangeGoals = gamedatas.players[this.player_id].goals;
+                let blueGoals = gamedatas.players[this.opponentId].goals;
+                if (this.userInLeftId !== this.player_id)
+                {
+                    let temp = orangeGoals;
+                    orangeGoals = blueGoals;
+                    blueGoals = temp;
+                }
+
+                TrackerBoard.construct(this, gamedatas.time_index, orangeGoals, blueGoals);
 
                 this.pieceManager = PieceManager.getPieceManager();
                 this.pieceManager.construct(this);
@@ -379,6 +388,14 @@ define([
 
             notif_goalScored: async function (notifData) {
                 this.scoreCtrl[notifData.playerId].toValue(notifData.score);
+
+                if (notifData.playerId === this.userInLeftId) {
+                    TrackerBoard.setOrangeGoals(notifData.goals);
+                }
+                else {
+                    TrackerBoard.setBlueGoals(notifData.goals);
+                }
+
                 return PlayerPanelManager.setPlayerScoredGoals(notifData.playerId, notifData.goals);
             },
 
