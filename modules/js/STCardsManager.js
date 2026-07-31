@@ -169,7 +169,7 @@ define(["dojo/_base/declare",
 
             _initDiscardStock: function () {
                 this._discardStock = new BgaCards.DiscardDeck(this._cardsManager, document.getElementById('myDiscard'), {
-                    sort: BgaCards.sort('type', 'type_arg'),
+                    sort: BgaCards.sort('type', '-type_arg'),
                     autoPlace: card => card.location === `${this._root.player_id}_discard`,
                     counter: {
                         position: 'center',
@@ -215,7 +215,7 @@ define(["dojo/_base/declare",
 
             _initOpponentDiscard: function() {
                 this._fatigueDeck = new BgaCards.DiscardDeck(this._cardsManager, document.getElementById('opponentDiscard'), {
-                    sort: BgaCards.sort('type', 'type_arg'),
+                    sort: BgaCards.sort('type', '-type_arg'),
                     autoPlace: card => card.location === `${this._root.opponentId}_discard`,
                 });
             },

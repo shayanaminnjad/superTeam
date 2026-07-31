@@ -119,8 +119,6 @@ class CardSelection extends PlayerBaseState
 
         $this->increaseCardsPlayedThisTurnByOne();
 
-        //TODO: save last played card and send it to the player, or give the cards an index indicating
-        //the order of discard.
         $dbAdapter = DBAdapter::getInstance();
         if ($asBasic)
         {

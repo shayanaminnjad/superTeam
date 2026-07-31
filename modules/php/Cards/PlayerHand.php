@@ -103,7 +103,8 @@ class PlayerHand
 
     public function discardCard(int $cardId) :void
     {
-        $this->cards->moveCard($cardId, $this->discardName);
+        $cardsInDiscard = $this->CountCardsDiscarded();
+        $this->cards->moveCard($cardId, $this->discardName, $cardsInDiscard);
     }
 
     public function CountCardsInHand(): int 
@@ -113,7 +114,7 @@ class PlayerHand
 
     public function CountCardsDiscarded(): int 
     {
-        return $this->cards->countCardInLocation($this->discardName, $this->ownerId);
+        return $this->cards->countCardInLocation($this->discardName);
     }
 
     public function CountCardsInDeck(): int 
