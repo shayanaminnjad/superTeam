@@ -100,56 +100,49 @@
     overflow: visible;
     text-align: center;
     z-index: 100;
+    pointer-events: none;
 }
 
 .piece.regular.blue.fresh {
     background-image: url('img/blueMeepleReady.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
 }
 
 .piece.regular.blue.exhausted {
     background-image: url('img/blueMeepleExhausted.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
 }
 
 .piece.captain.blue.fresh {
     background-image: url('img/blueMeepleReady.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
 }
 
 .piece.captain.blue.exhausted {
     background-image: url('img/blueMeepleExhausted.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
 }
 
 .piece.regular.red.fresh {
     background-image: url('img/redMeepleReady.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
-    pointer-events: none;
 }
 
 .piece.regular.red.exhausted {
     background-image: url('img/redMeepleExhausted.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
 }
 
 .piece.captain.red.fresh {
     background-image: url('img/redMeepleReady.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
 }
 
 .piece.captain.red.exhausted {
@@ -163,7 +156,6 @@
     background-image: url('img/goalieMeeple.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
 }
 
 .piece.clickable {
@@ -178,6 +170,7 @@
 #ballParent
 {
     position: absolute;
+    pointer-events: none;
 }
 
 .ball {
