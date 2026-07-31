@@ -17,6 +17,7 @@ use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Cards\TacticType;
 use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\PlayerResources;
+use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\Utility\Logger;
 
 class CardSelection extends PlayerBaseState
@@ -52,6 +53,8 @@ class CardSelection extends PlayerBaseState
 
         $passActionContext = new PassActionContext($activePlayerId);
         $passActionContext->reset(false);
+
+        RequiredPower::setSkipEnabled(false);
     }
 
     public function selfGetArgs(): array
@@ -84,6 +87,8 @@ class CardSelection extends PlayerBaseState
         $cardsInHand = $playerHand->CountCardsInHand();
         $canPass =  $cardsInHand < PlayerHand::$MAX_CARDS_IN_HAND;
         $canPlayCard = $cardsInHand > 1;
+
+        //todo: add the special case for when the goalie has the ball.
 
         return [
             'canPass' => $canPass,
