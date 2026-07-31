@@ -156,6 +156,27 @@ class BoardEvaluator
         return $result;
     }
 
+    /**
+     * @return PlayerPiece[]
+     */
+    public static function getPlayerPiecesAdjacentToOpponent(Board $board, int $playerId, bool $includeGoalie = false): array
+    {
+        $result = [];
+
+        $playerPieces = $board->getPlayerPiecesByOwner($playerId);
+
+        foreach($playerPieces as $piece)
+        {
+            if (!$includeGoalie && $piece->getRole() == PlayerRole::GoalKeeper->value)
+                continue;
+
+            if (self::hasAdjacentOpponentPieces($board, $piece->getPosition(), $playerId, true))
+                $result[] = $piece;
+        }
+
+        return $result;
+    }
+
     public static function hasAdjacentOpponentPieces(Board $board, HexID $reference, int $playerId, bool $includeGoalie) : bool
     {
         $neighbourHexes = HexLib::getNeighbours(HexLib::offsetToCubic($reference), 1);
