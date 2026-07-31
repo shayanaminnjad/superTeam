@@ -49,12 +49,10 @@ class PlayerBasicTurn extends PlayerBaseState
 
         if (count($selectablePiecesIds) == 0)
         {
-            Logger::logError("this is here!");
             $this->addActionsDoableByAllPieces();
         }
         else
         {
-            Logger::logInfo("we know the single piece and it is " . $selectablePiecesIds[0]);
             $this->addActionsDoableByPiece($selectablePiecesIds[0]); //this only happens in captain actions
         }
 
@@ -64,7 +62,13 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actMove(int $activePlayerId): string
     {
-        MovePieceSelectionLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $activePlayerId, MoveTypes::FREE);
+        $pieceSelectionContext = new PieceSelectionContext();
+        $selectablePiecesIds = $pieceSelectionContext->getSelectablePieceIds();
+
+        if (count($selectablePiecesIds) == 0) //if no piece is already select, then enforce.
+        {
+            MovePieceSelectionLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $activePlayerId, MoveTypes::FREE);
+        }
 
         $moveActionContext = new MoveActionContext();
         $moveActionContext->setCurrentMoveType(MoveTypes::FREE);
