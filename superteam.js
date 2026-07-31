@@ -302,8 +302,6 @@ define([
                 let animation = GameEventProcessor.MovePieceWithAnimation(piece, destHex, moraleSpent, ballMoved);
 
                 await this.bgaPlayDojoAnimation(animation);
-
-                //return this.forwardNotification(this.notif_movedPiece.name, notifData);
             },
 
             notif_dribblePerformed: function (notifData) {
