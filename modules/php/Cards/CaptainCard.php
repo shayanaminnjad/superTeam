@@ -3,6 +3,7 @@
 namespace Bga\Games\SuperTeam\Cards;
 
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
+use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\PlayerRole;
@@ -31,8 +32,11 @@ abstract class CaptainCard extends Card
         return new ExecutionResult(ExecutionAction::GoToState, ShootTargetSelection::class);
     }
 
-    protected function goToMoveState() : ExecutionResult
+    protected function goToFreeMoveState() : ExecutionResult
     {
+        $moveActionContext = new MoveActionContext();
+        $moveActionContext->setCurrentMoveType(MoveTypes::FREE);
+
         return new ExecutionResult(ExecutionAction::GoToState, MovePieceSelection::class);
     }
 
