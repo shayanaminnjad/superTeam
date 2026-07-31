@@ -71,7 +71,8 @@ class Game extends \Bga\GameFramework\Table
             "defender" => 16,
             "moraleAssignRemaining" => 17,
             "isAttributesAssignmentFinished" => 18,
-            "lastPassResult" => 19
+            "lastPassResult" => 19,
+            "cardsPlayedThisTurn" => 20
         ]);
 
         /* example of notification decorator.
@@ -338,6 +339,7 @@ class Game extends \Bga\GameFramework\Table
         $this->setGameStateInitialValue("moraleAssignRemaining", 0);
         $this->setGameStateInitialValue("isAttributesAssignmentFinished", 0);
         $this->setGameStateInitialValue("lastPassResult", 0);
+        $this->setGameStateInitialValue("cardsPlayedThisTurn", 0);
     }
 
     private function initBoard(array $players): void

@@ -49,6 +49,8 @@
         $passActionContext = new PassActionContext($activePlayerId);
         $passActionContext->reset(true);
 
+         $this->game->setGameStateValue("cardsPlayedThisTurn", 0);
+
          $isRestartAfterGoal = DBAdapter::getInstance()->getGlobalInt('is_restart_after_goal');
 
          if ($isRestartAfterGoal)

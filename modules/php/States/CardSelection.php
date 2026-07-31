@@ -84,9 +84,10 @@ class CardSelection extends PlayerBaseState
             }
         }
 
-        $cardsInHand = $playerHand->CountCardsInHand();
-        $canPass =  $cardsInHand < PlayerHand::$MAX_CARDS_IN_HAND;
-        $canPlayCard = $cardsInHand > 1;
+
+        $cardsPlayedThisTurn = $this->getCardsPlayedThisTurn();
+        $canPass =  $cardsPlayedThisTurn > 0;
+        $canPlayCard = $cardsPlayedThisTurn < 3;
 
         //todo: add the special case for when the goalie has the ball.
 
@@ -100,24 +101,23 @@ class CardSelection extends PlayerBaseState
     #[PossibleAction]
     public function actCardSelected(int $cardId, string $cardType, bool $asBasic): string
     {
-        //TODO: probalby I should give the active player extra time per card.
-
         $activePlayer = \intval($this->game->getActivePlayerId());
 
-        $playerHand = $this->game->getPlayerHand($activePlayer);
+        $this->game->giveExtraTime($activePlayer);
 
-        if ($playerHand->CountCardsInHand() == 1)
+        if ($this->getCardsPlayedThisTurn() >= 3)
             throw new \BgaUserException("You can't play more than 3 cards in a turn!");
 
         $playerHand = $this->game->getPlayerHand($activePlayer);
-        
+
         $playerHand->discardCard($cardId);
         
         $this->game->notify->all("cardPlayed", "card {$cardId} played", [
             'discards' => $playerHand->getDiscardedCards(),
             'cardsInHandCount' => $playerHand->CountCardsInHand()
             ]);
-            
+
+        $this->increaseCardsPlayedThisTurnByOne();
 
         //TODO: save last played card and send it to the player, or give the cards an index indicating
         //the order of discard.
@@ -163,5 +163,16 @@ class CardSelection extends PlayerBaseState
     {
         // the code to run when the player is a Zombie
         return '';
+    }
+
+    private function getCardsPlayedThisTurn(): int
+    {
+        return intval($this->game->getGameStateValue("cardsPlayedThisTurn"));
+    }
+
+    private function increaseCardsPlayedThisTurnByOne(): void
+    {
+        $cardsPlayedThisTurn = $this->getCardsPlayedThisTurn();
+        $this->game->setGameStateValue("cardsPlayedThisTurn", $cardsPlayedThisTurn + 1);
     }
 }
