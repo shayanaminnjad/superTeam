@@ -2,8 +2,9 @@ define(["dojo/_base/declare",
     g_gamethemeurl + "modules/js/States/BaseState.js",
     g_gamethemeurl + "modules/js/STHexLib.js",
     g_gamethemeurl + "modules/js/BoardPresentation.js",
+    g_gamethemeurl + "modules/js/GameEventProcessor.js"
 ],
-    function (declare, BaseState, HexLib, Board) {
+    function (declare, BaseState, HexLib, Board, GameEventProcessor) {
 
         const PerformDribble = declare("st.PerformDribble", BaseState, {
 
@@ -26,28 +27,13 @@ define(["dojo/_base/declare",
             getName: function () {
                 return this.constructor.getName();
             },
-            //Notifications
 
+            //Notifications
             notif_dribblePerformed: function (notifData) {
                 let lhsHex = HexLib.createOffsetCoord(notifData.swappedHexes[0].hex_row, notifData.swappedHexes[0].hex_column);
                 let rhsHex = HexLib.createOffsetCoord(notifData.swappedHexes[1].hex_row, notifData.swappedHexes[1].hex_column);
 
-                return this._swapAnimated(lhsHex, rhsHex);
-            },
-
-            _swapAnimated: function(lhsHex, rhsHex) {
-                let animations = this._root.pieceManager.swapPeicesAndGetAnimation(lhsHex, rhsHex);
-
-                if (Board.getHexWithBall().equals(lhsHex)) {
-                    animations.push(this._root.slideToObject('ballParent', Board.convertOffsetCoordToHexId(rhsHex)));
-                    Board.setHexWithBall(rhsHex);
-                }
-                else {
-                    animations.push(this._root.slideToObject('ballParent', Board.convertOffsetCoordToHexId(lhsHex)));
-                    Board.setHexWithBall(lhsHex);
-                }
-
-                return this._root.bgaPlayDojoAnimation(dojo.fx.combine(animations));
+                GameEventProcessor.SwapAnimated(lhsHex, rhsHex);
             }
         });
 

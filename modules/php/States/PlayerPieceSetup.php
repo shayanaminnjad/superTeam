@@ -11,9 +11,6 @@ use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PlayerPieceSetupLogic;
 use BgaUserException;
 
-use Bga\Games\SuperTeam\BoardInfo;
-use Bga\Games\SuperTeam\PlayerSide;
-
 class PlayerPieceSetup extends GameState
 {
     function __construct(

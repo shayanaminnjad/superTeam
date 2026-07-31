@@ -430,6 +430,13 @@ define([
                 return opponentCoachBoard.updateOwnerDataAnimated(opponentAttributes);
             },
 
+            notif_swapPerformed: async function(notifData) {
+                let lhsHex = STHexLib.createOffsetCoord(notifData.swappedHexes[0].hex_row, notifData.swappedHexes[0].hex_column);
+                let rhsHex = STHexLib.createOffsetCoord(notifData.swappedHexes[1].hex_row, notifData.swappedHexes[1].hex_column);
+
+                await GameEventProcessor.SwapAnimated(lhsHex, rhsHex);
+            },
+
             forwardNotification(funcName, notifData) {
                 this.assert(this.currentState && typeof this.currentState[funcName] === "function", `Server call "${funcName}" not handled in current state`);
 
