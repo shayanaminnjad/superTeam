@@ -64,6 +64,8 @@ define([
             }
 
             this._initTimeTracker(CUBE_SIDE, TRACKER_BOARD);
+
+            this._initSupplyPile(BOARD_HEIGHT, BOARD_WIDTH , TRACKER_BOARD);
         },
 
         _initTimeTracker: function(sideSize, trackerBoard)
@@ -75,6 +77,17 @@ define([
             this._timeTrackCubeEl.style.height = `${sideSize}px`;
 
             trackerBoard.appendChild(this._timeTrackCubeEl);
+        },
+
+        _initSupplyPile: function(boardHeight, boardWidth, trackerBoard) {
+            const supplyDeck = document.createElement('div');
+            supplyDeck.id = 'supply';
+            supplyDeck.style.position = 'absolute'
+            supplyDeck.style.left = `${UIConstants.TRACKER_FATIGUE_DECK_FROM_LEFT_PERCENT * boardWidth}px`;
+            supplyDeck.style.top = `${UIConstants.TRACKER_FATIGUE_DECK_FROM_TOP_PERCENT * boardHeight}px`;
+            supplyDeck.style.scale = "60%";
+            supplyDeck.style.transform= "translateY(-48%) translateX(-10%) rotate(90deg)";
+            trackerBoard.appendChild(supplyDeck);
         },
 
         _initGoalTracker: function(orangeGoals, blueGoals)

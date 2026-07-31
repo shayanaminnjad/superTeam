@@ -79,7 +79,7 @@ define([
                 this.cardsManager = new STCardsManager(this,
                     Object.values(gamedatas.player_hand).
                     concat(Object.values(gamedatas.player_discard)).
-                    concat(gamedatas.player_deck));
+                    concat(gamedatas.player_deck).concat(Object.values(gamedatas.supply)));
                 
                 this.setupNotifications();
 
@@ -332,6 +332,10 @@ define([
                 {
                     this.cardsManager.placeCards(notifData.playerHand);
                 }
+            },
+
+            notif_fatigueRemoved: function(notifData) {
+                this.cardsManager.placeCards(Object.values(notifData.cardsInSupply));
             },
 
             notif_pieceExhausted: function (notifData) {

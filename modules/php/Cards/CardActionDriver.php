@@ -43,10 +43,16 @@ class CardActionDriver
         }
         else
         {
-            //TODO: apply fatigue too.
             //TODO: this part must be part of the class instructions! no need to know about the cards here!
             if ($result->action == ExecutionAction::Success && $card instanceof TacticCard)
             {
+                if ($card->hasFatigue())
+                {
+                    $playerHand = $this->game->getPlayerHand($this->activePlayerId);
+                    $playerHand->drawFatigue();
+                    $playerHand->notifyPlayerOfHandRefill();
+                }
+
                 return TacticRewardResolve::class;
             }
             else

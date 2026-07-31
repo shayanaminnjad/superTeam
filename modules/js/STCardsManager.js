@@ -13,6 +13,7 @@ define(["dojo/_base/declare",
                 this._initHiddenDeck();
                 this._initDiscardStock();
                 this._initHandStock();
+                this._initFatigueCards();
 
                 this._cardsManager.placeCards(cards);
             },
@@ -99,7 +100,7 @@ define(["dojo/_base/declare",
                         div.style.backgroundPositionX = `calc(100%)`;
                         div.style.backgroundPositionY = `calc(100%)`;
                     },
-                    isCardVisible: card => {return !!card.location && !card.flipped && !card.location.includes("_deck");},
+                    isCardVisible: card => {return !!card.location && !card.location.includes("_deck");},
                 });
             },
 
@@ -156,6 +157,11 @@ define(["dojo/_base/declare",
                     rowMultiple = 2;
                     colMultiple = 3 + teamId;
                 }
+                else if (cardCategory === "Fatigue")
+                {
+                    rowMultiple = 2;
+                    colMultiple = 5;
+                }
 
                 return [`calc(100% / 6 * ${colMultiple})`, `calc(100% / 2 * ${rowMultiple})`];
             },
@@ -185,7 +191,7 @@ define(["dojo/_base/declare",
             },
 
             _initHiddenDeck: function () {
-                this._hiddenDeck = new BgaCards.Deck(this._cardsManager, document.getElementById('hiddenDeck'), {
+                this._hiddenDeck = new BgaCards.DiscardDeck(this._cardsManager, document.getElementById('hiddenDeck'), {
                     autoRemovePreviousCards: false,
                     counter: {
                         position: 'center',
@@ -196,6 +202,16 @@ define(["dojo/_base/declare",
                 });
             },
 
+            _initFatigueCards: function() {
+              this._fatigueDeck = new BgaCards.DiscardDeck(this._cardsManager, document.getElementById('supply'), {
+                  maxHorizontalShift: 0,
+                  maxRotation: 0,
+                  maxVerticalShift: 0,
+                  autoPlace: card => card.location === 'supply',
+
+              });
+            },
+
             //Private Fields
             _animationManager: null,
 
@@ -204,6 +220,10 @@ define(["dojo/_base/declare",
             _discardStock: null,
 
             _hiddenDeck: null,
+
+            _fatigueDeck: null,
+
+            _opponentDiscardStock: null,
 
             _cardsManager: null,
 

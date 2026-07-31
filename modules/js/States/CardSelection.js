@@ -49,14 +49,43 @@ define(["dojo/_base/declare",
             _updateButtons: function () {
                 this._root.statusBar.removeActionButtons();
 
-                if (this._args.canPlayCard) {
-                    this._root.statusBar.addActionButton('Play as basic', () => {
-                        this._root.performServerAction("actCardSelected", { cardId: this._selectedCard.id, cardType: this._selectedCard.type, asBasic: true })
-                    }, { id: 'cardAsBasicButton', color: 'primary', disabled: this._selectedCard === null });
+                if (!this._selectedCard || this._selectedCard.type !== 'Fatigue') {
+                    if (this._args.canPlayCard) {
+                        this._root.statusBar.addActionButton('Play as basic', () => {
+                            this._root.performServerAction("actCardSelected", {
+                                cardId: this._selectedCard.id,
+                                cardType: this._selectedCard.type,
+                                asBasic: true
+                            })
+                        }, {id: 'cardAsBasicButton', color: 'primary', disabled: this._selectedCard === null});
 
-                    this._root.statusBar.addActionButton('Perform tactic', () => {
-                        this._root.performServerAction("actCardSelected", { cardId: this._selectedCard.id, cardType: this._selectedCard.type, asBasic: false })
-                    }, { id: 'performTacticButton', color: 'primary', disabled: !this._selectedCard || (this._selectedCard && !this._args.playableTactics.includes(this._selectedCard.type))});
+                        this._root.statusBar.addActionButton('Perform tactic', () => {
+                            this._root.performServerAction("actCardSelected", {
+                                cardId: this._selectedCard.id,
+                                cardType: this._selectedCard.type,
+                                asBasic: false
+                            })
+                        }, {
+                            id: 'performTacticButton',
+                            color: 'primary',
+                            disabled: !this._selectedCard || (this._selectedCard && !this._args.playableTactics.includes(this._selectedCard.type))
+                        });
+                    }
+                }
+                else {
+                    if (this._args.canPlayCard) {
+                        this._root.statusBar.addActionButton('Play as move', () => {
+                            this._root.performServerAction("actCardSelected", {
+                                cardId: this._selectedCard.id,
+                                cardType: this._selectedCard.type,
+                                asBasic: false
+                            })
+                        }, {
+                            id: 'cardAsBasicButton',
+                            color: 'primary',
+                            disabled: !this._selectedCard || (this._selectedCard && !this._args.playableTactics.includes(this._selectedCard.type))
+                        });
+                    }
                 }
 
                 if (this._args.canPass) {

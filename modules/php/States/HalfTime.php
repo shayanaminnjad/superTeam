@@ -38,9 +38,11 @@ class HalfTime extends GameState
             $hand->MoveAllCardsToDeck();
 
             NotificationAdapter::getInstance()->notifyPlayer($hand->getOwner(), 'cardReset', '',[]);
+
+            $hand->removeUpToTwoFatiguesFromDeck(true);
         }
 
-        //TODO: remove two fatigues
+
         $isRestartAfterGoal = DBAdapter::getInstance()->getGlobalInt('is_restart_after_goal');
         DBAdapter::getInstance()->storeGlobalInt('is_restart_after_goal', 0);
         if (!$isRestartAfterGoal)
@@ -53,7 +55,5 @@ class HalfTime extends GameState
         TimeTrack::AdvanceTimeTrack(true);
 
         return PlayerPieceSetup::class;
-
-        //shuffle all cards and add four to your hand
     }
 }

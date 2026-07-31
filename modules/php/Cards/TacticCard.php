@@ -49,6 +49,16 @@ abstract class TacticCard extends Card
             return $this->getOffensiveCommands();
     }
 
+    final public function hasFatigue() : bool
+    {
+        $tacticContext = new TacticContext();
+        $tacticType = $tacticContext->getTacticType();
+
+        if ($tacticType == TacticType::Defensive)
+            return $this->definition->defenseHasFatigue;
+        else
+            return $this->definition->offenseHasFatigue;
+    }
 
     final protected function goToPassState() : ExecutionResult
     {

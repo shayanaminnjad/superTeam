@@ -16,6 +16,7 @@ use Bga\Games\SuperTeam\Cards\GameCards\Captain_C_1;
 use Bga\Games\SuperTeam\Cards\GameCards\Captain_C_2;
 use Bga\Games\SuperTeam\Cards\GameCards\CoachA;
 use Bga\Games\SuperTeam\Cards\GameCards\CoachB;
+use Bga\Games\SuperTeam\Cards\GameCards\Fatigue;
 use Bga\Games\SuperTeam\Cards\GameCards\TeamATactic1;
 use Bga\Games\SuperTeam\Cards\GameCards\TeamATactic2;
 use Bga\Games\SuperTeam\Cards\GameCards\TeamATactic3;
@@ -27,6 +28,9 @@ class CardRegistrar
 {
     public function registerCards(CardFactory $cardFactory, Game $game) : void
     {
+        //fatigue
+        $cardFactory->registerCard(Fatigue::staticId(), fn() => new Fatigue($game));
+
         //basics
         $cardFactory->registerCard(BasicA::staticId(), fn() => new BasicA($game));
         $cardFactory->registerCard(BasicB::staticId(), fn() => new BasicB($game));

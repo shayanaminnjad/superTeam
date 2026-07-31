@@ -250,6 +250,7 @@ class Game extends \Bga\GameFramework\Table
         $result['player_deck'] = $playerHand->GetCardsInDeckSecret();
         $result['player_discard'] = $playerHand->getDiscardedCards();
         $result['player_hand'] = $playerHand->getCardsInHand();
+        $result['supply'] = $playerHand->getCardsInSupply(); //todo: a number is enough.
         $result['player_pieces'] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
         $result['ball'] = $this->getObjectFromDB("SELECT * FROM `ball`");
         $result['user_in_right_id'] = $this->getGameStateValue('user_in_right_id');
@@ -374,7 +375,9 @@ class Game extends \Bga\GameFramework\Table
         return new PlayerHand($playerId, $this);
     }
 
-    /** @var array<PlayerHand> */
+    /**
+     * @return PlayerHand[]
+     */
     public function getPlayerHands(): array
     {
         $hands = [];
@@ -532,11 +535,7 @@ class Game extends \Bga\GameFramework\Table
         //TODO: this notification must change, I need to also send whether the played card can be played for tactics or not.
         //that happens in the state on enter, so I need a refresh in web browser right now.
 
-        $this->notify->player($currentPlayerId, "handRefill", "",
-            [
-                'playerHand' => $playerHand->getCardsInHand(),
-                'wasDiscardShuffled' => false,
-            ]);
+        $playerHand->notifyPlayerOfHandRefill();
     }
 
     //---------------------------------------------------------------------------------------------------------

@@ -5,6 +5,7 @@ namespace Bga\Games\SuperTeam\Cards;
 use Bga\Games\SuperTeam\Game;
 use Bga\GameFramework\Components\Deck;
 use Bga\Games\SuperTeam\Cards\CardTypeHelper;
+use Bga\Games\SuperTeam\NotificationAdapter;
 
 class PlayerHand
 {
@@ -19,6 +20,8 @@ class PlayerHand
     private $discardName;
 
     private static string $handName = 'hand';
+
+    private static string $supplyName = 'supply';
 
     private $wasShuffled;
 
@@ -70,12 +73,25 @@ class PlayerHand
         return $this->wasShuffled;
     }
 
+    public function drawFatigue() : void
+    {
+        $this->cards->pickCard(self::$supplyName, $this->ownerId);
+    }
+
+    public function getCardsInSupply() : array
+    {
+        return $this->cards->getCardsInLocation(self::$supplyName);
+    }
+
     public function drawCard(string $cardType) : void
     {
         $cards = $this->cards->getCardsOfTypeInLocation($cardType, null, $this->deckName, null);
 
         if (count($cards) == 0)
             $cards = $this->cards->getCardsOfTypeInLocation($cardType, null, $this->discardName, null);
+
+        if (count($cards) == 0)
+            $cards = $this->cards->getCardsOfTypeInLocation($cardType, null, self::$supplyName, null);
 
         if (count($cards) == 0)
             throw new \BgaUserException("card type `$cardType` does not exist, or is already inside your hand!");
@@ -117,6 +133,32 @@ class PlayerHand
         }
 
         return $secretCards;
+    }
+
+    public function removeUpToTwoFatiguesFromDeck(bool $withNotify) : void
+    {
+        $cards = $this->cards->getCardsOfTypeInLocation(CardTypeHelper::getFatigueCardType(), null, $this->deckName, null);
+
+        $fatiguesRemoved = 0;
+        foreach (array_slice($cards, 0, 2) as $card) {
+            $this->cards->moveCard($card['id'], self::$supplyName);
+            $fatiguesRemoved++;
+        }
+
+        if ($fatiguesRemoved > 0 && $withNotify)
+        {
+            NotificationAdapter::getInstance()->notifyAll("fatigueRemoved", '',
+                ['cardsInSupply' => $this->getCardsInSupply()]);
+        }
+    }
+
+    public function notifyPlayerOfHandRefill() : void
+    {
+        NotificationAdapter::getInstance()->notifyPlayer($this->ownerId, 'handRefill', "",
+            [
+                'playerHand' => $this->getCardsInHand(),
+                'wasDiscardShuffled' => false,
+            ]);
     }
 
     public function MoveAllCardsToDeck() : void
@@ -172,7 +214,7 @@ class PlayerHand
 
         $deckName = self::getPlayerDeck($playerId);
         $deck->createCards($cardDefinitions, $deckName);
-        $deck->createCards([self::getCardDefinition("fatigue", 16)], 'supply');
+        $deck->createCards([self::getCardDefinition(CardTypeHelper::getFatigueCardType(), 16)], self::$supplyName);
     }
 
     public function getCard(int $cardId)
