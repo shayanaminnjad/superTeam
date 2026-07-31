@@ -18,7 +18,7 @@ define([
     g_gamethemeurl + "modules/js/States/CardSelection.js",
     g_gamethemeurl + "modules/js/States/TacticRewardResolveState.js",
     g_gamethemeurl + "modules/js/States/PieceToSwapSelection.js",
-    g_gamethemeurl + "modules/js/States/CaptainCardPerformerSelectionState.js"
+    g_gamethemeurl + "modules/js/States/CaptainCardPerformerSelection.js"
 ], function (
     declare,
     PlayerPieceSetupState,
