@@ -57,11 +57,22 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `morale_assign_transition` TEXT,
     `selected_hex_column` INT DEFAULT -1,
     `selected_hex_row` INT DEFAULT -1,
+    `time_track_position` INT DEFAULT 0,
     `tactic_in_play` TEXT,
     `tactic_type` SMALLINT DEFAULT -1,
     `tactic_progress` INT DEFAULT - 1,
-    `tactic_reward_in_progress` Boolean DEFAULT FALSE,
-    `rewards_used` TEXT
+    `selectable_pieces` TEXT,
+    `rewards_used` TEXT,
+    `moves_performed` TEXT,
+    `current_move_type` TEXT,
+    `no_morale_for_exhausted` BOOLEAN DEFAULT FALSE,
+    `pieces_moved` TEXT,
+    `pieces_passed` TEXT,
+    `move_selected_piece_data` TEXT,
+    `ball_before_tactic_location` TEXT,
+    `morale_before_tactic` INT DEFAULT -1,
+    `is_restart_after_goal` INT DEFAULT 0,
+    `is_skip_enabled` INT DEFAULT 0
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `player_temp_data` (
@@ -70,7 +81,10 @@ CREATE TABLE IF NOT EXISTS `player_temp_data` (
     `dice_result` TEXT,
     `dice_roll_input` TEXT,
     `shootTarget` TEXT,
-    `forced_pass_targets` TEXT
+    `forced_pass_targets` TEXT,
+    `action_return_state` TEXT,
+    `last_pass_receiver_this_turn_id` INT DEFAULT -1,
+    `last_pass_pos_this_turn` TEXT
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `logs` (

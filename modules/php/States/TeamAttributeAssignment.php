@@ -10,6 +10,7 @@ use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\TeamBoard;
 use Bga\Games\SuperTeam\TeamAttribute;
+use Bga\Games\SuperTeam\TimeTrack;
 use BgaUserException;
 
 class TeamAttributeAssignment extends PlayerBaseState
@@ -39,7 +40,8 @@ class TeamAttributeAssignment extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
-        return [];
+
+        return ["IsGKAssignable" => $this->isGKAssignable()];
     }
 
     #[PossibleAction]
@@ -58,19 +60,17 @@ class TeamAttributeAssignment extends PlayerBaseState
         {
             throw new BgaUserException("Invalid skill Id passed! $attributeId");
         }
+
+        if ($this->isGKAssignable() == false && $attributeId == TeamAttribute::GK->value)
+        {
+            throw new BgaUserException("You cannot re-arrange GK attributes in half time!");
+        }
         
-        if (!$teamBoard->tryIncreaseAttribute($currentPlayer, TeamAttribute::from($attributeId))) 
+        if (!$teamBoard->tryIncreaseAttribute($currentPlayer, TeamAttribute::from($attributeId),true))
         {
             throw new BgaUserException("You cannot assign more than two cubes to an attribute!");
         }
 
-        $this->game->notify->player(
-            $currentPlayer,
-            "cubePlaced",
-            "",
-            ["skill" => $attributeId]
-        );
-        
         $attributesRemaining = TeamBoard::MAX_ALLOWED_ATTRIBUTES - ($totalCubesAssigned + 1);
 
         if ($attributesRemaining == 0) 
@@ -83,5 +83,10 @@ class TeamAttributeAssignment extends PlayerBaseState
     {
         // the code to run when the player is a Zombie
         return '';
+    }
+
+    private function isGKAssignable(): bool
+    {
+        return TimeTrack::GetTimeTrackPosition() == 0;
     }
 }

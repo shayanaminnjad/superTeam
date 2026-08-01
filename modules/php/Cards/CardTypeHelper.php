@@ -2,7 +2,6 @@
 
 namespace Bga\Games\SuperTeam\Cards;
 
-use Bga\Games\SuperTeam\Cards\CardType;
 use ErrorException;
 
 class CardTypeHelper
@@ -15,7 +14,7 @@ class CardTypeHelper
         return "{$basicCategory}_{$letter}";
     }
 
-    public static function getCaptainCardType($captainBoardId, $num): string 
+    public static function getCaptainCardType(int $captainBoardId, int $num): string
     {
         $captainCategory = self::CardTypeToString(CardType::Captain);
         
@@ -36,6 +35,11 @@ class CardTypeHelper
         return "{$teamCategory}_{$teamBoardId}_{$num}";
     }
 
+    public static function getFatigueCardType() : string
+    {
+        return "Fatigue";
+    }
+
     public static function CardTypeToString(CardType $type):string
     {
         switch ($type) {
@@ -47,6 +51,8 @@ class CardTypeHelper
                 return "Coach";
             case CardType::Team:
                 return "Team";
+            case CardType::Fatigue:
+                return "Fatigue";
             default:
                 throw new ErrorException("Invalid Card category passed!");
         }

@@ -10,7 +10,7 @@ define(["dojo/_base/declare",
             //State Overrides
             _onActivePlayerEnter: function (args) {
                 this._root.myPlayerArea.getCoachBoard().setClickHandler((evt, skillSlot) => this.onSkillSelected(evt, skillSlot));
-                this._root.myPlayerArea.getCoachBoard().makeAvailableBoxesSelectable();
+                this._root.myPlayerArea.getCoachBoard().makeAvailableBoxesSelectable(args.IsGKAssignable);
             },
 
             _onInactivePlayerEnter: function (args) {
@@ -36,7 +36,7 @@ define(["dojo/_base/declare",
             notif_cubePlaced: function (notifData) {
                 const myCoachBoard = this._root.myPlayerArea.getCoachBoard();
                 myCoachBoard.placeCubeAnimated(parseInt(notifData.skill));
-                myCoachBoard.makeAvailableBoxesSelectable();
+                myCoachBoard.makeAvailableBoxesSelectable(this._args.IsGKAssignable);
             },
 
             onSkillSelected: function (evt, skillSlot) {

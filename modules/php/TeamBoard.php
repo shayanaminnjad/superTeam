@@ -2,14 +2,15 @@
 
 namespace Bga\Games\SuperTeam;
 
+use Bga\Games\SuperTeam\Utility\Logger;
 use ErrorException;
 
 class TeamBoard
 {
-    public const MAX_ALLOWED_ATTRIBUTES = 6;
-    public const MAX_PER_ATTRIBUTE_VALUE = 2;
+    public const int MAX_ALLOWED_ATTRIBUTES = 6;
+    public const int MAX_PER_ATTRIBUTE_VALUE = 2;
 
-    private $attributes = [];
+    private array $attributes = [];
 
     public function __construct(DBAdapter $adapter)
     {
@@ -55,15 +56,18 @@ class TeamBoard
         return $assignedAttributes;
     }
 
-    public function resetAttributes(int $player_id)
+    public function resetAttributes(int $player_id, TeamAttribute $except = TeamAttribute::None) : void
     {
-        $playerAttributes = $this->attributes[$player_id];
+        $playerAttributes = &$this->attributes[$player_id];
 
         $setQuery = '';
         for ($i = 0; $i < TeamAttribute::Count->value; $i++) 
         {
-            if ($i != 0)
-                $setQuery .= ',';
+            if ($i == $except->value)
+                continue;
+
+            if ($setQuery != '')
+                $setQuery .= ', ';
 
             $playerAttributes[$i] = 0;
             $attrName = self::attributeToString(TeamAttribute::from($i));
@@ -74,7 +78,20 @@ class TeamBoard
         DBAdapter::getInstance()->DbQuery("UPDATE player SET $setQuery WHERE `player_id` = $player_id");
     }
 
-    public function tryIncreaseAttribute(int $player_id, TeamAttribute $attribute): bool
+    public function resetAllPlayersAttributes(TeamAttribute $except = TeamAttribute::None, bool $withNotify = false) : void
+    {
+        foreach (array_keys($this->attributes) as $playerId)
+        {
+            $this->resetAttributes($playerId, $except);
+        }
+
+        if ($withNotify)
+        {
+            NotificationAdapter::getInstance()->notifyAll("attributesReset", "", $this->getAttributesAsCollection());
+        }
+    }
+
+    public function tryIncreaseAttribute(int $player_id, TeamAttribute $attribute, bool $withNotify): bool
     {
         if (!isset($this->attributes[$player_id][$attribute->value])) 
             throw new \LogicException("Invalid player or attribute");
@@ -90,6 +107,16 @@ class TeamBoard
 
         $this->attributes[$player_id][$attribute->value] = $attrValue;
 
+        if ($withNotify)
+        {
+            NotificationAdapter::getInstance()->notifyPlayer(
+                $player_id,
+                "cubePlaced",
+                "",
+                ["skill" => $attribute->value]
+            );
+        }
+
         return true;
     }
 
@@ -98,7 +125,7 @@ class TeamBoard
         return $id >= 0 && $id < TeamAttribute::Count->value;
     }
 
-    public function getAttributesAsCollection()
+    public function getAttributesAsCollection() : array
     {
         $res = [];
         foreach ($this->attributes as $playerId => $info) 

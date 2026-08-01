@@ -10,9 +10,11 @@ define(["dojo/_base/declare",
 
                 this._initAnimationsManager();
                 this._initCardsManager();
-                this._initDiscardStock();
                 this._initHiddenDeck();
+                this._initDiscardStock();
                 this._initHandStock();
+                this._initFatigueCards();
+                this._initOpponentDiscard();
 
                 this._cardsManager.placeCards(cards);
             },
@@ -36,6 +38,27 @@ define(["dojo/_base/declare",
 
             placeCards: function (cards) {
                 return this._cardsManager.placeCards(cards);
+            },
+
+            placeAllToDeck: function() {
+                let discardedCards = this._discardStock.getCards()
+                for(card of discardedCards)
+                {
+                    card.location = `${this._root.player_id}_deck`;
+                }
+
+                let discardPromise =  this._hiddenDeck.addCards(this._discardStock.getCards());
+
+                let cardsInhand = this._handStock.getCards();
+
+                for(card of cardsInhand)
+                {
+                    card.location = `${this._root.player_id}_deck`;
+                }
+
+                let handPromise = this._hiddenDeck.addCards(this._handStock.getCards());
+
+                return Promise.all([discardPromise, handPromise]);
             },
 
             shuffleDeck: function () {
@@ -78,7 +101,7 @@ define(["dojo/_base/declare",
                         div.style.backgroundPositionX = `calc(100%)`;
                         div.style.backgroundPositionY = `calc(100%)`;
                     },
-                    isCardVisible: card => {return !!card.location && !card.flipped && !card.location.includes("_deck");},
+                    isCardVisible: card => {return !!card.location && !card.location.includes("_deck");},
                 });
             },
 
@@ -113,7 +136,7 @@ define(["dojo/_base/declare",
                             colMultiple = cardNum - 2;
                         }
                     }
-                    else if (TeamId === '1') {
+                    else if (teamId === '1') {
                         rowMultiple = 1;
                         colMultiple = cardNum + 1;
                     }
@@ -123,7 +146,7 @@ define(["dojo/_base/declare",
                     const cardNum = Number(tokens[2]);
                     if (teamId === '0') {
                         rowMultiple = 1;
-                        colMultiple = 3 + cardNum;
+                        colMultiple = 4 + cardNum;
                     }
                     else if (teamId === '2') {
                         rowMultiple = 2;
@@ -135,12 +158,18 @@ define(["dojo/_base/declare",
                     rowMultiple = 2;
                     colMultiple = 3 + teamId;
                 }
+                else if (cardCategory === "Fatigue")
+                {
+                    rowMultiple = 2;
+                    colMultiple = 5;
+                }
 
                 return [`calc(100% / 6 * ${colMultiple})`, `calc(100% / 2 * ${rowMultiple})`];
             },
 
             _initDiscardStock: function () {
                 this._discardStock = new BgaCards.DiscardDeck(this._cardsManager, document.getElementById('myDiscard'), {
+                    sort: BgaCards.sort('type', '-type_arg'),
                     autoPlace: card => card.location === `${this._root.player_id}_discard`,
                     counter: {
                         position: 'center',
@@ -164,14 +193,30 @@ define(["dojo/_base/declare",
             },
 
             _initHiddenDeck: function () {
-                this._hiddenDeck = new BgaCards.Deck(this._cardsManager, document.getElementById('hiddenDeck'), {
-                    cardNumber: 15,
-                    autoRemovePreviousCards: true,
+                this._hiddenDeck = new BgaCards.DiscardDeck(this._cardsManager, document.getElementById('hiddenDeck'), {
+                    autoRemovePreviousCards: false,
                     counter: {
                         position: 'center',
                         extraClasses: 'text-shadow',
                     },
                     autoPlace: card => card.location === `${this._root.player_id}_deck`,
+                    autoUpdateCardNumber: true
+                });
+            },
+
+            _initFatigueCards: function() {
+              this._fatigueDeck = new BgaCards.DiscardDeck(this._cardsManager, document.getElementById('supply'), {
+                  maxHorizontalShift: 0,
+                  maxRotation: 0,
+                  maxVerticalShift: 0,
+                  autoPlace: card => card.location === 'supply',
+              });
+            },
+
+            _initOpponentDiscard: function() {
+                this._fatigueDeck = new BgaCards.DiscardDeck(this._cardsManager, document.getElementById('opponentDiscard'), {
+                    sort: BgaCards.sort('type', '-type_arg'),
+                    autoPlace: card => card.location === `${this._root.opponentId}_discard`,
                 });
             },
 
@@ -183,6 +228,10 @@ define(["dojo/_base/declare",
             _discardStock: null,
 
             _hiddenDeck: null,
+
+            _fatigueDeck: null,
+
+            _opponentDiscardStock: null,
 
             _cardsManager: null,
 

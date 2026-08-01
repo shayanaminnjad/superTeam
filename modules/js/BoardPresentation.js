@@ -90,7 +90,7 @@ define([
             this.setHexWithBall(OffsetCoord);
 
             const HEX_ID = this.convertOffsetCoordToHexId(OffsetCoord);
-            const anim = this._root.slideToObject('ball', HEX_ID);
+            const anim = this._root.slideToObject('ballParent', HEX_ID);
 
             await this._root.bgaPlayDojoAnimation(anim);
         },
@@ -98,7 +98,7 @@ define([
         //------------------------------------------------------------------------------------
 
         getMoveBallAnimation: function (destHex) {
-            return this._root.slideToObject('ball', destHex);
+            return this._root.slideToObject('ballParent', destHex);
         },
         //------------------------------------------------------------------------------------
 
@@ -186,10 +186,19 @@ define([
             this._hexWithBall = HexLib.createOffsetCoord(ballData.hex_row, ballData.hex_column);
 
             const MAIN_BOARD_EL = this.getMainBoardElement();
-            MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id="ball" class="ball" ></div>`);
+
+            const ballParent = document.createElement('div');
+            ballParent.id = 'ballParent';
+
+            const ball = document.createElement('div');
+            ball.id = 'ball';
+            ball.className = 'ball';
+
+            ballParent.appendChild(ball);
+            MAIN_BOARD_EL.appendChild(ballParent);
 
             const HEX_ID = this.convertOffsetCoordToHexId(this._hexWithBall);
-            const anim = this._root.slideToObject('ball', HEX_ID);
+            const anim = this._root.slideToObject('ballParent', HEX_ID);
 
             await this._root.bgaPlayDojoAnimation(anim);
         },

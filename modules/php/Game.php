@@ -19,31 +19,21 @@
 declare(strict_types=1);
 
 namespace Bga\Games\SuperTeam;
-
-use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Cards\CardFactory;
-use Bga\Games\SuperTeam\Cards\Basic1;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
-use Bga\Games\SuperTeam\DBAdapter;
-use Bga\Games\SuperTeam\HexID;
-use Bga\Games\SuperTeam\PlayerResources;
-use Bga\Games\SuperTeam\TeamBoard;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\Utility\Logger;
 
 use Exception;
 
-require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 require_once(__DIR__ . '/StateMachineConstants.inc.php');
 
-class Game extends \Table
+class Game extends \Bga\GameFramework\Table
 {
     private ?TeamBoard $teamBoard = null;
 
     private CardFactory $cardFactory;
 
-    private array $playerHands = [];
-    
     public function __construct()
     {
         parent::__construct();
@@ -59,7 +49,8 @@ class Game extends \Table
         );
 
         NotificationAdapter::getInstance()->init(
-            fn($name, $message, $args) => $this->notify->all($name, $message, $args)
+            fn($name, $message, $args) => $this->notify->all($name, $message, $args),
+            fn($playerId, $name, $message, $args) => $this->notify->player($playerId, $name, $message, $args)
         );
 
         Logger::init(DBAdapter::getInstance(), 'logs');
@@ -71,17 +62,17 @@ class Game extends \Table
         $this->teamBoard = new TeamBoard(DBAdapter::getInstance());
 
         $this->initGameStateLabels([
-            "game_half" => 10,
+            "starter_player" => 10,
             "user_in_left_id" => 11,
             "user_in_right_id" => 12,
-            "selected_piece" => 13,
-            "number_of_moves" => 14,
-            "required_power" => 15,
-            "attacker" => 16,
-            "defender" => 17,
-            "moraleAssignRemaining" => 18,
-            "isAttributesAssignmentFinished" => 19,
-            "lastPassResult" => 20
+            "number_of_moves" => 13,
+            "required_power" => 14,
+            "attacker" => 15,
+            "defender" => 16,
+            "moraleAssignRemaining" => 17,
+            "isAttributesAssignmentFinished" => 18,
+            "lastPassResult" => 19,
+            "cardsPlayedThisTurn" => 20
         ]);
 
         /* example of notification decorator.
@@ -115,36 +106,7 @@ class Game extends \Table
         $this->gamestate->nextState("pass");
     }
 
-    //(sha) TODO: probably this must be a part of board? or a piece manager?
-    public function getSelectablePieces(?callable $additionalPredicate): array
-    {
-        $board = $this->getBoard();
-
-        $activePlayerId = \intval($this->getActivePlayerId());
-        $activePlayerPieces = $board->getPlayerPiecesByOwner($activePlayerId);
-
-        $playerResources = new PlayerResources($activePlayerId);
-
-        $freshPieceIDs = [];
-        $exhaustedSelectablePieceIds = [];
-
-        for ($i = 0; $i < count($activePlayerPieces); $i++) {
-            $currentPiece = $activePlayerPieces[$i];
-            if ($currentPiece->getRole() != PlayerRole::GoalKeeper->value) {
-                if ($currentPiece->isFresh() && (!$additionalPredicate || $additionalPredicate($currentPiece))) {
-                    $freshPieceIDs[] = $currentPiece->getId();
-                } else if (!$currentPiece->isFresh() && $playerResources->getMorale() > 0 && (!$additionalPredicate || $additionalPredicate($currentPiece))) {
-                    $exhaustedSelectablePieceIds[] = $currentPiece->getId();
-                }
-            }
-        }
-
-        return [
-            'selectablePieces' => $freshPieceIDs,
-            'selectableExhaustedPieces' => $exhaustedSelectablePieceIds
-        ];
-    }
-
+    //(sha) TODO: probably this must be a part of board? or a piece manager? probably moveLogic!
     public function getValidPassTargets(?callable $additionalCondition): array
     {
         $currentPlayer = \intval($this->getActivePlayerId());
@@ -205,9 +167,7 @@ class Game extends \Table
      */
     public function getGameProgression()
     {
-        // TODO: compute and return the game progression
-
-        return 0;
+        return TimeTrack::GetProgressToEndGame();
     }
 
     /**
@@ -288,25 +248,17 @@ class Game extends \Table
 
         $result['other_deck_count'] = $otherHand->CountCardsInDeck();
         $result['other_discard'] = $otherHand->getDiscardedCards();
-        $result['player_deck_count'] = $playerHand->CountCardsInDeck();
+        $result['player_deck'] = $playerHand->GetCardsInDeckSecret();
         $result['player_discard'] = $playerHand->getDiscardedCards();
         $result['player_hand'] = $playerHand->getCardsInHand();
+        $result['supply'] = $playerHand->getCardsInSupply(); //todo: a number is enough.
         $result['player_pieces'] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
         $result['ball'] = $this->getObjectFromDB("SELECT * FROM `ball`");
         $result['user_in_right_id'] = $this->getGameStateValue('user_in_right_id');
         $result['user_in_left_id'] = $this->getGameStateValue('user_in_left_id');
+        $result['time_index'] = TimeTrack::GetTimeTrackPosition();
 
         return $result;
-    }
-
-    /**
-     * Returns the game name.
-     *
-     * IMPORTANT: Please do not modify.
-     */
-    protected function getGameName()
-    {
-        return "superteam";
     }
 
     /**
@@ -317,7 +269,9 @@ class Game extends \Table
     {
         $playersDeck = $this->deckFactory->createDeck('player_cards');
         $default_colors = ['DD4720', '479ADA'];
-        
+
+        $teamBoard= 0;
+        $captainBoard = 0;
         foreach ($players as $player_id => $player) {
             // Now you can access both $player_id and $player array
             $query_values[] = vsprintf("('%s', '%s', '%s', '%s', '%s')", [
@@ -329,8 +283,9 @@ class Game extends \Table
             ]);
 
             //TODO: this must change, it should be initialized when we have selected captain board and team board.
-            PlayerHand::createPlayerHand($playersDeck, $player_id, 0, 0);
-            $this->getPlayerHand($player_id)->drawToFour();
+            PlayerHand::createPlayerHand($playersDeck, $player_id, $captainBoard, $teamBoard);
+            $teamBoard += 1;
+            $captainBoard = 2;
         }
 
         static::DbQuery(
@@ -359,24 +314,32 @@ class Game extends \Table
 
         $this->initBoard($players);
 
-        $this->activeNextPlayer();
+        $starterPlayer = \intval($this->getGameStateValue('starter_player'));
+        $activePlayerId = $this->activeNextPlayer();
+
+        if ($activePlayerId != $starterPlayer)
+            $this->activeNextPlayer();
+
+        return ST_PLAYER_PIECE_SETUP;
     }
 
     private function initGameState(array $players): void
     {
         list($redPlayer, $bluePlayer) = array_keys($players);
+        $starterPlayerIndex = bga_rand(0, 1);
+        $defenderPlayerIndex = $starterPlayerIndex == 0 ? 1 : 0;
 
         $this->setGameStateInitialValue('number_of_moves', 0);
-        $this->setGameStateInitialValue('selected_piece', -1);
         $this->setGameStateInitialValue('required_power', -1);
-        $this->setGameStateInitialValue('game_half', 1);
+        $this->setGameStateInitialValue('starter_player', array_keys($players)[$starterPlayerIndex]);
         $this->setGameStateInitialValue('user_in_left_id', $redPlayer);
-        $this->setGameStateInitialValue('attacker', $redPlayer);
+        $this->setGameStateInitialValue('attacker', array_keys($players)[$starterPlayerIndex]);
         $this->setGameStateInitialValue('user_in_right_id', $bluePlayer);
-        $this->setGameStateInitialValue('defender', $bluePlayer);
+        $this->setGameStateInitialValue('defender', array_keys($players)[$defenderPlayerIndex]);
         $this->setGameStateInitialValue("moraleAssignRemaining", 0);
         $this->setGameStateInitialValue("isAttributesAssignmentFinished", 0);
         $this->setGameStateInitialValue("lastPassResult", 0);
+        $this->setGameStateInitialValue("cardsPlayedThisTurn", 0);
     }
 
     private function initBoard(array $players): void
@@ -411,18 +374,20 @@ class Game extends \Table
 
     public function getPlayerHand(int $playerId) : PlayerHand
     {
-        for($i = 0; $i < \count($this->playerHands); $i++)
-        {
-            if ($this->playerHands[$i]->getOwner() === $playerId)
-            {
-                return $this->playerHands[$i];
-            }
-        }
+        return new PlayerHand($playerId, $this);
+    }
 
-        $playerHand = new PlayerHand($playerId, $this);
-        $this->playerHands[] = $playerHand;
+    /**
+     * @return PlayerHand[]
+     */
+    public function getPlayerHands(): array
+    {
+        $hands = [];
 
-        return $playerHand;
+        $hands[] = new PlayerHand(\intval($this->getGameStateValue("user_in_left_id")), $this);
+        $hands[] = new PlayerHand(\intval($this->getGameStateValue("user_in_right_id")), $this);
+
+        return $hands;
     }
 
     public function getTeamBoard() : TeamBoard
@@ -438,23 +403,6 @@ class Game extends \Table
         $ballHex = new HexID(intval($ballPosition['hex_column']), intval($ballPosition['hex_row']));
 
         return new Board($piecesData, $ballHex, DBAdapter::getInstance());
-    }
-
-    //TODO: Move this function to playerResources.
-    public function AddOneGoal(int $playerId): int
-    {
-        $goalsScored = $this->getUniqueValueFromDB(
-            "SELECT `goals_scored` FROM `player` WHERE `player_id` = {$playerId}"
-        );
-
-        $goalsScored = intval($goalsScored);
-        $goalsScored += 1;
-
-        $this->DbQuery(
-            "UPDATE `player` SET `goals_scored` = {$goalsScored} WHERE player_id = {$playerId}"
-        );
-
-        return $goalsScored;
     }
 
     public function getPlayerSide(int $userId): PlayerSide
@@ -481,37 +429,33 @@ class Game extends \Table
         }
     }
 
-    public function isCurrentPlayerFirstPlayer(): bool
+    public function getStarterPlayer() : int
     {
-        $firstPlayerId = $this->getUniqueValueFromDB("SELECT `player_id` FROM `player` WHERE `player_no` = 1");
-
-        return $firstPlayerId === $this->getActivePlayerId();
+        return \intval($this->getGameStateValue('starter_player'));
     }
 
-    //TODO: This probably must be a private function of player piece setup.
-    public function isPlayerSetupComplete(int $playerId): bool
+    public function isCurrentPlayerFirstPlayer(): bool
     {
-        $isComplete = true;
+        return $this->getStarterPlayer() === \intval($this->getActivePlayerId());
+    }
 
-        $playerPieces = $this->getBoard()->getPlayerPiecesByOwner($playerId);
+    public function swapStarterPlayer() : void
+    {
+        $currentStarterPlayer = $this->getStarterPlayer();
+        $newStarterPlayer = \intval($this->getGameStateValue('user_in_right_id'));;
 
-        for ($i = 0; $i < count($playerPieces); $i++) {
-            if (!$playerPieces[$i]->hasValidPosition()) {
-                $isComplete = false;
-                break;
-            }
-        }
+        if ($currentStarterPlayer == $newStarterPlayer)
+            $newStarterPlayer = $this->getGameStateValue('user_in_left_id');
 
-        return $isComplete;
+        $this->setGameStateInitialValue('starter_player', $newStarterPlayer);
     }
 
     private function initCardFactory()
     {
-        $cardFactory = new CardFactory();
+        $this->cardFactory = new CardFactory();
+        $cardRegistrar = new CardRegistrar();
 
-        $cardFactory->registerCard(Basic1::staticId(), fn() => new Basic1($this, $this->getBoard()));
-        
-        $this->cardFactory = $cardFactory;
+        $cardRegistrar->registerCards($this->cardFactory, $this);
     }
 
     public function getCardFactory() : CardFactory
@@ -519,8 +463,141 @@ class Game extends \Table
         return $this->cardFactory;
     }
 
-    function debug_setMorale(int $amount) {
+    //========================================================================================================
+    //-------------------------------------- cheats ----------------------------------------------------------
+    //========================================================================================================
+    public function debug_setMorale(int $amount) {
         $playerResource  =new PlayerResources(\intval($this->getActivePlayerId()));
         $playerResource->setMorale($amount, true);
     }
+
+    //---------------------------------------------------------------------------------------------------------
+
+    public function debug_advanceTimeTracker() {
+        TimeTrack::AdvanceTimeTrack(true);
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+
+    public function debug_triggerHalfTime() {
+        return ST_HALF_TIME;
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+
+    public function debug_defaultPieceSetup() {
+        $board = $this->getBoard();
+
+        $activePlayerId = \intval($this->getActivePlayerId());
+        if(!$board->doAllPiecesHaveValidPosition($activePlayerId))
+        {
+            $pieceSetupLogic = new PlayerPieceSetupLogic($board);
+
+            $pieceSetupLogic->debugDefaultSetup($this, $activePlayerId);
+
+            return ST_SETUP_COMPLETE;
+        }
+        else
+        {
+            throw new \BgaUserException("This cheat method can only be called in piece setup state!");
+        }
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+
+    public function debug_defaultAttributeSetup() {
+        $currentPlayerId = \intval($this->getCurrentPlayerId());
+        $teamBoard = $this->getTeamBoard();
+        $attributesAssigned = $teamBoard->getTotalAttributesAssigned($currentPlayerId);
+
+        if ($attributesAssigned < TeamBoard::MAX_ALLOWED_ATTRIBUTES)
+        {
+            for($i = $attributesAssigned; $i < TeamBoard::MAX_ALLOWED_ATTRIBUTES; $i++)
+            {
+                $teamBoard->tryIncreaseAttribute($currentPlayerId, TeamAttribute::from($i % TeamAttribute::Count->value), true);
+            }
+
+            $this->gamestate->setPlayerNonMultiactive($currentPlayerId, ST_TEAM_ATTRIBUTE_REVEAL);
+        }
+        else
+        {
+            throw new \BgaUserException("This cheat method can only be called in default attribute setup state!");
+        }
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+
+    public function debug_pickCard(string $cardType) : void
+    {
+        $currentPlayerId = \intval($this->getCurrentPlayerId());
+        $playerHand = $this->getPlayerHand($currentPlayerId);
+
+        $playerHand->drawCard($cardType);
+
+        //TODO: this notification must change, I need to also send whether the played card can be played for tactics or not.
+        //that happens in the state on enter, so I need a refresh in web browser right now.
+
+        $playerHand->notifyPlayerOfHandRefill();
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+    public function debug_addOneGoal() : void
+    {
+        $playerResources = new PlayerResources(\intval($this->getActivePlayerId()));
+
+        $playerResources->addOneGoal(true);
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+    public function debug_endGame() : int
+    {
+        return ST_END_GAME;
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+    public function debug_movePieceTo(int $pieceId, int $row, int $column) : void
+    {
+        $selectedHex = new HexId($column, $row);
+
+        $offsetExtent = HexLib::getOffsetExtent();
+        if (!$offsetExtent->isInsideExtent($selectedHex))
+            throw new \BgaUserException("selected hex is not inside the board!");
+
+        $board = $this->getBoard();
+        $selectedPiece = $board->getPiece($pieceId);
+        if ($selectedPiece === null)
+            throw new \BgaUserException("selected piece id does not exist!");
+
+        $board->movePieceToHex($pieceId, $selectedHex);
+
+        $this->notify->all("movedPiece", \clienttranslate('${player_name} moves a piece'), array(
+            "player_name" => $this->getActivePlayerName(),
+            "movedPiece" => $pieceId,
+            "hex_column" => $column,
+            "hex_row" => $row,
+            "ballMoved" => false,
+            "spentMorale"=> 0
+        ));
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+    public function debug_moveBallTo(int $row, int $column) : void
+    {
+        $selectedHex = new HexId($column, $row);
+
+        $offsetExtent = HexLib::getOffsetExtent();
+        if (!$offsetExtent->isInsideExtent($selectedHex))
+            throw new \BgaUserException("selected hex is not inside the board!");
+
+        $board = $this->getBoard();
+        $board->setBallLocation($selectedHex);
+
+        $this->notify->all('successfulPass', "successful pass", [
+            "ballHex" => $selectedHex->convertToArray()
+        ]);
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+
+    //========================================================================================================
 }

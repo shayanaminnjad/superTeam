@@ -116,7 +116,11 @@ class DBAdapter
     public function getPlayerTempStr(int $playerId, string $entry): string
     {
         $row = $this->getObjectFromDB("SELECT `$entry` FROM `player_temp_data` WHERE `player_id` = $playerId");
-        return $row[$entry];
+
+        if ($row == null || $row[$entry] == null)
+            return '';
+        else
+            return $row[$entry];
     }
 
     public function getPlayerTempInt(int $playerId, string $entry): int
@@ -135,10 +139,13 @@ class DBAdapter
     {
         $row = $this->getObjectFromDB("SELECT `$entry` FROM `st_globals`");
 
-        return $row[$entry];
+        if ($row[$entry] == null)
+            return '';
+        else
+            return $row[$entry];
     }
 
-    public function storeGlobalInt(string $entry, int $value)
+    public function storeGlobalInt(string $entry, int $value) : void
     {
         $this->DbQuery("UPDATE `st_globals` SET `$entry` = $value");
     }
@@ -148,5 +155,15 @@ class DBAdapter
         $row = $this->getObjectFromDB("SELECT `$entry` FROM `st_globals`");
 
         return $row[$entry];
+    }
+
+    public function storeActionReturnState(int $playerId, string $class) : void
+    {
+        $this->storePlayerTempStr($playerId, 'action_return_state', $class);
+    }
+
+    public function getPlayerActionReturnState(int $playerId): string
+    {
+        return $this->getPlayerTempStr($playerId, 'action_return_state');
     }
 }

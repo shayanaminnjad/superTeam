@@ -8,10 +8,8 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\PlayerPieceSetupLogic;
 use BgaUserException;
-
-use Bga\Games\SuperTeam\BoardInfo;
-use Bga\Games\SuperTeam\PlayerSide;
 
 class PlayerPieceSetup extends GameState
 {
@@ -33,53 +31,19 @@ class PlayerPieceSetup extends GameState
 
     public function getArgs(): array
     {
-        //get pieces that can be placed.
-        $board = $this->game->getBoard();
-        $playerPieces = $board->getPlayerPiecesByOwner(intval($this->game->getActivePlayerId()));
-        
-        $availablePieces = array_filter($playerPieces, function($piece)
-        {
-            return !$piece->hasValidPosition();
-        });
-        
-        usort($availablePieces, function ($a, $b)
-        {
-            return $a->getId() <=> $b->getId();
-        });
-        
+        $setupLogic = new PlayerPieceSetupLogic($this->game->getBoard());
+        $notPlacedPieces = $setupLogic->getNotPlacedPieces(intval($this->game->getActivePlayerId()));
+
         $pieceToPlaceId = 0;
-        if (count($availablePieces) > 0)
+        if (count($notPlacedPieces) > 0)
         {
-            $pieceToPlaceId = $availablePieces[0]->getId();
+            $pieceToPlaceId = $notPlacedPieces[0]->getId();
         }
             
-        //get available positions
         $playerSide = $this->game->getPlayerSide(intval($this->game->getActivePlayerId()));
-        $IsFirstPlayer = $this->game->isCurrentPlayerFirstPlayer();
+        $isFirstPlayer = $this->game->isCurrentPlayerFirstPlayer();
 
-        $possibleLocations = [];
-        //Special case where center is not set by the first player.
-        if ($IsFirstPlayer && count($availablePieces) == 1 && !$board->hasPlayerInHex(BoardInfo::$CENTER_POSITION))
-        {
-            $possibleLocations = [BoardInfo::$CENTER_POSITION->convertToArray()];
-        }
-        else
-        {
-            $playerStartingPositions = $playerSide === PlayerSide::Left ? BoardInfo::$LEFT_PLAYER_STARTING_POSITIONS : BoardInfo::$RIGHT_PLAYER_STARTING_POSITIONS;
-
-            if ($IsFirstPlayer) 
-            {
-                $playerStartingPositions[] = BoardInfo::$CENTER_POSITION;
-            }
-
-            for ($i = 0; $i < count($playerStartingPositions); $i++) 
-            {
-                if ($board->hasPlayerInHex($playerStartingPositions[$i]) == false) 
-                {
-                    $possibleLocations[] = $playerStartingPositions[$i]->convertToArray();
-                }
-            }
-        }
+        $possibleLocations = $setupLogic->getAvailablePlacingPositions($playerSide, $isFirstPlayer, count($notPlacedPieces));
 
         return [
             "availableStartingPositions" => $possibleLocations,
@@ -129,7 +93,7 @@ class PlayerPieceSetup extends GameState
             "hex_row" => $hexRow,
         ]);
 
-        if (!$this->game->isPlayerSetupComplete($playerId))
+        if (!$this->game->getBoard()->doAllPiecesHaveValidPosition($playerId))
         {
             return PlayerPieceSetup::class;
         }

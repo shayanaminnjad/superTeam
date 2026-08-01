@@ -6,6 +6,9 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
+use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
+use Bga\Games\SuperTeam\Cards\Moves\MovedPieceInfo;
+use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 
 class MoveFinished extends GameState
@@ -26,16 +29,15 @@ class MoveFinished extends GameState
 
     function onEnteringState(int $activePlayerId): string
     {
-        $selectedPiece = $this->game->getGameStateValue('selected_piece');
-        $this->game->DbQuery("UPDATE player_pieces SET is_fresh = FALSE  WHERE `id` = $selectedPiece");
+        $moveActionContext = new MoveActionContext();
+        $movePieceData = $moveActionContext->getSelectedPieceData();
+        $piece = $this->game->getBoard()->getPiece($movePieceData->id);
+        $piece->setFreshness(false, true);
 
-        $this->game->setGameStateValue('selected_piece', -1);
         $this->game->setGameStateValue('number_of_moves', 0);
 
-        $this->notify->all("pieceExhausted", \clienttranslate('piece was exhausted'), array(
-            "pieceId" => $selectedPiece,
-        ));
+        $moveActionContext->moveSelectedPieceDataToMovedPieces();
 
-        return CardSelection::class;
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 }

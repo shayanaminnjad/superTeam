@@ -17,8 +17,23 @@
 :root {
     --main-bg-ratio-x: 5;
     --main-bg-ratio-y: 4;
-    --main-bg-scale: 148px;
+    --main-bg-scale: 160px;
     /*260px for the original size, however board game arena doesn't encourage size above 740px*/
+}
+
+#trackerBoard {
+    --tracker-board-aspect-ratio: 5.6186;
+    --scale: 118px;
+
+    position: relative;
+    background-image: url('img/topBoard.jpg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: calc(var(--scale) * var(--tracker-board-aspect-ratio));
+    height: var(--scale);
+    margin: 0 auto 10px auto;
+    border-radius: 8px;
+    overflow: visible;
 }
 
 #mainBoard {
@@ -29,6 +44,7 @@
     width: calc(var(--main-bg-ratio-x) * var(--main-bg-scale));
     height: calc(var(--main-bg-ratio-y) * var(--main-bg-scale));
     border-radius: 8px;
+    margin: 0 auto 0 auto;
     overflow: visible;
 }
 
@@ -59,6 +75,28 @@
     z-index: 100;
 }
 
+.scoreBoard {
+    position: absolute;
+
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 2px solid white;
+    border-radius: 8px;
+
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    line-height: 1;
+
+    box-sizing: border-box;
+    user-select: none;
+}
+
 .hex_debug {
     position: absolute;
     background-color: red;
@@ -84,56 +122,49 @@
     overflow: visible;
     text-align: center;
     z-index: 100;
+    pointer-events: none;
 }
 
 .piece.regular.blue.fresh {
     background-image: url('img/blueMeepleReady.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
 }
 
 .piece.regular.blue.exhausted {
     background-image: url('img/blueMeepleExhausted.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
 }
 
 .piece.captain.blue.fresh {
     background-image: url('img/blueMeepleReady.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
 }
 
 .piece.captain.blue.exhausted {
     background-image: url('img/blueMeepleExhausted.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
 }
 
 .piece.regular.red.fresh {
     background-image: url('img/redMeepleReady.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
-    pointer-events: none;
 }
 
 .piece.regular.red.exhausted {
     background-image: url('img/redMeepleExhausted.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
 }
 
 .piece.captain.red.fresh {
     background-image: url('img/redMeepleReady.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
 }
 
 .piece.captain.red.exhausted {
@@ -147,7 +178,6 @@
     background-image: url('img/goalieMeeple.png');
     background-size: contain;
     background-repeat: no-repeat;
-    pointer-events: none;
 }
 
 .piece.clickable {
@@ -159,15 +189,22 @@
     transform: scale(1.1);
 }
 
+#ballParent
+{
+    position: absolute;
+    pointer-events: none;
+}
+
 .ball {
     width: 18px;
     height: 18px;
-    position: absolute;
+    position: relative;
     background-image: url('img/ball.png');
     background-size: contain;
     background-repeat: no-repeat;
     pointer-events: none;
     z-index: 101;
+    transform: translate(0px, 10px);
 }
 
 /*TODO: probably this should also be selectable*/
@@ -424,7 +461,7 @@
     --scale: 75;
 
     position: relative;
-    background-image: url("img/coachBoard.png");
+    background-image: url("img/coachBoard.jpg");
     background-size: contain;
     background-repeat: no-repeat;
     overflow: visible;
@@ -481,6 +518,7 @@
     background-image: url('img/coachCube.png');
     background-repeat: no-repeat;
     background-size: contain;
+    background-position: center;
     overflow: visible;
     z-index: 104;
 }

@@ -6,6 +6,7 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
+use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 
 class SetupComplete extends GameState
@@ -30,14 +31,25 @@ class SetupComplete extends GameState
                
         $playerId = intval($this->game->activeNextPlayer());
 
-        if (!$this->game->isPlayerSetupComplete($playerId)) 
+        if (!$this->game->getBoard()->doAllPiecesHaveValidPosition($playerId))
         {
             return PlayerPieceSetup::class;
         } 
-        else 
+        else
         {
-            $this->gamestate->setAllPlayersMultiactive();
-            return TeamAttributeAssignment::class;
+            $isRestartAfterGoal = DBAdapter::getInstance()->getGlobalInt('is_restart_after_goal') == 1;
+
+            if ($isRestartAfterGoal)
+            {
+                DBAdapter::getInstance()->storeGlobalInt('is_restart_after_goal', 0);
+                $this->game->getBoard()->updateAttackerAndDefender();
+                return CardSelection::class;
+            }
+            else
+            {
+                $this->gamestate->setAllPlayersMultiactive();
+                return TeamAttributeAssignment::class;
+            }
         }
     }
 }

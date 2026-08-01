@@ -8,17 +8,19 @@ use Bga\Games\SuperTeam\Game;
 use Bga\GameFramework\States\GameState;
 use ReflectionMethod;
 
-class ActionDescriptor
+readonly class ActionDescriptor
 {
     private string $name;
     private string $action;
-    private array $params;
+    private array $paramsToSendBack;
+    private array $buttonParams;
 
-    public function __construct(string $name, string $action, array $params)
+    public function __construct(string $name, string $action, array $paramsToSendBack = [], array $buttonParams = [])
     {
         $this->name = $name;
         $this->action = $action;
-        $this->params = $params;
+        $this->paramsToSendBack = $paramsToSendBack;
+        $this->buttonParams = $buttonParams;
     }
 
     public function getName(): string
@@ -41,7 +43,8 @@ class ActionDescriptor
         return [
             'name' => $this->name,
             'action' => $this->action,
-            'params' => $this->params
+            'paramsToSendBack' => $this->paramsToSendBack,
+            'buttonParams' => $this->buttonParams
         ];
     }
 }
@@ -86,17 +89,16 @@ abstract class PlayerBaseState extends GameState
 
     abstract public function selfGetArgs(): array;
 
-    protected function addClientButton(string $name, array $func): void
+    protected function addClientButton(string $name, array $func, array $paramsToSendBack = [], array $buttonParams = []): void
     {
         $ref = new ReflectionMethod($func[0], $func[1]);
 
-        $params = $ref->getParameters();
-        $paramNames = [];
+        $this->possibleActions[] = new ActionDescriptor($name, $ref->getName(), $paramsToSendBack, $buttonParams);
+    }
 
-        foreach($params as $param)
-            $paramNames[] = $param->getName();
-
-        $this->possibleActions[] = new ActionDescriptor($name, $ref->getName(), $paramNames);
+    protected function getClientButtons() : array
+    {
+        return $this->possibleActions;
     }
 
     protected function serializePossibleActions(): array

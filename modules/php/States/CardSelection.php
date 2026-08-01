@@ -6,12 +6,19 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
+use Bga\Games\SuperTeam\Cards\CardReward;
+use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
+use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
-use Bga\Games\SuperTeam\Utility\Logger;
 use Bga\Games\SuperTeam\Cards\TacticType;
-use Bga\Games\SuperTeam\Cards\CardTypeHelper;
+use Bga\Games\SuperTeam\Cards\TacticContext;
+use Bga\Games\SuperTeam\PlayerResources;
+use Bga\Games\SuperTeam\RequiredPower;
+use Bga\Games\SuperTeam\Utility\Logger;
 
 class CardSelection extends PlayerBaseState
 {
@@ -33,27 +40,56 @@ class CardSelection extends PlayerBaseState
         );
     }
 
+    public function onEnteringState(int $activePlayerId)
+    {
+        $tacticContext = new TacticContext();
+        $tacticContext->reset();
+
+        $moveContext = new MoveActionContext();
+        $moveContext->reset();
+
+        $pieceSelectionContext = new PieceSelectionContext();
+        $pieceSelectionContext->reset();
+
+        $passActionContext = new PassActionContext($activePlayerId);
+        $passActionContext->reset(false);
+
+        RequiredPower::setSkipEnabled(false);
+    }
+
     public function selfGetArgs(): array
     {
-        $playerHand = $this->game->getPlayerHand(\intval($this->game->getActivePlayerId()));
+        $activePlayer = \intval($this->game->getActivePlayerId());
+        $playerHand = $this->game->getPlayerHand($activePlayer);
 
         $playableTactics = [];
-        $playableTactics[] = CardTypeHelper::getBasicCardType(0);
-        /*
         $cardsInHand = $playerHand->getCardsInHand();
         foreach($cardsInHand as $cardDef)
         {
-            $card = $this->game->getCardFactory()->getCard($cardDef["type"]);
+            $cardFactory = $this->game->getCardFactory();
 
-            if ($card->isOffensivePossible())
+            //TODO: remove this, this is only for the ease of development, should not end up in production code.
+            if ($cardFactory->hasCard($cardDef["type"]))
             {
-                $playableTactics[] = $card->getId();
-            }
-        }*/
+                $card = $cardFactory->getCard($cardDef["type"]);
 
-        $cardsInHand = $playerHand->CountCardsInHand();
-        $canPass =  $cardsInHand < PlayerHand::$MAX_CARDS_IN_HAND;
-        $canPlayCard = $cardsInHand > 1;
+                if ($card->isExecutionPossible())
+                {
+                    $playableTactics[] = $card->getId();
+                }
+            }
+            else
+            {
+                Logger::logError("card type does not exist in card factory " . $cardDef["type"]);
+            }
+        }
+
+
+        $cardsPlayedThisTurn = $this->getCardsPlayedThisTurn();
+        $canPass =  $cardsPlayedThisTurn > 0;
+        $canPlayCard = $cardsPlayedThisTurn < 3;
+
+        //todo: add the special case for when the goalie has the ball.
 
         return [
             'canPass' => $canPass,
@@ -65,42 +101,54 @@ class CardSelection extends PlayerBaseState
     #[PossibleAction]
     public function actCardSelected(int $cardId, string $cardType, bool $asBasic): string
     {
-        $playerHand = $this->game->getPlayerHand(\intval($this->game->getActivePlayerId()));
-
-        $cardDef = $playerHand->getCard($cardId);
-
-        if ($playerHand->CountCardsInHand() == 1)
-            throw new \BgaUserException("You can't play more than 3 cards in a turn!");
-        
-        Logger::logInfo("Card " . $cardId . "selected to be performed as" . ($asBasic ? 'as basic.' : 'as tactic.'));
-        
         $activePlayer = \intval($this->game->getActivePlayerId());
+
+        $this->game->giveExtraTime($activePlayer);
+
+        if ($this->getCardsPlayedThisTurn() >= 3)
+            throw new \BgaUserException("You can't play more than 3 cards in a turn!");
+
         $playerHand = $this->game->getPlayerHand($activePlayer);
-        
+
         $playerHand->discardCard($cardId);
         
         $this->game->notify->all("cardPlayed", "card {$cardId} played", [
             'discards' => $playerHand->getDiscardedCards(),
             'cardsInHandCount' => $playerHand->CountCardsInHand()
             ]);
-            
-            
-            if ($asBasic)
-                return PlayerBasicTurn::class;
-            else
-            {
-                $dbAdapter = DBAdapter::getInstance();
-                //TODO: encapsulate this logic
-                $dbAdapter->storeGlobalString('tactic_in_play', $cardDef['type']);
-                //TODO: I should check whether I need to store this or infer it.
-                //the edge case is pass forward, I am not sure if you become defender at that moment or not.
-                $dbAdapter->storeGlobalInt('tactic_type', TacticType::Offensive->value); 
-                $dbAdapter->storeGlobalInt("tactic_progress", 0);
-                $dbAdapter->storeGlobalInt("tactic_reward_in_progress", 0);
-                $dbAdapter->storeGlobalString("rewards_used", "");
 
-                return TacticalTurnStateManager::class;
+        $this->increaseCardsPlayedThisTurnByOne();
+
+        $dbAdapter = DBAdapter::getInstance();
+        if ($asBasic)
+        {
+            $dbAdapter->storeActionReturnState($activePlayer, CardSelection::class);
+            return PlayerBasicTurn::class;
+        }
+        else
+        {
+            $isAttacker = Board::isPlayerAttacker($activePlayer);
+
+            $tacticContext = new TacticContext();
+
+            $cardDef = $playerHand->getCard($cardId);
+
+            $tacticContext->setTacticInPlay($cardDef['type']);
+            $tacticContext->setTacticProgress(0);
+            $tacticContext->setRewardUsed(CardReward::empty());
+            $tacticContext->setTacticType($isAttacker ? TacticType::Offensive : TacticType::Defensive);
+
+            if ($tacticContext->getTacticType() == TacticType::Defensive)
+            {
+                $moveActionContext = new MoveActionContext();
+                $moveActionContext->setBallInitialLocation($this->game->getBoard()->getBallHex());
+
+                $playerResource = new PlayerResources($activePlayer);
+                $moveActionContext->setMoraleInitialAmount($playerResource->getMorale());
             }
+
+            return TacticalTurnStateManager::class;
+        }
     }
 
     #[PossibleAction]
@@ -113,5 +161,16 @@ class CardSelection extends PlayerBaseState
     {
         // the code to run when the player is a Zombie
         return '';
+    }
+
+    private function getCardsPlayedThisTurn(): int
+    {
+        return intval($this->game->getGameStateValue("cardsPlayedThisTurn"));
+    }
+
+    private function increaseCardsPlayedThisTurnByOne(): void
+    {
+        $cardsPlayedThisTurn = $this->getCardsPlayedThisTurn();
+        $this->game->setGameStateValue("cardsPlayedThisTurn", $cardsPlayedThisTurn + 1);
     }
 }

@@ -10,6 +10,7 @@ class HexID
     private int $column;
     private int $row;
     private Vector2 $cartesian;
+    private static ?HexId $invalidId = null;
 
     public function __construct(int $column, int $row)
     {
@@ -17,6 +18,11 @@ class HexID
         $this->row = $row;
 
         $this->cartesian = HexLib::HexIDToCartesian($this);
+    }
+
+    public static function GetInvalidId(): HexID
+    {
+        return self::$invalidId ??= new HexId(-1, -1);
     }
 
     public function getRow() : int
@@ -64,5 +70,10 @@ class HexID
     public function toString() : string
     {
         return "({$this->row}, {$this->column})";
+    }
+
+    public function getId() : int
+    {
+        return $this->row * 10 + $this->column;
     }
 }

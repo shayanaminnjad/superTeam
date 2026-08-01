@@ -6,9 +6,9 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
+use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\DBAdapter;
-use Bga\Games\SuperTeam\HexID;
 
 class PassPerform extends GameState
 {
@@ -26,7 +26,7 @@ class PassPerform extends GameState
         );
     }
 
-    function onEnteringState(int $activePlayerId)
+    function onEnteringState(int $activePlayerId) : string
     {
         $powerRequired = $this->game->getGameStateValue('required_power');
         
@@ -34,7 +34,14 @@ class PassPerform extends GameState
         
         $diceRes = DiceRollServices::getRollResult($activePlayerId);
         $board = $this->game->getBoard();
-        
+
+        $passActionContext = new PassActionContext($activePlayerId);
+
+        $playerPiece = null;
+        $board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPiece);
+        assert($playerPiece != null, "Passing piece can't be null!");
+        $passActionContext->addPiecesPassed($playerPiece->getId());
+
         if ($diceRes->getTotal() >= $powerRequired)
         {
             DBAdapter::getInstance()->setGameStateValue('lastPassResult', 1);
@@ -43,6 +50,16 @@ class PassPerform extends GameState
             $this->notify->all('successfulPass', "successful pass", [
                 "ballHex" => $selectedHex->convertToArray()
             ]);
+
+
+            if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPiece))
+            {
+                $passActionContext->storeLastPassReceiverPieceData($playerPiece);
+            }
+            else
+            {
+                $passActionContext->invalidateLastPassReceiverPieceData();
+            }
         }
         else
         {
@@ -53,8 +70,10 @@ class PassPerform extends GameState
             $this->notify->all('failedPass', "failed pass", [
                 "ballHex" => $newLocation->convertToArray()
             ]);
+
+            $passActionContext->invalidateLastPassReceiverPieceData();
         }
 
-        return CardSelection::class;
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 }

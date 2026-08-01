@@ -85,17 +85,16 @@ class MoraleAssignment extends GameState
 
     function zombie(int $playerId): string
     {
-        // the code to run when the player is a Zombie
-        return '';
+        return $this->actMoraleAssigned(0, $playerId);
     }
     
     //TODO: these function can be inside another file named morale assign services
-    public static function storeMoraleAssignData(string $finishTransition, bool $bothPlayers)
+    public static function storeMoraleAssignData(string $finishTransition, bool $bothPlayers) : void
     {
         //I can package all these into a single json entry!
         $dbAdapter = DBAdapter::getInstance();
         $dbAdapter->setGameStateValue('moraleAssignRemaining', $bothPlayers ? 2 : 1);
-        $dbAdapter->storeGlobalString('morale_assign_transition', $finishTransition);
+        $dbAdapter->storeGlobalString('morale_assign_transition', addslashes($finishTransition));
     }
 
     public static function getMoraleAssigned(int $playerId): int

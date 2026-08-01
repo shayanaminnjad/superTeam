@@ -8,12 +8,15 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 
+use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
+use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
+use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\MovePieceSelectionLogic;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Cards\TacticType;
 use Bga\Games\SuperTeam\Cards\CardReward;
-use Bga\Games\SuperTeam\States\CardSelection;
 
 class TacticRewardResolve extends PlayerBaseState
 {
@@ -39,14 +42,12 @@ class TacticRewardResolve extends PlayerBaseState
         $reward = $this->getCardInPlayReward();
         $claimedReward = $this->getRewardClaimed();
 
+        $this->claimMoraleIfNotClaimed($activePlayerId, $reward, $claimedReward);
+
         if ($reward->isEmpty() || $this->rewardHasBeenClaimed($reward, $claimedReward))
         {
-            $this->cleanup();
-
             return CardSelection::class;
         }
-
-        $this->claimMoraleIfNotClaimed($activePlayerId, $reward->morale, $claimedReward->morale);
     }
 
     public function selfGetArgs() : array
@@ -59,7 +60,7 @@ class TacticRewardResolve extends PlayerBaseState
         if ($remainingReward->action > 0)
         {
             $this->addClientButton(
-                \sprintf(_('%dx Action'), $remainingReward->move),
+                \sprintf(_('%dx Action'), $remainingReward->action),
                 [$this,'actDoOneAction']);
         }
 
@@ -76,54 +77,71 @@ class TacticRewardResolve extends PlayerBaseState
     }
 
     #[PossibleAction]
-    public function actForfeitReward()
+    public function actForfeitReward() : string
     {
-        $this->cleanup();
-
         return CardSelection::class;
     }
 
     #[PossibleAction]
-    public function actDoOneAction()
+    public function actDoOneAction(int $activePlayerId) : string
     {
-        //TODO: Complete this
-        $this->cleanup();
+        $cardReward = $this->getCardInPlayReward();
+        $claimedReward = $this->getRewardClaimed();
 
-        return CardSelection::class;
+        $rewardRemaining = $cardReward->diff($claimedReward);
+
+        if ($rewardRemaining->action == 0)
+            throw new \BgaUserException("Card has no more action rewards");
+
+        $claimedReward->action += 1;
+        $this->storeRewardClaimed($claimedReward);
+
+        DBAdapter::getInstance()->storeActionReturnState($activePlayerId, self::class);
+
+        return PlayerBasicTurn::class;
     }
         
     #[PossibleAction]
-    public function actDoOneMove()
+    public function actDoOneMove(int $activePlayerId) : string
     {
-        return PieceSelection::class;
+        $cardReward = $this->getCardInPlayReward();
+        $claimedReward = $this->getRewardClaimed();
+
+        $rewardRemaining = $cardReward->diff($claimedReward);
+
+        if ($rewardRemaining->move == 0)
+            throw new \BgaUserException("Card has no more move rewards");
+
+        $claimedReward->move += 1;
+        $this->storeRewardClaimed($claimedReward);
+
+        DBAdapter::getInstance()->storeActionReturnState($activePlayerId, self::class);
+
+        MovePieceSelectionLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $activePlayerId, MoveTypes::FREE);
+
+        $moveActionContext = new MoveActionContext();
+        $moveActionContext->setCurrentMoveType(MoveTypes::FREE);
+
+        return MovePieceSelection::class;
     }
 
     function zombie(int $playerId): string
     {
-        // the code to run when the player is a Zombie
-        return '';
-    }
-
-    private function cleanup()
-    {
-        $dbAdapter = DBAdapter::getInstance();
-
-        $dbAdapter->storeGlobalString("tactic_in_play", "");
-        $dbAdapter->storeGlobalInt("tactic_progress", -1);
-        $dbAdapter->storeGlobalInt("tactic_reward_in_progress", 0);
-        $dbAdapter->storeGlobalString("rewards_used", "");
+        return $this->actForfeitReward();
     }
 
     private function getRewardClaimed() : CardReward
     {
-        $dbAdapter = DBAdapter::getInstance();
+        $tacticContext = new TacticContext();
 
-        $rewardJson = $dbAdapter->getGlobalString("rewards_used");
+        return $tacticContext->getRewardUsed();
+    }
 
-        if ($rewardJson === null || $rewardJson === '')
-            return CardReward::empty();
-        else
-            return CardReward::fromJson($rewardJson);
+    private function storeRewardClaimed(CardReward $reward) : void
+    {
+        $tacticContext = new TacticContext();
+
+        $tacticContext->setRewardUsed($reward);
     }
 
     private function rewardHasBeenClaimed(CardReward $reward, CardReward $claimedReward) : bool
@@ -133,28 +151,28 @@ class TacticRewardResolve extends PlayerBaseState
 
     private function getCardInPlayReward() : CardReward
     {
-        $dbAdapter = DBAdapter::getInstance();
+        $tacticContext = new TacticContext();
 
-        $cardInPlay = $dbAdapter->getGlobalString("tactic_in_play");
+        $cardInPlay = $tacticContext->getTacticInPlay();
         assert($cardInPlay >= 0);
 
-        //TODO: tactic type can be inferred there is no need to store it.
-        $tacticType = $dbAdapter->getGlobalInt("tactic_type");
-        assert($tacticType >= 0 && $tacticType <=1, "tactic type should be either 0 or 1");
+        $tacticType = $tacticContext->getTacticType();
 
         $card = $this->game->getCardFactory()->getCard($cardInPlay);
         $cardDef = $card->getDefinition();
 
-        return TacticType::from($tacticType) == TacticType::Offensive ? $cardDef->offensiveReward : $cardDef->defensiveReward;
+        return $tacticType == TacticType::Offensive ? $cardDef->offensiveReward : $cardDef->defensiveReward;
     }
 
-    private function claimMoraleIfNotClaimed(int $activePlayerId,int $amount, int $claimedMorale)
+    private function claimMoraleIfNotClaimed(int $activePlayerId,CardReward $rewardToClaim, CardReward $claimedReward) : void
     {
-        if ($amount - $claimedMorale > 0)
+        if ($rewardToClaim->morale - $claimedReward->morale > 0)
         {
             $playerResources = new PlayerResources($activePlayerId);
+            $playerResources->addMorale($rewardToClaim->morale - $claimedReward->morale, true);
 
-            $playerResources->addMorale($amount - $claimedMorale, true);
+            $claimedReward->morale = $rewardToClaim->morale;
+            $this->storeRewardClaimed($claimedReward);
         }
     }
 }

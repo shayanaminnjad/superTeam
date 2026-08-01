@@ -6,9 +6,17 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\BoardEvaluator;
+use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
+use Bga\Games\SuperTeam\Cards\Moves\MovedPieceInfo;
+use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
+use Bga\Games\SuperTeam\MoveHexSelectionLogic;
+use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\PlayerSide;
 
 class MoveAction extends PlayerBaseState
 {
@@ -32,19 +40,41 @@ class MoveAction extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
-        $selectedPiece = intval($this->game->getGameStateValue('selected_piece'));
+        $activePlayerId = \intval($this->game->getActivePlayerId());
 
-        assert($selectedPiece != -1, "move action must have a valid piece selected, before it gets called!");
+        $moveActionContext = new MoveActionContext();
+        $selectedPiece = $moveActionContext->getSelectedPieceData();
 
-        $moveableHexes = $this->game->getBoard()->getMoveableHexesByPiece($selectedPiece);
+        $board = $this->game->getBoard();
+        $pieceData = $board->getPlayerPieceData($selectedPiece->id);
 
-        $numberOfMoves = intval($this->game->getGameStateValue('number_of_moves'));
+        if ($pieceData === null)
+            throw new \BgaUserException("Invalid piece selected!");
 
-        if ($numberOfMoves > 0)
+        $maxPossibleMovement = BoardEvaluator::getPieceMaxPossibleMovement($board, $activePlayerId, $pieceData, new PlayerResources($activePlayerId));
+
+        if ($maxPossibleMovement == 0)
+            throw new \BgaUserException("piece can't be moved!");
+
+        $moveActionContext = new MoveActionContext();
+        $moveType = $moveActionContext->getCurrentMoveType();
+
+        $movesTaken = intval($this->game->getGameStateValue('number_of_moves')); //TODO: move this to MoveActionContext class
+
+        $moveableHexes = MoveHexSelectionLogic::GetAvailableHexes($board, $pieceData->getId(), $moveType, $maxPossibleMovement - $movesTaken);
+
+        $hexesToSend = [];
+        foreach ($moveableHexes as $hex)
+        {
+            $hexesToSend[] = $hex->convertToArray();
+        }
+
+        if ($movesTaken > 0 && $this->isMoveConditionMet($activePlayerId, $board, $moveActionContext))
             $this->addClientButton('Finish Movement', [$this, 'actFinishMove']);
 
-        return ["moveableHexes" => $moveableHexes,
-                "selectedPiece" => $selectedPiece];
+        //TODO: send target hexes too.
+        return ["moveableHexes" => $hexesToSend,
+                "selectedPiece" => $selectedPiece->id];
     }
 
     #[PossibleAction]
@@ -52,24 +82,21 @@ class MoveAction extends PlayerBaseState
     {
         //TODO: check if the moved location is valid.
 
-        $selectedPiece = intval($this->game->getGameStateValue('selected_piece'));
-        
+        $moveActionContext = new MoveActionContext();
+        $selectedPiece = $moveActionContext->getSelectedPieceData();
+
         $board = $this->game->getBoard();
         $ballLocation = $board->getBallHex();
-        $pieceOldData = $this->game->getObjectFromDB("SELECT `hex_column`, `hex_row`, is_fresh FROM `player_pieces` WHERE `id` = $selectedPiece");
-        $oldPieceHexRow = intval($pieceOldData['hex_row']);
-        $oldPieceHexCol = intval($pieceOldData['hex_column']);
+        $pieceOldData = $board->getPlayerPieceData($selectedPiece->id);
 
         $ballMoved = 0;
 
-        if ($ballLocation->getColumn() === $oldPieceHexCol && $ballLocation->getRow() === $oldPieceHexRow)
+        if ($ballLocation->equals($pieceOldData->getPosition()))
         {
             $ballMoved = 1;
             $board->setBallLocation(new HexID($hexColumn, $hexRow));
-            //TODO: this will probably change attacker and defender (I am not sure however if it happens right now?)
         }
 
-        $isFresh = boolval($pieceOldData['is_fresh']);
         $numberOfMoves = intval($this->game->getGameStateValue('number_of_moves'));
 
         $shouldEndMovement = false;
@@ -80,29 +107,33 @@ class MoveAction extends PlayerBaseState
         }
 
         $spentMorale = 0;
-        if(!$isFresh && $numberOfMoves === 0) //player has moved an exhusted piece.
+        if(!$pieceOldData->isFresh() && $numberOfMoves === 0) //player has moved an exhausted piece.
         {
-            $playerResources = new PlayerResources($activePlayerId);
-            $playerResources->addMorale(-1, false);
+            $moveActionContext = new MoveActionContext();
+
+            if ($moveActionContext->doExhaustedNeedMoraleForMovement())
+            {
+                $playerResources = new PlayerResources($activePlayerId);
+                $playerResources->addMorale(-1, false);
+            }
 
             $spentMorale = 1;
             $shouldEndMovement = true;
         }
 
-
         if ($ballMoved === 1 &&
-            ($board->doesOpponentExistInNeighbours(new HexID($oldPieceHexCol, $oldPieceHexRow), \intval($this->game->getActivePlayerId()), true) ||
-            $board->doesOpponentExistInNeighbours(new HexID($hexColumn, $hexRow), \intval($this->game->getActivePlayerId()), true)))
+            (BoardEvaluator::doesOpponentExistInNeighbours($board, $pieceOldData->getPosition(), \intval($this->game->getActivePlayerId()), true) ||
+            BoardEvaluator::doesOpponentExistInNeighbours($board, new HexID($hexColumn, $hexRow), \intval($this->game->getActivePlayerId()), true)))
         {
             $shouldEndMovement = true;
         }
 
-        $board->movePieceToHex($selectedPiece, new HexID($hexColumn, $hexRow));
+        $board->movePieceToHex($selectedPiece->id, new HexID($hexColumn, $hexRow));
         $this->game->setGameStateValue('number_of_moves', $numberOfMoves + 1);
 
         $this->notify->all("movedPiece", \clienttranslate('${player_name} moves a piece'), array(
             "player_name" => $this->game->getActivePlayerName(),
-            "movedPiece" => $selectedPiece,
+            "movedPiece" => $selectedPiece->id,
             "hex_column" => $hexColumn,
             "hex_row" => $hexRow,
             "ballMoved" => $ballMoved,
@@ -120,13 +151,77 @@ class MoveAction extends PlayerBaseState
     }
 
     #[PossibleAction]
-    public function actFinishMove(): string
+    public function actFinishMove(int $activePlayerId): string
     {
-        return MoveFinished::class;
+        $board = $this->game->getBoard();
+        $moveActionContext = new MoveActionContext();
+        $movesTaken = intval($this->game->getGameStateValue('number_of_moves')); //TODO: move this to MoveActionContext class
+        if ($movesTaken > 0 && $this->isMoveConditionMet($activePlayerId, $board, $moveActionContext))
+            return MoveFinished::class;
+        else
+            throw new \BgaUserException("You can't finish movement while you haven't met movement conditions and haven't moved at least once.");
     }
 
     function zombie(int $playerId): string {
         // the code to run when the player is a Zombie
         return '';
+    }
+
+    private function isMoveConditionMet(int $playerId, Board $board, MoveActionContext $moveActionContext) : bool
+    {
+        $moveType = $moveActionContext->getCurrentMoveType();
+
+        if ($moveType == MoveTypes::FREE)
+            return true;
+
+        $movedPieceInfo = $moveActionContext->getSelectedPieceData();
+        $playerSide = Board::getPlayerSide($playerId);
+        $piece = $board->getPiece($movedPieceInfo->id);
+
+        if ($moveType == MoveTypes::BACKWARD)
+        {
+            return $this->hasPieceMovedBackward($board, $movedPieceInfo, $piece, $playerSide);
+        }
+
+        if ($moveType == MoveTypes::FORWARD)
+        {
+            return $this->hasPieceMovedForward($board, $movedPieceInfo, $piece, $playerSide);
+        }
+
+        if ($moveType == MoveTypes::BACKWARD_NEAR_OPPONENT)
+        {
+            return $this->hasPieceMovedForward($board, $movedPieceInfo, $piece, $playerSide) &&
+                BoardEvaluator::hasAdjacentOpponentPieces($board, $piece->getPosition(), $playerId, true);
+        }
+
+        if ($moveType == MoveTypes::FORWARD_NEAR_OPPONENT)
+        {
+            return $this->hasPieceMovedBackward($board, $movedPieceInfo, $piece, $playerSide) &&
+                BoardEvaluator::hasAdjacentOpponentPieces($board, $piece->getPosition(), $playerId, true);
+        }
+    }
+
+    private function hasPieceMovedForward(Board $board, MovedPieceInfo $movedPieceInfo, PlayerPiece $piece,PlayerSide $playerSide) : bool
+    {
+        if ($playerSide == PlayerSide::Left)
+        {
+            return $movedPieceInfo->initialPosition->getColumn() < $piece->getPosition()->getColumn();
+        }
+        else
+        {
+            return $movedPieceInfo->initialPosition->getColumn() > $piece->getPosition()->getColumn();
+        }
+    }
+
+    private function hasPieceMovedBackward(Board $board, MovedPieceInfo $movedPieceInfo, PlayerPiece $piece, PlayerSide $playerSide) : bool
+    {
+        if ($playerSide == PlayerSide::Left)
+        {
+            return $movedPieceInfo->initialPosition->getColumn() > $piece->getPosition()->getColumn();
+        }
+        else
+        {
+            return $movedPieceInfo->initialPosition->getColumn() < $piece->getPosition()->getColumn();
+        }
     }
 }

@@ -6,7 +6,10 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
+use Bga\Games\SuperTeam\Cards\CardActionDriver;
+use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\PlayerResources;
 
 class ShootPerform extends GameState
 {
@@ -36,16 +39,21 @@ class ShootPerform extends GameState
 
         if ($attackerRollResult->getTotal() >= $defenderRollResult->getTotal() + $powerRequired) 
         {
-            $playerGoals = $this->game->AddOneGoal($attacker);
+            $playerResources = new PlayerResources($attacker);
 
-            $this->notify->all('goalScored', 'goal scored!', array(
-                "playerId" => $attacker,
-                "goals" => $playerGoals
-            ));
+            $playerResources->addOneGoal(true);
 
-            $this->game->activeNextPlayer();
+            $cardActionDriver = new CardActionDriver($activePlayerId, $this->game);
 
-            return BoardReset::class;
+            if ($cardActionDriver->isCardInProgress())
+            {
+                $stateToReturnTo = $cardActionDriver->progress();
+                assert($stateToReturnTo == CardSelection::class);
+            }
+
+            DBAdapter::getInstance()->storeGlobalInt('is_restart_after_goal', 1);
+
+            return PassTurn::class;
         } 
         else 
         {
@@ -58,7 +66,7 @@ class ShootPerform extends GameState
                 "ballHex" => $newLocation->convertToArray()
             ]);
 
-            return PlayerBasicTurn::class;
+            return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
         }
     }
 }

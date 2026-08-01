@@ -1,7 +1,6 @@
 <?php
 
 namespace Bga\Games\SuperTeam\Cards;
-use Bga\Games\SuperTeam\Utility\Logger;
 
 class CardFactory
 {
@@ -10,8 +9,6 @@ class CardFactory
 
     public function registerCard(string $id, callable $cardCreator)
     {
-        Logger::logInfo("Card " . $id . "registered");
-
         $this->registry[$id] = $cardCreator;
     }
 
@@ -21,5 +18,10 @@ class CardFactory
             throw new \RuntimeException("Card not found: $id");
 
         return ($this->registry[$id])();
+    }
+
+    public function hasCard(string $id) : bool
+    {
+        return isset($this->registry[$id]);
     }
 }

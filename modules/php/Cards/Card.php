@@ -2,16 +2,16 @@
 
 namespace Bga\Games\SuperTeam\Cards;
 
+use Bga\Games\SuperTeam\Cards\Moves\CardDefensiveMoves;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Board;
-use Bga\Games\SuperTeam\Cards\CardType;
 
-final class CardReward
+class CardReward
 {
     public function __construct(
-        public readonly int $morale,
-        public readonly int $move,
-        public readonly int $action,
+        public int $morale,
+        public int $move,
+        public int $action,
     ) {}
 
     public function toJson() : string
@@ -46,7 +46,7 @@ final class CardReward
         return CardReward::fromArray(json_decode($jsonInput, true));
     }
 
-    public static function fromArray(array $input)
+    public static function fromArray(array $input) : CardReward
     {
         return new CardReward($input['morale'], $input['move'], $input['action']);
     }
@@ -57,30 +57,11 @@ final class CardReward
     }
 }
 
-/* coach and captain has only instruction 
-captian has a requirement and a reward if it is satisfied
+class DefensiveReward extends CardReward
+{}
 
-coach has a cost and a reward, which might be moving, reward is optional*/
-
-//there is a coach, that allows you to move all exhuasted players
-//Some of the rewards are depenendt on how you satisfy the condition
-//Some coach effects give you a bonus for your entire turn
-
-//Probably it is best to have captain conditions as a list of function pointer,
-//then you get reward.
-//If you do captain card with the captain you get a morale.
-//seems captain rewards are a bit different than normal rewards, for example swap.
-//if captain cards do something to opponent pieces, they can target the same or different pieces.
-
-//Passes can have a modifier, which makes a pass stronger.
-
-//TODO: another command is push, move an adjacent opponent token, once space in any direction
-
-//there is a pass that you pass back, then pass forward.
-
-//There are or and and in rewards
-
-//This is actually Team and basic cards
+class OffensiveReward extends CardReward
+{}
 
 enum ExecutionAction
 {
@@ -88,12 +69,14 @@ enum ExecutionAction
     case GoToState;
     case Success;
     case Failure;
+    case Jump;
 }
 
 enum TacticType : int
 {
     case Offensive = 0;
     case Defensive = 1;
+    case Unknown = 2;
 }
 
 final class ExecutionResult
@@ -105,19 +88,30 @@ final class ExecutionResult
     ) {}
 }
 
-class CardDefinition
+readonly class CardDefinition
 {
     public function __construct(
-        public readonly string $name,
-        public readonly CardType $type,
-        public readonly string $toolTip,
-
-        public readonly CardReward $defensiveReward,
-        public readonly bool $defenseHasFatigue,
-
-        public readonly CardReward $offensiveReward,
-        public readonly bool $offenseHasFatigue,
+        public string $name,
+        public CardType $type,
+        public string $toolTip,
     ) {}
+}
+
+readonly class TacticCardDefinition extends CardDefinition
+{
+    public function __construct(
+        string $name,
+        CardType $type,
+        string $toolTip,
+        public CardDefensiveMoves $cardDefensiveMoves,
+        public DefensiveReward $defensiveReward,
+        public bool $defenseHasFatigue,
+
+        public OffensiveReward $offensiveReward,
+        public bool $offenseHasFatigue
+    ) {
+        parent::__construct($name, $type, $toolTip);
+    }
 }
 
 abstract class Card
@@ -126,11 +120,11 @@ abstract class Card
     protected readonly Game $game;
     protected readonly Board $board;
 
-    public function __construct(CardDefinition $definition, Board $board, Game $game)
+    public function __construct(CardDefinition $definition, Game $game)
     {
         $this->definition = $definition;
         $this->game = $game;
-        $this->board = $board;
+        $this->board = $game->getBoard();
     }
 
     public function getDefinition() : CardDefinition
@@ -138,21 +132,21 @@ abstract class Card
         return $this->definition;
     }
 
-    abstract public function isOffensivePossible() : bool;
+    abstract public function isExecutionPossible() : bool;
 
     abstract public function getId() : string;
 
-    public function execute(TacticType $type, int $index) : ExecutionResult
+    public function execute(int $index) : ExecutionResult
     {
-        //TODO: get steps based on the type!
-        //TODO: check for index outside of the command list range.
-        $steps = $this->getOffensiveCommands();
+        $steps = $this->getCommands();
+
+        assert($index < \count($steps) && $index >= 0);
 
         for ($i = $index; $i < \count($steps); $i++)
         {
             $result = $steps[$i]();
 
-            if ($result && $result->action != ExecutionAction::Continue)
+            if ($result && $result->action != ExecutionAction::Continue && $result->action != ExecutionAction::Jump)
             {
                 if ($result->action == ExecutionAction::GoToState)
                 {
@@ -165,6 +159,9 @@ abstract class Card
 
                 return $result;
             }
+
+            if ($result && $result->action == ExecutionAction::Jump)
+                $i = $result->index - 1; // this is incremented at the beggining of the loop.
         }
 
         $this->cleanup();
@@ -175,8 +172,8 @@ abstract class Card
     /**
  * @return array<callable(): ?ExecutionResult>
  */
-    abstract protected function getOffensiveCommands() : array;
+    abstract protected function getCommands() : array;
 
-    abstract protected function cleanup();
+    abstract protected function cleanup() : void;
 }
 

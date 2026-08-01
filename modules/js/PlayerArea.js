@@ -33,12 +33,6 @@ define([
                 playerName.style.setProperty('--size', 'large');
                 this._areaEl.appendChild(playerName);
 
-                //----------------
-                const reform = document.createElement('button');
-                reform.innerHTML = `reform`;
-                reform.onclick = ()=>this._root.reform();
-                this._areaEl.appendChild(reform);
-
                 //---------------
 
                 const playerStuffContainer = document.createElement('div');
@@ -76,7 +70,12 @@ define([
                     const playerHand = document.createElement('div');
                     playerHand.id = 'myHand';
                     playerCardsWrapper.appendChild(playerHand);
-
+                }
+                else
+                {
+                    const opponentDiscard = document.createElement('div');
+                    opponentDiscard.id = 'opponentDiscard';
+                    playerStuffContainer.appendChild(opponentDiscard);
                 }
             },
 

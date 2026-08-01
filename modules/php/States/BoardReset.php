@@ -6,7 +6,9 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
+use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardInfo;
+use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PlayerPiecesDBManager;
@@ -29,16 +31,10 @@ class BoardReset extends GameState
 
     function onEnteringState(int $activePlayerId): string
     {
-        
-        DBAdapter::getInstance()->DbQuery(PlayerPiecesDBManager::resetPiecesDataQuery());
-        $ballPos = BoardInfo::$CENTER_POSITION;
-        DBAdapter::getInstance()->DbQuery("UPDATE `ball` SET `hex_column`={$ballPos->getColumn()}, `hex_row`={$ballPos->getRow()}");
+        $tacticContext = new TacticContext();
+        $tacticContext->reset();
 
-        $this->game->notify->all(
-            "resetBoard",
-            "",
-            ["ballHex" => $ballPos->convertToArray(),
-                   "goalieRow" => 5]);
+        Board::resetBoard(true);
 
         return PlayerPieceSetup::class;
     }

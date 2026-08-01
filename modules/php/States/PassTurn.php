@@ -6,9 +6,13 @@
  
  use Bga\GameFramework\StateType;
  use Bga\GameFramework\States\GameState;
+ use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
+ use Bga\Games\SuperTeam\DBAdapter;
  use Bga\Games\SuperTeam\Game;
+ use Bga\Games\SuperTeam\NotificationAdapter;
  use Bga\Games\SuperTeam\PlayerPiecesDBManager;
- 
+ use Bga\Games\SuperTeam\TimeTrack;
+
  class PassTurn extends GameState
  {
      function __construct(
@@ -20,18 +24,21 @@
              name: 'passTurn',
              type: StateType::GAME,
              transitions: [],
-             updateGameProgression: false,
+             updateGameProgression: true,
              initialPrivate: null,
          );
      }
- 
+
      function onEnteringState(int $activePlayerId)
      {
          $playerHand = $this->game->getPlayerHand($activePlayerId);
-         $playerHand->drawToFour();
-         
+         $wasDiscardShuffled = $playerHand->drawToFour();
+
          $this->game->notify->player($activePlayerId, "handRefill", "",
-         ['playerHand' => $playerHand->getCardsInHand()]);
+         [
+             'playerHand' => $playerHand->getCardsInHand(),
+             'wasDiscardShuffled' => $wasDiscardShuffled,
+         ]);
          
         $this->game->giveExtraTime($activePlayerId);
         $nextPlayer = $this->game->activeNextPlayer();
@@ -39,7 +46,54 @@
         $this->game->DbQuery(PlayerPiecesDBManager::refreshPiecesQuery($nextPlayer));
         $this->game->notify->all("piecesRefreshed", "pieces refreshed", ["playerId" => $nextPlayer]);
 
-        return CardSelection::class;
+        $passActionContext = new PassActionContext($activePlayerId);
+        $passActionContext->reset(true);
+
+         $this->game->setGameStateValue("cardsPlayedThisTurn", 0);
+
+         $isRestartAfterGoal = DBAdapter::getInstance()->getGlobalInt('is_restart_after_goal');
+
+         if ($isRestartAfterGoal)
+         {
+             if ($this->game->getStarterPlayer() != $nextPlayer)
+                 $this->game->swapStarterPlayer();
+         }
+
+        if ($wasDiscardShuffled)
+        {
+            $timeTrackPosition = TimeTrack::AdvanceTimeTrack(true);
+
+            if (TimeTrack::IsHalfTime($timeTrackPosition))
+            {
+                return HalfTime::class;
+            }
+            else if (TimeTrack::IsGameFinished($timeTrackPosition))
+            {
+                return ST_END_GAME;
+            }
+            else
+            {
+                if ($isRestartAfterGoal)
+                {
+                    return BoardReset::class;
+                }
+                else
+                {
+                    return CardSelection::class;
+                }
+            }
+        }
+        else
+        {
+            if ($isRestartAfterGoal)
+            {
+                return BoardReset::class;
+            }
+            else
+            {
+                return CardSelection::class;
+            }
+        }
      }
  }
  

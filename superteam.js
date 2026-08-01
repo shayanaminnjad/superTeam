@@ -28,10 +28,12 @@ define([
     g_gamethemeurl + "modules/js/States/StatesRegistry.js",
     g_gamethemeurl + "modules/js/PlayerArea.js",
     g_gamethemeurl + "modules/js/STCardsManager.js",
+    g_gamethemeurl + "modules/js/TrackerBoard.js",
+    g_gamethemeurl + "modules/js/GameEventProcessor.js",
     "ebg/core/gamegui",
     "ebg/counter"
 ],
-    function (dojo, declare, topic, STHexLib, PieceManager, STHUIHelpers, Board, DiceUI, PlayerPanelManager, StatesRegistry, PlayerArea, STCardsManager) {
+    function (dojo, declare, topic, STHexLib, PieceManager, STHUIHelpers, Board, DiceUI, PlayerPanelManager, StatesRegistry, PlayerArea, STCardsManager, TrackerBoard, GameEventProcessor) {
         return declare("bgagame.superteam", ebg.core.gamegui, {
             constructor: function () {
                 console.log('superteam constructor');
@@ -60,6 +62,22 @@ define([
 
                 PlayerPanelManager.construct(this, gamedatas);
 
+                let orangeGoals = gamedatas.players[this.player_id].goals;
+                let blueGoals = gamedatas.players[this.opponentId].goals;
+                if (this.userInLeftId !== this.player_id)
+                {
+                    let temp = orangeGoals;
+                    orangeGoals = blueGoals;
+                    blueGoals = temp;
+                }
+
+                TrackerBoard.construct(this, gamedatas.time_index, orangeGoals, blueGoals);
+
+                this.pieceManager = PieceManager.getPieceManager();
+                this.pieceManager.construct(this);
+
+                GameEventProcessor.construct(this, this.pieceManager);
+
                 this.setupMainBoard(gamedatas);
 
                 this.myPlayerArea = new PlayerArea(this.player_id, gamedatas.players[this.player_id], this);
@@ -67,18 +85,15 @@ define([
 
                 DiceUI.construct(this);
 
-                this.cardsManager = new STCardsManager(this, Object.values(gamedatas.player_hand).concat(Object.values(gamedatas.player_discard)));
+                this.cardsManager = new STCardsManager(this,
+                    Object.values(gamedatas.player_hand).
+                    concat(Object.values(gamedatas.player_discard)).
+                    concat(gamedatas.player_deck).concat(Object.values(gamedatas.supply)).concat(Object.values(gamedatas.other_discard)));
                 
                 this.setupNotifications();
 
                 console.log('end setup');
             },
-
-            reform: function()
-            {
-                this.cardsManager.shuffleDeck().then(() => console.log('shuffle ended'));
-            },
-
 
             ///////////////////////////////////////////////////
             //// Game & client states
@@ -172,13 +187,13 @@ define([
                     let clientButton = clientButtons[i];
                     this.statusBar.addActionButton(clientButton['name'], async () => {
                         if (!this.clientButtonNeedsConfirm) {
-                            this.performServerAction(clientButton['action']);
+                            this.performServerAction(clientButton['action'], clientButton['paramsToSendBack']);
                         }
                         else {
                             this.statusBar.removeActionButtons();
                             topic.publish('serverActionRequested', clientButton['name']);
                             this.statusBar.addActionButton('confirm', async () => {
-                                this.performServerAction(clientButton['action']);
+                                this.performServerAction(clientButton['action'], clientButton['paramsToSendBack']);
                             });
 
                             this.statusBar.addActionButton('cancel', () => {
@@ -235,9 +250,6 @@ define([
             },
 
             setPiecesData: async function (gameDatas) {
-                this.pieceManager = PieceManager.getPieceManager();
-                this.pieceManager.construct(this);
-
                 let piecesData = gameDatas["player_pieces"];
 
                 for (let i = 0; i < piecesData.length; ++i) {
@@ -271,19 +283,6 @@ define([
                 }
             },
 
-            //// Player's action
-
-            /*
-            
-                Here, you are defining methods to handle player's action (ex: results of mouse click on 
-                game objects).
-                
-                Most of the time, these methods:
-                _ check the action is possible at this game state.
-                _ make a call to the game server
-            
-            */
-
             ///////////////////////////////////////////////////
             //// Reaction to cometD notifications
 
@@ -303,8 +302,15 @@ define([
                 return this.forwardNotification(this.notif_attributeAssignmentFinished.name, notifData);
             },
 
-            notif_movedPiece: function (notifData) {
-                return this.forwardNotification(this.notif_movedPiece.name, notifData);
+            notif_movedPiece: async function (notifData) {
+                let destHex = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);
+                let piece = this.pieceManager.getPiece(notifData.movedPiece);
+                let moraleSpent = parseInt(notifData.spentMorale) === 1;
+                let ballMoved = parseInt(notifData.ballMoved) === 1;
+
+                let animation = GameEventProcessor.MovePieceWithAnimation(piece, destHex, moraleSpent, ballMoved);
+
+                await this.bgaPlayDojoAnimation(animation);
             },
 
             notif_dribblePerformed: function (notifData) {
@@ -324,7 +330,19 @@ define([
             },
 
             notif_handRefill: function (notifData) {
-                this.cardsManager.placeCards(Object.values(notifData.playerHand));
+                if (notifData.wasDiscardShuffled)
+                {
+                    return this.cardsManager.shuffleDeck().then(()=> {
+                        this.cardsManager.placeCards(notifData.playerHand)});
+                }
+                else
+                {
+                    this.cardsManager.placeCards(notifData.playerHand);
+                }
+            },
+
+            notif_fatigueRemoved: function(notifData) {
+                this.cardsManager.placeCards(Object.values(notifData.cardsInSupply));
             },
 
             notif_pieceExhausted: function (notifData) {
@@ -343,7 +361,7 @@ define([
                     rollResults.push(DiceUI.createRollResult(parseInt(player), notifData["rollResult"][player]));
                 }
 
-                return DiceUI.showRollAndWait(rollResults, notifData.requiredPower, notifData.blockingPieces, notifData.distance);
+                return DiceUI.showRollAndWait(rollResults, notifData.requiredPower, notifData.blockingPieces, notifData.distance, notifData.skipEnabledPlayerId);
             },
 
             notif_successfulPass: function (notifData) {
@@ -369,6 +387,15 @@ define([
             },
 
             notif_goalScored: async function (notifData) {
+                this.scoreCtrl[notifData.playerId].toValue(notifData.score);
+
+                if (notifData.playerId === this.userInLeftId) {
+                    TrackerBoard.setOrangeGoals(notifData.goals);
+                }
+                else {
+                    TrackerBoard.setBlueGoals(notifData.goals);
+                }
+
                 return PlayerPanelManager.setPlayerScoredGoals(notifData.playerId, notifData.goals);
             },
 
@@ -377,71 +404,62 @@ define([
                 return this.pieceManager.animateResetPieces(parseInt(notifData.goalieRow));
             },
 
+            notif_undoMove: async function (notifData) {
+                Board.passBall(
+                    STHexLib.createOffsetCoord(
+                        notifData.ballHex.hex_row,
+                        notifData.ballHex.hex_column
+                    )
+                );
+
+                let piecesToHexes = [];
+
+                for (let piecesTohex of notifData.piecesToHexes)
+                {
+                    piecesToHexes.push({
+                        pieceId: piecesTohex.pieceId,
+                        hex: STHexLib.createOffsetCoord(
+                            piecesTohex.position.hex_row,
+                            piecesTohex.position.hex_column
+                        )
+                    });
+                }
+
+                let undoAnimation = GameEventProcessor.UndoMoveAnimated(piecesToHexes, notifData.freshPieces);
+
+                await this.bgaPlayDojoAnimation(undoAnimation);
+            },
+
+            notif_timeTrackAdvance: async function(notifData) {
+                return TrackerBoard.animateTrackerTo(notifData.currentPosition);
+            },
+
+            notif_cardReset: async function(notifData) {
+                return this.cardsManager.placeAllToDeck();
+            },
+
+            notif_attributesReset: async function(notifData) {
+                const myAttributes = notifData[this.player_id];
+                const myCoachBoard = this.myPlayerArea.getCoachBoard();
+                myCoachBoard.updateOwnerDataAnimated(myAttributes);
+
+                const opponentAttributes = notifData[this.opponentId];
+
+                const opponentCoachBoard = this.opponentPlayerArea.getCoachBoard();
+                return opponentCoachBoard.updateOwnerDataAnimated(opponentAttributes);
+            },
+
+            notif_swapPerformed: async function(notifData) {
+                let lhsHex = STHexLib.createOffsetCoord(notifData.swappedHexes[0].hex_row, notifData.swappedHexes[0].hex_column);
+                let rhsHex = STHexLib.createOffsetCoord(notifData.swappedHexes[1].hex_row, notifData.swappedHexes[1].hex_column);
+
+                await GameEventProcessor.SwapAnimated(lhsHex, rhsHex);
+            },
+
             forwardNotification(funcName, notifData) {
                 this.assert(this.currentState && typeof this.currentState[funcName] === "function", `Server call "${funcName}" not handled in current state`);
 
                 return this.currentState[funcName](notifData);
-            },
-
-            ///////////////////////////////////////////////////
-            //// Debugging features
-
-            setupDebugFeatures: function () {
-
-                const game = this;
-
-                this.myDebug = {};
-
-                window.help = function () {
-                    console.log("debug.showCoords = 1; shows the coordinates of the hexes.\n" +
-                        "debug.defaultSetup= 1; sets up pieces and attributes for both sides. \n" +
-                        "debug.setMorale= x; sets morale for current player\n" +
-                        "debug.moveBall= {column: x, row:y}; sets ball position\n" +
-                        "debug.defaultAttribute = 1; fast attribute setup");
-
-                    return 'success';
-                };
-
-                Object.defineProperty(this.myDebug, 'showCoords', {
-                    get: function () {
-                        return this._val;
-                    },
-                    set: function (val) {
-                        this._val = val;
-
-                        let hexes = document.getElementsByClassName('hex');
-
-                        Array.from(hexes).forEach(hex => {
-                            let offsetCoord = Board.convertHexIdToOffsetCoord(hex.id);
-                            let cubeCoord = STHexLib.oddqToCubic(offsetCoord);
-
-                            hex.innerHTML = val ? offsetCoord + '<br>' + cubeCoord : "";
-                        });
-                    }.bind(this)
-                })
-
-                Object.defineProperty(this.myDebug, 'setMorale', {
-                    get: function () {
-                        return this._val;
-                    },
-                    set: function (val) {
-                        this._val = val;
-
-                        console.log('calling actDebugAddMorale');
-                        this.bgaPerformAction("actDebugAddMorale", { amount: val });
-                    }.bind(this)
-                })
-
-                Object.defineProperty(this.myDebug, 'moveBall', {
-                    get: function () {
-                        return this._val;
-                    },
-                    set: function (input) {
-                        this._val = input;
-                        console.log(`calling actDebugMoveBall with values (${input.column}, ${input.row})`);
-                        this.bgaPerformAction("actDebugMoveBall", { column: input.column, row: input.row });
-                    }.bind(this)
-                })
             },
 
             ///////////////////////////////////////////////////

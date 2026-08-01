@@ -2,7 +2,7 @@ define(["dojo/_base/declare",
     g_gamethemeurl + "modules/js/States/BaseState.js",
     g_gamethemeurl + "modules/js/BoardPresentation.js",
     g_gamethemeurl + "modules/js/PlayerPanelManager.js",
-    g_gamethemeurl + "modules/js/STHexLib.js",],
+    g_gamethemeurl + "modules/js/STHexLib.js"],
     function (declare, BaseState, Board, PlayerPanelManager, STHexLib) {
 
         const MoveActionState = declare("st.MoveActionState", BaseState, {
@@ -49,28 +49,6 @@ define(["dojo/_base/declare",
             },
 
             //Notifications
-            notif_movedPiece: async function (notifData) {
-                let destHex = STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column);
-                let piece = this._root.pieceManager.getPiece(notifData.movedPiece);
-
-                if (parseInt(notifData.spentMorale) === 1) {
-                    await PlayerPanelManager.reducePlayerMorale(1, piece.getDOMID());
-                }
-
-                piece.setPosition(destHex);
-
-                let animations = [];
-
-                const DEST_HEX_ID = Board.convertOffsetCoordToHexId(destHex);
-                animations.push(this._root.slideToObject(piece.getDOMID(), DEST_HEX_ID));
-
-                if (parseInt(notifData.ballMoved)) {
-                    Board.setHexWithBall(STHexLib.createOffsetCoord(notifData.hex_row, notifData.hex_column));
-                    animations.push(Board.getMoveBallAnimation(DEST_HEX_ID));
-                }
-
-                await this._root.bgaPlayDojoAnimation(dojo.fx.combine(animations));
-            },
 
             //Private Methods
             _setMovementVisualCues: function (args) {

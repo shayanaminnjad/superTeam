@@ -15,7 +15,10 @@ define([
     g_gamethemeurl + "modules/js/States/TeamAttributeAssignment.js",
     g_gamethemeurl + "modules/js/States/TeamAttributeReveal.js",
     g_gamethemeurl + "modules/js/States/BeforePlayerTurn.js",
-    g_gamethemeurl + "modules/js/States/CardSelection.js"
+    g_gamethemeurl + "modules/js/States/CardSelection.js",
+    g_gamethemeurl + "modules/js/States/TacticRewardResolveState.js",
+    g_gamethemeurl + "modules/js/States/PieceToSwapSelection.js",
+    g_gamethemeurl + "modules/js/States/CaptainCardPerformerSelection.js"
 ], function (
     declare,
     PlayerPieceSetupState,
@@ -33,7 +36,10 @@ define([
     TeamAttributeAssignment,
     TeamAttributeReveal,
     BeforePlayerTurn,
-    CardSelection
+    CardSelection,
+    TacticRewardResolveState,
+    PieceToSwapSelection,
+    CaptainCardPerformerSelectionState
 ) {
 
     const StateRegistry = declare("st.StateRegistry", null, {
@@ -57,6 +63,9 @@ define([
             this.registerState(TeamAttributeReveal);
             this.registerState(BeforePlayerTurn);
             this.registerState(CardSelection);
+            this.registerState(TacticRewardResolveState);
+            this.registerState(PieceToSwapSelection)
+            this.registerState(CaptainCardPerformerSelectionState);
         },
 
         getState: function (name, root, stateData) {

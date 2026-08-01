@@ -89,7 +89,7 @@ class PassDestSelection extends PlayerBaseState
         //and perform must also notice that. (it must skip reading dice roll and morale assign)
 
         DiceRollServices::storeRollInput(\intval($this->game->getActivePlayerId()), $requiredPower,PassPerform::class,TeamAttribute::Pass, TeamAttribute::None, false);
-        MoraleAssignment::storeMoraleAssignData(addslashes(DiceRoll::class), false);
+        MoraleAssignment::storeMoraleAssignData(DiceRoll::class, false);
         
         $dbAdapter = DBAdapter::getInstance();
         $dbAdapter->storeSelectedHex($hexColumn, $hexRow);
@@ -98,13 +98,13 @@ class PassDestSelection extends PlayerBaseState
     }
 
     #[PossibleAction]
-    public function actCancel() : string
+    public function actCancel(int $activePlayerId) : string
     {
-        return PlayerBasicTurn::class;
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 
-    function zombie(int $playerId): string {
-        // the code to run when the player is a Zombie
-        return '';
+    function zombie(int $playerId): string
+    {
+        return $this->actCancel();
     }
 }

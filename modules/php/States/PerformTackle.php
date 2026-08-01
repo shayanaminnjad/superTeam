@@ -52,6 +52,6 @@ class PerformTackle extends GameState
             $piece->setCanTackle(false, true);
         }
 
-        return CardSelection::class;
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 }

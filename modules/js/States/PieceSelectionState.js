@@ -11,7 +11,11 @@ define(["dojo/_base/declare",
       _onActivePlayerEnter(args) {
         this._root.pieceManager.makePieceListSelectable(args.selectablePieces);
         this._root.pieceManager.makePieceListSelectable(args.selectableExhaustedPieces);
-        this._root.pieceManager.addMoraleTokenToPieces(args.selectableExhaustedPieces);
+
+        if (args.showMorale) {
+          this._root.pieceManager.addMoraleTokenToPieces(args.selectableExhaustedPieces);
+        }
+
         this._root.highlightPiecesHexes(args.selectablePieces.concat(args.selectableExhaustedPieces));
       },
 
