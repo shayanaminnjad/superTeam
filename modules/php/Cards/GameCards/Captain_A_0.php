@@ -59,7 +59,7 @@ class Captain_A_0 extends CaptainCard
 
     private function prepareMoveContext() : ExecutionResult
     {
-        $playerId = intval($this->game->getCurrentPlayerId());
+        $playerId = intval($this->game->GetActivePlayerId());
         DBAdapter::getInstance()->storeActionReturnState($playerId, TacticalTurnStateManager::class);
 
         MovePieceSelectionLogic::storeMoveablePiecesIds($this->getPiecesNotAdjacentToOpponents());
@@ -88,7 +88,7 @@ class Captain_A_0 extends CaptainCard
 
     private function getPiecesNotAdjacentToOpponents() : array
     {
-        $playerId = \intval($this->game->getCurrentPlayerId());
+        $playerId = \intval($this->game->GetActivePlayerId());
         return MovePieceSelectionLogic::extractMoveableNotAdjacentToOpponentPieces($this->board, $playerId);
     }
 

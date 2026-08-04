@@ -43,7 +43,7 @@ class BasicE extends TacticCard
     }
     protected function isOffensiveMovePossible(): bool
     {
-        $currentPlayer =  \intval($this->game->getCurrentPlayerId());
+        $currentPlayer =  \intval($this->game->GetActivePlayerId());
         $playerHasTheBall = BoardEvaluator::doesPlayerHasTheBall($this->board, $currentPlayer);
         $startHex = $this->board->getBallHex();
 

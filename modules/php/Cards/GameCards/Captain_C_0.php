@@ -37,7 +37,7 @@ class Captain_C_0 extends CaptainCard
 
     public function isExecutionPossible(): bool
     {
-        $playerId = \intval($this->game->getCurrentPlayerId());
+        $playerId = \intval($this->game->GetActivePlayerId());
 
         return count(BoardEvaluator::getPlayerPiecesAdjacentToOpponent($this->board, $playerId)) > 0;
     }
@@ -59,7 +59,7 @@ class Captain_C_0 extends CaptainCard
 
     private function enforceAdjacentPieces() : ExecutionResult
     {
-        $playerId = \intval($this->game->getCurrentPlayerId());
+        $playerId = \intval($this->game->GetActivePlayerId());
         $adjacentPieces = BoardEvaluator::getPlayerPiecesAdjacentToOpponent($this->board, $playerId);
 
         $pieceSelectionContext = new PieceSelectionContext();
@@ -82,7 +82,7 @@ class Captain_C_0 extends CaptainCard
 
         if ($this->board->getPiece($selectablePieces[0])->getRole() == PlayerRole::Captain->value)
         {
-            $playerId = \intval($this->game->getCurrentPlayerId());
+            $playerId = \intval($this->game->GetActivePlayerId());
             $playerResources = new PlayerResources($playerId);
             $playerResources->addMorale(1, true);
         }

@@ -75,7 +75,7 @@ class Captain_C_1 extends CaptainCard
 
         if ($this->board->getPiece($piecesPassedIds[0])->getRole() == PlayerRole::Captain->value)
         {
-            $playerId = \intval($this->game->getCurrentPlayerId());
+            $playerId = \intval($this->game->GetActivePlayerId());
             $playerResources = new PlayerResources($playerId);
             $playerResources->addMorale(1, true);
         }

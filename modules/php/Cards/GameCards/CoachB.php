@@ -31,7 +31,7 @@ class CoachB extends Card
 
     public function isExecutionPossible(): bool
     {
-        $playerId = intval($this->game->getCurrentPlayerId());
+        $playerId = intval($this->game->GetActivePlayerId());
         $playerResources = new PlayerResources($playerId);
 
         return $playerResources->getMorale() > 0 && count($this->getExhaustedMoveablePieces()) > 0;
@@ -58,7 +58,7 @@ class CoachB extends Card
 
     private function goToCoachCardState() : ExecutionResult
     {
-        $playerId = intval($this->game->getCurrentPlayerId());
+        $playerId = intval($this->game->GetActivePlayerId());
         DBAdapter::getInstance()->storeActionReturnState($playerId, TacticalTurnStateManager::class);
 
         MovePieceSelectionLogic::storeMoveablePiecesIds($this->getExhaustedMoveablePieces());
@@ -72,7 +72,7 @@ class CoachB extends Card
 
     private function spendOneMorale() : ExecutionResult
     {
-        $playerId = intval($this->game->getCurrentPlayerId());
+        $playerId = intval($this->game->GetActivePlayerId());
         $playerResources = new PlayerResources($playerId);
         $playerResources->addMorale(-1, true);
 
@@ -97,7 +97,7 @@ class CoachB extends Card
 
     private function getExhaustedMoveablePieces() : array
     {
-        $playerId = \intval($this->game->getCurrentPlayerId());
+        $playerId = \intval($this->game->GetActivePlayerId());
         $exhaustedPieces =  BoardEvaluator::getExhaustedPlayerPieces($this->board, $playerId, false);
 
         return MovePieceSelectionLogic::excludePiecesMoveThisTurn($exhaustedPieces);

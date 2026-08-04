@@ -74,7 +74,7 @@ abstract class TacticCard extends Card
 
     final protected function forceThroughPassTargets() : ExecutionResult
     {
-        $playerId = \intval($this->game->getCurrentPlayerId());
+        $playerId = \intval($this->game->GetActivePlayerId());
         $startHex = $this->board->getBallHex();
 
         $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::THROUGH, $playerId, $startHex, $this->game->getPlayerSide($playerId));
@@ -87,7 +87,7 @@ abstract class TacticCard extends Card
 
     final protected function forceForwardPassTargets() : ExecutionResult
     {
-        $playerId = \intval($this->game->getCurrentPlayerId());
+        $playerId = \intval($this->game->GetActivePlayerId());
         $startHex = $this->board->getBallHex();
 
         $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::FORWARD, $playerId, $startHex, $this->game->getPlayerSide($playerId));
@@ -100,7 +100,7 @@ abstract class TacticCard extends Card
 
     final protected function forceBackwardPassTargets() : ExecutionResult
     {
-        $playerId = \intval($this->game->getCurrentPlayerId());
+        $playerId = \intval($this->game->GetActivePlayerId());
         $startHex = $this->board->getBallHex();
 
         $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::BACKWARD, $playerId, $startHex, $this->game->getPlayerSide($playerId));
@@ -113,7 +113,7 @@ abstract class TacticCard extends Card
 
     final protected function forceNearOpponentTargets() : ExecutionResult
     {
-        $playerId = \intval($this->game->getCurrentPlayerId());
+        $playerId = \intval($this->game->GetActivePlayerId());
         $startHex = $this->board->getBallHex();
 
         $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::NEAR_OPPONENT, $playerId, $startHex, $this->game->getPlayerSide($playerId));
@@ -126,7 +126,7 @@ abstract class TacticCard extends Card
 
     final protected function forceCrossPassTargets() : ExecutionResult
     {
-        $playerId = \intval($this->game->getCurrentPlayerId());
+        $playerId = \intval($this->game->GetActivePlayerId());
         $startHex = $this->board->getBallHex();
 
         $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::CROSS, $playerId, $startHex, $this->game->getPlayerSide($playerId));
@@ -141,7 +141,7 @@ abstract class TacticCard extends Card
     {
         $passResult = false;
 
-        $playerId = \intval($this->game->getCurrentPlayerId());
+        $playerId = \intval($this->game->GetActivePlayerId());
         $ballHex = $this->board->getBallHex();
 
         $playerPieces = $this->board->getPlayerPiecesByOwner($playerId);
@@ -185,7 +185,7 @@ abstract class TacticCard extends Card
 
     private function getPiecesPossibleMoves() : array
     {
-        $playerId = intval($this->game->getCurrentPlayerId());
+        $playerId = intval($this->game->GetActivePlayerId());
         $playerPieces = $this->board->getPlayerPiecesByOwner($playerId);
         $resources = new PlayerResources($playerId);
 
