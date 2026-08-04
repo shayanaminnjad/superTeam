@@ -6,6 +6,7 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
+use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\CardActionDriver;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
@@ -57,10 +58,12 @@ class ShootPerform extends GameState
         } 
         else 
         {
-            $defenderGoalie = $board->getPlayerGoalie($defender);
             $selectedHex = ShootTargetSelection::getPlayerShootTarget($attacker);
 
             $newLocation = $board->getClosetBlockingPieceOrHalfWay($board->getBallHex(), $selectedHex, $this->game->getInactivePlayerId());
+
+            $newLocation = BoardEvaluator::correctPositionIfInsideGoalieArea($board, $newLocation);
+
             $board->setBallLocation($newLocation);
             $this->notify->all('shootFailed', "failed shoot", [
                 "ballHex" => $newLocation->convertToArray()

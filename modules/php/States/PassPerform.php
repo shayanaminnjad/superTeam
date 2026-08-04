@@ -6,6 +6,8 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
+use Bga\Games\SuperTeam\BoardEvaluator;
+use Bga\Games\SuperTeam\BoardInfo;
 use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\DBAdapter;
@@ -66,6 +68,9 @@ class PassPerform extends GameState
             DBAdapter::getInstance()->setGameStateValue('lastPassResult', 0);
 
             $newLocation = $board->getClosetBlockingPieceOrHalfWay($board->getBallHex(), $selectedHex, $this->game->getInactivePlayerId());
+
+            $newLocation = BoardEvaluator::correctPositionIfInsideGoalieArea($board, $newLocation);
+
             $board->setBallLocation($newLocation);
             $this->notify->all('failedPass', "failed pass", [
                 "ballHex" => $newLocation->convertToArray()
