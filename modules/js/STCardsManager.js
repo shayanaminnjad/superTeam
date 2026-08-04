@@ -193,7 +193,7 @@ define(["dojo/_base/declare",
             },
 
             _initHiddenDeck: function () {
-                this._hiddenDeck = new BgaCards.DiscardDeck(this._cardsManager, document.getElementById('hiddenDeck'), {
+                this._hiddenDeck = new BgaCards.Deck(this._cardsManager, document.getElementById('hiddenDeck'), {
                     autoRemovePreviousCards: false,
                     counter: {
                         position: 'center',
