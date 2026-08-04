@@ -86,7 +86,10 @@ class SwapPiece extends PlayerBaseState
         $board->swapHexesContent($selectedHex, $piecePosition , true);
 
         NotificationAdapter::getInstance()->notifyAll("swapPerformed", '',
-            ["swappedHexes" => [$selectedHex->convertToArray(), $piecePosition->convertToArray()]]);
+            [
+                "swappedHexes" => [$selectedHex->convertToArray(), $piecePosition->convertToArray()],
+                "ballPosition" => $board->getBallHex()->convertToArray()
+            ]);
 
         $activePlayer = intval($this->game->getActivePlayerId());
         return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayer);

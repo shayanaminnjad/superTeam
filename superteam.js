@@ -452,8 +452,9 @@ define([
             notif_swapPerformed: async function(notifData) {
                 let lhsHex = STHexLib.createOffsetCoord(notifData.swappedHexes[0].hex_row, notifData.swappedHexes[0].hex_column);
                 let rhsHex = STHexLib.createOffsetCoord(notifData.swappedHexes[1].hex_row, notifData.swappedHexes[1].hex_column);
+                let ballHex = STHexLib.createOffsetCoord(notifData.ballPosition.hex_row, notifData.ballPosition.hex_column);
 
-                await GameEventProcessor.SwapAnimated(lhsHex, rhsHex);
+                await GameEventProcessor.SwapAnimated(lhsHex, rhsHex, ballHex);
             },
 
             forwardNotification(funcName, notifData) {

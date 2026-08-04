@@ -39,7 +39,8 @@ class PerformDribble extends GameState
             $board->swapHexesContent($ballOldHex, $selectedHex, true);
 
             $this->game->notify->all("dribblePerformed", '', [
-                "swappedHexes" => [$selectedHex->convertToArray(), $ballOldHex->convertToArray()]
+                "swappedHexes" => [$selectedHex->convertToArray(), $ballOldHex->convertToArray()],
+                "ballPosition" => $board->getBallHex()->convertToArray()
             ]);
         }
 

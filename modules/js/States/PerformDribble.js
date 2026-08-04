@@ -32,8 +32,9 @@ define(["dojo/_base/declare",
             notif_dribblePerformed: function (notifData) {
                 let lhsHex = HexLib.createOffsetCoord(notifData.swappedHexes[0].hex_row, notifData.swappedHexes[0].hex_column);
                 let rhsHex = HexLib.createOffsetCoord(notifData.swappedHexes[1].hex_row, notifData.swappedHexes[1].hex_column);
+                let ballHex = HexLib.createOffsetCoord(notifData.ballPosition.hex_row, notifData.ballPosition.hex_column);
 
-                GameEventProcessor.SwapAnimated(lhsHex, rhsHex);
+                GameEventProcessor.SwapAnimated(lhsHex, rhsHex, ballHex);
             }
         });
 

@@ -58,17 +58,14 @@ define([
 
         //------------------------------------------------------------------------------------
 
-        SwapAnimated: function(lhsHex, rhsHex)
+        SwapAnimated: function(lhsHex, rhsHex, ballNewHex)
         {
             let animations = this._pieceManager.swapPeicesAndGetAnimation(lhsHex, rhsHex);
 
-            if (BoardPresentation.getHexWithBall().equals(lhsHex)) {
-                animations.push(this._root.slideToObject('ballParent', BoardPresentation.convertOffsetCoordToHexId(rhsHex)));
-                BoardPresentation.setHexWithBall(rhsHex);
-            }
-            else {
-                animations.push(this._root.slideToObject('ballParent', BoardPresentation.convertOffsetCoordToHexId(lhsHex)));
-                BoardPresentation.setHexWithBall(lhsHex);
+            if (!ballNewHex.equals(BoardPresentation.getHexWithBall()))
+            {
+                animations.push(this._root.slideToObject('ballParent', BoardPresentation.convertOffsetCoordToHexId(ballNewHex)));
+                BoardPresentation.setHexWithBall(ballNewHex);
             }
 
             return this._root.bgaPlayDojoAnimation(dojo.fx.combine(animations));
