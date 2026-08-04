@@ -10,6 +10,7 @@ use Bga\GameFramework\StateType;
 
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
+use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
@@ -97,6 +98,9 @@ class TacticRewardResolve extends PlayerBaseState
         $this->storeRewardClaimed($claimedReward);
 
         DBAdapter::getInstance()->storeActionReturnState($activePlayerId, self::class);
+
+        $pieceSelectionContext = new PieceSelectionContext();
+        $pieceSelectionContext->storeSelectablePiecesIds([]);
 
         return PlayerBasicTurn::class;
     }
