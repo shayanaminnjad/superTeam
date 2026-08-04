@@ -2,6 +2,7 @@
 
 namespace Bga\Games\SuperTeam;
 
+use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 
 class BoardEvaluator
@@ -99,9 +100,17 @@ class BoardEvaluator
 
         if (!$piece->isFresh())
         {
-            $ownerMorale = $resources->getMorale();
+            $moveActionContext = new MoveActionContext();
+            if ($moveActionContext->doExhaustedNeedMoraleForMovement())
+            {
+                $ownerMorale = $resources->getMorale();
 
-            $pieceMaxMoveDistance = $ownerMorale > 0 ? 1 : 0;
+                $pieceMaxMoveDistance = $ownerMorale > 0 ? 1 : 0;
+            }
+            else
+            {
+                $pieceMaxMoveDistance = 1;
+            }
         }
 
         if ($pieceMaxMoveDistance > 1 && self::doesPieceHasTheBall($board, $piece))
