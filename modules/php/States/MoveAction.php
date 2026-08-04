@@ -115,9 +115,9 @@ class MoveAction extends PlayerBaseState
             {
                 $playerResources = new PlayerResources($activePlayerId);
                 $playerResources->addMorale(-1, false);
+                $spentMorale = 1;
             }
 
-            $spentMorale = 1;
             $shouldEndMovement = true;
         }
 
@@ -190,13 +190,13 @@ class MoveAction extends PlayerBaseState
 
         if ($moveType == MoveTypes::BACKWARD_NEAR_OPPONENT)
         {
-            return $this->hasPieceMovedForward($board, $movedPieceInfo, $piece, $playerSide) &&
+            return $this->hasPieceMovedBackward($board, $movedPieceInfo, $piece, $playerSide) &&
                 BoardEvaluator::hasAdjacentOpponentPieces($board, $piece->getPosition(), $playerId, true);
         }
 
         if ($moveType == MoveTypes::FORWARD_NEAR_OPPONENT)
         {
-            return $this->hasPieceMovedBackward($board, $movedPieceInfo, $piece, $playerSide) &&
+            return $this->hasPieceMovedForward($board, $movedPieceInfo, $piece, $playerSide) &&
                 BoardEvaluator::hasAdjacentOpponentPieces($board, $piece->getPosition(), $playerId, true);
         }
     }
