@@ -50,7 +50,7 @@ define([
                 neutralRollLine.insertAdjacentHTML('beforeend', `<div class="powerBlockingPieces">${blockingPieces}</div>`);
             }
 
-            const TIMEOUT = 3000;
+            const TIMEOUT = 5 * 1000;
             setTimeout(() => {
                 diceRollAreaEl.remove();
             }, TIMEOUT);
