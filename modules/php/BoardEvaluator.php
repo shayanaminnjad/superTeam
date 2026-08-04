@@ -115,6 +115,21 @@ class BoardEvaluator
         return $pieceMaxMoveDistance;
     }
 
+    public static function doesPlayerGoalieHasBall(Board $board, int $playerId): bool
+    {
+        $playerPiece = null;
+
+        if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPiece))
+        {
+            if ($playerPiece->getOwner() === $playerId && $playerPiece->getRole() === PlayerRole::GoalKeeper->value)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @return PlayerPiece[]
      */
@@ -154,6 +169,29 @@ class BoardEvaluator
         }
 
         return $result;
+    }
+
+    public static function correctPositionIfInsideGoalieArea(Board $board, HexID $position) : HexID
+    {
+        $goalieSpecificLocations = BoardInfo::$GOALIE_SPECIFIC_LOCATIONS;
+
+        if (array_any($goalieSpecificLocations, fn($el) => $position->equals($el)))
+        {
+            $relatedGoaliePlayerId = null;
+            if ($position->getColumn() == 0)
+            {
+                $relatedGoaliePlayerId = intval(DBAdapter::getInstance()->getGameStateValue('user_in_left_id'));
+            }
+            else
+            {
+                $relatedGoaliePlayerId = intval(DBAdapter::getInstance()->getGameStateValue('user_in_right_id'));
+            }
+
+
+            return $board->getPlayerGoalie($relatedGoaliePlayerId)->getPosition();
+        }
+
+        return $position;
     }
 
     /**
