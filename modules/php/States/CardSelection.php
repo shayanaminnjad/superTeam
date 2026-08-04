@@ -7,6 +7,7 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Cards\CardReward;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
@@ -16,7 +17,9 @@ use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Cards\TacticType;
 use Bga\Games\SuperTeam\Cards\TacticContext;
+use Bga\Games\SuperTeam\PassTargetSelectionLogic;
 use Bga\Games\SuperTeam\PlayerResources;
+use Bga\Games\SuperTeam\PlayerRole;
 use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\Utility\Logger;
 
@@ -60,46 +63,49 @@ class CardSelection extends PlayerBaseState
     public function selfGetArgs(): array
     {
         $activePlayer = \intval($this->game->getActivePlayerId());
-        $playerHand = $this->game->getPlayerHand($activePlayer);
+
+        $board = $this->game->getBoard();
+        $goalieHasBall = BoardEvaluator::doesPlayerGoalieHasBall($board, $activePlayer);
 
         $playableTactics = [];
-        $cardsInHand = $playerHand->getCardsInHand();
-        foreach($cardsInHand as $cardDef)
+        if (!$goalieHasBall)
         {
-            $cardFactory = $this->game->getCardFactory();
-
-            //TODO: remove this, this is only for the ease of development, should not end up in production code.
-            if ($cardFactory->hasCard($cardDef["type"]))
+            $playerHand = $this->game->getPlayerHand($activePlayer);
+            $cardsInHand = $playerHand->getCardsInHand();
+            foreach ($cardsInHand as $cardDef)
             {
-                $card = $cardFactory->getCard($cardDef["type"]);
+                $cardFactory = $this->game->getCardFactory();
 
-                if ($card->isExecutionPossible())
+                //TODO: remove this, this is only for the ease of development, should not end up in production code.
+                if ($cardFactory->hasCard($cardDef["type"]))
                 {
-                    $playableTactics[] = $card->getId();
+                    $card = $cardFactory->getCard($cardDef["type"]);
+
+                    if ($card->isExecutionPossible())
+                    {
+                        $playableTactics[] = $card->getId();
+                    }
+                } else
+                {
+                    Logger::logError("card type does not exist in card factory " . $cardDef["type"]);
                 }
             }
-            else
-            {
-                Logger::logError("card type does not exist in card factory " . $cardDef["type"]);
-            }
         }
-
 
         $cardsPlayedThisTurn = $this->getCardsPlayedThisTurn();
         $canPass =  $cardsPlayedThisTurn > 0;
         $canPlayCard = $cardsPlayedThisTurn < 3;
 
-        //todo: add the special case for when the goalie has the ball.
-
         return [
             'canPass' => $canPass,
             'canPlayCard' => $canPlayCard,
-            'playableTactics' => $playableTactics
+            'playableTactics' => $playableTactics,
+            'goalieHasBall' => $goalieHasBall
         ];
     }
 
     #[PossibleAction]
-    public function actCardSelected(int $cardId, string $cardType, bool $asBasic): string
+    public function actCardSelected(int $cardId, bool $asBasic): string
     {
         $activePlayer = \intval($this->game->getActivePlayerId());
 
@@ -119,8 +125,16 @@ class CardSelection extends PlayerBaseState
 
         $this->increaseCardsPlayedThisTurnByOne();
 
+        $board = $this->game->getBoard();
+        $goalieHasBall = BoardEvaluator::doesPlayerGoalieHasBall($board, $activePlayer);
+
         $dbAdapter = DBAdapter::getInstance();
-        if ($asBasic)
+        if ($goalieHasBall)
+        {
+            $dbAdapter->storeActionReturnState($activePlayer, CardSelection::class);
+            return PassDestSelection::class;
+        }
+        else if ($asBasic)
         {
             $dbAdapter->storeActionReturnState($activePlayer, CardSelection::class);
             return PlayerBasicTurn::class;
