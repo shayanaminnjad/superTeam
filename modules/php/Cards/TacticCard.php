@@ -13,6 +13,7 @@ use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\PassTargetSelectionLogic;
 use Bga\Games\SuperTeam\PlayerResources;
+use Bga\Games\SuperTeam\PlayerRole;
 use Bga\Games\SuperTeam\PlayerSide;
 use Bga\Games\SuperTeam\States\MultiMove;
 use Bga\Games\SuperTeam\States\PassDestSelection;
@@ -177,10 +178,13 @@ abstract class TacticCard extends Card
 
     private function isDefensivePossible(): bool
     {
+        $playerId = \intval($this->game->GetActivePlayerId());
         $piecesAvailableMoves = $this->getPiecesPossibleMoves();
         $demand = $this->getDefinition()->cardDefensiveMoves->toArray();
+        $tiredPiecesIds = $this->getTiredPiecesIds();
+        $playerResources = new PlayerResources($playerId);
 
-        return (new BipartiteMatcher())->canSatisfyDemand($piecesAvailableMoves, $demand);
+        return (new BipartiteMatcher())->canSatisfyDemand($piecesAvailableMoves, $tiredPiecesIds, $playerResources->getMorale(), $demand);
     }
 
     private function getPiecesPossibleMoves() : array
@@ -196,6 +200,9 @@ abstract class TacticCard extends Card
 
         foreach ($playerPieces as $playerPiece)
         {
+            if ($playerPiece->getRole() === PlayerRole::GoalKeeper->value)
+                continue;
+
             $playerPieceId = $playerPiece->getId();
             $pieceHasBall = BoardEvaluator::doesPieceHasTheBall($this->board, $playerPiece);
             $maxMoves = BoardEvaluator::getPieceMaxPossibleMovement($this->board, $playerId, $playerPiece, $resources);
@@ -246,6 +253,23 @@ abstract class TacticCard extends Card
         }
 
         return $piecesAvailableMoves;
+    }
+
+    /**
+     * @return array<int>
+     */
+    private function getTiredPiecesIds() : array
+    {
+        $result = [];
+
+        $playerId = intval($this->game->GetActivePlayerId());
+        $playerPieces = $this->board->getPlayerPiecesByOwner($playerId);
+        $tiredPieces = array_filter($playerPieces, fn ($piece) => $piece->isFresh() === false && $piece->getRole() != PlayerRole::GoalKeeper->value);
+
+        foreach($tiredPieces as $piece)
+            $result[] = $piece->getId();
+
+        return $result;
     }
 
     protected function cleanup() : void

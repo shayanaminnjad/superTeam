@@ -2,13 +2,16 @@
 
 namespace Bga\Games\SuperTeam\Algorithm;
 
+use Bga\Games\SuperTeam\Utility\Logger;
+
 class BipartiteMatcher
 {
     /**
      * @param array<int, list<string>> $workerCapabilities  workerId => list of job keys that worker can fill
+     * @param array<int> $workersNeedMorale                 workerId => list of workers that need morale to operate
      * @param array<string, int> $jobDemand                 jobKey => number of workers required
      */
-    public function canSatisfyDemand(array $workerCapabilities, array $jobDemand): bool
+    public function canSatisfyDemand(array $workerCapabilities, array $workersNeedMorale, int $moraleAvailable, array $jobDemand): bool
     {
         $sourceNode = new FlowGraphNode();
         $sinkNode = new FlowGraphNode();
@@ -19,12 +22,38 @@ class BipartiteMatcher
             $jobNodes[$jobKey] = new FlowGraphNode();
         }
 
-        foreach ($workerCapabilities as $jobs)
+        $moraleNode = null;
+
+        Logger::logInfo("workers need morale " . json_encode($workersNeedMorale));
+        Logger::LogInfo("Morale available " . $moraleAvailable);
+
+        foreach ($workerCapabilities as $workerId => $jobs)
         {
             $workerNode = new FlowGraphNode();
-            $edge = Edge::createEdge(1, $sourceNode, $workerNode);
-            $sourceNode->outEdges[] = $edge;
-            $workerNode->outEdges[] = $edge->getReverse();
+            if (array_any($workersNeedMorale, fn($worker) => $worker === $workerId))
+            {
+                if ($moraleNode === null)
+                {
+                    $moraleNode = new FlowGraphNode();
+                    $edge = Edge::createEdge($moraleAvailable, $sourceNode, $moraleNode);
+                    $sourceNode->outEdges[] = $edge;
+                    $moraleNode->outEdges[] = $edge->getReverse();
+                }
+
+                $edge = Edge::createEdge(1, $moraleNode, $workerNode);
+                $moraleNode->outEdges[] = $edge;
+                $workerNode->outEdges[] = $edge->getReverse();
+
+                Logger::logInfo("workers assigned to morale node");
+            }
+            else
+            {
+                $edge = Edge::createEdge(1, $sourceNode, $workerNode);
+                $sourceNode->outEdges[] = $edge;
+                $workerNode->outEdges[] = $edge->getReverse();
+
+                Logger::logInfo("workers assigned to source node");
+            }
 
             foreach ($jobs as $jobKey)
             {
