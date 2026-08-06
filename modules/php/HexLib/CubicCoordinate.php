@@ -6,28 +6,28 @@ use Bga\Games\SuperTeam\HexID;
 
 class CubicCoordinate
 {
-    private int $q;
-    private int $r;
-    private int $s;
+    private float $q;
+    private float $r;
+    private float $s;
 
-    public function __construct(int $q, int $r, int $s)
+    public function __construct(float $q, float $r, float $s)
     {
         $this->q = $q;
         $this->r = $r;
         $this->s = $s;
     }
 
-    public function getQ() : int
+    public function getQ() : float
     {
         return $this->q;
     }
 
-    public function getR() : int
+    public function getR() : float
     {
         return $this->r;
     }
 
-    public function getS() : int
+    public function getS() : float
     {
         return $this->s;
     }
@@ -47,9 +47,14 @@ class CubicCoordinate
         return new CubicCoordinate($this->q * $factor, $this->r * $factor, $this->s * $factor);
     }
 
+    public function toString() : string
+    {
+        return "(" . $this->q . ", " . $this->r . ", " . $this->s . ")";
+    }
+
     //====================================
 
-    public static function distance(CubicCoordinate $start,CubicCoordinate $end) : int
+    public static function distance(CubicCoordinate $start,CubicCoordinate $end) : float
     {
         $diff = $end->subtract($start);
 
