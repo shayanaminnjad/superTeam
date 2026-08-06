@@ -193,7 +193,9 @@ class HexLib
 
         $distance = self::getOffsetDistance($start, $end);
 
-        for ($i = 0; $i <= $distance; $i++) {
+        $startCubic = $startCubic->add(new CubicCoordinate(1e-6, 2e-6, -3e-6));
+
+        for ($i = 1; $i <= $distance; $i++) {
             $cubicCoordinateOnLine = self::cubicRound(self::cubicLerp($startCubic, $endCubic, 1.0 / $distance * $i));
 
             $result[] = self::cubicToHexID($cubicCoordinateOnLine);
