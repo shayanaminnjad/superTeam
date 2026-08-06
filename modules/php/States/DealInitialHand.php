@@ -40,6 +40,6 @@ class DealInitialHand extends GameState
                 ]);
         }
 
-        return CardSelection::class;
+        return BeforeCardSelectionReset::class;
     }
 }

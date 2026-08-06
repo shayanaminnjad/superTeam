@@ -47,7 +47,7 @@ class CoachCardResolver extends PlayerBaseState
     #[PossibleAction]
     public function actPass(): string
     {
-        return CardSelection::class;
+        return BeforeCardSelectionReset::class;
     }
 
     function zombie(int $playerId): string

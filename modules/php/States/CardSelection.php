@@ -43,23 +43,6 @@ class CardSelection extends PlayerBaseState
         );
     }
 
-    public function onEnteringState(int $activePlayerId)
-    {
-        $tacticContext = new TacticContext();
-        $tacticContext->reset();
-
-        $moveContext = new MoveActionContext();
-        $moveContext->reset();
-
-        $pieceSelectionContext = new PieceSelectionContext();
-        $pieceSelectionContext->reset();
-
-        $passActionContext = new PassActionContext($activePlayerId);
-        $passActionContext->reset(false);
-
-        RequiredPower::setSkipEnabled(false);
-    }
-
     public function selfGetArgs(): array
     {
         $activePlayer = \intval($this->game->getActivePlayerId());
@@ -131,12 +114,12 @@ class CardSelection extends PlayerBaseState
         $dbAdapter = DBAdapter::getInstance();
         if ($goalieHasBall)
         {
-            $dbAdapter->storeActionReturnState($activePlayer, CardSelection::class);
+            $dbAdapter->storeActionReturnState($activePlayer, BeforeCardSelectionReset::class);
             return PassDestSelection::class;
         }
         else if ($asBasic)
         {
-            $dbAdapter->storeActionReturnState($activePlayer, CardSelection::class);
+            $dbAdapter->storeActionReturnState($activePlayer, BeforeCardSelectionReset::class);
             return PlayerBasicTurn::class;
         }
         else

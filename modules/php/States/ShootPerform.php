@@ -49,7 +49,7 @@ class ShootPerform extends GameState
             if ($cardActionDriver->isCardInProgress())
             {
                 $stateToReturnTo = $cardActionDriver->progress();
-                assert($stateToReturnTo == CardSelection::class);
+                assert($stateToReturnTo == BeforeCardSelectionReset::class);
             }
 
             DBAdapter::getInstance()->storeGlobalInt('is_restart_after_goal', 1);

@@ -2,8 +2,6 @@
 
 namespace Bga\Games\SuperTeam\Algorithm;
 
-use Bga\Games\SuperTeam\Utility\Logger;
-
 class BipartiteMatcher
 {
     /**
@@ -24,9 +22,6 @@ class BipartiteMatcher
 
         $moraleNode = null;
 
-        Logger::logInfo("workers need morale " . json_encode($workersNeedMorale));
-        Logger::LogInfo("Morale available " . $moraleAvailable);
-
         foreach ($workerCapabilities as $workerId => $jobs)
         {
             $workerNode = new FlowGraphNode();
@@ -43,16 +38,12 @@ class BipartiteMatcher
                 $edge = Edge::createEdge(1, $moraleNode, $workerNode);
                 $moraleNode->outEdges[] = $edge;
                 $workerNode->outEdges[] = $edge->getReverse();
-
-                Logger::logInfo("workers assigned to morale node");
             }
             else
             {
                 $edge = Edge::createEdge(1, $sourceNode, $workerNode);
                 $sourceNode->outEdges[] = $edge;
                 $workerNode->outEdges[] = $edge->getReverse();
-
-                Logger::logInfo("workers assigned to source node");
             }
 
             foreach ($jobs as $jobKey)

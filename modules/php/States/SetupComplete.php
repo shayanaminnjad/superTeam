@@ -44,7 +44,7 @@ class SetupComplete extends GameState
             if ($isRestartAfterGoal)
             {
                 DBAdapter::getInstance()->storeGlobalInt('is_restart_after_goal', 0);
-                return CardSelection::class;
+                return BeforeCardSelectionReset::class;
             }
             else
             {

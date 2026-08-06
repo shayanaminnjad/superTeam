@@ -79,7 +79,7 @@
                 }
                 else
                 {
-                    return CardSelection::class;
+                    return BeforeCardSelectionReset::class;
                 }
             }
         }
@@ -91,7 +91,7 @@
             }
             else
             {
-                return CardSelection::class;
+                return BeforeCardSelectionReset::class;
             }
         }
      }

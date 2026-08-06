@@ -40,6 +40,8 @@ class TacticRewardResolve extends PlayerBaseState
 
     public function onEnteringState(int $activePlayerId)
     {
+        //fixme: this happens after sending args, so here is not a good place!
+
         $reward = $this->getCardInPlayReward();
         $claimedReward = $this->getRewardClaimed();
 
@@ -47,7 +49,7 @@ class TacticRewardResolve extends PlayerBaseState
 
         if ($reward->isEmpty() || $this->rewardHasBeenClaimed($reward, $claimedReward))
         {
-            return CardSelection::class;
+            return BeforeCardSelectionReset::class;
         }
     }
 
@@ -80,7 +82,7 @@ class TacticRewardResolve extends PlayerBaseState
     #[PossibleAction]
     public function actForfeitReward() : string
     {
-        return CardSelection::class;
+        return BeforeCardSelectionReset::class;
     }
 
     #[PossibleAction]
