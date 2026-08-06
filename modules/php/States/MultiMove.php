@@ -39,6 +39,7 @@ class MultiMove extends PlayerBaseState
 
     public function onEnteringState()
     {
+        //fixme: this actually happens after self get args, change it, since we need it before!
         if ($this->getRemainingMoves()->isEmpty())
             return TacticalTurnStateManager::class;
     }
@@ -145,7 +146,7 @@ class MultiMove extends PlayerBaseState
             "freshPieces" => $freshPieces
         ]);
 
-        return CardSelection::class;
+        return BeforeCardSelectionReset::class;
     }
 
     private function getRemainingMoves() : CardDefensiveMoves

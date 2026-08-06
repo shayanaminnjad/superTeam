@@ -3,6 +3,7 @@
 namespace Bga\Games\SuperTeam\Cards;
 
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\Game;
 
 readonly class TacticContext
 {
@@ -59,6 +60,19 @@ readonly class TacticContext
         assert($typeVal >= 0 && $typeVal <=1, "tactic type should be either 0 or 1");
 
         return TacticType::from($typeVal);
+    }
+
+    public function getCardInPlayReward(Game $game) : CardReward
+    {
+        $cardInPlay = $this->getTacticInPlay();
+        assert($cardInPlay >= 0);
+
+        $tacticType = $this->getTacticType();
+
+        $card = $game->getCardFactory()->getCard($cardInPlay);
+        $cardDef = $card->getDefinition();
+
+        return $tacticType == TacticType::Offensive ? $cardDef->offensiveReward : $cardDef->defensiveReward;
     }
 
     public function reset(): void

@@ -38,21 +38,6 @@ class TacticRewardResolve extends PlayerBaseState
         );
     }
 
-    public function onEnteringState(int $activePlayerId)
-    {
-        //fixme: this happens after sending args, so here is not a good place!
-
-        $reward = $this->getCardInPlayReward();
-        $claimedReward = $this->getRewardClaimed();
-
-        $this->claimMoraleIfNotClaimed($activePlayerId, $reward, $claimedReward);
-
-        if ($reward->isEmpty() || $this->rewardHasBeenClaimed($reward, $claimedReward))
-        {
-            return BeforeCardSelectionReset::class;
-        }
-    }
-
     public function selfGetArgs() : array
     {
         $reward = $this->getCardInPlayReward();
@@ -99,7 +84,7 @@ class TacticRewardResolve extends PlayerBaseState
         $claimedReward->action += 1;
         $this->storeRewardClaimed($claimedReward);
 
-        DBAdapter::getInstance()->storeActionReturnState($activePlayerId, self::class);
+        DBAdapter::getInstance()->storeActionReturnState($activePlayerId, BeforeRewardResolve::class);
 
         $pieceSelectionContext = new PieceSelectionContext();
         $pieceSelectionContext->storeSelectablePiecesIds([]);
@@ -121,7 +106,7 @@ class TacticRewardResolve extends PlayerBaseState
         $claimedReward->move += 1;
         $this->storeRewardClaimed($claimedReward);
 
-        DBAdapter::getInstance()->storeActionReturnState($activePlayerId, self::class);
+        DBAdapter::getInstance()->storeActionReturnState($activePlayerId, BeforeRewardResolve::class);
 
         MovePieceSelectionLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $activePlayerId, MoveTypes::FREE);
 
@@ -150,35 +135,9 @@ class TacticRewardResolve extends PlayerBaseState
         $tacticContext->setRewardUsed($reward);
     }
 
-    private function rewardHasBeenClaimed(CardReward $reward, CardReward $claimedReward) : bool
-    {
-        return $reward->diff($claimedReward)->isEmpty();
-    }
-
     private function getCardInPlayReward() : CardReward
     {
         $tacticContext = new TacticContext();
-
-        $cardInPlay = $tacticContext->getTacticInPlay();
-        assert($cardInPlay >= 0);
-
-        $tacticType = $tacticContext->getTacticType();
-
-        $card = $this->game->getCardFactory()->getCard($cardInPlay);
-        $cardDef = $card->getDefinition();
-
-        return $tacticType == TacticType::Offensive ? $cardDef->offensiveReward : $cardDef->defensiveReward;
-    }
-
-    private function claimMoraleIfNotClaimed(int $activePlayerId,CardReward $rewardToClaim, CardReward $claimedReward) : void
-    {
-        if ($rewardToClaim->morale - $claimedReward->morale > 0)
-        {
-            $playerResources = new PlayerResources($activePlayerId);
-            $playerResources->addMorale($rewardToClaim->morale - $claimedReward->morale, true);
-
-            $claimedReward->morale = $rewardToClaim->morale;
-            $this->storeRewardClaimed($claimedReward);
-        }
+        return $tacticContext->getCardInPlayReward($this->game);
     }
 }

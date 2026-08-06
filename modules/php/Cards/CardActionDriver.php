@@ -5,6 +5,7 @@ namespace Bga\Games\SuperTeam\Cards;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\States\BeforeCardSelectionReset;
+use Bga\Games\SuperTeam\States\BeforeRewardResolve;
 use Bga\Games\SuperTeam\States\CardSelection;
 use Bga\Games\SuperTeam\States\TacticalTurnStateManager;
 use Bga\Games\SuperTeam\States\TacticRewardResolve;
@@ -54,7 +55,7 @@ class CardActionDriver
                     $playerHand->notifyPlayerOfHandRefill();
                 }
 
-                return TacticRewardResolve::class;
+                return BeforeRewardResolve::class;
             }
             else
             {
