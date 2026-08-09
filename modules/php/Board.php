@@ -242,7 +242,7 @@ class Board
             }
         } else {
             $hexesInLine = HexLib::getHexesInLine($start, $end);
-            $res = $hexesInLine[ceil((float)\count($hexesInLine) / 2.0)];
+            $res = $hexesInLine[ceil((float)\count($hexesInLine) / 2.0) - 1];
         }
 
         return $res;
