@@ -3,6 +3,7 @@
 namespace Bga\Games\SuperTeam;
 
 use Bga\Games\SuperTeam\HexLib\HexLib;
+use Bga\Games\SuperTeam\Utility\Logger;
 use Couchbase\Role;
 use function count;
 
@@ -126,64 +127,94 @@ final class BoardSpatial
 
     public static function findMoveableHexesToTarget(Board $board, HexID $startPos, int $maxMoveDist, bool $hasBall, int $playerId, callable $targetPredicate): array
     {
-        $res = [];
-
-        $validTargetsCache = [];
-
         $queue = [];
         $head = 0;
         $visited = [];
+        $nodeRegistry = []; // hexId => GraphNode, one canonical instance per hex
 
-        $queue[] = [new GraphNode($startPos, null), 0];
+        $startNode = new MultiParentGraphNode($startPos, null, 0);
+        $nodeRegistry[$startPos->getId()] = $startNode;
+        $queue[] = $startNode;
         $visited[$startPos->getId()] = true;
+
+        $targetNodes = [];
 
         while ($head < count($queue))
         {
-            [$currentNode, $currentDepth] = $queue[$head++];
+            $currentNode = $queue[$head++];
 
-            //TODO: account for when we start movement and we are near opponent. (this should be handled in piece selection, is it handled?)
-            if (!$startPos->equals($currentNode->node))
+            if (!$startPos->equals($currentNode->node) && $targetPredicate($board, $currentNode->node, $playerId))
             {
-                if ($targetPredicate($board, $currentNode->node,  $playerId))
-                {
-                    $validTargetsCache[] = $currentNode->node;
-                    $startAdjacentNode = self::TraverseToAdjacent($currentNode);
-
-                    if (!array_any($res, fn(HexID $foundHex) => $startAdjacentNode->node->equals($foundHex)))
-                        $res[] = $startAdjacentNode->node;
-                }
+                $targetNodes[] = $currentNode;
             }
 
-            if ($currentDepth == $maxMoveDist)
+            if ($currentNode->depth == $maxMoveDist)
                 continue;
 
             $currentNeighbors = HexLib::getNeighbours(HexLib::offsetToCubic($currentNode->node), 1);
 
-            if (self::shouldPieceEndMovement($board, $currentNeighbors, $currentDepth, $hasBall, $playerId))
+            if (self::shouldPieceEndMovement($board, $currentNeighbors, $currentNode->depth, $hasBall, $playerId))
                 continue;
 
             foreach ($currentNeighbors as $cubicNeighbor)
             {
                 $neighborHex = HexLib::cubicToHexID($cubicNeighbor);
-                if (!isset($visited[$neighborHex->getId()]))
+                $neighborId = $neighborHex->getId();
+
+                if (!isset($visited[$neighborId]))
                 {
                     if (self::isHexMoveable($board, $neighborHex))
                     {
-                        $queue[] = [new GraphNode($neighborHex, $currentNode), $currentDepth + 1];
-                        $visited[$neighborHex->getId()] = true;
+                        $neighborNode = new MultiParentGraphNode($neighborHex, $currentNode, $currentNode->depth + 1);
+                        $nodeRegistry[$neighborId] = $neighborNode;
+                        $queue[] = $neighborNode;
+                        $visited[$neighborId] = true;
                     }
                 }
-                else if (array_any($validTargetsCache, fn($target) => $target->equals($neighborHex)))
+                else
                 {
-                    $startAdjacentNode = self::TraverseToAdjacent($currentNode);
+                    $existingNode = $nodeRegistry[$neighborId];
 
-                    if (!array_any($res, fn(HexID $foundHex) => $startAdjacentNode->node->equals($foundHex)))
-                        $res[] = $startAdjacentNode->node;
+                    if ($existingNode->depth > $currentNode->depth)
+                    {
+                        if (!array_any($existingNode->parents, fn($p) => $p->node->equals($currentNode->node)))
+                            $existingNode->parents[] = $currentNode;
+                    }
                 }
             }
         }
 
+        $res = [];
+        $inRes = [];
+        $visited = [];
+        foreach ($targetNodes as $targetNode)
+            self::markAncestors($targetNode, $startPos, $visited, $inRes, $res);
+
         return $res;
+    }
+
+    private static function markAncestors(MultiParentGraphNode $node, HexID $startPos, array &$visited, array &$inRes, array &$res): void
+    {
+        $id = $node->node->getId();
+        if (isset($visited[$id]))
+            return;
+        $visited[$id] = true;
+
+        foreach ($node->parents as $parent)
+        {
+            if ($startPos->equals($parent->node))
+            {
+                if (!isset($inRes[$id]))
+                {
+                    $inRes[$id] = true;
+                    $res[] = $node->node;
+                }
+            }
+            else
+            {
+                self::markAncestors($parent, $startPos, $visited, $inRes, $res);
+            }
+        }
     }
 
     public static function findPathToTarget(Board $board, HexID $startPos, HexID $targetHex, int $maxMoveDist, bool $hasBall, int $playerId): array
@@ -344,4 +375,23 @@ readonly class GraphNode
 
     public HexID $node;
     public ?GraphNode $parent;
+}
+
+class MultiParentGraphNode
+{
+    public function __construct(HexID $node, ?MultiParentGraphNode $parent, int $depth)
+    {
+        $this->node = $node;
+
+        if ($parent == null)
+            $this->parents = [];
+        else
+            $this->parents = [$parent];
+
+        $this->depth = $depth;
+    }
+
+    public int $depth;
+    public HexID $node;
+    public array $parents;
 }
