@@ -33,8 +33,14 @@ define([
                     moraleRowEl.insertAdjacentHTML('beforeend', `<span class='moraleSpent'></span>`);
 
                 if (parseInt(result.playerId) === this._root.opponentId) {
-                    playerRollLine.insertAdjacentHTML('beforeend', `<div class='powerDistance'>${distance}</div>`);
-                    playerRollLine.insertAdjacentHTML('beforeend', `<div class="powerBlockingPieces">${blockingPieces}</div>`);
+
+                    if (distance > 0) {
+                        playerRollLine.insertAdjacentHTML('beforeend', `<div class='powerDistance'>${distance}</div>`);
+                    }
+
+                    if (blockingPieces > 0) {
+                        playerRollLine.insertAdjacentHTML('beforeend', `<div class="powerBlockingPieces">${blockingPieces}</div>`);
+                    }
                 }
 
                 if (skipEnabledPlayerId === result.playerId) {
