@@ -57,6 +57,8 @@ class BeforeCardSelectionReset extends GameState
             }
         }
 
+        $this->game->setGameStateValue('number_of_moves', 0);
+
 
         RequiredPower::setSkipEnabled(false);
 
