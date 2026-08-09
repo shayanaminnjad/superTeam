@@ -9,6 +9,7 @@ use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\RequiredPower;
 
 class BeforeCardSelectionReset extends GameState
@@ -40,6 +41,22 @@ class BeforeCardSelectionReset extends GameState
 
         $passActionContext = new PassActionContext($activePlayerId);
         $passActionContext->reset(false);
+
+        $board = $this->game->getBoard();
+        $lastPassReceiverId = $passActionContext->getLastPassReceiverIdThisTurn();
+        if(PlayerPiece::getInvalidPieceId() != $lastPassReceiverId)
+        {
+            $ballHex = $board->getBallHex();
+            $outPlayer = null;
+            if ($board->tryGetPlayerPieceInHex($ballHex, $outPlayer))
+            {
+                if ($outPlayer->getId() != $lastPassReceiverId)
+                {
+                    $passActionContext->invalidateLastPassReceiverPieceData();
+                }
+            }
+        }
+
 
         RequiredPower::setSkipEnabled(false);
 
