@@ -25,6 +25,11 @@ class HexID
         return self::$invalidId ??= new HexId(-1, -1);
     }
 
+    public function isValid() : bool
+    {
+        return !self::GetInvalidId()->equals($this);
+    }
+
     public function getRow() : int
     {
         return $this->row;
