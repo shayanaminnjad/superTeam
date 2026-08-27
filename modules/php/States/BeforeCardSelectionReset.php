@@ -8,7 +8,9 @@ use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Cards\TacticContext;
+use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\RequiredPower;
 
@@ -59,6 +61,7 @@ class BeforeCardSelectionReset extends GameState
 
         $this->game->setGameStateValue('number_of_moves', 0);
 
+        DBAdapter::getInstance()->storePlayerTempStr($activePlayerId, 'shootTarget', HexID::GetInvalidId()->toJson());
 
         RequiredPower::setSkipEnabled(false);
 
