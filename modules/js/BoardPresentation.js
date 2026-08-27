@@ -20,7 +20,7 @@ define([
         },
         //------------------------------------------------------------------------------------
 
-        visualizePowerRequired: function (start, end, opponentPerspective = false) {
+        visualizePowerRequired: function (start, end, opponentPerspective = false, includeGoalieAsBlocking = true) {
             this.removeRequiredPowerVisualization();
             
             this._drawRuler(start, end);
@@ -38,6 +38,10 @@ define([
             }
 
             for (let i = 0; i < blockingPieces.length; i++) {
+
+                if (!includeGoalieAsBlocking && blockingPieces[i].r >= 4 &&  blockingPieces[i].r <= 6 && (blockingPieces[i].c === 0 || blockingPieces[i].c === 16))
+                    continue;
+
                 let el = document.getElementById(this.convertOffsetCoordToHexId(blockingPieces[i]));
                 el.classList.add('blocking');
                 el.style.setProperty('--col', opponentPerspective ? "#1fc7c7" : "red");

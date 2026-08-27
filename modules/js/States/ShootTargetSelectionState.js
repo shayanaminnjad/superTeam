@@ -76,7 +76,7 @@ define(["dojo/_base/declare",
             _onTileClicked: function (tile, row, column) {
                 const selectedTile = HexLib.createOffsetCoord(row, column);
 
-                Board.visualizePowerRequired(Board.getHexWithBall(), selectedTile, !this._isCurrentPlayerAttacker());
+                Board.visualizePowerRequired(Board.getHexWithBall(), selectedTile, !this._isCurrentPlayerAttacker(), false);
 
                 //(sha) Make this a function inside root.
                 this._root.statusBar.removeActionButtons();

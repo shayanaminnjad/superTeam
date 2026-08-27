@@ -7,7 +7,9 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Math\Math;
 use Bga\Games\SuperTeam\DBAdapter;
@@ -44,13 +46,16 @@ class MoraleAssignment extends GameState
 
         $selectedHex = DBAdapter::getInstance()->getSelectedHexAsHexID();
 
-        $attacker = $this->game->getBoard()->getAttacker();
+        $attacker = Board::getAttacker();
+        $shootTarget = ShootTargetSelection::getPlayerShootTarget($attacker);
+        $isShooting = $shootTarget->isValid();
 
         return [
             'maxMoraleAssignable' => $maxMoraleAssignable,
             'requiredPower' => $requiredPower,
             'attacker' => $attacker,
-            'selectedDestination' => $selectedHex->convertToArray()
+            'selectedDestination' => $selectedHex->convertToArray(),
+            'isShooting' => $isShooting
         ]; //TODO: this probably must be injected here, as not all actions have a destination!
     }
 
