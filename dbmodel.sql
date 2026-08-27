@@ -55,8 +55,7 @@ CREATE TABLE IF NOT EXISTS `player_cards` (
 
 CREATE TABLE IF NOT EXISTS `st_globals` (
     `morale_assign_transition` TEXT,
-    `selected_hex_column` INT DEFAULT -1,
-    `selected_hex_row` INT DEFAULT -1,
+    `selected_hex` TEXT,
     `time_track_position` INT DEFAULT 0,
     `tactic_in_play` TEXT,
     `tactic_type` SMALLINT DEFAULT -1,
@@ -93,6 +92,3 @@ CREATE TABLE IF NOT EXISTS `logs` (
     `level` ENUM('INFO', 'WARN', 'ERROR') DEFAULT 'INFO',
     `message` TEXT DEFAULT null
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
--- Example 2: add a custom field to the standard "player" table
--- ALTER TABLE `player` ADD `player_my_custom_field` INT UNSIGNED NOT NULL DEFAULT '0';
-

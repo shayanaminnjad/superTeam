@@ -84,22 +84,17 @@ class DBAdapter
 
 
     //TODO: These shouldn't be here, these are utils on data base.
-    //This must be a single json entry!
-    public function storeSelectedHex(int $hexColumn, int $hexRow)
+    public function storeSelectedHex(HexID $hexID) : void
     {
-        $this->DbQuery("UPDATE `st_globals` SET `selected_hex_column` = $hexColumn, `selected_hex_row` = $hexRow");
-    }
+        $json = $hexID->toJson();
 
-    public function getSelectedHex(): array
-    {
-        //These has to merged into a single json field!
-        return $this->getObjectFromDB("SELECT selected_hex_column, selected_hex_row FROM st_globals");
+        $this->DbQuery("UPDATE `st_globals` SET `selected_hex` = '$json'");
     }
 
     public function getSelectedHexAsHexID(): HexID
     {
-        $selectedHexArray = $this->getSelectedHex();
-        return new HexID(\intval($selectedHexArray['selected_hex_column']), intval($selectedHexArray['selected_hex_row']));
+        $selectedHexJson = $this->getUniqueValueFromDB("SELECT selected_hex FROM st_globals");
+        return HexID::fromJson($selectedHexJson);
     }
 
     public function storePlayerTempStr(int $playerId, string $entry, string $value): void

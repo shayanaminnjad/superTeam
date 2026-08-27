@@ -46,7 +46,7 @@ class ShootTargetReveal extends GameState
         MoraleAssignment::storeMoraleAssignData(DiceRoll::class, true);
 
         $db = DBAdapter::getInstance();
-        $db->storeSelectedHex($attackerTarget->getColumn(), $attackerTarget->getRow());
+        $db->storeSelectedHex($attackerTarget);
 
         $this->game->notify->all(
             'shootTargetReveal',

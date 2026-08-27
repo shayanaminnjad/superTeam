@@ -80,7 +80,7 @@ class TacklePerformerSelection extends GameState
         if (!array_any($hexes, fn($v) => $selectedHex->equals($v)))
             throw new \BgaUserException("selected invalid piece id for tackling");
 
-        DBAdapter::getInstance()->storeSelectedHex($hexColumn ,$hexRow);
+        DBAdapter::getInstance()->storeSelectedHex($selectedHex);
         MoraleAssignment::storeMoraleAssignData(DiceRoll::class, true);
         DiceRollServices::storeRollInput(\intval($this->game->getActivePlayerId()), new RequiredPower(0, []), PerformTackle::class, TeamAttribute::Tackle, TeamAttribute::Dribble, true);
 

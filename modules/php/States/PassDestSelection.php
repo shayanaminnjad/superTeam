@@ -109,7 +109,7 @@ class PassDestSelection extends PlayerBaseState
             MoraleAssignment::storeMoraleAssignData(DiceRoll::class, false);
 
             $dbAdapter = DBAdapter::getInstance();
-            $dbAdapter->storeSelectedHex($hexColumn, $hexRow);
+            $dbAdapter->storeSelectedHex($selectedHex);
 
             return MoraleAssignment::class;
         }
