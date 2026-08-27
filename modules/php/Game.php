@@ -256,6 +256,7 @@ class Game extends \Bga\GameFramework\Table
         $result['ball'] = $this->getObjectFromDB("SELECT * FROM `ball`");
         $result['user_in_right_id'] = $this->getGameStateValue('user_in_right_id');
         $result['user_in_left_id'] = $this->getGameStateValue('user_in_left_id');
+        $result['attacker'] = $this->getGameStateValue('attacker');
         $result['time_index'] = TimeTrack::GetTimeTrackPosition();
 
         return $result;

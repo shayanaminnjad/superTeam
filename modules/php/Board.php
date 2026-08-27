@@ -285,6 +285,8 @@ class Board
 
                 $this->dbadapter->setGameStateValue('attacker', $defenderId);
                 $this->dbadapter->setGameStateValue('defender', $attackerId);
+
+                NotificationAdapter::getInstance()->notifyAll("attackerDefenderChanged", "", ['attacker' => $defenderId]);
             }
         }
     }

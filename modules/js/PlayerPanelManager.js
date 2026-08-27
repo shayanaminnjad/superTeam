@@ -57,6 +57,15 @@ define([], function () {
             scoredGoalsEl.innerHTML = amount;
         },
 
+        setAttacker: function (attackerId){
+            for (const [playerId, element] of Object.entries(this._tacticalStateElMap)) {
+                const isAttacker = parseInt(playerId) === attackerId;
+
+                element.innerHTML = isAttacker ? "Attacker" : "Defender";
+                element.style.webkitTextStroke = isAttacker ? "1px #DD4720" : "1px #659ADA";
+            }
+        },
+
         //------------------------------------------------------------------------------------
 
         //Private Function
@@ -84,10 +93,22 @@ define([], function () {
                     <span id="playerGoals${playerId}" class= "label">${scoredGoals}</span></div>`);
 
                 this.setPlayerScoredGoals(playerId, scoredGoals);
+
+                const tacticalEl = document.createElement('div');
+                tacticalEl.classList = 'readonlyText';
+                tacticalEl.style.setProperty('--color', `#FFFFFF`);
+                tacticalEl.style.setProperty('--size', '16px');
+
+                playerResources.appendChild(tacticalEl);
+
+                this._tacticalStateElMap[playerId] = tacticalEl;
             }
+
+            this.setAttacker(parseInt(gamedatas.attacker));
         },
 
         //Private Members
         _root: null,
+        _tacticalStateElMap: []
     };
 });

@@ -457,6 +457,10 @@ define([
                 await GameEventProcessor.SwapAnimated(lhsHex, rhsHex, ballHex);
             },
 
+            notif_attackerDefenderChanged: function(notifData) {
+                PlayerPanelManager.setAttacker(notifData.attacker);
+            },
+
             forwardNotification(funcName, notifData) {
                 this.assert(this.currentState && typeof this.currentState[funcName] === "function", `Server call "${funcName}" not handled in current state`);
 
