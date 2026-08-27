@@ -24,6 +24,10 @@ define(["dojo/_base/declare",
             },
 
             _onInactivePlayerEnter: function (args) {
+                if (args.isShooting && parseInt(args.requiredPower) > 0) {
+                    let selectedHex = STHexLib.createOffsetCoord(args.selectedDestination.hex_row, args.selectedDestination.hex_column);
+                    Board.visualizePowerRequired(Board.getHexWithBall(), selectedHex, parseInt(args.attacker) !== this._root.player_id, false);
+                }
             },
 
             _onActivePlayerLeave: function () {
