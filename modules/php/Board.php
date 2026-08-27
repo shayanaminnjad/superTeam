@@ -263,14 +263,14 @@ class Board
         return new RequiredPower($distance, $outBlockingHexes);
     }
 
-    public function getAttacker(): int
+    static public function getAttacker(): int
     {
-        return  $this->dbadapter->getGameStateValue('attacker');
+        return DBAdapter::getInstance()->getGameStateValue('attacker');
     }
 
-    public function getDefender(): int
+    static public function getDefender(): int
     {
-        return $this->dbadapter->getGameStateValue('defender');
+        return DBAdapter::getInstance()->getGameStateValue('defender');
     }
 
     public function updateAttackerAndDefender(): void
