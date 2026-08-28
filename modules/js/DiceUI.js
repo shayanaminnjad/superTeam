@@ -7,7 +7,7 @@ define([
             this._root = root;
         },
 
-        showRollAndWait: async function (rollResults, requiredPower, blockingPieces, distance, skipEnabledPlayerId) {
+        showRollAndWait: async function (rollResults, attacker, requiredPower, blockingPieces, distance, skipEnabledPlayerId) {
 
             //TODO: always show current player at top!
             Board.getMainBoardElement().insertAdjacentHTML('beforeend', `<div id='diceRollArea'></div>`);
@@ -16,7 +16,7 @@ define([
             for (let i = 0; i < rollResults.length; ++i) {
                 const result = rollResults[i];
 
-                totalPower = result.greenDie + result.assignedMorale;
+                let totalPower = result.greenDie + result.assignedMorale;
 
                 let playerRollLine = this._createRollLineElement(diceRollAreaEl, i, result);
                 playerRollLine.insertAdjacentHTML('beforeend', `<span class='greenDie'>${result.greenDie}</span>`);
@@ -32,13 +32,16 @@ define([
                 for (let i = 0; i < result.assignedMorale; ++i)
                     moraleRowEl.insertAdjacentHTML('beforeend', `<span class='moraleSpent'></span>`);
 
-                if (parseInt(result.playerId) === this._root.opponentId) {
+                if (parseInt(result.playerId) !== attacker) {
 
                     if (distance > 0) {
-                        playerRollLine.insertAdjacentHTML('beforeend', `<div class='powerDistance'>${distance}</div>`);
+                        const distancePowerContribution = this._getDistancePowerContribution(distance);
+                        totalPower += distancePowerContribution;
+                        playerRollLine.insertAdjacentHTML('beforeend', `<div class='powerDistance'>${distancePowerContribution}</div>`);
                     }
 
                     if (blockingPieces > 0) {
+                        totalPower += blockingPieces;
                         playerRollLine.insertAdjacentHTML('beforeend', `<div class="powerBlockingPieces">${blockingPieces}</div>`);
                     }
                 }
@@ -52,8 +55,9 @@ define([
 
             if (rollResults.length === 1) {
                 let neutralRollLine = this._createNeutralRollLineElement(diceRollAreaEl);
-                neutralRollLine.insertAdjacentHTML('beforeend', `<div class='powerDistance'>${distance}</div>`);
+                neutralRollLine.insertAdjacentHTML('beforeend', `<div class='powerDistance'>${this._getDistancePowerContribution(distance)}</div>`);
                 neutralRollLine.insertAdjacentHTML('beforeend', `<div class="powerBlockingPieces">${blockingPieces}</div>`);
+                neutralRollLine.insertAdjacentHTML('beforeend', `<div style="color: white; font-size: 20px;">${requiredPower}</div>`);
             }
 
             const TIMEOUT = 5 * 1000;
@@ -94,6 +98,11 @@ define([
             parentEl.insertAdjacentHTML('beforeend', `<div id='neutral_RollLine' style='--ribbonColor: ${backColor}; ${pos} ${rowStyle}' class='diceResult ${anchorClass}'></div>`)
 
             return document.getElementById(`neutral_RollLine`);
+        },
+
+        _getDistancePowerContribution: function (distance)
+        {
+            return Math.ceil(distance / 2);
         },
 
         //Private Members

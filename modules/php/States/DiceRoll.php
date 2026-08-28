@@ -6,6 +6,7 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
+use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Dice\GameDice;
 use Bga\Games\SuperTeam\DBAdapter;
@@ -54,6 +55,7 @@ class DiceRoll extends GameState
         $notifData["blockingPieces"] = $rollData->blockingPieces;
         $notifData["skipEnabledPlayerId"] = ($rollData->skipEnabled ? $activePlayerId : -1);
         $notifData["requiredPower"] = $rollData->requiredPower;
+        $notifData["attacker"] = Board::getAttacker();
 
         $this->notify->all("diceRolled", \clienttranslate('diceRolled'), $notifData);
 
