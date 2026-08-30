@@ -78,7 +78,7 @@ class PlayerPieceSetup extends GameState
 
         if ($placedPiece !== intval($pieceToPlace))
         {
-            throw new BgaUserException("peice placed is not valid! piece to be placed id was " .  $pieceToPlace . ", received " . $placedPiece);
+            throw new BgaUserException("piece placed is not valid! piece to be placed id was " .  $pieceToPlace . ", received " . $placedPiece);
         }
 
         $this->game->DbQuery("UPDATE `player_pieces` SET `hex_column` = $hexColumn, `hex_row` = $hexRow WHERE `id` = $placedPiece ");
