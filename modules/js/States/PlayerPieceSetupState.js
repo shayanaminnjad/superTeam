@@ -59,9 +59,15 @@ define([
             },
 
             notif_resetPlayerPieces: async function (notifData) {
-                this._disableHighlight();
+                if (this._root.isCurrentPlayerActive()) {
+                    this._disableHighlight();
+                }
+
                 await this._root.pieceManager.animateResetPlayerPieces(parseInt(notifData.playerId), parseInt(notifData.goalieRow));
-                this._highlightAvailablePlaces();
+
+                if (this._root.isCurrentPlayerActive()) {
+                    this._highlightAvailablePlaces();
+                }
             },
 
             _highlightAvailablePlaces()
@@ -84,8 +90,6 @@ define([
                 //not efficient, works for now.
                 document.querySelectorAll('.availableToPlacePiece').forEach(div => div.classList.remove('availableToPlacePiece'));
             },
-
-            _resetAnimationInProgress: true
         });
 
 
