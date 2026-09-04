@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
-use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PlayerPieceSetupLogic;
+use Bga\Games\SuperTeam\Utility\Logger;
 use BgaUserException;
 
-class PlayerPieceSetup extends GameState
+class PlayerPieceSetup extends PlayerBaseState
 {
     function __construct(
         protected Game $game,
@@ -29,7 +30,7 @@ class PlayerPieceSetup extends GameState
         );
     }
 
-    public function getArgs(): array
+    public function selfGetArgs(): array
     {
         $setupLogic = new PlayerPieceSetupLogic($this->game->getBoard());
         $notPlacedPieces = $setupLogic->getNotPlacedPieces(intval($this->game->getActivePlayerId()));
@@ -39,11 +40,16 @@ class PlayerPieceSetup extends GameState
         {
             $pieceToPlaceId = $notPlacedPieces[0]->getId();
         }
-            
+
         $playerSide = $this->game->getPlayerSide(intval($this->game->getActivePlayerId()));
         $isFirstPlayer = $this->game->isCurrentPlayerFirstPlayer();
 
         $possibleLocations = $setupLogic->getAvailablePlacingPositions($playerSide, $isFirstPlayer, count($notPlacedPieces));
+
+        if (count($notPlacedPieces) < (PlayerPieceSetupLogic::PIECES_PER_PLAYER - 1)) //minus goalkeeper
+        {
+            $this->addClientButton('Restart', [$this, 'actRestart']);
+        }
 
         return [
             "availableStartingPositions" => $possibleLocations,
@@ -103,11 +109,20 @@ class PlayerPieceSetup extends GameState
         }
     }
 
+    #[PossibleAction]
+    public function actRestart(int $activePlayerId) : string
+    {
+        Board::resetPlayerPieces($activePlayerId, true);
+
+        return PlayerPieceSetup::class;
+    }
+
     function zombie(int $playerId): string
     {
-        // the code to run when the player is a Zombie
+        $playerPieceSetup = new PlayerPieceSetupLogic($this->game->getBoard());
+        $playerPieceSetup->defaultSetup($this->game, $playerId);
 
-        return '';
+        return SetupComplete::class;
     }
 }
 

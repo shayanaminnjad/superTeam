@@ -4,6 +4,7 @@ namespace Bga\Games\SuperTeam;
 
 class PlayerPieceSetupLogic
 {
+    public const int PIECES_PER_PLAYER = 6;
     private Board $board;
 
     public function __construct(Board $board)
@@ -56,7 +57,7 @@ class PlayerPieceSetupLogic
         return $possibleLocations;
     }
 
-    public function debugDefaultSetup(Game $game, int $activePlayerId) : void
+    public function defaultSetup(Game $game, int $activePlayerId) : void
     {
         $playerSide = $game->getPlayerSide($activePlayerId);
         $isFirstPlayer = $game->isCurrentPlayerFirstPlayer();

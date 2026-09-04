@@ -21,7 +21,8 @@ define([
             },
 
             _onActivePlayerLeave() {
-                document.querySelectorAll('.availableToPlacePiece').forEach(div => div.classList.remove('availableToPlacePiece'));
+                this._disableHighlight();
+
             },
 
             _onInactivePlayerLeave() {
@@ -34,8 +35,7 @@ define([
 
                     var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
 
-                    //not efficient, works for now.
-                    document.querySelectorAll('.availableToPlacePiece').forEach(div => div.classList.remove('availableToPlacePiece'));
+                    this._disableHighlight();
 
                     try {
                         await this._root.performServerAction("actPlacedPiece", { placedPiece: this._stateData.args.pieceToPlace, hexColumn: offsetCoord.c, hexRow: offsetCoord.r }, { lock: true, checkAction: true });
@@ -58,6 +58,12 @@ define([
                 await this._root.pieceManager.animatePieceFromPlayerBoardToHex(notifData.placed_piece, Board.convertOffsetCoordToHexId(hex));
             },
 
+            notif_resetPlayerPieces: async function (notifData) {
+                this._disableHighlight();
+                await this._root.pieceManager.animateResetPlayerPieces(parseInt(notifData.playerId), parseInt(notifData.goalieRow));
+                this._highlightAvailablePlaces();
+            },
+
             _highlightAvailablePlaces()
             {
                 document.querySelectorAll('.availableToPlacePiece').forEach(div => div.classList.remove('availableToPlacePiece'));
@@ -72,7 +78,14 @@ define([
 
                     hexEl.classList.add('availableToPlacePiece');
                 }
-            }
+            },
+
+            _disableHighlight() {
+                //not efficient, works for now.
+                document.querySelectorAll('.availableToPlacePiece').forEach(div => div.classList.remove('availableToPlacePiece'));
+            },
+
+            _resetAnimationInProgress: true
         });
 
 

@@ -5,7 +5,6 @@ define([
 ],
     function (Piece, HexLib, Board) {
 
-        //TODO: it would be good if this also managed the ball!
         function getPieceManager() {
             return {
                 //Public functions
@@ -70,20 +69,7 @@ define([
                     let animations = [];
 
                     for (const piece of this._piecesMap.values()) {
-                        if (!piece.isGoalie()) {
-                            animations.push(this._root.slideToObject(piece.getDOMElement(), this._root.getPlayerPanelElement(piece.getOwner())));
-                        }
-                        else {
-                            let goaliePos = piece.getPosition();
-
-                            if (goaliePos.r !== goalieRow) {
-                                let goalieNewPos = HexLib.createOffsetCoord(goalieRow, goaliePos.c);
-                                piece.setPosition(goalieNewPos);
-
-                                const DEST_HEX_ID = Board.convertOffsetCoordToHexId(goalieNewPos);
-                                animations.push(this._root.slideToObject(piece.getDOMID(), DEST_HEX_ID));
-                            }
-                        }
+                        this._resetPiece(piece, goalieRow, animations);
                     }
 
                     var animation_id = dojo.fx.combine(animations);
@@ -100,9 +86,34 @@ define([
                     return this._root.bgaPlayDojoAnimation(animation_id);
                 },
 
+                animateResetPlayerPieces: function(playerId, goalieRow)
+                {
+                    let animations = [];
+
+                    for (const piece of this._piecesMap.values()) {
+                        if (piece.getOwner() !== playerId)
+                            continue;
+
+                        this._resetPiece(piece, goalieRow, animations);
+                    }
+
+                    var animation_id = dojo.fx.combine(animations);
+                    dojo.connect(animation_id, 'onEnd', () => {
+
+                        for (let piece of this._piecesMap.values()) {
+                            if (!piece.isGoalie() && piece.getOwner() === playerId) {
+                                piece.setPosition(null);
+                                piece.setFreshness(true);
+                            }
+                        }
+                    });
+
+                    return this._root.bgaPlayDojoAnimation(animation_id);
+                },
+
                 refreshAllPieces: function (playerId) {
                     for (let piece of this._piecesMap.values()) {
-                        if (piece.getOwner() == playerId) {
+                        if (piece.getOwner() === playerId) {
                             piece.setFreshness(true);
                         }
                     }
@@ -158,6 +169,23 @@ define([
                             return value;
                     }
                 },
+
+                _resetPiece(piece, goalieRow, animations) {
+                    if (!piece.isGoalie()) {
+                        animations.push(this._root.slideToObject(piece.getDOMElement(), this._root.getPlayerPanelElement(piece.getOwner())));
+                    } else {
+                        let goaliePos = piece.getPosition();
+
+                        if (goaliePos.r !== goalieRow) {
+                            let goalieNewPos = HexLib.createOffsetCoord(goalieRow, goaliePos.c);
+                            piece.setPosition(goalieNewPos);
+
+                            const DEST_HEX_ID = Board.convertOffsetCoordToHexId(goalieNewPos);
+                            animations.push(this._root.slideToObject(piece.getDOMID(), DEST_HEX_ID));
+                        }
+                    }
+                },
+
 
                 //Private members
                 _piecesMap: null,

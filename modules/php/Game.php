@@ -494,7 +494,7 @@ class Game extends \Bga\GameFramework\Table
         {
             $pieceSetupLogic = new PlayerPieceSetupLogic($board);
 
-            $pieceSetupLogic->debugDefaultSetup($this, $activePlayerId);
+            $pieceSetupLogic->defaultSetup($this, $activePlayerId);
 
             return ST_SETUP_COMPLETE;
         }
