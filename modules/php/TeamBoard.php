@@ -91,6 +91,16 @@ class TeamBoard
         }
     }
 
+    public function resetPlayerAttributes(int $playerId, TeamAttribute $except = TeamAttribute::None, bool $withNotify = false) : void
+    {
+        $this->resetAttributes($playerId, $except);
+
+        if ($withNotify)
+        {
+            NotificationAdapter::getInstance()->notifyPlayer($playerId, "playerAttributesReset", "", $this->getPlayerAttributesAsCollection($playerId));
+        }
+    }
+
     public function tryIncreaseAttribute(int $player_id, TeamAttribute $attribute, bool $withNotify): bool
     {
         if (!isset($this->attributes[$player_id][$attribute->value])) 
@@ -138,6 +148,22 @@ class TeamBoard
 
             $res[$playerId] = $labledInfo;
         }
+
+        return $res;
+    }
+
+    public function getPlayerAttributesAsCollection(int $playerId) : array
+    {
+        $res = [];
+        $playerInfo = $this->attributes[$playerId];
+
+        $labeledInfo = [];
+        for($i = 0; $i < \count($playerInfo); $i++)
+        {
+            $labeledInfo [self::attributeToString(TeamAttribute::from($i))] = $playerInfo[$i];
+        }
+
+        $res[$playerId] = $labeledInfo;
 
         return $res;
     }
