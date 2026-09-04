@@ -27,6 +27,24 @@ class PlayerPiecesDBManager
     `can_tackle` = TRUE";
     }
 
+    public static function resetPlayerPiecesDataQuery(int $playerId) : string
+    {
+        $goalkeeperValue = PlayerRole::GoalKeeper->value;
+
+        return "UPDATE `player_pieces` SET
+    `hex_column` = CASE 
+                       WHEN `piece_role` = $goalkeeperValue THEN `hex_column`
+                       ELSE -1
+                   END,
+    `hex_row` = CASE 
+                    WHEN `piece_role` = $goalkeeperValue THEN 5
+                    ELSE -1
+                END,
+    `is_fresh` = TRUE,
+    `can_tackle` = TRUE
+        WHERE `owner_id` = $playerId";
+    }
+
     public static function refreshPiecesQuery(int $playerId)
     {
         return "UPDATE `player_pieces` SET `is_fresh` = TRUE, `can_tackle`= TRUE WHERE `owner_id` = {$playerId}";
