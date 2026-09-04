@@ -6,7 +6,6 @@ use Bga\Games\SuperTeam\Math\HexInfo;
 
 class BoardInfo
 {
-    //TODO: How to make these contants?
     public static HexID $CENTER_POSITION;
     public static array $LEFT_PLAYER_STARTING_POSITIONS;
     public static HEXID $LEFT_PLAYER_GOALIE_POSITION;
