@@ -80,6 +80,8 @@ abstract class PlayerBaseState extends GameState
 
     final public function getArgs(): array
     {
+        $this->possibleActions = [];
+
         $res = $this->selfGetArgs();
 
         $res['clientButtons'] = $this->serializePossibleActions();
