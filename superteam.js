@@ -453,6 +453,10 @@ define([
                 return opponentCoachBoard.updateOwnerDataAnimated(opponentAttributes);
             },
 
+            notif_playerAttributesReset: async function(notifData) {
+                return this.forwardNotification(this.notif_playerAttributesReset.name, notifData);
+            },
+
             notif_swapPerformed: async function(notifData) {
                 let lhsHex = STHexLib.createOffsetCoord(notifData.swappedHexes[0].hex_row, notifData.swappedHexes[0].hex_column);
                 let rhsHex = STHexLib.createOffsetCoord(notifData.swappedHexes[1].hex_row, notifData.swappedHexes[1].hex_column);

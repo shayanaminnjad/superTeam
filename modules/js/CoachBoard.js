@@ -77,6 +77,24 @@ define([
                 }
             },
 
+            getAssignedCubes: function (excludeGK) {
+                let total = 0;
+
+                for (let i = 0; i < Skills.Count; i++) {
+
+                    if (excludeGK && i === Skills.GK)
+                        continue;
+
+                    if (this._skillSlots[i].isFilled())
+                        total += 1;
+
+                    if (this._skillSlots[Skills.Count + i].isFilled())
+                        total += 1;
+                }
+
+                return total;
+            },
+
             // clickHandler: function(evt, skillSlot)
             setClickHandler: function (handler) {
                 this._clickHandler = handler;

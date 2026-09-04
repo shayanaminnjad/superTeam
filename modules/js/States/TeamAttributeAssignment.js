@@ -11,6 +11,7 @@ define(["dojo/_base/declare",
             _onActivePlayerEnter: function (args) {
                 this._root.myPlayerArea.getCoachBoard().setClickHandler((evt, skillSlot) => this.onSkillSelected(evt, skillSlot));
                 this._root.myPlayerArea.getCoachBoard().makeAvailableBoxesSelectable(args.IsGKAssignable);
+                this._updateButtons();
             },
 
             _onInactivePlayerEnter: function (args) {
@@ -37,6 +38,21 @@ define(["dojo/_base/declare",
                 const myCoachBoard = this._root.myPlayerArea.getCoachBoard();
                 myCoachBoard.placeCubeAnimated(parseInt(notifData.skill));
                 myCoachBoard.makeAvailableBoxesSelectable(this._args.IsGKAssignable);
+
+                this._updateButtons();
+            },
+
+            notif_playerAttributesReset: async function(notifData) {
+                const myAttributes = notifData[this._root.player_id];
+                const myCoachBoard = this._root.myPlayerArea.getCoachBoard();
+
+                myCoachBoard.makeAllNonSelectable();
+
+                await myCoachBoard.updateOwnerDataAnimated(myAttributes);
+
+                myCoachBoard.makeAvailableBoxesSelectable(this._args.IsGKAssignable);
+
+                this._updateButtons();
             },
 
             onSkillSelected: function (evt, skillSlot) {
@@ -50,7 +66,22 @@ define(["dojo/_base/declare",
                 const myCoachBoard = this._root.myPlayerArea.getCoachBoard();
                 myCoachBoard.removeClickHandler();
                 myCoachBoard.makeAllNonSelectable();
+            },
+
+            _updateButtons: function () {
+                this._root.statusBar.removeActionButtons();
+
+                this._root.statusBar.addActionButton('Restart', () => {
+                    this._root.performServerAction("actRestart", {})
+                }, {id: 'restart', color: 'alert', disabled: this._getAssignedCubes() === 0});
+            },
+
+            _getAssignedCubes: function() {
+                const myCoachBoard = this._root.myPlayerArea.getCoachBoard();
+
+                return myCoachBoard.getAssignedCubes(!this._args.IsGKAssignable);
             }
+
         });
 
         TeamAttributeAssignment.getName = function () {

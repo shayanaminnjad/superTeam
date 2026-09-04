@@ -40,7 +40,6 @@ class TeamAttributeAssignment extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
-
         return ["IsGKAssignable" => $this->isGKAssignable()];
     }
 
@@ -76,7 +75,15 @@ class TeamAttributeAssignment extends PlayerBaseState
         if ($attributesRemaining == 0) 
         {
             $this->gamestate->setPlayerNonMultiactive($currentPlayer, TeamAttributesReveal::class);
-        } 
+        }
+    }
+
+    #[PossibleAction]
+    public function actRestart() : void
+    {
+        $currentPlayerId = \intval($this->game->getCurrentPlayerId());
+        $exception = $this->isGKAssignable() ? TeamAttribute::None : TeamAttribute::GK;
+        $this->game->getTeamBoard()->resetPlayerAttributes($currentPlayerId, $exception, true);
     }
 
     function zombie(int $playerId): string
