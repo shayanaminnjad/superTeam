@@ -1,10 +1,7 @@
 <?php
 
 namespace Bga\Games\SuperTeam;
-
-use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexLib\HexLib;
-use Bga\Games\SuperTeam\Math\HexInfo;
 
 class Board
 {
@@ -195,6 +192,22 @@ class Board
                 [
                     "ballHex" => $ballPos->convertToArray(),
                     "goalieRow" => 5]);
+        }
+    }
+
+    public static function resetPlayerPieces(int $playerId, bool $withNotify) : void
+    {
+        DBAdapter::getInstance()->DbQuery(PlayerPiecesDBManager::resetPlayerPiecesDataQuery($playerId));
+
+        if ($withNotify)
+        {
+            NotificationAdapter::getInstance()->notifyAll(
+                "resetPlayerPieces",
+                "",
+                [
+                    "playerId" => $playerId,
+                    "goalieRow" => 5
+                ]);
         }
     }
 
