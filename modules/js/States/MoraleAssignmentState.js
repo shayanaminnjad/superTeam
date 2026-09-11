@@ -37,6 +37,7 @@ define(["dojo/_base/declare",
             },
 
             _onInactivePlayerLeave: function () {
+                Board.removeRequiredPowerVisualization();
             },
 
             getName: function () {
