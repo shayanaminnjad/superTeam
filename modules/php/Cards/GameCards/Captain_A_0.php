@@ -3,7 +3,6 @@
 namespace Bga\Games\SuperTeam\Cards\GameCards;
 
 use Bga\Games\SuperTeam\Cards\CaptainCard;
-use Bga\Games\SuperTeam\Cards\Card;
 use Bga\Games\SuperTeam\Cards\CardDefinition;
 use Bga\Games\SuperTeam\Cards\CardType;
 use Bga\Games\SuperTeam\Cards\CardTypeHelper;
@@ -15,10 +14,7 @@ use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
-use Bga\Games\SuperTeam\PlayerResources;
-use Bga\Games\SuperTeam\PlayerRole;
 use Bga\Games\SuperTeam\States\MovePieceSelection;
-use Bga\Games\SuperTeam\States\PlayerBasicTurn;
 use Bga\Games\SuperTeam\States\TacticalTurnStateManager;
 
 class Captain_A_0 extends CaptainCard
