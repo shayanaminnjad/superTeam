@@ -44,6 +44,35 @@ class PlayerHand
         return $this->cards->getCardsInLocation($this->discardName);
     }
 
+    public function getLastDiscardedCard() : array
+    {
+        $discardedCards = $this->getDiscardedCards();
+
+        if (count($discardedCards) == 0)
+            return [];
+
+        $lastCard = null;
+
+        foreach($discardedCards as $card)
+        {
+            if ($lastCard == null)
+                $lastCard = $card;
+            else if (intval($card['location_arg']) > intval($lastCard['location_arg']))
+                $lastCard = $card;
+        }
+
+        return $lastCard;
+    }
+
+    public function moveLastDiscardedCardToHand() : array
+    {
+        $lastDiscardedCard = $this->getLastDiscardedCard();
+        $this->cards->moveCard($lastDiscardedCard["id"], self::$handName, $this->ownerId);
+        $this->notifyPlayerOfHandRefill();
+
+        return $lastDiscardedCard;
+    }
+
     public function getCardsInDeckRemovePos() : array
     {
         $cards = $this->cards->getCardsInLocation($this->deckName);
