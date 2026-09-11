@@ -40,7 +40,7 @@ class MultiMove extends PlayerBaseState
     public function onEnteringState()
     {
         //fixme: this actually happens after self get args, change it, since we need it before!
-        if ($this->getRemainingMoves()->isEmpty())
+        if ($this->getRemainingMoves(new MoveActionContext())->isEmpty())
             return TacticalTurnStateManager::class;
     }
 
@@ -48,7 +48,8 @@ class MultiMove extends PlayerBaseState
     {
         $activePlayerId = \intval($this->game->getActivePlayerId());
         $board = $this->game->getBoard();
-        $movesRemainingArr = $this->getRemainingMoves()->toArray();
+        $moveActionContext = new MoveActionContext();
+        $movesRemainingArr = $this->getRemainingMoves($moveActionContext)->toArray();
 
         foreach($movesRemainingArr as $key => $value)
         {
@@ -63,7 +64,10 @@ class MultiMove extends PlayerBaseState
             }
         }
 
-        $this->addClientButton("Undo", [$this, 'actUndo']);
+        if (!$this->hasPerformedAnyMoves($moveActionContext))
+        {
+            $this->addClientButton("Undo", [$this, 'actUndo']);
+        }
 
         return [];
     }
@@ -75,7 +79,7 @@ class MultiMove extends PlayerBaseState
         if ($moveType === null)
             throw new \BgaUserException("invalid key sent `$key`");
 
-        $movesRemaining = $this->getRemainingMoves();
+        $movesRemaining = $this->getRemainingMoves(new MoveActionContext());
 
         if ($movesRemaining->getMoves($moveType) <= 0)
             throw new \BgaUserException("invalid move selected `$key`");
@@ -103,6 +107,7 @@ class MultiMove extends PlayerBaseState
     #[PossibleAction]
     public function actUndo(int $activePlayerId) : string
     {
+        /*
         $tacticContext = new TacticContext();
         $tacticInPlay = $tacticContext->getTacticInPlay();
 
@@ -144,14 +149,23 @@ class MultiMove extends PlayerBaseState
             "ballHex" => $board->getBallHex(),
             "piecesToHexes" => $pieceMovedToSend,
             "freshPieces" => $freshPieces
-        ]);
+        ]);*/
 
-        return BeforeCardSelectionReset::class;
+        if (!$this->hasPerformedAnyMoves(new MoveActionContext()))
+        {
+            $activePlayerId = \intval($this->game->getActivePlayerId());
+            CardSelection::undoLastCardPlayed($activePlayerId, $this->game);
+
+            return BeforeCardSelectionReset::class;
+        }
+        else
+        {
+            throw new \BgaUserException("undo is not possible after first move!");
+        }
     }
 
-    private function getRemainingMoves() : CardDefensiveMoves
+    private function getRemainingMoves(MoveActionContext $defensiveMoveContext) : CardDefensiveMoves
     {
-        $defensiveMoveContext = new MoveActionContext();
         $tacticContext = new TacticContext();
 
         $cardInPlay = $tacticContext->getTacticInPlay();
@@ -162,6 +176,13 @@ class MultiMove extends PlayerBaseState
         $movesPerformedSoFar = $defensiveMoveContext->getMovesPerformed();
 
         return $cardDefensiveMoves->diff($movesPerformedSoFar);
+    }
+
+    private function hasPerformedAnyMoves(MoveActionContext $defensiveMoveContext) : bool
+    {
+        $movesPerformedSoFar = $defensiveMoveContext->getMovesPerformed();
+
+        return !$movesPerformedSoFar->isEmpty();
     }
 
     function zombie(int $playerId): string

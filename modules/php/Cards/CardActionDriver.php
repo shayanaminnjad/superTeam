@@ -31,6 +31,9 @@ class CardActionDriver
         $tacticProgress = $tacticContext->getTacticProgress();
         assert($tacticProgress >= 0, "tactic progress can't be negative!");
 
+        //it means this is second time we are entering here, so the player is commited.
+        $tacticContext->setTacticCommited($tacticProgress > 0 );
+
         $card = $this->game->getCardFactory()->getCard($cardInPlay);
 
         $result = $card->execute($tacticProgress);

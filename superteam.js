@@ -329,6 +329,10 @@ define([
                 return this.forwardNotification(this.notif_cardPlayed.name, notifData);
             },
 
+            notif_cardUndo: function(notifData) {
+                this.cardsManager.removeCard(notifData.undoCard);
+            },
+
             notif_resetPlayerPieces: async function (notifData) {
                 return this.forwardNotification(this.notif_resetPlayerPieces.name, notifData);
             },

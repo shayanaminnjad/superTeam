@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\BoardInfo;
+use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\DBAdapter;
@@ -37,7 +38,20 @@ class PassDestSelection extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
-        $this->addClientButton('Cancel', [$this, 'actCancel']);
+        $activePlayer = \intval($this->game->getActivePlayerId());
+        $actionReturnState = DBAdapter::getInstance()->getPlayerActionReturnState($activePlayer);
+        if ($actionReturnState === TacticalTurnStateManager::class)
+        {
+            $tacticContext  = new TacticContext();
+
+            if (!$tacticContext->GetTacticCommited())
+            {
+                $this->addClientButton('Undo', [$this, 'actUndo']);
+            }
+        }
+
+        //todo: do we need to support this?
+        //$this->addClientButton('Cancel', [$this, 'actCancel']);
         return $this->game->getValidPassTargets(null);
     }
 
@@ -119,6 +133,25 @@ class PassDestSelection extends PlayerBaseState
     public function actCancel(int $activePlayerId) : string
     {
         return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
+    }
+
+    #[PossibleAction]
+    public function actUndo(int $activePlayerId) : string
+    {
+        $activePlayer = \intval($this->game->getActivePlayerId());
+        $actionReturnState = DBAdapter::getInstance()->getPlayerActionReturnState($activePlayer);
+        if ($actionReturnState === TacticalTurnStateManager::class)
+        {
+            $tacticContext  = new TacticContext();
+
+            if (!$tacticContext->GetTacticCommited())
+            {
+                CardSelection::undoLastCardPlayed($activePlayerId, $this->game);
+                return BeforeCardSelectionReset::class;
+            }
+        }
+
+        throw new \BgaUserException("You cannot undo this action!");
     }
 
     function zombie(int $playerId): string

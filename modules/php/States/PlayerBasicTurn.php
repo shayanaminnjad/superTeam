@@ -56,6 +56,14 @@ class PlayerBasicTurn extends PlayerBaseState
             $this->addActionsDoableByPiece($selectablePiecesIds[0]); //this only happens in captain actions
         }
 
+        $activePlayer = \intval($this->game->getActivePlayerId());
+        $actionReturnState = DBAdapter::getInstance()->getPlayerActionReturnState($activePlayer);
+        if ($actionReturnState === BeforeCardSelectionReset::class ||
+            $actionReturnState === BeforeRewardResolve::class)
+        {
+            $this->addClientButton("undo", [$this, "actUndo"]);
+        }
+
         return [];
     }
 
@@ -105,6 +113,26 @@ class PlayerBasicTurn extends PlayerBaseState
     public function actPass(int $activePlayerId) : string
     {
         return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
+    }
+
+    #[PossibleAction]
+    public function actUndo(): string
+    {
+        $activePlayer = \intval($this->game->getActivePlayerId());
+        $actionReturnState = DBAdapter::getInstance()->getPlayerActionReturnState($activePlayer);
+        if ($actionReturnState === BeforeCardSelectionReset::class)
+        {
+            CardSelection::undoLastCardPlayed($activePlayer, $this->game);
+            return $actionReturnState;
+        }
+        else if ($actionReturnState === BeforeRewardResolve::class)
+        {
+
+        }
+        else
+        {
+            throw new \BgaUserException("Undo is not possible, invalid starting state!");
+        }
     }
 
     function zombie(int $playerId): string

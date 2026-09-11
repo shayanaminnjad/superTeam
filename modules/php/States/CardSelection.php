@@ -75,7 +75,7 @@ class CardSelection extends PlayerBaseState
             }
         }
 
-        $cardsPlayedThisTurn = $this->getCardsPlayedThisTurn();
+        $cardsPlayedThisTurn = self::getCardsPlayedThisTurn($this->game);
         $canPass =  $cardsPlayedThisTurn > 0;
         $canPlayCard = $cardsPlayedThisTurn < 3;
 
@@ -92,21 +92,21 @@ class CardSelection extends PlayerBaseState
     {
         $activePlayer = \intval($this->game->getActivePlayerId());
 
-        $this->game->giveExtraTime($activePlayer);
+        $this->game->giveExtraTime($activePlayer); //todo: shouldn't do this unless the card action is completed.
 
-        if ($this->getCardsPlayedThisTurn() >= 3)
+        if (self::getCardsPlayedThisTurn($this->game) >= 3)
             throw new \BgaUserException("You can't play more than 3 cards in a turn!");
 
         $playerHand = $this->game->getPlayerHand($activePlayer);
 
         $playerHand->discardCard($cardId);
-        
+
         $this->game->notify->all("cardPlayed", "card {$cardId} played", [
             'discards' => $playerHand->getDiscardedCards(),
             'cardsInHandCount' => $playerHand->CountCardsInHand()
             ]);
 
-        $this->increaseCardsPlayedThisTurnByOne();
+        self::increaseCardsPlayedThisTurnByOne($this->game);
 
         $board = $this->game->getBoard();
         $goalieHasBall = BoardEvaluator::doesPlayerGoalieHasBall($board, $activePlayer);
@@ -160,14 +160,32 @@ class CardSelection extends PlayerBaseState
         return '';
     }
 
-    private function getCardsPlayedThisTurn(): int
+    private static function getCardsPlayedThisTurn(Game $game): int
     {
-        return intval($this->game->getGameStateValue("cardsPlayedThisTurn"));
+        return intval($game->getGameStateValue("cardsPlayedThisTurn"));
     }
 
-    private function increaseCardsPlayedThisTurnByOne(): void
+    public static function undoLastCardPlayed(int $activePlayer, Game $game) : void
     {
-        $cardsPlayedThisTurn = $this->getCardsPlayedThisTurn();
-        $this->game->setGameStateValue("cardsPlayedThisTurn", $cardsPlayedThisTurn + 1);
+        $playerHand = $game->getPlayerHand($activePlayer);
+        $cardMoved = $playerHand->moveLastDiscardedCardToHand();
+        self::decreaseCardsPlayedThisTurnByOne($game);
+
+        $game->notify->player($game->getInactivePlayerId(), "cardUndo", "", [
+            'undoCard' => $cardMoved,
+            'cardsInHandCount' => $playerHand->CountCardsInHand()
+        ]);
+    }
+
+    private static function increaseCardsPlayedThisTurnByOne(Game $game): void
+    {
+        $cardsPlayedThisTurn = self::getCardsPlayedThisTurn($game);
+        $game->setGameStateValue("cardsPlayedThisTurn", $cardsPlayedThisTurn + 1);
+    }
+
+    private static function decreaseCardsPlayedThisTurnByOne(Game $game) : void
+    {
+        $cardsPlayedThisTurn = self::getCardsPlayedThisTurn($game);
+        $game->setGameStateValue("cardsPlayedThisTurn", $cardsPlayedThisTurn - 1);
     }
 }

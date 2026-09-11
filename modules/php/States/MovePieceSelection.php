@@ -33,8 +33,6 @@ class MovePieceSelection extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
-        $this->addClientButton('cancel', [$this, 'actCancel']);
-
         $pieceSelectionContext = new PieceSelectionContext();
         $moveablePiecesIds = $pieceSelectionContext->getSelectablePieceIds();
 
@@ -65,6 +63,8 @@ class MovePieceSelection extends PlayerBaseState
     #[PossibleAction]
     public function actCancel(int $activePlayerId): string
     {
+        //todo: if we want to support cancel, and if this is a multi move, then we must update moves that has been done!
+        //probably a better architecture here is to late commit that move has been done.
         return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 
