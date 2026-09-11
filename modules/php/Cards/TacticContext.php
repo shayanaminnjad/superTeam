@@ -34,6 +34,16 @@ readonly class TacticContext
         return $this->dbAdapter->getGlobalInt("tactic_progress");
     }
 
+    public function setTacticCommited(bool $commited): void
+    {
+        $this->dbAdapter->storeGlobalBool("tactic_commited", $commited);
+    }
+
+    public function GetTacticCommited(): bool
+    {
+        return $this->dbAdapter->getGlobalBool("tactic_commited");
+    }
+
     public function setRewardUsed(CardReward $reward) : void
     {
         $this->dbAdapter->storeGlobalString("rewards_used", $reward->toJson());
@@ -82,5 +92,6 @@ readonly class TacticContext
         $this->setTacticProgress(0);
         $this->setRewardUsed(CardReward::empty());
         $this->setTacticType(TacticType::Unknown);
+        $this->setTacticCommited(false);
     }
 }

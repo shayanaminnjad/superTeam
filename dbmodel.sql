@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `tactic_in_play` TEXT,
     `tactic_type` SMALLINT DEFAULT -1,
     `tactic_progress` INT DEFAULT - 1,
+    `tactic_commited` BOOLEAN DEFAULT FALSE,
     `selectable_pieces` TEXT,
     `rewards_used` TEXT,
     `moves_performed` TEXT,
