@@ -152,6 +152,19 @@ class DBAdapter
         return $row[$entry];
     }
 
+    public function storeGlobalBool(string $entry, bool $value) : void
+    {
+        $stringifiedBoolean = $value ? 'TRUE' : 'FALSE';
+        $this->DbQuery("UPDATE `st_globals` SET `$entry` = $stringifiedBoolean");
+    }
+
+    public function getGlobalBool(string $entry): bool
+    {
+        $row = $this->getObjectFromDB("SELECT `$entry` FROM `st_globals`");
+
+        return (bool)$row[$entry];
+    }
+
     public function storeActionReturnState(int $playerId, string $class) : void
     {
         $this->storePlayerTempStr($playerId, 'action_return_state', $class);
