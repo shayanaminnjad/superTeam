@@ -31,10 +31,6 @@ define(["dojo/_base/declare",
             //Notifications
 
             //Private Methods
-            onAttackerCanceledTarget: function (data) {
-                Board.removeRequiredPowerVisualization();
-            },
-
             _placeTargetingTiles: function (isAttacker) {
                 let goalieColumn = 16;
                 if (isAttacker) {
