@@ -349,6 +349,10 @@ define([
                 }
             },
 
+            notif_opponentDiscardShuffle(notifData) {
+                this.cardsManager.removeOpponentDiscard();
+            },
+
             notif_fatigueRemoved: function(notifData) {
                 this.cardsManager.placeCards(Object.values(notifData.cardsInSupply));
             },
@@ -443,6 +447,7 @@ define([
             },
 
             notif_cardReset: async function(notifData) {
+                this.cardsManager.removeOpponentDiscard();
                 return this.cardsManager.placeAllToDeck();
             },
 

@@ -40,9 +40,12 @@ define(["dojo/_base/declare",
                 return this._cardsManager.placeCards(cards);
             },
 
-            removeCard: function (card)
-            {
+            removeCard: function (card) {
                 return this._cardsManager.removeCard(card);
+            },
+
+            removeOpponentDiscard: function () {
+                this._opponentDiscardStock.removeAll();
             },
 
             placeAllToDeck: function() {

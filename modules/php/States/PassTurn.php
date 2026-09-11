@@ -39,6 +39,11 @@
              'playerHand' => $playerHand->getCardsInHand(),
              'wasDiscardShuffled' => $wasDiscardShuffled,
          ]);
+
+         if ($wasDiscardShuffled)
+         {
+             $this->game->notify->player($this->game->getInactivePlayerId(), "opponentDiscardShuffle");
+         }
          
         $this->game->giveExtraTime($activePlayerId);
         $nextPlayer = $this->game->activeNextPlayer();
