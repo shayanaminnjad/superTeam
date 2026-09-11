@@ -40,6 +40,11 @@ define(["dojo/_base/declare",
                 return this._cardsManager.placeCards(cards);
             },
 
+            removeCard: function (card)
+            {
+                return this._cardsManager.removeCard(card);
+            },
+
             placeAllToDeck: function() {
                 let discardedCards = this._discardStock.getCards()
                 for(card of discardedCards)
@@ -214,7 +219,7 @@ define(["dojo/_base/declare",
             },
 
             _initOpponentDiscard: function() {
-                this._fatigueDeck = new BgaCards.DiscardDeck(this._cardsManager, document.getElementById('opponentDiscard'), {
+                this._opponentDiscardStock = new BgaCards.DiscardDeck(this._cardsManager, document.getElementById('opponentDiscard'), {
                     sort: BgaCards.sort('location_arg'),
                     autoPlace: card => card.location === `${this._root.opponentId}_discard`,
                 });
