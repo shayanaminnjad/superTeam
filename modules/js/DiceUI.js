@@ -1,71 +1,229 @@
 define([
     g_gamethemeurl + "modules/js/BoardPresentation.js",
-], function (Board) {
+    getLibUrl('bga-dice', '1.x')
+], function (Board, BgaDice) {
 
     return {
         construct: function (root) {
             this._root = root;
+
+            this._diceManager = new BgaDice.Manager({
+                animationManager: this._root.animationManager,
+                faces: 6,
+                borderRadius: 16,
+                size: 32,
+                perspective: 1000,
+                type: 'st-dice',
+                setupFaceDiv: (die, element, face) => {
+                    element.classList.add('superteam-dice-face');
+                    element.classList.add(`face-${face}`);
+                    element.classList.add(die.type);
+                }
+            });
         },
 
-        showRollAndWait: async function (rollResults, attacker, requiredPower, blockingPieces, distance, skipEnabledPlayerId) {
+        showRollAndWait: async function (
+            rollResults,
+            attacker,
+            requiredPower,
+            blockingPieces,
+            distance,
+            skipEnabledPlayerId
+        ) {
 
-            //TODO: always show current player at top!
-            Board.getMainBoardElement().insertAdjacentHTML('beforeend', `<div id='diceRollArea'></div>`);
-            let diceRollAreaEl = document.getElementById('diceRollArea');
+            Board.getMainBoardElement().insertAdjacentHTML('beforeend', `<div id="diceRollArea"></div>`);
+
+            const diceRollAreaEl = document.getElementById('diceRollArea');
+
+            const rollPlayers = [];
 
             for (let i = 0; i < rollResults.length; ++i) {
                 const result = rollResults[i];
 
+                const playerRollLine = this._createRollLineElement(diceRollAreaEl, i, result);
+
+                const playerDiceStock = new BgaDice.LineStock(
+                    this._diceManager,
+                    playerRollLine,
+                    {
+                        direction: 'row',
+                        gap: '8px',
+                    }
+                );
+
+                const playerDice = [
+                    {
+                        id: `green-${result.playerId}`,
+                        face: result.greenDie,
+                        type: 'die-green',
+                    },
+                ];
+
+                for (let j = 0; j < result.whiteDice.length; ++j) {
+                    playerDice.push({
+                        id: `white-${result.playerId}-${j}`,
+                        face: result.whiteDice[j] + 2,
+                        type: 'die-white',
+                    });
+                }
+
+
+                for (let i = 0; i < playerDice.length; ++i) {
+                    await playerDiceStock.addDice([playerDice[0]]);
+                }
+
                 let totalPower = result.greenDie + result.assignedMorale;
 
-                let playerRollLine = this._createRollLineElement(diceRollAreaEl, i, result);
-                playerRollLine.insertAdjacentHTML('beforeend', `<span class='greenDie'>${result.greenDie}</span>`);
-
                 for (const whiteDie of result.whiteDice) {
-                    playerRollLine.insertAdjacentHTML('beforeend', `<span class='whiteDie'>${whiteDie}</span>`);
                     totalPower += whiteDie;
                 }
 
-                playerRollLine.insertAdjacentHTML('beforeend', `<div id='${result.playerId}_moraleRow'></div>`);
-                let moraleRowEl = document.getElementById(`${result.playerId}_moraleRow`);
-
-                for (let i = 0; i < result.assignedMorale; ++i)
-                    moraleRowEl.insertAdjacentHTML('beforeend', `<span class='moraleSpent'></span>`);
-
                 if (parseInt(result.playerId) !== attacker) {
-
                     if (distance > 0) {
-                        const distancePowerContribution = this._getDistancePowerContribution(distance);
-                        totalPower += distancePowerContribution;
-                        playerRollLine.insertAdjacentHTML('beforeend', `<div class='powerDistance'>${distancePowerContribution}</div>`);
+                        totalPower += this._getDistancePowerContribution(distance);
                     }
 
                     if (blockingPieces > 0) {
                         totalPower += blockingPieces;
-                        playerRollLine.insertAdjacentHTML('beforeend', `<div class="powerBlockingPieces">${blockingPieces}</div>`);
+                    }
+                }
+
+                rollPlayers.push({
+                    result,
+                    playerRollLine,
+                    playerDiceStock,
+                    playerDice,
+                    totalPower,
+                });
+            }
+
+            for (const player of rollPlayers) {
+                const {
+                    result,
+                    playerRollLine,
+                    playerDiceStock,
+                    playerDice,
+                    totalPower,
+                } = player;
+
+                await Promise.all(playerDice.map(die => playerDiceStock.rollDie(die)));
+
+                if (result.assignedMorale > 0) {
+                    const moraleRowEl = document.createElement('div');
+
+                    moraleRowEl.id = `${result.playerId}_moraleRow`;
+
+                    playerRollLine.appendChild(moraleRowEl);
+
+                    for (let j = 0; j < result.assignedMorale; ++j) {
+                        const moraleEl = document.createElement('span');
+
+                        moraleEl.className = 'moraleSpent';
+
+                        moraleRowEl.appendChild(moraleEl);
+
+                        this._fadeInElement(moraleEl);
+                    }
+                }
+
+                if (parseInt(result.playerId) !== attacker) {
+                    if (distance > 0) {
+                        const distancePowerContribution = this._getDistancePowerContribution(distance);
+
+                        const distanceEl = document.createElement('div');
+
+                        distanceEl.className = 'powerDistance';
+                        distanceEl.textContent = distancePowerContribution;
+
+                        playerRollLine.appendChild(distanceEl);
+
+                        this._fadeInElement(distanceEl);
+                    }
+
+                    if (blockingPieces > 0) {
+                        const blockingEl = document.createElement('div');
+
+                        blockingEl.className = 'powerBlockingPieces';
+                        blockingEl.textContent = blockingPieces;
+
+                        playerRollLine.appendChild(blockingEl);
+
+                        this._fadeInElement(blockingEl);
                     }
                 }
 
                 if (skipEnabledPlayerId === result.playerId) {
-                    playerRollLine.insertAdjacentHTML('beforeend', `<div style="color: white; font-size: 20px; font-weight: bold">SKIP</div>`);
+                    const skipEl = document.createElement('div');
+
+                    skipEl.style.color = 'white';
+                    skipEl.style.fontSize = '20px';
+                    skipEl.style.fontWeight = 'bold';
+                    skipEl.textContent = 'SKIP';
+
+                    playerRollLine.appendChild(skipEl);
+
+                    this._fadeInElement(skipEl);
                 }
 
-                playerRollLine.insertAdjacentHTML('beforeend', `<div style="color: white; font-size: 20px;">${totalPower}</div>`);
+                const totalPowerEl = document.createElement('div');
+
+                totalPowerEl.style.color = 'white';
+                totalPowerEl.style.fontSize = '20px';
+                totalPowerEl.textContent = totalPower;
+
+                playerRollLine.appendChild(totalPowerEl);
+
+                this._fadeInElement(totalPowerEl);
             }
 
             if (rollResults.length === 1) {
-                let neutralRollLine = this._createNeutralRollLineElement(diceRollAreaEl);
-                neutralRollLine.insertAdjacentHTML('beforeend', `<div class='powerDistance'>${this._getDistancePowerContribution(distance)}</div>`);
-                neutralRollLine.insertAdjacentHTML('beforeend', `<div class="powerBlockingPieces">${blockingPieces}</div>`);
-                neutralRollLine.insertAdjacentHTML('beforeend', `<div style="color: white; font-size: 20px;">${requiredPower}</div>`);
+                const neutralRollLine = this._createNeutralRollLineElement(diceRollAreaEl);
+
+                const neutralDistanceEl = document.createElement('div');
+
+                neutralDistanceEl.className = 'powerDistance';
+                neutralDistanceEl.textContent = this._getDistancePowerContribution(distance);
+
+                neutralRollLine.appendChild(neutralDistanceEl);
+
+                this._fadeInElement(neutralDistanceEl);
+
+                const neutralBlockingEl = document.createElement('div');
+
+                neutralBlockingEl.className = 'powerBlockingPieces';
+                neutralBlockingEl.textContent = blockingPieces;
+
+                neutralRollLine.appendChild(neutralBlockingEl);
+
+                this._fadeInElement(neutralBlockingEl);
+
+                const requiredPowerEl = document.createElement('div');
+
+                requiredPowerEl.style.color = 'white';
+                requiredPowerEl.style.fontSize = '20px';
+                requiredPowerEl.textContent = requiredPower;
+
+                neutralRollLine.appendChild(requiredPowerEl);
+
+                this._fadeInElement(requiredPowerEl);
             }
 
-            const TIMEOUT = 5 * 1000;
-            setTimeout(() => {
-                diceRollAreaEl.remove();
-            }, TIMEOUT);
+            const DISPLAY_TIME = 5 * 1000;
 
-            return this._root.wait(TIMEOUT);
+            await this._root.wait(DISPLAY_TIME);
+
+            diceRollAreaEl.remove();
+        },
+
+        _fadeInElement: function (element) {
+            element.style.opacity = '0';
+            element.style.transition = 'opacity 0.8s ease-out';
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    element.style.opacity = '1';
+                });
+            });
         },
 
         createRollResult: function (playerId, rollResult) {
@@ -74,38 +232,67 @@ define([
                 greenDie: rollResult.greenDie,
                 whiteDice: rollResult.whiteDice,
                 assignedMorale: rollResult.assignedMorale
-            }
+            };
         },
 
         _createRollLineElement: function (parentEl, lineNum, result) {
+            const backColor =
+                result.playerId === this._root.player_id
+                    ? this._root.myColor
+                    : this._root.opponentColor;
 
-            let backColor = (result.playerId === this._root.player_id ? this._root.myColor : this._root.opponentColor);
-            let pos = (lineNum === 0 ? 'top:20%; left: 0;' : 'bottom: 20%; right: 0;');
-            let rowStyle = (lineNum === 0 ? 'flex-direction: row;' : 'flex-direction: row-reverse;');
-            let anchorClass = (lineNum === 0 ? 'left' : 'right');
+            const pos =
+                lineNum === 0
+                    ? 'top:20%; left: 0;'
+                    : 'bottom: 20%; right: 0;';
 
-            parentEl.insertAdjacentHTML('beforeend', `<div id='${result.playerId}_RollLine' style='--ribbonColor: ${backColor}; ${pos} ${rowStyle}' class='diceResult ${anchorClass}'></div>`)
+            const rowStyle =
+                lineNum === 0
+                    ? 'flex-direction: row;'
+                    : 'flex-direction: row-reverse;';
 
-            return document.getElementById(`${result.playerId}_RollLine`);
+            const anchorClass =
+                lineNum === 0 ? 'left' : 'right';
+
+            parentEl.insertAdjacentHTML(
+                'beforeend',
+                `<div
+                    id='${result.playerId}_RollLine'
+                    style='--ribbonColor: ${backColor}; ${pos} ${rowStyle}'
+                    class='diceResult ${anchorClass}'>
+                </div>`
+            );
+
+            return document.getElementById(
+                `${result.playerId}_RollLine`
+            );
         },
 
         _createNeutralRollLineElement: function (parentEl) {
-            let backColor = 'grey';
-            let pos = 'bottom: 20%; right: 0;';
-            let rowStyle = 'flex-direction: row-reverse;';
-            let anchorClass = 'right';
+            const backColor = 'grey';
+            const pos = 'bottom: 20%; right: 0;';
+            const rowStyle = 'flex-direction: row-reverse;';
+            const anchorClass = 'right';
 
-            parentEl.insertAdjacentHTML('beforeend', `<div id='neutral_RollLine' style='--ribbonColor: ${backColor}; ${pos} ${rowStyle}' class='diceResult ${anchorClass}'></div>`)
+            parentEl.insertAdjacentHTML(
+                'beforeend',
+                `<div
+                    id='neutral_RollLine'
+                    style='--ribbonColor: ${backColor}; ${pos} ${rowStyle}'
+                    class='diceResult ${anchorClass}'>
+                </div>`
+            );
 
-            return document.getElementById(`neutral_RollLine`);
+            return document.getElementById(
+                'neutral_RollLine'
+            );
         },
 
-        _getDistancePowerContribution: function (distance)
-        {
+        _getDistancePowerContribution: function (distance) {
             return Math.ceil(distance / 2);
         },
 
-        //Private Members
         _root: null,
-    }
+        _diceManager: null,
+    };
 });

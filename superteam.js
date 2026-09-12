@@ -30,10 +30,11 @@ define([
     g_gamethemeurl + "modules/js/STCardsManager.js",
     g_gamethemeurl + "modules/js/TrackerBoard.js",
     g_gamethemeurl + "modules/js/GameEventProcessor.js",
+    getLibUrl('bga-animations', '1.x'),
     "ebg/core/gamegui",
     "ebg/counter"
 ],
-    function (dojo, declare, topic, STHexLib, PieceManager, STHUIHelpers, Board, DiceUI, PlayerPanelManager, StatesRegistry, PlayerArea, STCardsManager, TrackerBoard, GameEventProcessor) {
+    function (dojo, declare, topic, STHexLib, PieceManager, STHUIHelpers, Board, DiceUI, PlayerPanelManager, StatesRegistry, PlayerArea, STCardsManager, TrackerBoard, GameEventProcessor, BgaAnimations) {
         return declare("bgagame.superteam", ebg.core.gamegui, {
             constructor: function () {
                 console.log('superteam constructor');
@@ -59,6 +60,8 @@ define([
 
                 this.userInLeftId = parseInt(gamedatas['user_in_left_id']);
                 this.userInRightId = parseInt(gamedatas['user_in_right_id']);
+
+                this.initAnimationsManager();
 
                 PlayerPanelManager.construct(this, gamedatas);
 
@@ -277,6 +280,16 @@ define([
                 }
             },
 
+             initAnimationsManager: function () {
+                 console.log('bgaAnimations:', BgaAnimations);
+                 console.log('Manager:', BgaAnimations.Manager);
+                 console.log('Manager type:', typeof BgaAnimations.Manager);
+
+                this.animationManager = new BgaAnimations.Manager({
+                    animationsActive: () => this.bga.gameui.bgaAnimationsActive(),
+                });
+            },
+
             assert: function (condition, message = "Assertion failed") {
                 if (!condition) {
                     throw new Error(message);
@@ -373,6 +386,7 @@ define([
                     rollResults.push(DiceUI.createRollResult(parseInt(player), notifData["rollResult"][player]));
                 }
 
+                console.log(rollResults);
                 return DiceUI.showRollAndWait(rollResults, notifData.attacker, notifData.requiredPower, notifData.blockingPieces, notifData.distance, notifData.skipEnabledPlayerId);
             },
 
@@ -515,6 +529,8 @@ define([
 
             gameDatas: null,
 
-            cardsManager: null
+            cardsManager: null,
+
+            animationManager: null
         });
     });

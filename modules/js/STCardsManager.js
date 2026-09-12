@@ -1,14 +1,12 @@
 define(["dojo/_base/declare",
-    getLibUrl('bga-animations', '1.x'),
-    getLibUrl('bga-cards', '1.x'),
+        getLibUrl('bga-cards', '1.x')
 ],
-    function (declare, BgaAnimations, BgaCards) {
+    function (declare, BgaCards) {
 
         const STCardsManager = declare("st.CardsManager", null, {
             constructor: function (root, cards) {
                 this._root = root;
 
-                this._initAnimationsManager();
                 this._initCardsManager();
                 this._initHiddenDeck();
                 this._initDiscardStock();
@@ -82,18 +80,12 @@ define(["dojo/_base/declare",
             },
 
             //Private Methods
-            _initAnimationsManager: function () {
-                this._animationManager = new BgaAnimations.Manager({
-                    animationsActive: () => this._root.bga.gameui.bgaAnimationsActive(),
-                });
-            },
-
             _initCardsManager: function () {
                 const cardWidth = 200 * 0.7;
                 const cardHeight = 280 * 0.7;
 
                 this._cardsManager = new BgaCards.Manager({
-                    animationManager: this._animationManager,
+                    animationManager: this._root.animationManager,
                     type: 'st-card', //css type
                     cardWidth: cardWidth,
                     cardHeight: cardHeight,
@@ -229,8 +221,6 @@ define(["dojo/_base/declare",
             },
 
             //Private Fields
-            _animationManager: null,
-
             _handStock: null,
 
             _discardStock: null,
