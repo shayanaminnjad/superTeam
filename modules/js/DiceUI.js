@@ -69,7 +69,7 @@ define([
 
 
                 for (let i = 0; i < playerDice.length; ++i) {
-                    await playerDiceStock.addDice([playerDice[0]]);
+                    await playerDiceStock.addDice([playerDice[i]]);
                 }
 
                 let totalPower = result.greenDie + result.assignedMorale;
