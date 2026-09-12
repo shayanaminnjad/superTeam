@@ -69,7 +69,14 @@ define([
 
 
                 for (let i = 0; i < playerDice.length; ++i) {
-                    await playerDiceStock.addDice([playerDice[i]]);
+
+                    const die = playerDice[i];
+                    const finalFace = die.face;
+                    die.face = Math.floor(Math.random() * 6) + 1;
+
+                    await playerDiceStock.addDice([die]);
+
+                    die.face = finalFace;
                 }
 
                 let totalPower = result.greenDie + result.assignedMorale;
