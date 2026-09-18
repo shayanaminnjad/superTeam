@@ -392,7 +392,7 @@ define([
                     return this.bgaPlayDojoAnimation(PlayerPanelManager.increasePlayerMoraleAnimated(notifData.amount, startEl));
                 }
                 else {
-                    PlayerPanelManager.setPlayerMorale(notifData.playerId, notifData.amount, true);
+                    return this.bgaPlayDojoAnimation(PlayerPanelManager.setPlayerMorale(notifData.playerId, notifData.amount, true));
                 }
             },
 
