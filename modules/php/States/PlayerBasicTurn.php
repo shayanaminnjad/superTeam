@@ -58,8 +58,7 @@ class PlayerBasicTurn extends PlayerBaseState
 
         $activePlayer = \intval($this->game->getActivePlayerId());
         $actionReturnState = DBAdapter::getInstance()->getPlayerActionReturnState($activePlayer);
-        if ($actionReturnState === BeforeCardSelectionReset::class ||
-            $actionReturnState === BeforeRewardResolve::class)
+        if ($actionReturnState === BeforeCardSelectionReset::class)
         {
             $this->addClientButton("undo", [$this, "actUndo"]);
         }
@@ -124,10 +123,6 @@ class PlayerBasicTurn extends PlayerBaseState
         {
             CardSelection::undoLastCardPlayed($activePlayer, $this->game);
             return $actionReturnState;
-        }
-        else if ($actionReturnState === BeforeRewardResolve::class)
-        {
-
         }
         else
         {
