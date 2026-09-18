@@ -10,9 +10,42 @@ define([], function () {
 
         //------------------------------------------------------------------------------------
 
-        setPlayerMorale: function (playerId, amount) {
+        setPlayerMorale: function (playerId, amount, animate = false) {
             let moraleEl = document.getElementById(`playerMorale${playerId}`);
-            moraleEl.innerHTML = amount;
+            let currentAmount = parseInt(moraleEl.innerHTML, 10) || 0;
+
+            if (!animate || currentAmount === amount) {
+                moraleEl.innerHTML = amount;
+                return dojo.animateProperty({ node: moraleEl, duration: 1 });
+            }
+
+            let stepDuration = 200; // Duration in ms for each step
+            let totalSteps = Math.abs(amount - currentAmount);
+            let stepDirection = amount > currentAmount ? 1 : -1;
+
+            let countAnim = dojo.animateProperty({
+                node: moraleEl,
+                duration: stepDuration * totalSteps,
+                onPlay: function () {
+                    moraleEl.classList.add("morale-changing");
+
+                    let counter = currentAmount;
+                    let interval = setInterval(function () {
+                        counter += stepDirection;
+                        moraleEl.innerHTML = counter;
+
+                        if (counter === amount) {
+                            clearInterval(interval);
+                        }
+                    }, stepDuration);
+                },
+                onEnd: function () {
+                    moraleEl.classList.remove("morale-changing");
+                    moraleEl.innerHTML = amount;
+                }
+            });
+
+            return countAnim;
         },
 
         //------------------------------------------------------------------------------------
@@ -24,32 +57,14 @@ define([], function () {
 
         //------------------------------------------------------------------------------------
 
+        increasePlayerMoraleAnimated: function (NewMorale, animStartEl) {
+            return this._animateMoraleChange(NewMorale, animStartEl, true);
+        },
+
         reducePlayerMoraleAnimated: function (amount, PlaceSpentOn) {
             let activePlayer = this._root.getActivePlayerId();
-            let currentMorale = this.getPlayerMorale(activePlayer);
-            this.setPlayerMorale(activePlayer, currentMorale - amount);
-
-            let animations = [];
-
-            for (let i = 0; i < amount; i++) {
-                let tempEl = document.createElement("div");
-                tempEl.innerHTML = `<div class="spentMorale"></div>`;
-                let moraleEl = tempEl.firstElementChild;
-                this._root.getGameAreaElement().appendChild(moraleEl);
-                let playerMoraleEl = document.getElementById(`playerMorale${activePlayer}`);
-
-                this._root.placeOnObject(moraleEl, playerMoraleEl);
-
-                animations.push(this._root.slideToObject(moraleEl, PlaceSpentOn));
-            }
-
-            let animation = dojo.fx.combine(animations);
-
-            dojo.connect(animation, "onEnd", this, function() {
-                document.querySelectorAll(".spentMorale").forEach(el => el.remove());
-            });
-
-            return animation;
+            let targetMorale = this.getPlayerMorale(activePlayer) - amount;
+            return this._animateMoraleChange(targetMorale, PlaceSpentOn, false);
         },
 
         setPlayerScoredGoals: function (playerId, amount) {
@@ -120,6 +135,57 @@ define([], function () {
 
             this.setPlayerCards(this._root.opponentId, gamedatas.other_deck_count);
             this.setPlayerCards(this._root.player_id, gamedatas.player_deck.length);
+        },
+
+        _animateMoraleChange: function (targetMorale, targetEl, isIncrease = true) {
+            let activePlayer = this._root.getActivePlayerId();
+            let currentMorale = this.getPlayerMorale(activePlayer);
+            let amount = Math.abs(targetMorale - currentMorale);
+
+            if (amount === 0) {
+                return this.setPlayerMorale(activePlayer, targetMorale, true);
+            }
+
+            let animations = [];
+            const delayMs = 150;
+
+            for (let i = 0; i < amount; i++) {
+                let tempEl = document.createElement("div");
+                tempEl.innerHTML = `<div class="floatingMorale"></div>`;
+                let moraleEl = tempEl.firstElementChild;
+                this._root.getGameAreaElement().appendChild(moraleEl);
+
+                let playerMoraleEl = document.getElementById(`playerMorale${activePlayer}`);
+
+                let startEl = isIncrease ? targetEl : playerMoraleEl;
+                let endEl = isIncrease ? playerMoraleEl : targetEl;
+
+                this._root.placeOnObject(moraleEl, startEl);
+
+                let slideAnim = this._root.slideToObject(moraleEl, endEl);
+
+                if (i > 0) {
+                    let delayAnim = dojo.animateProperty({
+                        node: moraleEl,
+                        duration: i * delayMs
+                    });
+                    animations.push(dojo.fx.chain([delayAnim, slideAnim]));
+                } else {
+                    animations.push(slideAnim);
+                }
+            }
+
+            let floatingAnimation = dojo.fx.combine(animations);
+
+            dojo.connect(floatingAnimation, "onEnd", this, function () {
+                document.querySelectorAll(".floatingMorale").forEach(el => el.remove());
+            });
+
+            let counterAnimation = this.setPlayerMorale(activePlayer, targetMorale, true);
+
+            return isIncrease
+                ? dojo.fx.chain([floatingAnimation, counterAnimation])
+                : dojo.fx.chain([counterAnimation, floatingAnimation]);
         },
 
         //Private Members

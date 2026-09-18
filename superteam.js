@@ -383,9 +383,17 @@ define([
                 pieceData.setFreshness(false);
             },
 
-            notif_moraleChanged: function (notifData) {
-                let moraleEl = document.getElementById(`playerMorale${notifData.playerId}`);
-                moraleEl.innerHTML = notifData.amount;
+            notif_moraleChanged: async function (notifData) {
+                let playerMorale = PlayerPanelManager.getPlayerMorale(notifData.playerId);
+
+                if (notifData.amount > playerMorale)
+                {
+                    const startEl = notifData.playerId === this.getActivePlayerId() ? document.getElementById('myDiscard'): document.getElementById('opponentDiscard');
+                    return this.bgaPlayDojoAnimation(PlayerPanelManager.increasePlayerMoraleAnimated(notifData.amount, startEl));
+                }
+                else {
+                    PlayerPanelManager.setPlayerMorale(notifData.playerId, notifData.amount, true);
+                }
             },
 
             notif_diceRolled: function (notifData) {
