@@ -130,6 +130,11 @@ class CardSelection extends PlayerBaseState
 
             $cardDef = $playerHand->getCard($cardId);
 
+            $cardFactory = $this->game->getCardFactory();
+            $card = $cardFactory->getCard($cardDef["type"]);
+            if (!$card->isExecutionPossible())
+                throw new \BgaUserException("Invalid card selected for execution, execution impossible");
+
             $tacticContext->setTacticInPlay($cardDef['type']);
             $tacticContext->setTacticProgress(0);
             $tacticContext->setRewardUsed(CardReward::empty());
