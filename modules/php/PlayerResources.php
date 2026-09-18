@@ -44,6 +44,9 @@ class PlayerResources
 
     public function addMorale(int $amount, bool $notify) : void
     {
+        if ($amount == 0)
+            return;
+
         $this->setMorale($this->getMorale() + $amount, $notify);
     }
 
