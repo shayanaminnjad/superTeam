@@ -27,6 +27,6 @@ class ActiveNextGoMorale extends GameState
     {
         $this->game->activeNextPlayer(); //TODO: probably I should give time to this player!
 
-        return MoraleAssignment::class;
+        return BeforeMoraleAssignment::class;
     }
 }

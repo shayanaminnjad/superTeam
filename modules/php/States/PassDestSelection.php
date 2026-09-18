@@ -125,7 +125,7 @@ class PassDestSelection extends PlayerBaseState
             $dbAdapter = DBAdapter::getInstance();
             $dbAdapter->storeSelectedHex($selectedHex);
 
-            return MoraleAssignment::class;
+            return BeforeMoraleAssignment::class;
         }
     }
 
