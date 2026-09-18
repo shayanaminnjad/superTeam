@@ -68,12 +68,15 @@ class MoraleAssignment extends GameState
             throw new \BgaUserException("$amount morale assigned, max morale assignable is $maxMoraleAssignable");
         }
 
-        $assignData = $this->getAssignmentData();
+        $assignData = new MoraleAssignData();
 
         DBAdapter::getInstance()->setGameStateValue('moraleAssignRemaining', $assignData->moraleAssignRemaining - 1);
 
-        $playerResources = new PlayerResources($activePlayerId);
-        $playerResources->addMorale(-$amount, true);
+        if ($amount > 0)
+        {
+            $playerResources = new PlayerResources($activePlayerId);
+            $playerResources->addMorale(-$amount, true);
+        }
 
         //TODO: this is an important data to the current turn player! make sure that it is shown to him boldly!
 
@@ -105,11 +108,6 @@ class MoraleAssignment extends GameState
     public static function getMoraleAssigned(int $playerId): int
     {
         return DBAdapter::getInstance()->getPlayerTempInt($playerId, 'assigned_morale');
-    }
-
-    private function getAssignmentData(): MoraleAssignData
-    {
-        return new MoraleAssignData();
     }
 }
 
