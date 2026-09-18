@@ -106,7 +106,7 @@ readonly class TacticCardDefinition extends CardDefinition
         public CardDefensiveMoves $cardDefensiveMoves,
         public DefensiveReward $defensiveReward,
         public bool $defenseHasFatigue,
-
+        public array $offensivePassSequence,
         public OffensiveReward $offensiveReward,
         public bool $offenseHasFatigue
     ) {

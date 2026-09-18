@@ -20,14 +20,32 @@ use Bga\Games\SuperTeam\States\PassDestSelection;
 
 abstract class TacticCard extends Card
 {
-    public function __construct(CardDefinition $definition, Game $game)
+    private TacticCardDefinition $tacticCardDefinition;
+    public function __construct(TacticCardDefinition $definition, Game $game)
     {
+        $this->tacticCardDefinition = $definition;
+
         parent::__construct($definition, $game);
     }
 
+    //TODO: I don't need to implement this per class! the algorithm is the same for all of them, just the parameters change!
     abstract protected function getOffensiveCommands() : array;
-    abstract protected function isOffensiveMovePossible(): bool;
 
+    final protected function isOffensiveMovePossible(): bool
+    {
+        $currentPlayer =  \intval($this->game->GetActivePlayerId());
+        $playerHasTheBall = BoardEvaluator::doesPlayerHasTheBall($this->board, $currentPlayer);
+        $startHex = $this->board->getBallHex();
+
+        return
+            $playerHasTheBall &&
+            PassTargetSelectionLogic::isPassSequencePossible(
+                $this->board,
+                $this->tacticCardDefinition->offensivePassSequence,
+                $currentPlayer,
+                $startHex,
+                $this->game->getPlayerSide($currentPlayer));
+    }
 
     final public function isExecutionPossible(): bool
     {

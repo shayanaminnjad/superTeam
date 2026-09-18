@@ -28,6 +28,7 @@ class BasicE extends TacticCard
             new CardDefensiveMoves(0, 1, 1, 0, 0),
             new DefensiveReward(1, 0, 0),
             false,
+            [PassTypes::THROUGH],
             new OffensiveReward(1, 2, 0),
             false,),
             $game);
@@ -40,16 +41,6 @@ class BasicE extends TacticCard
     public function getId(): string
     {
         return static::staticId();
-    }
-    protected function isOffensiveMovePossible(): bool
-    {
-        $currentPlayer =  \intval($this->game->GetActivePlayerId());
-        $playerHasTheBall = BoardEvaluator::doesPlayerHasTheBall($this->board, $currentPlayer);
-        $startHex = $this->board->getBallHex();
-
-        return
-            $playerHasTheBall &&
-            count(PassTargetSelectionLogic::getPassTargetsHexes($this->board, PassTypes::THROUGH, $currentPlayer, $startHex, $this->game->getPlayerSide($currentPlayer))) > 0;
     }
 
     protected function getOffensiveCommands(): array

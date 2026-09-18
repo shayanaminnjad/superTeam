@@ -3,6 +3,7 @@
 namespace Bga\Games\SuperTeam\Cards\GameCards;
 
 use Bga\Games\SuperTeam\BoardEvaluator;
+use Bga\Games\SuperTeam\Cards\BallPass\PassTypes;
 use Bga\Games\SuperTeam\Cards\CardType;
 use Bga\Games\SuperTeam\Cards\CardTypeHelper;
 use Bga\Games\SuperTeam\Cards\DefensiveReward;
@@ -23,6 +24,7 @@ class BasicC extends TacticCard
             new CardDefensiveMoves(0, 1, 1, 0, 0),
             new DefensiveReward(1, 0, 0),
             false,
+            [PassTypes::NEAR_OPPONENT],
             new OffensiveReward(1, 2, 0),
             false,),
             $game);
@@ -44,15 +46,5 @@ class BasicC extends TacticCard
             $this->goToPassState(...),
             $this->checkPassResult(...)
         ];
-    }
-
-    protected function isOffensiveMovePossible(): bool
-    {
-        $currentPlayer =  \intval($this->game->GetActivePlayerId());
-        $playerHasTheBall = BoardEvaluator::doesPlayerHasTheBall($this->board, $currentPlayer);
-        $startHex = $this->board->getBallHex();
-
-        return $playerHasTheBall &&
-            BoardEvaluator::doesOpponentExistInNeighbours($this->board, $startHex, $currentPlayer, true);
     }
 }

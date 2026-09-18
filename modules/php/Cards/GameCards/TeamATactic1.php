@@ -27,6 +27,7 @@ class TeamATactic1 extends TacticCard
             new CardDefensiveMoves(1, 2, 0, 0, 0),
             new DefensiveReward(1, 0, 1),
             true,
+            [PassTypes::FORWARD, PassTypes::THROUGH],
             new OffensiveReward(0, 2, 1),
             true,),
             $game);
@@ -52,16 +53,5 @@ class TeamATactic1 extends TacticCard
             $this->goToPassState(...),
             $this->checkThroughPassResult(...)
         ];
-    }
-
-    protected function isOffensiveMovePossible(): bool
-    {
-        $currentPlayer =  \intval($this->game->GetActivePlayerId());
-        $playerHasTheBall = BoardEvaluator::doesPlayerHasTheBall($this->board, $currentPlayer);
-        $startHex = $this->board->getBallHex();
-
-        return
-            $playerHasTheBall &&
-            count(PassTargetSelectionLogic::getPassTargetsHexes($this->board, PassTypes::FORWARD, $currentPlayer, $startHex, $this->game->getPlayerSide($currentPlayer))) > 0;
     }
 }
