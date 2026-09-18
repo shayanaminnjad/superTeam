@@ -339,11 +339,19 @@ define([
             },
 
             notif_cardPlayed: function (notifData) {
+                PlayerPanelManager.setPlayerCards(notifData.activePlayer, notifData.cardsInDeckCount);
                 return this.forwardNotification(this.notif_cardPlayed.name, notifData);
             },
 
             notif_cardUndo: function(notifData) {
+                PlayerPanelManager.setPlayerCards(this.opponentId, notifData.cardsInDeckCount);
                 this.cardsManager.removeCard(notifData.undoCard);
+            },
+
+            notif_deckCountChanged: function(notifData) {
+                notifData.forEach(([playerId, deckCount]) => {
+                    PlayerPanelManager.setPlayerCards(playerId, deckCount);
+                });
             },
 
             notif_resetPlayerPieces: async function (notifData) {

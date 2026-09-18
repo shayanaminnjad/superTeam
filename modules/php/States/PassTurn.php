@@ -40,6 +40,8 @@
              'wasDiscardShuffled' => $wasDiscardShuffled,
          ]);
 
+         $this->game->notify->all("deckCountChanged", "", [[$activePlayerId, $playerHand->CountCardsInDeck()]]);
+
          if ($wasDiscardShuffled)
          {
              $this->game->notify->player($this->game->getInactivePlayerId(), "opponentDiscardShuffle");

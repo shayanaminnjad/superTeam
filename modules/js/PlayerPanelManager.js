@@ -57,6 +57,11 @@ define([], function () {
             scoredGoalsEl.innerHTML = amount;
         },
 
+        setPlayerCards: function (playerId, amount) {
+            let cardsEl = document.getElementById(`playerCards${playerId}`);
+            cardsEl.innerHTML = amount;
+        },
+
         setAttacker: function (attackerId){
             for (const [playerId, element] of Object.entries(this._tacticalStateElMap)) {
                 const isAttacker = parseInt(playerId) === attackerId;
@@ -94,6 +99,13 @@ define([], function () {
 
                 this.setPlayerScoredGoals(playerId, scoredGoals);
 
+                let cards = gamedatas.players[playerId].cards;
+
+                playerResources.insertAdjacentHTML('beforeend', `
+                    <div class ="resource">
+                    <span class = "cardIcon resourceIcon"></span>
+                    <span id="playerCards${playerId}" class= "label">${cards}</span></div>`);
+
                 const tacticalEl = document.createElement('div');
                 tacticalEl.classList = 'readonlyText';
                 tacticalEl.style.setProperty('--color', `#FFFFFF`);
@@ -105,6 +117,9 @@ define([], function () {
             }
 
             this.setAttacker(parseInt(gamedatas.attacker));
+
+            this.setPlayerCards(this._root.opponentId, gamedatas.other_deck_count);
+            this.setPlayerCards(this._root.player_id, gamedatas.player_deck.length);
         },
 
         //Private Members

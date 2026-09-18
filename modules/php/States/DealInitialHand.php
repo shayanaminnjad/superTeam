@@ -27,6 +27,7 @@ class DealInitialHand extends GameState
     {
         $playerHands = $this->game->getPlayerHands();
 
+        $playerDecksSizes = [];
         foreach($playerHands as &$playerHand)
         {
             $playerHand->shuffleDeck();
@@ -38,7 +39,11 @@ class DealInitialHand extends GameState
                     'playerHand' => $playerHand->getCardsInHand(),
                     'wasDiscardShuffled' => $wasDiscardShuffled,
                 ]);
+
+            $playerDecksSizes [] = [$playerHand->getOwner(), $playerHand->CountCardsInDeck()];
         }
+
+        $this->game->notify->all("deckCountChanged", "", $playerDecksSizes);
 
         return BeforeCardSelectionReset::class;
     }

@@ -102,8 +102,9 @@ class CardSelection extends PlayerBaseState
         $playerHand->discardCard($cardId);
 
         $this->game->notify->all("cardPlayed", "card {$cardId} played", [
+            'activePlayer' => $activePlayer,
             'discards' => $playerHand->getDiscardedCards(),
-            'cardsInHandCount' => $playerHand->CountCardsInHand()
+            'cardsInDeckCount' => $playerHand->CountCardsInDeck()
             ]);
 
         self::increaseCardsPlayedThisTurnByOne($this->game);
@@ -178,7 +179,7 @@ class CardSelection extends PlayerBaseState
 
         $game->notify->player($game->getInactivePlayerId(), "cardUndo", "", [
             'undoCard' => $cardMoved,
-            'cardsInHandCount' => $playerHand->CountCardsInHand()
+            'cardsInDeckCount' => $playerHand->CountCardsInDeck()
         ]);
     }
 
