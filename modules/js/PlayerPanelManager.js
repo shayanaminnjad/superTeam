@@ -4,7 +4,6 @@ define([], function () {
         //Public Functions
         construct: function (root, gamedatas) {
             this._root = root;
-
             this._init(gamedatas);
         },
 
@@ -57,14 +56,13 @@ define([], function () {
 
         //------------------------------------------------------------------------------------
 
-        increasePlayerMoraleAnimated: function (NewMorale, animStartEl) {
-            return this._animateMoraleChange(NewMorale, animStartEl, true);
+        increasePlayerMoraleAnimated: function (playerId, NewMorale, animStartEl) {
+            return this._animateMoraleChange(playerId, NewMorale, animStartEl, true);
         },
 
-        reducePlayerMoraleAnimated: function (amount, PlaceSpentOn) {
-            let activePlayer = this._root.getActivePlayerId();
-            let targetMorale = this.getPlayerMorale(activePlayer) - amount;
-            return this._animateMoraleChange(targetMorale, PlaceSpentOn, false);
+        reducePlayerMoraleAnimated: function (playerId, amount, PlaceSpentOn) {
+            let targetMorale = this.getPlayerMorale(playerId) - amount;
+            return this._animateMoraleChange(playerId, targetMorale, PlaceSpentOn, false);
         },
 
         setPlayerScoredGoals: function (playerId, amount) {
@@ -137,13 +135,12 @@ define([], function () {
             this.setPlayerCards(this._root.player_id, gamedatas.player_deck.length);
         },
 
-        _animateMoraleChange: function (targetMorale, targetEl, isIncrease = true) {
-            let activePlayer = this._root.getActivePlayerId();
-            let currentMorale = this.getPlayerMorale(activePlayer);
+        _animateMoraleChange: function (playerId, targetMorale, targetEl, isIncrease = true) {
+            let currentMorale = this.getPlayerMorale(playerId);
             let amount = Math.abs(targetMorale - currentMorale);
 
             if (amount === 0) {
-                return this.setPlayerMorale(activePlayer, targetMorale, true);
+                return this.setPlayerMorale(playerId, targetMorale, true);
             }
 
             let animations = [];
@@ -155,7 +152,7 @@ define([], function () {
                 let moraleEl = tempEl.firstElementChild;
                 this._root.getGameAreaElement().appendChild(moraleEl);
 
-                let playerMoraleEl = document.getElementById(`playerMorale${activePlayer}`);
+                let playerMoraleEl = document.getElementById(`playerMorale${playerId}`);
 
                 let startEl = isIncrease ? targetEl : playerMoraleEl;
                 let endEl = isIncrease ? playerMoraleEl : targetEl;
@@ -181,7 +178,7 @@ define([], function () {
                 document.querySelectorAll(".floatingMorale").forEach(el => el.remove());
             });
 
-            let counterAnimation = this.setPlayerMorale(activePlayer, targetMorale, true);
+            let counterAnimation = this.setPlayerMorale(playerId, targetMorale, true);
 
             return isIncrease
                 ? dojo.fx.chain([floatingAnimation, counterAnimation])

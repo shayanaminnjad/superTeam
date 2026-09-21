@@ -38,7 +38,7 @@ define([
 
             let animations = [];
             if (spentMorale) {
-                animations.push(PlayerPanelManager.reducePlayerMoraleAnimated(1, piece.getDOMID()));
+                animations.push(PlayerPanelManager.reducePlayerMoraleAnimated(this._root.getActivePlayerId(), 1, piece.getDOMID()));
             }
 
             let movementAnimations = [];

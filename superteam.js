@@ -388,12 +388,24 @@ define([
 
                 if (notifData.amount > playerMorale)
                 {
-                    const startEl = notifData.playerId === this.getActivePlayerId() ? document.getElementById('myDiscard'): document.getElementById('opponentDiscard');
-                    return this.bgaPlayDojoAnimation(PlayerPanelManager.increasePlayerMoraleAnimated(notifData.amount, startEl));
+                    const startEl = notifData.playerId === this.opponentId ? document.getElementById('opponentDiscard') : document.getElementById('myDiscard');
+                    return this.bgaPlayDojoAnimation(PlayerPanelManager.increasePlayerMoraleAnimated(notifData.playerId, notifData.amount, startEl));
                 }
                 else {
                     return this.bgaPlayDojoAnimation(PlayerPanelManager.setPlayerMorale(notifData.playerId, notifData.amount, true));
                 }
+            },
+
+            notif_moraleAssigned : function (notifData) {
+                //from here: create an element above the pieces head with the amount of morale specified! if zero then skip!
+                //forward notif to morale assignment state,
+                //also morale assignment state must create the same thing in onEnter.
+                    Object.entries(notifData).forEach(([playerId, data]) => {
+                        const pieceId = data[0];
+                        const moraleAssigned = data[1];
+
+                        console.log(playerId, pieceId, moraleAssigned);
+                    });
             },
 
             notif_diceRolled: function (notifData) {
