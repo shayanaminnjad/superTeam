@@ -52,7 +52,6 @@ define(["dojo/_base/declare",
                 this._removeStatus(el);
 
                 el.classList.add(this._getStatus());
-                el.innerHTML = this._generateInnerHTML();
             },
 
             getRole: function () {
@@ -108,9 +107,8 @@ define(["dojo/_base/declare",
                 const PIECE_DOM_ID = this.getDOMID();
                 let status = this._getStatus();
                 let type = this.getStringifiedRole();
-                let inner = this._generateInnerHTML();
 
-                document.getElementById('pieces').insertAdjacentHTML('beforeend', `<div id="${PIECE_DOM_ID}" class="piece ${status} ${type} ${this._color}" >${inner}</div>`);
+                document.getElementById('pieces').insertAdjacentHTML('beforeend', `<div id="${PIECE_DOM_ID}" class="piece ${status} ${type} ${this._color}" ></div>`);
             },
 
             _getStatus: function () {
@@ -119,16 +117,6 @@ define(["dojo/_base/declare",
 
             _removeStatus: function (el) {
                 el.classList.remove('fresh', 'exhausted');
-            },
-
-            _generateInnerHTML: function () {
-                if (this.getRole() === playerRoles.Captain) {
-                    let type = this.getStringifiedRole();
-                    return `${type[0]}`;
-                }
-                else {
-                    return '';
-                }
             },
 
             // Private members

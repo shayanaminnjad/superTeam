@@ -138,13 +138,13 @@
 }
 
 .piece.captain.blue.fresh {
-    background-image: url('img/blueMeepleReady.png');
+    background-image: url('img/blueCaptainMeepleReady.png');
     background-size: contain;
     background-repeat: no-repeat;
 }
 
 .piece.captain.blue.exhausted {
-    background-image: url('img/blueMeepleExhausted.png');
+    background-image: url('img/blueMeepleCaptainExhausted.png');
     background-size: contain;
     background-repeat: no-repeat;
 }
@@ -162,14 +162,14 @@
 }
 
 .piece.captain.red.fresh {
-    background-image: url('img/redMeepleReady.png');
+    background-image: url('img/redCaptainMeepleReady.png');
     background-size: contain;
     background-repeat: no-repeat;
 }
 
 .piece.captain.red.exhausted {
     pointer-events: none;
-    background-image: url('img/redMeepleExhausted.png');
+    background-image: url('img/redMeepleCaptainExhausted.png');
     background-size: contain;
     background-repeat: no-repeat;
 }
