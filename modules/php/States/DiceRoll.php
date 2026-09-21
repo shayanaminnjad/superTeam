@@ -10,6 +10,7 @@ use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Dice\GameDice;
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\Dice\DiceRollResult;
 use Bga\Games\SuperTeam\TeamAttribute;
@@ -79,7 +80,8 @@ class DiceRoll extends GameState
         }
 
         $dieRes = GameDice::greenDie()->roll();
-        $assignedMorale = MoraleAssignment::getMoraleAssigned($playerId);
+        $moraleAssignContext = new MoraleAssignContext();
+        $assignedMorale = $moraleAssignContext->getMoraleAssigned($playerId);
 
         return new DiceRollResult($assignedMorale, $dieRes, $whiteDice);
     }

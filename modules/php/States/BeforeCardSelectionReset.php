@@ -11,6 +11,7 @@ use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\RequiredPower;
 
@@ -64,6 +65,10 @@ class BeforeCardSelectionReset extends GameState
         DBAdapter::getInstance()->storePlayerTempStr($activePlayerId, 'shootTarget', HexID::GetInvalidId()->toJson());
 
         RequiredPower::setSkipEnabled(false);
+
+        $moraleAssignContext = new MoraleAssignContext();
+        $opponent_player_id = (int) $this->game->getPlayerAfter($activePlayerId);
+        $moraleAssignContext->reset([$activePlayerId, $opponent_player_id]);
 
         return CardSelection::class;
     }

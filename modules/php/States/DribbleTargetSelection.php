@@ -11,6 +11,7 @@ use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\TeamAttribute;
 
@@ -69,7 +70,17 @@ class DribbleTargetSelection extends GameState
             throw new \BgaUserException("Invalid tackle target `" . $selectedHex->toString() . "` selected.");
 
         DBAdapter::getInstance()->storeSelectedHex($selectedHex);
-        MoraleAssignment::storeMoraleAssignData(DiceRoll::class, true);
+        $moraleAssignContext = new MoraleAssignContext();
+        $moraleAssignContext->storeMoraleStateData(DiceRoll::class, true);
+
+        $attacker = $board->getAttacker();
+        $pieceWithBall = null;
+        $board->tryGetPlayerPieceInHex($board->getBallHex(), $pieceWithBall);
+        $defender = $board->getDefender();
+        $defendingPiece = null;
+        $board->tryGetPlayerPieceInHex($selectedHex, $defendingPiece);
+        $moraleAssignContext->storeMoraleAssignPieceIds([[$attacker, $pieceWithBall->getId()],[$defender, $defendingPiece->getId()]]);
+
         DiceRollServices::storeRollInput($activePlayer, new RequiredPower(-1, []), PerformDribble::class, TeamAttribute::Dribble, TeamAttribute::Tackle, true);
 
         return ActiveNextGoMorale::class;

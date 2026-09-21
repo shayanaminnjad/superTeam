@@ -10,6 +10,7 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Math\Math;
 use Bga\Games\SuperTeam\DBAdapter;
@@ -50,13 +51,17 @@ class MoraleAssignment extends GameState
         $shootTarget = ShootTargetSelection::getPlayerShootTarget($attacker);
         $isShooting = $shootTarget->isValid();
 
+
+        $moraleDataToSend = $this->prepareMoraleAssignDataToSend(new MoraleAssignContext(), -1);
+
         return [
             'maxMoraleAssignable' => $maxMoraleAssignable,
             'requiredPower' => $requiredPower,
             'attacker' => $attacker,
             'selectedDestination' => $selectedHex->convertToArray(),
-            'isShooting' => $isShooting
-        ]; //TODO: this probably must be injected here, as not all actions have a destination!
+            'isShooting' => $isShooting,
+            'moraleAssigned' => $moraleDataToSend
+        ];
     }
 
     #[PossibleAction]
@@ -68,9 +73,9 @@ class MoraleAssignment extends GameState
             throw new \BgaUserException("$amount morale assigned, max morale assignable is $maxMoraleAssignable");
         }
 
-        $assignData = new MoraleAssignData();
-
-        DBAdapter::getInstance()->setGameStateValue('moraleAssignRemaining', $assignData->moraleAssignRemaining - 1);
+        $moraleAssignContext = new MoraleAssignContext();
+        $moraleAssignmentRemaining = $moraleAssignContext->getMoraleAssignRemaining();
+        $moraleAssignContext->storeMoraleAssignRemaining( $moraleAssignmentRemaining - 1);
 
         if ($amount > 0)
         {
@@ -78,16 +83,18 @@ class MoraleAssignment extends GameState
             $playerResources->addMorale(-$amount, true);
         }
 
-        //TODO: this is an important data to the current turn player! make sure that it is shown to him boldly!
+        $activePlayerId = intval($this->game->getActivePlayerId());
+        $moraleAssignContext->storeMoraleAssigned($activePlayerId, $amount);
 
-        DBAdapter::getInstance()->storePlayerTempInt(intval($this->game->getActivePlayerId()), 'assigned_morale', $amount);
+        $this->notifyMoraleAssigned($moraleAssignContext, $activePlayerId);
 
-        if ($assignData->moraleAssignRemaining - 1 > 0) {
+        if ($moraleAssignmentRemaining - 1 > 0) {
             return ActiveNextGoMorale::class;
         } else {
-            assert(strlen($assignData->finishTransition) > 0, "no transition is stored for morale assign finish");
+            $finishTransition = $moraleAssignContext->getMoraleAssignTransition();
+            assert(strlen($finishTransition) > 0, "no transition is stored for morale assign finish");
 
-            return $assignData->finishTransition;
+            return $finishTransition;
         }
     }
 
@@ -95,33 +102,31 @@ class MoraleAssignment extends GameState
     {
         return $this->actMoraleAssigned(0, $playerId);
     }
-    
-    //TODO: these function can be inside another file named morale assign services
-    public static function storeMoraleAssignData(string $finishTransition, bool $bothPlayers) : void
+
+    private function notifyMoraleAssigned(MoraleAssignContext $moraleAssignContext, int $activePlayerId): void
     {
-        //I can package all these into a single json entry!
-        $dbAdapter = DBAdapter::getInstance();
-        $dbAdapter->setGameStateValue('moraleAssignRemaining', $bothPlayers ? 2 : 1);
-        $dbAdapter->storeGlobalString('morale_assign_transition', addslashes($finishTransition));
+        $moraleAssignedNotifData = $this->prepareMoraleAssignDataToSend($moraleAssignContext, $activePlayerId);
+
+        $this->game->notify->all("moraleAssigned", "", $moraleAssignedNotifData);
     }
 
-    public static function getMoraleAssigned(int $playerId): int
+    private function prepareMoraleAssignDataToSend(MoraleAssignContext $moraleAssignContext, int $activePlayerId) : array
     {
-        return DBAdapter::getInstance()->getPlayerTempInt($playerId, 'assigned_morale');
-    }
-}
+        $moralePiecesIds = $moraleAssignContext->getMoraleAssignPiecesIds();
 
-class MoraleAssignData
-{
-    public int $moraleAssignRemaining;
-    public int $requiredPower;
-    public string $finishTransition;
+        $moraleAssignData = [];
 
-    public function __construct()
-    {
-        $dbAdapter = DBAdapter::getInstance();
-        $this->moraleAssignRemaining = $dbAdapter->getGameStateValue("moraleAssignRemaining");
-        $this->requiredPower = $dbAdapter->getGameStateValue('required_power');
-        $this->finishTransition = $dbAdapter->getGlobalString('morale_assign_transition');
+        foreach ($moralePiecesIds as [$playerId, $pieceId])
+        {
+            if ($activePlayerId == -1 || $activePlayerId == $playerId)
+            {
+                $moraleAssignData[$playerId] = [
+                    $pieceId,
+                    $moraleAssignContext->getMoraleAssigned($playerId)
+                ];
+            }
+        }
+
+        return $moraleAssignData;
     }
 }

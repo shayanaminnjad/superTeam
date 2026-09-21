@@ -6,6 +6,7 @@ use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\StateType;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\PlayerResources;
 
 class BeforeMoraleAssignment extends GameState
@@ -34,17 +35,19 @@ class BeforeMoraleAssignment extends GameState
         }
         else
         {
-            $assignData = new MoraleAssignData();
+            $moraleAssignContext = new MoraleAssignContext();
+            $moraleAssignRemaining = $moraleAssignContext->getMoraleAssignRemaining();
 
-            DBAdapter::getInstance()->setGameStateValue('moraleAssignRemaining', $assignData->moraleAssignRemaining - 1);
-            DBAdapter::getInstance()->storePlayerTempInt(intval($this->game->getActivePlayerId()), 'assigned_morale', 0);
+            $moraleAssignContext->storeMoraleAssignRemaining($moraleAssignRemaining - 1);
+            $moraleAssignContext->storeMoraleAssigned(intval($this->game->getActivePlayerId()), 0);
 
-            if ($assignData->moraleAssignRemaining - 1 > 0) {
+            if ($moraleAssignRemaining - 1 > 0) {
                 return ActiveNextGoMorale::class;
             } else {
-                assert(strlen($assignData->finishTransition) > 0, "no transition is stored for morale assign finish");
+                $finishTransition = $moraleAssignContext->getMoraleAssignTransition();
+                assert(strlen($finishTransition) > 0, "no transition is stored for morale assign finish");
 
-                return $assignData->finishTransition;
+                return $finishTransition;
             }
         }
     }

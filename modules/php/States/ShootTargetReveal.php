@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\TeamAttribute;
 
 class ShootTargetReveal extends GameState
@@ -43,7 +44,12 @@ class ShootTargetReveal extends GameState
         $requiredPower = $board->getRequiredPower($board->getBallHex(), $attackerTarget, $board->getDefender(), $dummyinlineHexes, $dummyblockingHexes);
         
         DiceRollServices::storeRollInput($activePlayerId, $requiredPower, ShootPerform::class, TeamAttribute::Shoot, TeamAttribute::GK, true);
-        MoraleAssignment::storeMoraleAssignData(DiceRoll::class, true);
+        $moraleAssignContext = new MoraleAssignContext();
+        $moraleAssignContext->storeMoraleStateData(DiceRoll::class, true);
+
+        $pieceWithBall = null;
+        $board->tryGetPlayerPieceInHex($board->getBallHex(), $pieceWithBall);
+        $moraleAssignContext->storeMoraleAssignPieceIds([[$attacker, $pieceWithBall->getId()],[$defender, $defenderGoalie->getId()]]);
 
         $db = DBAdapter::getInstance();
         $db->storeSelectedHex($attackerTarget);

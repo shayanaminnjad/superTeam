@@ -12,6 +12,7 @@ use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\PlayerSide;
 use Bga\Games\SuperTeam\TeamAttribute;
 use BgaUserException;
@@ -120,7 +121,8 @@ class PassDestSelection extends PlayerBaseState
             $requiredPower = $board->getRequiredPower($hexWithBall, $selectedHex, $this->game->getInactivePlayerId(), $dummyinlineHexes, $dummyblockingHexes);
 
             DiceRollServices::storeRollInput(\intval($this->game->getActivePlayerId()), $requiredPower, PassPerform::class, TeamAttribute::Pass, TeamAttribute::None, false);
-            MoraleAssignment::storeMoraleAssignData(DiceRoll::class, false);
+            $moraleAssignContext = new MoraleAssignContext();
+            $moraleAssignContext->storeMoraleStateData(DiceRoll::class, false);
 
             $dbAdapter = DBAdapter::getInstance();
             $dbAdapter->storeSelectedHex($selectedHex);

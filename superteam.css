@@ -120,7 +120,6 @@
     width: 32px;
     height: 32px;
     overflow: visible;
-    text-align: center;
     z-index: 100;
     pointer-events: none;
 }
@@ -297,6 +296,29 @@
     transform: scale(1.2) !important;
 }
 
+.pieceMoraleLine {
+    position: absolute;
+    bottom: 115%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.pieceMoraleLine .moraleIcon {
+    width: 16px;
+    height: 16px;
+    background-image: url('img/outLinedMorale.png');
+    background-size: contain;
+    overflow: visible;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
 .cardIcon {
     display: inline-block;
     width: 16px;
@@ -329,6 +351,7 @@
     background-repeat: no-repeat;
     overflow: visible;
     pointer-events: none;
+    z-index: 101;
 }
 
 .powerIndication{

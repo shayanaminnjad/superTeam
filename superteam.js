@@ -396,16 +396,8 @@ define([
                 }
             },
 
-            notif_moraleAssigned : function (notifData) {
-                //from here: create an element above the pieces head with the amount of morale specified! if zero then skip!
-                //forward notif to morale assignment state,
-                //also morale assignment state must create the same thing in onEnter.
-                    Object.entries(notifData).forEach(([playerId, data]) => {
-                        const pieceId = data[0];
-                        const moraleAssigned = data[1];
-
-                        console.log(playerId, pieceId, moraleAssigned);
-                    });
+            notif_moraleAssigned : async function (notifData) {
+                return this.forwardNotification(this.notif_moraleAssigned.name, notifData);
             },
 
             notif_diceRolled: function (notifData) {

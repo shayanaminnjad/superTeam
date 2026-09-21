@@ -13,6 +13,7 @@ use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\TeamAttribute;
 
@@ -81,7 +82,19 @@ class TacklePerformerSelection extends GameState
             throw new \BgaUserException("selected invalid piece id for tackling");
 
         DBAdapter::getInstance()->storeSelectedHex($selectedHex);
-        MoraleAssignment::storeMoraleAssignData(DiceRoll::class, true);
+        $moraleAssignContext = new MoraleAssignContext();
+        $moraleAssignContext->storeMoraleStateData(DiceRoll::class, true);
+
+        $board = $this->game->getBoard();
+        $attacker = $board->getAttacker();
+        $defender = $board->getDefender();
+
+        $pieceWithBall = null;
+        $board->tryGetPlayerPieceInHex($board->getBallHex(), $pieceWithBall);
+        $tacklingPiece = null;
+        $board->tryGetPlayerPieceInHex($selectedHex, $tacklingPiece);
+        $moraleAssignContext->storeMoraleAssignPieceIds([[$attacker, $pieceWithBall->getId()],[$defender, $tacklingPiece->getId()]]);
+
         DiceRollServices::storeRollInput(\intval($this->game->getActivePlayerId()), new RequiredPower(0, []), PerformTackle::class, TeamAttribute::Tackle, TeamAttribute::Dribble, true);
 
         return ActiveNextGoMorale::class;
