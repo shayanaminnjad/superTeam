@@ -635,3 +635,55 @@
 .die-white.face-4 { background-position:  60% 100%; }
 .die-white.face-5 { background-position:  80% 100%; }
 .die-white.face-6 { background-position: 100% 100%; }
+
+.buttonIcon {
+    display: inline-block;
+    background-repeat: no-repeat;
+    background-size: contain;
+    vertical-align: middle;
+    margin: 2px;
+}
+
+.moveForward {
+    width: 16px;
+    height: 25px;
+    background-image: url("img/moveForwardIcon.png");
+}
+
+.moveBackward {
+    width: 16px;
+    height: 25px;
+    background-image: url("img/moveForwardIcon.png");
+    transform: scaleY(-1);
+}
+
+.moveForwardNearOpponent {
+    width: 24px;
+    height: 27px;
+    background-image: url("img/moveForwardINearOpponentcon.png");
+}
+
+.moveBackNearOpponent {
+    width: 24px;
+    height: 27px;
+    background-image: url("img/moveForwardINearOpponentcon.png");
+    transform: scaleY(-1);
+}
+
+.moveFree {
+    width: 26px;
+    height: 24px;
+    background-image: url("img/freeMoveIcon.png");
+}
+
+.action {
+    width: 24px;
+    height: 25px;
+    background-image: url("img/actionIcon.png");
+}
+
+.move {
+    width: 24px;
+    height: 20px;
+    background-image: url("img/moveIcon.png");
+}

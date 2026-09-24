@@ -48,8 +48,6 @@ class MultiMove extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
-        $activePlayerId = \intval($this->game->getActivePlayerId());
-        $board = $this->game->getBoard();
         $moveActionContext = new MoveActionContext();
         $movesRemainingArr = $this->getRemainingMoves($moveActionContext)->toArray();
 
@@ -57,7 +55,7 @@ class MultiMove extends PlayerBaseState
         {
             if ($value > 0)
             {
-                $this->addClientButton("{$value}X [$key]", [$this, 'actMoveChosen'], ['key' => $key]);
+                $this->addClientButton("{$value} [$key]", [$this, 'actMoveChosen'], ['key' => $key]);
             }
         }
 
