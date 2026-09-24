@@ -49,6 +49,7 @@ class Captain_A_2 extends CaptainCard
         return [
             $this->enforceNotAdjacentPieces(...),
             $this->goToFreeMoveState(...),
+            $this->makeNextActionForfeitable(...),
             $this->goToSwapStateIfPossible(...),
             $this->ifCaptainMovedGiveMorale(...)
         ];

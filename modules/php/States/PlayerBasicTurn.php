@@ -47,6 +47,11 @@ class PlayerBasicTurn extends PlayerBaseState
         $pieceSelectionContext = new PieceSelectionContext();
         $selectablePiecesIds = $pieceSelectionContext->getSelectablePieceIds();
 
+        if (DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
+        {
+            $this->addClientButton("Forfeit", [$this, "actForfeit"]);
+        }
+
         if (count($selectablePiecesIds) == 0)
         {
             $this->addActionsDoableByAllPieces();
@@ -128,6 +133,15 @@ class PlayerBasicTurn extends PlayerBaseState
         {
             throw new \BgaUserException("Undo is not possible, invalid starting state!");
         }
+    }
+
+    #[PossibleAction]
+    public function actForfeit(int $activePlayerId): string
+    {
+        if (!DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
+            throw new \BgaUserException("Forfeit is not possible!");
+
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 
     function zombie(int $playerId): string

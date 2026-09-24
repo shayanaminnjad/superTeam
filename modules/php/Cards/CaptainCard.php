@@ -73,6 +73,11 @@ abstract class CaptainCard extends Card
         return new ExecutionResult(ExecutionAction::GoToState, PlayerBasicTurn::class);
     }
 
+    protected function makeNextActionForfeitable()
+    {
+        DBAdapter::getInstance()->storeGlobalBool('forfeitable_captain_action', true);
+    }
+
     protected function enableSkip() : ExecutionResult
     {
         RequiredPower::setSkipEnabled(true);

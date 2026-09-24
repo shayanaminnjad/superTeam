@@ -48,6 +48,7 @@ class Captain_C_0 extends CaptainCard
             $this->enforceAdjacentPieces(...),
             $this->goToCaptainCardPerformerSelectionState(...),
             $this->goToSwapPieceState(...),
+            $this->makeNextActionForfeitable(...),
             $this->goToBasicActionState(...),
             $this->ifCaptainGiveMorale(...)
         ];

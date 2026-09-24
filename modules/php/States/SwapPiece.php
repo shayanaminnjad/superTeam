@@ -54,7 +54,10 @@ class SwapPiece extends PlayerBaseState
             $hexesWithPiecesToSwap[] = $piece->getPosition()->convertToArray();
         }
 
-        $this->addClientButton('forfeit', [$this, 'actForfeit']);
+        if (DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
+        {
+            $this->addClientButton("Forfeit", [$this, "actForfeit"]);
+        }
 
         return ["piecesToSwap" => $hexesWithPiecesToSwap];
     }
@@ -96,10 +99,12 @@ class SwapPiece extends PlayerBaseState
     }
 
     #[PossibleAction]
-    public function actForfeit(): string
+    public function actForfeit(int $activePlayerId): string
     {
-        $activePlayer = intval($this->game->getActivePlayerId());
-        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayer);
+        if (!DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
+            throw new \BgaUserException("Forfeit is not possible!");
+
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 
     function zombie(int $playerId): string

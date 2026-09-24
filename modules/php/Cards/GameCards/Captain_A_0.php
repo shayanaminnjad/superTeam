@@ -48,6 +48,7 @@ class Captain_A_0 extends CaptainCard
             $this->prepareMoveContext(...),
             $this->goToMovePieceSelection(...),
             $this->enforceLastPieceSelected(...),
+            $this->makeNextActionForfeitable(...),
             $this->goToBasicActionState(...),
             $this->ifCaptainMovedGiveMorale(...)
         ];

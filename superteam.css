@@ -389,6 +389,8 @@
 }
 
 .diceResult::before {
+    --ribbonColor: grey;
+
     content: "";
     position: absolute;
     top: 50%;

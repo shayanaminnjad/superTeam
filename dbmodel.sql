@@ -73,7 +73,8 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `morale_before_tactic` INT DEFAULT -1,
     `is_restart_after_goal` INT DEFAULT 0,
     `is_skip_enabled` INT DEFAULT 0,
-    `morale_player_to_piece_map` TEXT
+    `morale_player_to_piece_map` TEXT,
+    forfietable_captain_action BOOLEAN DEFAULT FALSE
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `player_temp_data` (
