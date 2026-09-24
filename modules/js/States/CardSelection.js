@@ -60,7 +60,7 @@ define(["dojo/_base/declare",
                 }
                 else if (!this._selectedCard || this._selectedCard.type !== 'Fatigue') {
                     if (this._args.canPlayCard) {
-                        this._root.statusBar.addActionButton('Play as basic', () => {
+                        this._root.statusBar.addActionButton('<div class="action buttonIcon"></div>|<div class ="move buttonIcon"></div>', () => {
                             this._root.performServerAction("actCardSelected", {
                                 cardId: this._selectedCard.id,
                                 asBasic: true
@@ -81,7 +81,7 @@ define(["dojo/_base/declare",
                 }
                 else {
                     if (this._args.canPlayCard) {
-                        this._root.statusBar.addActionButton('Play as move', () => {
+                        this._root.statusBar.addActionButton('<div class ="move buttonIcon">', () => {
                             this._root.performServerAction("actCardSelected", {
                                 cardId: this._selectedCard.id,
                                 asBasic: false
