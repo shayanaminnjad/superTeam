@@ -12,6 +12,8 @@ use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Cards\TacticContext;
+use Bga\Games\SuperTeam\ClientButtonColor;
+use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
@@ -59,7 +61,8 @@ class TacticRewardResolve extends PlayerBaseState
                 [$this, 'actDoOneMove']);
         }
 
-        $this->addClientButton(_("Forfeit"), [$this, 'actForfeitReward']);
+        $this->addClientButton(_("Forfeit"), [$this, 'actForfeitReward'], [],
+            new ClientButtonParams(ClientButtonColor::ALERT));
         
         return [];
     }

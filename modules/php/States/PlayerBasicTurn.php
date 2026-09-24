@@ -7,18 +7,16 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\BoardEvaluator;
-use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
+use Bga\Games\SuperTeam\ClientButtonColor;
+use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
-use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
-use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\PlayerRole;
-use Bga\Games\SuperTeam\Utility\Logger;
 use function count;
 use function intval;
 
@@ -49,7 +47,7 @@ class PlayerBasicTurn extends PlayerBaseState
 
         if (DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
         {
-            $this->addClientButton("Forfeit", [$this, "actForfeit"]);
+            $this->addClientButton("Forfeit", [$this, "actForfeit"], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
 
         if (count($selectablePiecesIds) == 0)
@@ -65,7 +63,7 @@ class PlayerBasicTurn extends PlayerBaseState
         $actionReturnState = DBAdapter::getInstance()->getPlayerActionReturnState($activePlayer);
         if ($actionReturnState === BeforeCardSelectionReset::class)
         {
-            $this->addClientButton("undo", [$this, "actUndo"]);
+            $this->addClientButton("undo", [$this, "actUndo"], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
 
         return [];
@@ -229,7 +227,7 @@ class PlayerBasicTurn extends PlayerBaseState
 
         if (count($this->getClientButtons()) == 0)
         {
-            $this->addClientButton('Pass', [$this, 'actPass']);
+            $this->addClientButton('Pass', [$this, 'actPass'], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
     }
 }

@@ -11,6 +11,8 @@ use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MovedPieceInfo;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
+use Bga\Games\SuperTeam\ClientButtonColor;
+use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\MoveHexSelectionLogic;
 use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\PlayerResources;
@@ -70,7 +72,8 @@ class MoveAction extends PlayerBaseState
         }
 
         if ($movesTaken > 0 && $this->isMoveConditionMet($activePlayerId, $board, $moveActionContext))
-            $this->addClientButton('Finish Movement', [$this, 'actFinishMove']);
+            $this->addClientButton('Finish Movement', [$this, 'actFinishMove'], [],
+                new ClientButtonParams(ClientButtonColor::ALERT));
 
         //TODO: send target hexes too.
         return ["moveableHexes" => $hexesToSend,

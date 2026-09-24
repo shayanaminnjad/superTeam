@@ -9,6 +9,8 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\BoardInfo;
 use Bga\Games\SuperTeam\Cards\TacticContext;
+use Bga\Games\SuperTeam\ClientButtonColor;
+use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\DBAdapter;
@@ -47,7 +49,7 @@ class PassDestSelection extends PlayerBaseState
 
             if (!$tacticContext->GetTacticCommited())
             {
-                $this->addClientButton('Undo', [$this, 'actUndo']);
+                $this->addClientButton('Undo', [$this, 'actUndo'], [], new ClientButtonParams(ClientButtonColor::ALERT));
             }
         }
 
@@ -158,6 +160,6 @@ class PassDestSelection extends PlayerBaseState
 
     function zombie(int $playerId): string
     {
-        return $this->actCancel();
+        return $this->actCancel($playerId);
     }
 }

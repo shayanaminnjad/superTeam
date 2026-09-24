@@ -7,6 +7,8 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\ClientButtonColor;
+use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PlayerPieceSetupLogic;
 use Bga\Games\SuperTeam\Utility\Logger;
@@ -48,7 +50,8 @@ class PlayerPieceSetup extends PlayerBaseState
 
         if (count($notPlacedPieces) < (PlayerPieceSetupLogic::PIECES_PER_PLAYER - 1)) //minus goalkeeper
         {
-            $this->addClientButton('Restart', [$this, 'actRestart']);
+            $this->addClientButton('Restart', [$this, 'actRestart'], [],
+                new ClientButtonParams(ClientButtonColor::ALERT));
         }
 
         return [

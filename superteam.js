@@ -187,25 +187,33 @@ define([
                     return;
 
                 for (let i = 0; i < clientButtons.length; i++) {
-                    let clientButton = clientButtons[i];
-                    this.statusBar.addActionButton(clientButton['name'], async () => {
-                        if (!this.clientButtonNeedsConfirm) {
-                            this.performServerAction(clientButton['action'], clientButton['paramsToSendBack']);
-                        }
-                        else {
-                            this.statusBar.removeActionButtons();
-                            topic.publish('serverActionRequested', clientButton['name']);
-                            this.statusBar.addActionButton('confirm', async () => {
-                                this.performServerAction(clientButton['action'], clientButton['paramsToSendBack']);
-                            });
+                    const clientButton = clientButtons[i];
+                    const params = clientButton['buttonParams'] || {};
 
-                            this.statusBar.addActionButton('cancel', () => {
-                                this.statusBar.removeActionButtons();
-                                topic.publish('requestedActionCanceled', clientButton['name']);
-                                this.configureClientButtons(clientButtons);
-                            });
-                        }
-                    }, { color: 'primary' });
+                    const label = params['label'] ?? clientButton['name'];
+
+                    const buttonOptions = {
+                        color: params['color'] ?? 'primary',
+                    };
+
+                    if (params['disabled'] !== undefined)
+                        buttonOptions.disabled = params['disabled'];
+
+                    if (params['confirm'] !== undefined && params['confirm'] !== null)
+                        buttonOptions.confirm = params['confirm'];
+
+                    this.statusBar.addActionButton(
+                        label,
+                        async () => {
+                            topic.publish('serverActionRequested', clientButton['name']);
+
+                            this.performServerAction(
+                                clientButton['action'],
+                                clientButton['paramsToSendBack']
+                            );
+                        },
+                        buttonOptions
+                    );
                 }
             },
 
@@ -228,14 +236,6 @@ define([
                     //TODO: this is not efficient, however it works perfectly for now.
                     document.querySelectorAll('.inputBlocked').forEach((div) => div.classList.remove('inputBlocked'));
                 }
-            },
-
-            addConfirmationStepToActionButtons: function () {
-                this.clientButtonNeedsConfirm = true;
-            },
-
-            removeConfirmationStepFromActionButton: function () {
-                this.clientButtonNeedsConfirm = false;
             },
 
             onPieceClicked: async function (evt) {
@@ -542,8 +542,6 @@ define([
             myColor: null,
 
             opponentColor: null,
-
-            clientButtonNeedsConfirm: false,
 
             serverCallInProgress: false,
 

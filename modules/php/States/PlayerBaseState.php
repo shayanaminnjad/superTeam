@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bga\Games\SuperTeam\States;
 
+use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\Game;
 use Bga\GameFramework\States\GameState;
 use ReflectionMethod;
@@ -15,12 +16,12 @@ readonly class ActionDescriptor
     private array $paramsToSendBack;
     private array $buttonParams;
 
-    public function __construct(string $name, string $action, array $paramsToSendBack = [], array $buttonParams = [])
+    public function __construct(string $name, string $action, array $paramsToSendBack = [], ClientButtonParams $buttonParams = new ClientButtonParams())
     {
         $this->name = $name;
         $this->action = $action;
         $this->paramsToSendBack = $paramsToSendBack;
-        $this->buttonParams = $buttonParams;
+        $this->buttonParams = $buttonParams->toArray();
     }
 
     public function getName(): string
@@ -31,11 +32,6 @@ readonly class ActionDescriptor
     public function getAction(): string
     {
         return $this->action;
-    }
-
-    public function getParams() : array
-    {
-        return $this->params;
     }
 
     public function toArray(): array
@@ -91,7 +87,7 @@ abstract class PlayerBaseState extends GameState
 
     abstract public function selfGetArgs(): array;
 
-    protected function addClientButton(string $name, array $func, array $paramsToSendBack = [], array $buttonParams = []): void
+    protected function addClientButton(string $name, array $func, array $paramsToSendBack = [], ClientButtonParams $buttonParams = new ClientButtonParams()): void
     {
         $ref = new ReflectionMethod($func[0], $func[1]);
 

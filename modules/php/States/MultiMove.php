@@ -11,6 +11,8 @@ use Bga\Games\SuperTeam\Cards\Moves\CardDefensiveMoves;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Cards\TacticContext;
+use Bga\Games\SuperTeam\ClientButtonColor;
+use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
@@ -55,18 +57,13 @@ class MultiMove extends PlayerBaseState
         {
             if ($value > 0)
             {
-                $hasPiece = MovePieceSelectionLogic::HasPieceToMove($board, $activePlayerId, MoveTypes::from($key), true);
-                $buttonParams = [];
-                if (!$hasPiece)
-                    $buttonParams[] = ['notDoable'];
-
-                $this->addClientButton("{$value}X [$key]", [$this, 'actMoveChosen'], ['key' => $key], $buttonParams);
+                $this->addClientButton("{$value}X [$key]", [$this, 'actMoveChosen'], ['key' => $key]);
             }
         }
 
         if (!$this->hasPerformedAnyMoves($moveActionContext))
         {
-            $this->addClientButton("Undo", [$this, 'actUndo']);
+            $this->addClientButton("Undo", [$this, 'actUndo'], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
 
         return [];
@@ -187,6 +184,6 @@ class MultiMove extends PlayerBaseState
 
     function zombie(int $playerId): string
     {
-        return $this->actCancel();
+        return '';
     }
 }

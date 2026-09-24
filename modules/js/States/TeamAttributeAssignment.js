@@ -73,7 +73,7 @@ define(["dojo/_base/declare",
 
                 this._root.statusBar.addActionButton('Restart', () => {
                     this._root.performServerAction("actRestart", {})
-                }, {id: 'restart', color: 'alert', disabled: this._getAssignedCubes() === 0});
+                }, {id: 'restart', color: 'alert', disabled: this._getAssignedCubes() === 0, confirm: _('Are you sure you want to restart?')});
             },
 
             _getAssignedCubes: function() {

@@ -6,10 +6,13 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
+use Bga\Games\SuperTeam\ClientButtonColor;
+use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\NotificationAdapter;
+use http\Client;
 use http\Exception\RuntimeException;
 
 class SwapPiece extends PlayerBaseState
@@ -56,7 +59,8 @@ class SwapPiece extends PlayerBaseState
 
         if (DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
         {
-            $this->addClientButton("Forfeit", [$this, "actForfeit"]);
+            $this->addClientButton("Forfeit", [$this, "actForfeit"], [],
+                new ClientButtonParams(ClientButtonColor::ALERT));
         }
 
         return ["piecesToSwap" => $hexesWithPiecesToSwap];
@@ -109,6 +113,6 @@ class SwapPiece extends PlayerBaseState
 
     function zombie(int $playerId): string
     {
-        return $this->actForfeit();
+        return $this->actForfeit($playerId);
     }
 }
