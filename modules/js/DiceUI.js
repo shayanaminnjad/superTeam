@@ -10,7 +10,7 @@ define([
             this._diceManager = new BgaDice.Manager({
                 animationManager: this._root.animationManager,
                 faces: 6,
-                borderRadius: 16,
+                borderRadius: 0,
                 size: 32,
                 perspective: 1000,
                 type: 'st-dice',
