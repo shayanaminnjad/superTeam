@@ -1,7 +1,8 @@
 define([
+    g_gamethemeurl + "modules/js/GameEventProcessor.js",
     g_gamethemeurl + "modules/js/BoardPresentation.js",
     getLibUrl('bga-dice', '1.x')
-], function (Board, BgaDice) {
+], function (GameEventProcessor, Board, BgaDice) {
 
     return {
         construct: function (root) {
@@ -215,6 +216,7 @@ define([
                 this._fadeInElement(requiredPowerEl);
             }
 
+            GameEventProcessor.RemoveAssignedMorale();
             const DISPLAY_TIME = 5 * 1000;
 
             await this._root.wait(DISPLAY_TIME);

@@ -60,12 +60,10 @@ define(["dojo/_base/declare",
                 STUIHelpers.removeCounter('moraleAssign');
                 Board.removeRequiredPowerVisualization();
                 Board.removeHexHighlights();
-                GameEventProcessor.RemoveAssignedMorale();
             },
 
             _onInactivePlayerLeave: function () {
                 Board.removeRequiredPowerVisualization();
-                GameEventProcessor.RemoveAssignedMorale();
             },
 
             getName: function () {
