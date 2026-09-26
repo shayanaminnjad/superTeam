@@ -142,7 +142,12 @@ define([
 
             setupMainBoard: function (gamedatas) {
 
-                Board.construct(this, gamedatas['ball']);
+                //Left seat sits on the low-column end, which projects to the top in
+                //portrait mode. Flipping for that seat puts the viewing player's own
+                //side at the bottom instead, near their own player panel.
+                const flipForViewer = this.player_id === this.userInLeftId;
+
+                Board.construct(this, gamedatas['ball'], flipForViewer);
 
                 this.setPiecesData(gamedatas);
 

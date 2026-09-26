@@ -442,14 +442,11 @@ html {
 }
 
 .diceResult::before {
-    --ribbonColor: grey;
-
     content: "";
     position: absolute;
     top: 50%;
     width: 100%;      
     height: 60%;
-    background: var(--ribbonColor);
     transform: translateY(-50%);
 
     z-index: -1;

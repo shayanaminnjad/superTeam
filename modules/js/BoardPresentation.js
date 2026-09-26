@@ -8,8 +8,13 @@ define([
     return {
 
         //Public Functions
-        construct: function (root, ballPosObj) {
+
+        //flip mirrors the pitch left-right so the viewing player's own side always
+        //lands on the high-column end, which _projectHex then places at the bottom
+        //in portrait mode (near the player's own panel).
+        construct: function (root, ballPosObj, flip = false) {
             this._root = root;
+            this._flip = !!flip;
             this._initBoard();
             this._addBall(ballPosObj);
         },
@@ -233,6 +238,11 @@ define([
             const BOARD_WIDTH = this._landscapeWidth;
             const BOARD_HEIGHT = this._landscapeHeight;
 
+            //Mirroring around the last column keeps the same odd/even margin category
+            //on both ends (column 0 and column 16 are both "odd"), so no other constant
+            //needs adjusting for a flipped board.
+            const projectedCol = this._flip ? (UIConstants.COLUMNS - 1 - col) : col;
+
             const LEFT_MARGIN = UIConstants.HORIZONTAL_MARGIN_PERCENT * BOARD_WIDTH;
             const TOP_MARGIN_ODD = UIConstants.TOP_MARGIN_ODD_PERCENT * BOARD_HEIGHT;
             const TOP_MARGIN_EVEN = UIConstants.TOP_MARGIN_EVEN_PERCENT * BOARD_HEIGHT;
@@ -242,11 +252,11 @@ define([
             const HEX_VERTICAL_SPACE = UIConstants.HEX_VERTICAL_GAP_PERCENT * BOARD_HEIGHT;
             const HEX_HORIZONTAL_SPACE = UIConstants.HEX_HORIZONTAL_SPACE_PERCENT * BOARD_WIDTH;
 
-            const isOddColumn = (col + 1) % 2 == 1;
+            const isOddColumn = (projectedCol + 1) % 2 == 1;
             const topMargin = isOddColumn ? TOP_MARGIN_ODD : TOP_MARGIN_EVEN;
 
             return {
-                left: Math.round(LEFT_MARGIN + HEX_HORIZONTAL_SPACE * col),
+                left: Math.round(LEFT_MARGIN + HEX_HORIZONTAL_SPACE * projectedCol),
                 top: Math.round(topMargin + row * (HEX_HEIGHT + HEX_VERTICAL_SPACE)),
                 width: Math.round(HEX_WIDTH),
                 height: Math.round(HEX_HEIGHT)
@@ -356,6 +366,7 @@ define([
         _rulerWidth: null,
         _orientation: 'landscape',
         _landscapeWidth: null,
-        _landscapeHeight: null
+        _landscapeHeight: null,
+        _flip: false
     };
 });
