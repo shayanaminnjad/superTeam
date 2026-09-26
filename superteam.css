@@ -446,7 +446,7 @@ html {
     position: absolute;
     top: 50%;
     width: 100%;      
-    height: 60%;
+    height: 30%;
     transform: translateY(-50%);
 
     z-index: -1;
@@ -702,26 +702,38 @@ html {
     width: 16px;
     height: 25px;
     background-image: url("img/moveForwardIcon.png");
+    transform: rotate(-90deg);
 }
 
 .moveBackward {
     width: 16px;
     height: 25px;
     background-image: url("img/moveForwardIcon.png");
-    transform: scaleY(-1);
+    transform: scaleY(-1) rotate(90deg);
 }
 
 .moveForwardNearOpponent {
     width: 24px;
     height: 27px;
     background-image: url("img/moveForwardINearOpponentcon.png");
+    transform: rotate(-90deg);
 }
 
 .moveBackNearOpponent {
     width: 24px;
     height: 27px;
     background-image: url("img/moveForwardINearOpponentcon.png");
-    transform: scaleY(-1);
+    transform: scaleY(-1) rotate(90deg);
+}
+
+body.board-portrait .moveForward,
+body.board-portrait .moveForwardNearOpponent {
+    transform: rotate(0deg);
+}
+
+body.board-portrait .moveBackward,
+body.board-portrait .moveBackNearOpponent {
+    transform: rotate(0deg) scaleY(-1);
 }
 
 .moveFree {

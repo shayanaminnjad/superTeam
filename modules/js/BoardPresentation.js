@@ -166,6 +166,10 @@ define([
 
             this.getMainBoardElement().classList.toggle('portrait', orientation === 'portrait');
 
+            //Lets orientation-dependent UI outside #mainBoard (e.g. the direction icons
+            //on the action buttons) react to the same rotation the board itself uses.
+            document.body.classList.toggle('board-portrait', orientation === 'portrait');
+
             this._layoutHexes();
 
             if (this._hexWithBall !== null) {
