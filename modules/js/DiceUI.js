@@ -265,7 +265,7 @@ define([
                 'beforeend',
                 `<div
                     id='${result.playerId}_RollLine'
-                    style='background: ${backColor}; ${pos} ${rowStyle}'
+                    style='--dice-result-color: ${backColor}; ${pos} ${rowStyle}'
                     class='diceResult ${anchorClass}'>
                 </div>`
             );
@@ -285,7 +285,7 @@ define([
                 'beforeend',
                 `<div
                     id='neutral_RollLine'
-                    style='background: ${backColor}; ${pos} ${rowStyle}'
+                    style='--dice-result-color: ${backColor}; ${pos} ${rowStyle}'
                     class='diceResult ${anchorClass}'>
                 </div>`
             );
