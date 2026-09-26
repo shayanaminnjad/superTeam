@@ -21,6 +21,15 @@
     /*260px for the original size, however board game arena doesn't encourage size above 740px*/
 }
 
+html {
+    background-color: #101c1d;
+    background-image:
+        radial-gradient(ellipse at 50% 0%, rgba(143, 181, 203, 0.18), transparent 60%),
+        url('img/pageBackground.jpg');
+    background-repeat: no-repeat, repeat;
+    background-attachment: fixed, scroll;
+}
+
 #trackerBoard {
     --tracker-board-aspect-ratio: 5.6186;
     --scale: 118px;
@@ -38,14 +47,38 @@
 
 #mainBoard {
     position: relative;
-    background-image: url('img/mainBoard.jpg');
-    background-size: contain;
-    background-repeat: no-repeat;
     width: calc(var(--main-bg-ratio-x) * var(--main-bg-scale));
     height: calc(var(--main-bg-ratio-y) * var(--main-bg-scale));
     border-radius: 8px;
     margin: 0 auto 0 auto;
     overflow: visible;
+    transition: width 0.3s ease-in-out, height 0.3s ease-in-out;
+}
+
+#mainBoard.portrait {
+    width: calc(var(--main-bg-ratio-y) * var(--main-bg-scale));
+    height: calc(var(--main-bg-ratio-x) * var(--main-bg-scale));
+}
+
+/* Decorative pitch image only. It is kept at the board's native landscape
+   size and rotated on its own, so it never affects hex or piece placement. */
+#mainBoard::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: calc(var(--main-bg-ratio-x) * var(--main-bg-scale));
+    height: calc(var(--main-bg-ratio-y) * var(--main-bg-scale));
+    background-image: url('img/mainBoard.jpg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+#mainBoard.portrait::before {
+    transform: translate(-50%, -50%) rotate(90deg);
 }
 
 .playerArea {
