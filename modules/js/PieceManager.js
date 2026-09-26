@@ -170,6 +170,21 @@ define([
                     }
                 },
 
+                //Snaps every on-board piece back onto the hex it already occupies.
+                //Used after the board orientation changes, since the hexes themselves
+                //moved but pieces still need to sit exactly on top of them.
+                resnapAll: function () {
+                    for (const piece of this._piecesMap.values()) {
+                        const pos = piece.getPosition();
+
+                        if (pos === null) {
+                            continue;
+                        }
+
+                        this._root.placeOnObject(piece.getDOMElement(), Board.convertOffsetCoordToHexId(pos));
+                    }
+                },
+
                 _resetPiece(piece, goalieRow, animations) {
                     if (!piece.isGoalie()) {
                         animations.push(this._root.slideToObject(piece.getDOMElement(), this._root.getPlayerPanelElement(piece.getOwner())));

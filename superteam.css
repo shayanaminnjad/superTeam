@@ -52,7 +52,6 @@ html {
     border-radius: 8px;
     margin: 0 auto 0 auto;
     overflow: visible;
-    transition: width 0.3s ease-in-out, height 0.3s ease-in-out;
 }
 
 #mainBoard.portrait {
@@ -79,6 +78,19 @@ html {
 
 #mainBoard.portrait::before {
     transform: translate(-50%, -50%) rotate(90deg);
+}
+
+#boardRotateToggle {
+    display: block;
+    margin: 8px auto 0 auto;
+    padding: 4px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(40, 40, 40, 0.85);
+    color: #f1f1f1;
+    font-size: 18px;
+    line-height: 1.4;
+    cursor: pointer;
 }
 
 .playerArea {
@@ -146,6 +158,14 @@ html {
     white-space: pre-wrap;
     clip-path: polygon(23% 0%, 76% 0%, 100% 50%,
             76% 100%, 23% 100%, 0% 50%);
+}
+
+/* Portrait hexes have their width and height swapped (see _projectHex in
+   BoardPresentation.js), so the clip-path's x% and y% roles must swap too,
+   otherwise the same polygon gets stretched into the wrong shape. */
+#mainBoard.portrait .hex {
+    clip-path: polygon(0% 23%, 0% 76%, 50% 100%,
+            100% 76%, 100% 23%, 50% 0%);
 }
 
 .piece{

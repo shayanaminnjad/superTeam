@@ -147,6 +147,23 @@ define([
                 this.setPiecesData(gamedatas);
 
                 this.initHexClickListener();
+
+                this.initBoardRotateButton();
+            },
+
+            initBoardRotateButton: function () {
+                const rotateButton = document.createElement('button');
+                rotateButton.id = 'boardRotateToggle';
+                rotateButton.innerHTML = '&#8635;';
+                rotateButton.setAttribute('aria-label', 'Rotate board to portrait');
+
+                Board.getMainBoardElement().insertAdjacentElement('afterend', rotateButton);
+
+                rotateButton.addEventListener('click', () => {
+                    const nextOrientation = Board.getOrientation() === 'landscape' ? 'portrait' : 'landscape';
+                    Board.setOrientation(nextOrientation);
+                    rotateButton.setAttribute('aria-label', nextOrientation === 'landscape' ? 'Rotate board to portrait' : 'Rotate board to landscape');
+                });
             },
 
             initHexClickListener: function () {

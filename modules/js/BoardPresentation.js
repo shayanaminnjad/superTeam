@@ -139,26 +139,50 @@ define([
 
         //------------------------------------------------------------------------------------
 
+        getOrientation: function () {
+            return this._orientation;
+        },
+
+        //------------------------------------------------------------------------------------
+
+        //Landscape is the board's native orientation (matches mainBoard.jpg and every
+        //constant in STUIConstants.js). Portrait is derived by rotating the landscape
+        //layout 90 degrees, never by recalibrating a second set of constants.
+        setOrientation: function (orientation) {
+            if (orientation !== 'landscape' && orientation !== 'portrait') {
+                throw `Invalid board orientation: ${orientation}`;
+            }
+
+            if (this._orientation === orientation) {
+                return;
+            }
+
+            this._orientation = orientation;
+
+            this.getMainBoardElement().classList.toggle('portrait', orientation === 'portrait');
+
+            this._layoutHexes();
+
+            if (this._hexWithBall !== null) {
+                this._root.placeOnObject('ballParent', this.convertOffsetCoordToHexId(this._hexWithBall));
+            }
+
+            this._root.pieceManager.resnapAll();
+        },
+
+        //------------------------------------------------------------------------------------
+
         //Private Functions
 
         _initBoard: function () {
+            this._orientation = 'landscape';
+
             this._root.getGameAreaElement().insertAdjacentHTML('beforeend', `<div id="mainBoard"></div>`);
 
             const MAIN_BOARD_EL = document.getElementById('mainBoard');
-            const BOARD_WIDTH = parseFloat(getComputedStyle(MAIN_BOARD_EL).width);
-            const BOARD_HEIGHT = parseFloat(getComputedStyle(MAIN_BOARD_EL).height);
-
-            const LEFT_MARGIN = UIConstants.HORIZONTAL_MARGIN_PERCENT * BOARD_WIDTH;
-            const TOP_MARGIN_ODD = UIConstants.TOP_MARGIN_ODD_PERCENT * BOARD_HEIGHT;
-            const TOP_MARGIN_EVEN = UIConstants.TOP_MARGIN_EVEN_PERCENT * BOARD_HEIGHT;
-
-            const HEX_WIDTH = BOARD_WIDTH * UIConstants.HEX_WIDTH_PERCENT;
-            this._rulerWidth = HEX_WIDTH * 0.5;
-            const HEX_HEIGHT = BOARD_HEIGHT * UIConstants.HEX_HEIGHT_PERCENT;
-            const HEX_WIDTH_ROUND = Math.round(HEX_WIDTH);
-            const HEX_HEIGHT_ROUND = Math.round(HEX_HEIGHT);
-            const HEX_VERTICAL_SPACE = UIConstants.HEX_VERTICAL_GAP_PERCENT * BOARD_HEIGHT;
-            const HEX_HORIZONTAL_SPACE = UIConstants.HEX_HORIZONTAL_SPACE_PERCENT * BOARD_WIDTH;
+            this._landscapeWidth = parseFloat(getComputedStyle(MAIN_BOARD_EL).width);
+            this._landscapeHeight = parseFloat(getComputedStyle(MAIN_BOARD_EL).height);
+            this._rulerWidth = (this._landscapeWidth * UIConstants.HEX_WIDTH_PERCENT) * 0.5;
 
             this._hexInfo = HexLib.createHexInfo(
                 UIConstants.NORMALIZED_HEX_SIZE,
@@ -169,19 +193,83 @@ define([
 
             for (let x = 0; x < UIConstants.COLUMNS; x++) {
                 let hexInColumn = (x + 1) % 2 == 1 ? UIConstants.EVEN_COLUMN_ROWS : UIConstants.ODD_COLUMN_ROWS;
-                let left = Math.round(LEFT_MARGIN + (HEX_HORIZONTAL_SPACE) * x);
-                let currentTopMargin = (x + 1) % 2 == 1 ? TOP_MARGIN_ODD : TOP_MARGIN_EVEN;
 
                 for (let y = 0; y < hexInColumn; y++) {
                     let hexId = `hex_${y}_${x}`;
-                    let top = Math.round(currentTopMargin + (y * (HEX_HEIGHT + HEX_VERTICAL_SPACE)));
-                    MAIN_BOARD_EL.insertAdjacentHTML('afterbegin', `<div id='${hexId}' class="hex" style='left:${left}px; top:${top}px; width: ${HEX_WIDTH_ROUND}px; height: ${HEX_HEIGHT_ROUND}px;'></div>`);
+                    let rect = this._projectHex(y, x);
+                    MAIN_BOARD_EL.insertAdjacentHTML('afterbegin', `<div id='${hexId}' class="hex" style='left:${rect.left}px; top:${rect.top}px; width: ${rect.width}px; height: ${rect.height}px;'></div>`);
                 }
             }
 
             MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='pieces'></div>`);
 
             this._addSVGLayer(MAIN_BOARD_EL);
+        },
+
+        //------------------------------------------------------------------------------------
+
+        //Updates every existing hex element in place to match the current orientation.
+        _layoutHexes: function () {
+            for (let x = 0; x < UIConstants.COLUMNS; x++) {
+                let hexInColumn = (x + 1) % 2 == 1 ? UIConstants.EVEN_COLUMN_ROWS : UIConstants.ODD_COLUMN_ROWS;
+
+                for (let y = 0; y < hexInColumn; y++) {
+                    let hexEl = document.getElementById(`hex_${y}_${x}`);
+                    let rect = this._projectHex(y, x);
+
+                    hexEl.style.left = rect.left + 'px';
+                    hexEl.style.top = rect.top + 'px';
+                    hexEl.style.width = rect.width + 'px';
+                    hexEl.style.height = rect.height + 'px';
+                }
+            }
+        },
+
+        //------------------------------------------------------------------------------------
+
+        //Pixel rect for a hex in the board's native landscape layout, always derived from
+        //the fixed landscape board size so it stays correct no matter the current orientation.
+        _computeLandscapeHexRect: function (row, col) {
+            const BOARD_WIDTH = this._landscapeWidth;
+            const BOARD_HEIGHT = this._landscapeHeight;
+
+            const LEFT_MARGIN = UIConstants.HORIZONTAL_MARGIN_PERCENT * BOARD_WIDTH;
+            const TOP_MARGIN_ODD = UIConstants.TOP_MARGIN_ODD_PERCENT * BOARD_HEIGHT;
+            const TOP_MARGIN_EVEN = UIConstants.TOP_MARGIN_EVEN_PERCENT * BOARD_HEIGHT;
+
+            const HEX_WIDTH = BOARD_WIDTH * UIConstants.HEX_WIDTH_PERCENT;
+            const HEX_HEIGHT = BOARD_HEIGHT * UIConstants.HEX_HEIGHT_PERCENT;
+            const HEX_VERTICAL_SPACE = UIConstants.HEX_VERTICAL_GAP_PERCENT * BOARD_HEIGHT;
+            const HEX_HORIZONTAL_SPACE = UIConstants.HEX_HORIZONTAL_SPACE_PERCENT * BOARD_WIDTH;
+
+            const isOddColumn = (col + 1) % 2 == 1;
+            const topMargin = isOddColumn ? TOP_MARGIN_ODD : TOP_MARGIN_EVEN;
+
+            return {
+                left: Math.round(LEFT_MARGIN + HEX_HORIZONTAL_SPACE * col),
+                top: Math.round(topMargin + row * (HEX_HEIGHT + HEX_VERTICAL_SPACE)),
+                width: Math.round(HEX_WIDTH),
+                height: Math.round(HEX_HEIGHT)
+            };
+        },
+
+        //------------------------------------------------------------------------------------
+
+        //Rotates the landscape rect 90 degrees clockwise around the board's own center for
+        //portrait mode, matching the CSS rotate(90deg) on #mainBoard's background layer.
+        _projectHex: function (row, col) {
+            const rect = this._computeLandscapeHexRect(row, col);
+
+            if (this._orientation !== 'portrait') {
+                return rect;
+            }
+
+            return {
+                left: Math.round(this._landscapeHeight - rect.top - rect.height),
+                top: Math.round(rect.left),
+                width: rect.height,
+                height: rect.width
+            };
         },
 
         //------------------------------------------------------------------------------------
@@ -265,6 +353,9 @@ define([
         _hexWithBall: null,
         _hexInfo: null,
         _svg: null,
-        _rulerWidth: null
+        _rulerWidth: null,
+        _orientation: 'landscape',
+        _landscapeWidth: null,
+        _landscapeHeight: null
     };
 });
