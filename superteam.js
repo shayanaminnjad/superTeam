@@ -48,6 +48,8 @@ define([
 
                 this.gameDatas = gamedatas;
 
+                this.cardDefinitions = gamedatas.card_definitions;
+
                 this.myColor = gamedatas.players[this.player_id].color === 'DD4720' ? 'red' : 'blue';
                 this.opponentColor = this.myColor === 'red' ? 'blue' : 'red';
 
@@ -581,6 +583,8 @@ define([
             myColor: null,
 
             opponentColor: null,
+
+            cardDefinitions: null,
 
             serverCallInProgress: false,
 

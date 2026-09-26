@@ -24,4 +24,9 @@ class CardFactory
     {
         return isset($this->registry[$id]);
     }
+
+    public function getAllCardIds() : array
+    {
+        return array_keys($this->registry);
+    }
 }

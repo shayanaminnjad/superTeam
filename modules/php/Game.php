@@ -258,8 +258,26 @@ class Game extends \Bga\GameFramework\Table
         $result['user_in_left_id'] = $this->getGameStateValue('user_in_left_id');
         $result['attacker'] = $this->getGameStateValue('attacker');
         $result['time_index'] = TimeTrack::GetTimeTrackPosition();
+        $result['card_definitions'] = $this->getCardDefinitionsForClient();
 
         return $result;
+    }
+
+    private function getCardDefinitionsForClient() : array
+    {
+        $definitions = [];
+
+        foreach ($this->cardFactory->getAllCardIds() as $cardId)
+        {
+            $definition = $this->cardFactory->getCard($cardId)->getDefinition();
+
+            $definitions[$cardId] = [
+                'name' => $definition->name,
+                'toolTip' => $definition->toolTip,
+            ];
+        }
+
+        return $definitions;
     }
 
     /**

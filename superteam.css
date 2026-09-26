@@ -664,6 +664,39 @@ html {
     background-image: url("img/cardsAtlas.jpg");
 }
 
+.cardTooltip {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    max-width: 480px;
+    text-align: left;
+}
+
+/* Reuses .st-card-front's atlas image/sizing, only the element's own box is smaller. */
+.cardTooltipImage {
+    flex: 0 0 auto;
+    width: 135px;
+    height: 189px;
+    border-radius: 7px;
+}
+
+.cardTooltipText {
+    flex: 1 1 auto;
+    min-width: 135px;
+}
+
+.cardTooltipName {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.cardTooltipDescription {
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre-line;
+}
+
 .superteam-dice-face {
     background-image: url("img/diceAtlas.png");
     background-repeat: no-repeat;

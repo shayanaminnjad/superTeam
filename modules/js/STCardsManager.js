@@ -95,7 +95,7 @@ define(["dojo/_base/declare",
                         const [backXPos, backYPos] = this._getCardPositionInsideAtlas(card);
                         div.style.backgroundPositionX = backXPos;
                         div.style.backgroundPositionY = backYPos;
-                        this._root.addTooltipHtml(div.id, `tooltip of ${card.type}`);
+                        this._root.addTooltipHtml(div.id, this._buildTooltipHtml(card, backXPos, backYPos));
                     },
                     setupBackDiv: (card, div) => {
                         div.style.backgroundPositionX = `calc(100%)`;
@@ -103,6 +103,20 @@ define(["dojo/_base/declare",
                     },
                     isCardVisible: card => {return !!card.location && !card.location.includes("_deck");},
                 });
+            },
+
+            _buildTooltipHtml: function (card, backXPos, backYPos) {
+                const definition = (this._root.cardDefinitions || {})[card.type];
+                const name = definition ? definition.name : card.type;
+                const description = definition ? definition.toolTip : '';
+
+                return `<div class="cardTooltip">
+                    <div class="cardTooltipImage st-card-front" style="background-position: ${backXPos} ${backYPos};"></div>
+                    <div class="cardTooltipText">
+                        <div class="cardTooltipName">${name}</div>
+                        <div class="cardTooltipDescription">${description}</div>
+                    </div>
+                </div>`;
             },
 
             _getCardPositionInsideAtlas: function (card) {
