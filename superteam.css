@@ -585,18 +585,22 @@
 
 #cardsHideShowToggle {
     position: fixed;
-    font-size: 14px;
-    left: 50%;
+    left: 45%;
+    bottom: -32px;
+    width: 64px;
+    height: 64px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.35);
+    background: url('img/handPeekButton.svg') center / cover no-repeat;
     transform: translateX(-50%);
+    transition: transform 0.4s ease-in-out;
     z-index: 1001;
-    bottom: 0;
-    padding: 8px 18px;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    background: rgba(40, 40, 40, 0.85);
-    color: #f1f1f1;
     cursor: pointer;
-    backdrop-filter: blur(6px);
+}
+
+#cardsHideShowToggle.low {
+    transform: translateX(-50%) rotate(180deg);
 }
 
 .st-card-front {

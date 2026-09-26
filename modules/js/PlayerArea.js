@@ -58,13 +58,15 @@ define([
                     playerCardsWrapper.id = 'cardsWrapper';
                     this._areaEl.appendChild(playerCardsWrapper);
 
-                    const hideShowToggle = document.createElement('span');
+                    const hideShowToggle = document.createElement('button');
                     hideShowToggle.id = 'cardsHideShowToggle';
-                    hideShowToggle.innerHTML = 'show/hide';
+                    hideShowToggle.setAttribute('aria-label', 'Hide hand');
                     this._areaEl.appendChild(hideShowToggle);
 
                     hideShowToggle.addEventListener('click', e => {
-                        playerCardsWrapper.classList.toggle('low')
+                        const nowLow = playerCardsWrapper.classList.toggle('low');
+                        hideShowToggle.classList.toggle('low', nowLow);
+                        hideShowToggle.setAttribute('aria-label', nowLow ? 'Show hand' : 'Hide hand');
                     });
 
                     const playerHand = document.createElement('div');
