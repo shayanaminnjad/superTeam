@@ -12,6 +12,7 @@ use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\MoraleAssignContext;
+use Bga\Games\SuperTeam\PassTargetSelectionLogic;
 use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\RequiredPower;
 
@@ -44,6 +45,8 @@ class BeforeCardSelectionReset extends GameState
 
         $passActionContext = new PassActionContext($activePlayerId);
         $passActionContext->reset(false);
+
+        PassTargetSelectionLogic::reset($activePlayerId);
 
         $board = $this->game->getBoard();
         $lastPassReceiverId = $passActionContext->getLastPassReceiverIdThisTurn();

@@ -129,6 +129,11 @@ class PassTargetSelectionLogic
         return false;
     }
 
+    public static function reset(int $playerId) : void
+    {
+        DBAdapter::GetInstance()->storePlayerTempStr($playerId, "forced_pass_targets", "");
+    }
+
     private static function doIsPassSequencePossible(Board $board, array $passTypes, int $playerId, PlayerPiece $passingPiece, PlayerSide $playerSide, array $playerPiecesPassed): bool
     {
         if (empty($passTypes))
