@@ -33,6 +33,42 @@ class PassTargetSelectionLogic
         return $passTargetHexes;
     }
 
+    public static function getFeasiblePassTargetsHexes(Board $board, PassTypes $passType, array $remainingPassTypesAfterThis, int $playerId, HexId $passStart, PlayerSide $playerSide): array
+    {
+        $passTargetHexes = [];
+
+        $passTargetPieces = self::getPassTargetPieces($board, $passType, $playerId, $passStart, $playerSide);
+        $notPassedPieces = self::filterNotPassedPieces($playerId, $passTargetPieces);
+        $feasiblePieces = self::filterFeasibleContinuations($board, $playerId, $playerSide, $remainingPassTypesAfterThis, $notPassedPieces);
+
+        if (PassTypes::THROUGH === $passType)
+        {
+            foreach ($feasiblePieces as $piece)
+            {
+                $arcHexes = HexLib::getFrontArc($piece->getPosition(), ($playerSide === PlayerSide::Left) ? 1 : -1);
+                $passTargetHexes = array_merge($passTargetHexes, $arcHexes);
+            }
+
+            $passTargetHexes = array_values(array_filter($passTargetHexes, fn($hex) => $board->isHexEmpty($hex)));
+        }
+        else
+        {
+            $passTargetHexes = self::getPiecesPositions($feasiblePieces);
+        }
+
+        return $passTargetHexes;
+    }
+
+    private static function filterFeasibleContinuations(Board $board, int $playerId, PlayerSide $playerSide, array $remainingPassTypes, array $candidatePieces) : array
+    {
+        $piecesPassedSoFarIds = (new PassActionContext($playerId))->getPiecesPassedIds();
+        $piecesPassedSoFar = array_map(fn($id) => $board->getPiece(intval($id)), $piecesPassedSoFarIds);
+
+        return array_values(array_filter($candidatePieces, function($candidate) use ($board, $remainingPassTypes, $playerId, $playerSide, $piecesPassedSoFar) {
+            return self::doIsPassSequencePossible($board, $remainingPassTypes, $playerId, $candidate, $playerSide, [...$piecesPassedSoFar, $candidate]);
+        }));
+    }
+
     public static function getPassTargetPieces(Board $board, PassTypes $passType, int $playerId, HexID $passStart, PlayerSide $playerSide) : array
     {
         switch ($passType)
@@ -55,6 +91,21 @@ class PassTargetSelectionLogic
     public static function forcePassTargets(Board $board, PassTypes $passType, int $playerId, HexId $passStart, PlayerSide $playerSide): bool
     {
         $passTargetHexes = self::getPassTargetsHexes($board, $passType, $playerId, $passStart, $playerSide);
+
+        if (!empty($passTargetHexes))
+        {
+            self::storeForcedTargets($playerId, self::getPositionsAsJson($passTargetHexes));
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public static function forceFeasiblePassTargets(Board $board, PassTypes $passType, array $remainingPassTypesAfterThis, int $playerId, HexId $passStart, PlayerSide $playerSide): bool
+    {
+        $passTargetHexes = self::getFeasiblePassTargetsHexes($board, $passType, $remainingPassTypesAfterThis, $playerId, $passStart, $playerSide);
 
         if (!empty($passTargetHexes))
         {

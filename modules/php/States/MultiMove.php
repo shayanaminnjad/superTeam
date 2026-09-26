@@ -10,6 +10,8 @@ use Bga\GameFramework\StateType;
 use Bga\Games\SuperTeam\Cards\Moves\CardDefensiveMoves;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
+use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
+use Bga\Games\SuperTeam\Cards\TacticCard;
 use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\ClientButtonColor;
 use Bga\Games\SuperTeam\ClientButtonParams;
@@ -92,6 +94,8 @@ class MultiMove extends PlayerBaseState
         if (!$anyPieceEnforced)
             throw new \BgaUserException("Invalid move selected! no piece can be moved with that criteria!");
 
+        $this->keepOnlyPiecesThatLeaveCardCompletable($moveActionContext);
+
         DBAdapter::getInstance()->storeActionReturnState($playerId, self::class);
 
         $moveActionContext->setCurrentMoveType($moveType);
@@ -161,16 +165,38 @@ class MultiMove extends PlayerBaseState
 
     private function getRemainingMoves(MoveActionContext $defensiveMoveContext) : CardDefensiveMoves
     {
-        $tacticContext = new TacticContext();
-
-        $cardInPlay = $tacticContext->getTacticInPlay();
-        $card = $this->game->getCardFactory()->getCard($cardInPlay);
+        $card = $this->getTacticCardInPlay();
 
         $cardDefensiveMoves = $card->getDefinition()->cardDefensiveMoves;
 
         $movesPerformedSoFar = $defensiveMoveContext->getMovesPerformed();
 
         return $cardDefensiveMoves->diff($movesPerformedSoFar);
+    }
+
+    private function getTacticCardInPlay() : TacticCard
+    {
+        $tacticContext = new TacticContext();
+
+        return $this->game->getCardFactory()->getCard($tacticContext->getTacticInPlay());
+    }
+
+    private function keepOnlyPiecesThatLeaveCardCompletable(MoveActionContext $moveActionContext) : void
+    {
+        $card = $this->getTacticCardInPlay();
+        $remainingDemand = $this->getRemainingMoves($moveActionContext);
+        $alreadyMovedIds = array_map(fn($p) => $p->id, $moveActionContext->getPiecesMoved());
+
+        $pieceSelectionContext = new PieceSelectionContext();
+        $candidateIds = $pieceSelectionContext->getSelectablePieceIds();
+
+        $feasibleIds = array_values(array_filter($candidateIds,
+            fn($id) => $card->canPieceSatisfyRemainingDemand($id, $remainingDemand, $alreadyMovedIds)));
+
+        if (empty($feasibleIds))
+            throw new \BgaUserException("No piece can be selected here without making the rest of the card impossible to complete!");
+
+        $pieceSelectionContext->storeSelectablePiecesIds($feasibleIds);
     }
 
     private function hasPerformedAnyMoves(MoveActionContext $defensiveMoveContext) : bool

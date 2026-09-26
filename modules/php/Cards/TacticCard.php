@@ -6,7 +6,9 @@ use Bga\Games\SuperTeam\Algorithm\BipartiteMatcher;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\BoardSpatial;
+use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Cards\BallPass\PassTypes;
+use Bga\Games\SuperTeam\Cards\Moves\CardDefensiveMoves;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
@@ -93,62 +95,39 @@ abstract class TacticCard extends Card
 
     final protected function forceThroughPassTargets() : ExecutionResult
     {
-        $playerId = \intval($this->game->GetActivePlayerId());
-        $startHex = $this->board->getBallHex();
-
-        $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::THROUGH, $playerId, $startHex, $this->game->getPlayerSide($playerId));
-
-        if ($forced)
-            return new ExecutionResult(ExecutionAction::Continue);
-        else
-            return new ExecutionResult(ExecutionAction::Failure);
+        return $this->forceFeasiblePassTargetsForType(PassTypes::THROUGH);
     }
 
     final protected function forceForwardPassTargets() : ExecutionResult
     {
-        $playerId = \intval($this->game->GetActivePlayerId());
-        $startHex = $this->board->getBallHex();
-
-        $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::FORWARD, $playerId, $startHex, $this->game->getPlayerSide($playerId));
-
-        if ($forced)
-            return new ExecutionResult(ExecutionAction::Continue);
-        else
-            return new ExecutionResult(ExecutionAction::Failure);
+        return $this->forceFeasiblePassTargetsForType(PassTypes::FORWARD);
     }
 
     final protected function forceBackwardPassTargets() : ExecutionResult
     {
-        $playerId = \intval($this->game->GetActivePlayerId());
-        $startHex = $this->board->getBallHex();
-
-        $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::BACKWARD, $playerId, $startHex, $this->game->getPlayerSide($playerId));
-
-        if ($forced)
-            return new ExecutionResult(ExecutionAction::Continue);
-        else
-            return new ExecutionResult(ExecutionAction::Failure);
+        return $this->forceFeasiblePassTargetsForType(PassTypes::BACKWARD);
     }
 
     final protected function forceNearOpponentTargets() : ExecutionResult
     {
-        $playerId = \intval($this->game->GetActivePlayerId());
-        $startHex = $this->board->getBallHex();
-
-        $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::NEAR_OPPONENT, $playerId, $startHex, $this->game->getPlayerSide($playerId));
-
-        if ($forced)
-            return new ExecutionResult(ExecutionAction::Continue);
-        else
-            return new ExecutionResult(ExecutionAction::Failure);
+        return $this->forceFeasiblePassTargetsForType(PassTypes::NEAR_OPPONENT);
     }
 
     final protected function forceCrossPassTargets() : ExecutionResult
     {
+        return $this->forceFeasiblePassTargetsForType(PassTypes::CROSS);
+    }
+
+    private function forceFeasiblePassTargetsForType(PassTypes $passType) : ExecutionResult
+    {
         $playerId = \intval($this->game->GetActivePlayerId());
         $startHex = $this->board->getBallHex();
+        $playerSide = $this->game->getPlayerSide($playerId);
 
-        $forced = PassTargetSelectionLogic::forcePassTargets($this->board, PassTypes::CROSS, $playerId, $startHex, $this->game->getPlayerSide($playerId));
+        $passesDoneSoFar = \count((new PassActionContext($playerId))->getPiecesPassedIds());
+        $remainingAfterThis = \array_slice($this->tacticCardDefinition->offensivePassSequence, $passesDoneSoFar + 1);
+
+        $forced = PassTargetSelectionLogic::forceFeasiblePassTargets($this->board, $passType, $remainingAfterThis, $playerId, $startHex, $playerSide);
 
         if ($forced)
             return new ExecutionResult(ExecutionAction::Continue);
@@ -207,11 +186,16 @@ abstract class TacticCard extends Card
 
     private function getPiecesPossibleMoves() : array
     {
+        return $this->getPiecesPossibleMovesForDemand($this->definition->cardDefensiveMoves);
+    }
+
+    public function getPiecesPossibleMovesForDemand(CardDefensiveMoves $demand, array $excludedPieceIds = []) : array
+    {
         $playerId = intval($this->game->GetActivePlayerId());
         $playerPieces = $this->board->getPlayerPiecesByOwner($playerId);
         $resources = new PlayerResources($playerId);
 
-        $defensiveMoves = $this->definition->cardDefensiveMoves;
+        $defensiveMoves = $demand;
         $piecesAvailableMoves = [];
 
         $playerSide = Board::getPlayerSide($playerId);
@@ -219,6 +203,9 @@ abstract class TacticCard extends Card
         foreach ($playerPieces as $playerPiece)
         {
             if ($playerPiece->getRole() === PlayerRole::GoalKeeper->value)
+                continue;
+
+            if (array_any($excludedPieceIds, fn($id) => $id === $playerPiece->getId()))
                 continue;
 
             $playerPieceId = $playerPiece->getId();
@@ -278,16 +265,57 @@ abstract class TacticCard extends Card
      */
     private function getTiredPiecesIds() : array
     {
+        return $this->getTiredPiecesIdsExcluding([]);
+    }
+
+    /**
+     * @return array<int>
+     */
+    public function getTiredPiecesIdsExcluding(array $excludedPieceIds) : array
+    {
         $result = [];
 
         $playerId = intval($this->game->GetActivePlayerId());
         $playerPieces = $this->board->getPlayerPiecesByOwner($playerId);
-        $tiredPieces = array_filter($playerPieces, fn ($piece) => $piece->isFresh() === false && $piece->getRole() != PlayerRole::GoalKeeper->value);
+        $tiredPieces = array_filter($playerPieces, fn ($piece) =>
+            $piece->isFresh() === false &&
+            $piece->getRole() != PlayerRole::GoalKeeper->value &&
+            !array_any($excludedPieceIds, fn($id) => $id === $piece->getId()));
 
         foreach($tiredPieces as $piece)
             $result[] = $piece->getId();
 
         return $result;
+    }
+
+    /**
+     * Checks whether, after assigning $pieceId to satisfy one unit of demand (already reflected
+     * by $remainingDemand having been decremented by the caller), the rest of the player's pieces
+     * can still satisfy what remains. Mirrors isDefensivePossible() on the reduced problem.
+     */
+    public function canPieceSatisfyRemainingDemand(int $pieceId, CardDefensiveMoves $remainingDemand, array $alreadyMovedPieceIds) : bool
+    {
+        $playerId = intval($this->game->GetActivePlayerId());
+        $excluded = [...$alreadyMovedPieceIds, $pieceId];
+
+        $demandArray = $remainingDemand->toArray();
+        if (array_all($demandArray, fn($amount) => $amount <= 0))
+            return true;
+
+        $playerResources = new PlayerResources($playerId);
+        $moraleAvailable = $playerResources->getMorale();
+
+        $piece = $this->board->getPiece($pieceId);
+        if (!$piece->isFresh())
+            $moraleAvailable -= 1;
+
+        if ($moraleAvailable < 0)
+            return false;
+
+        $workerCapabilities = $this->getPiecesPossibleMovesForDemand($remainingDemand, $excluded);
+        $tiredPiecesIds = $this->getTiredPiecesIdsExcluding($excluded);
+
+        return (new BipartiteMatcher())->canSatisfyDemand($workerCapabilities, $tiredPiecesIds, $moraleAvailable, $demandArray);
     }
 
     protected function cleanup() : void
