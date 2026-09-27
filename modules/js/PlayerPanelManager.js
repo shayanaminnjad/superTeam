@@ -80,7 +80,7 @@ define([], function () {
                 const isAttacker = parseInt(playerId) === attackerId;
 
                 element.innerHTML = isAttacker ? "Attacker" : "Defender";
-                element.style.webkitTextStroke = isAttacker ? "1px #DD4720" : "1px #659ADA";
+                element.style.setProperty("--color", isAttacker ? "#DD4720" : "#659ADA");
             }
         },
 
