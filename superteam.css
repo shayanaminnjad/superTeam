@@ -467,8 +467,6 @@ html {
     align-items: center;
     justify-content: center;
     gap: -10px;
-    position: relative;
-    z-index: 101;
 }
 
 .floatingArea {
