@@ -348,15 +348,60 @@ define([
             const endCenterX = endEl.offsetLeft + endEl.offsetWidth / 2;
             const endCenterY = endEl.offsetTop + endEl.offsetHeight / 2;
 
-            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            line.setAttribute("id", "ruler");
-            line.setAttribute("x1", startCenterX);
-            line.setAttribute("y1", startCenterY);
-            line.setAttribute("x2", endCenterX);
-            line.setAttribute("y2", endCenterY);
-            line.setAttribute("stroke", "yellow");
-            line.setAttribute("stroke-width", this._rulerWidth);
-            this._svg.appendChild(line);
+            const dx = endCenterX - startCenterX;
+            const dy = endCenterY - startCenterY;
+            const length = Math.hypot(dx, dy) || 1;
+            const dirX = dx / length;
+            const dirY = dy / length;
+            const perpX = -dirY;
+            const perpY = dirX;
+
+            //Outline is a flat-capped shaft that flares into an open arrowhead at the end,
+            //traced as one closed polygon so only the border shows (fill stays off).
+            const halfWidth = this._rulerWidth / 2;
+            const arrowLength = Math.min(this._rulerWidth * 0.85, length * 0.5);
+            const arrowHalfWidth = this._rulerWidth * 0.6;
+
+            const shaftEndX = endCenterX - dirX * arrowLength;
+            const shaftEndY = endCenterY - dirY * arrowLength;
+
+            const point = (x, y) => `${x},${y}`;
+            const outline = [
+                point(startCenterX + perpX * halfWidth, startCenterY + perpY * halfWidth),
+                point(shaftEndX + perpX * halfWidth, shaftEndY + perpY * halfWidth),
+                point(shaftEndX + perpX * arrowHalfWidth, shaftEndY + perpY * arrowHalfWidth),
+                point(endCenterX, endCenterY),
+                point(shaftEndX - perpX * arrowHalfWidth, shaftEndY - perpY * arrowHalfWidth),
+                point(shaftEndX - perpX * halfWidth, shaftEndY - perpY * halfWidth),
+                point(startCenterX - perpX * halfWidth, startCenterY - perpY * halfWidth),
+            ].join(" ");
+
+            const innerWidth = Math.max(2, this._rulerWidth * 0.12);
+
+            const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            group.setAttribute("id", "ruler");
+
+            //polyline (not polygon) so the back edge stays open instead of auto-closing into a flat cap.
+            //Dark halo drawn first so the gold outline stays crisp over any hex or piece behind it.
+            const halo = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+            halo.setAttribute("points", outline);
+            halo.setAttribute("fill", "none");
+            halo.setAttribute("stroke", "rgba(20, 20, 20, 0.55)");
+            halo.setAttribute("stroke-width", innerWidth + 3);
+            halo.setAttribute("stroke-linejoin", "round");
+            halo.setAttribute("stroke-linecap", "round");
+            group.appendChild(halo);
+
+            const ruler = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+            ruler.setAttribute("points", outline);
+            ruler.setAttribute("fill", "none");
+            ruler.setAttribute("stroke", "#ffcc33");
+            ruler.setAttribute("stroke-width", innerWidth);
+            ruler.setAttribute("stroke-linejoin", "round");
+            ruler.setAttribute("stroke-linecap", "round");
+            group.appendChild(ruler);
+
+            this._svg.appendChild(group);
         },
 
         //------------------------------------------------------------------------------------
