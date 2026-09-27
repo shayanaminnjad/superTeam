@@ -94,6 +94,8 @@ define([
                     Object.values(gamedatas.player_hand).
                     concat(Object.values(gamedatas.player_discard)).
                     concat(gamedatas.player_deck).concat(Object.values(gamedatas.supply)).concat(Object.values(gamedatas.other_discard)));
+
+                this.cardsManager.setHandVisibility(this.cardsManager.getCardsInHand() > 0);
                 
                 this.setupNotifications();
 
@@ -400,6 +402,8 @@ define([
             },
 
             notif_handRefill: function (notifData) {
+                this.cardsManager.setHandVisibility(true);
+
                 if (notifData.wasDiscardShuffled)
                 {
                     return this.cardsManager.shuffleDeck().then(()=> {
@@ -409,6 +413,7 @@ define([
                 {
                     this.cardsManager.placeCards(notifData.playerHand);
                 }
+
             },
 
             notif_opponentDiscardShuffle(notifData) {
@@ -523,7 +528,8 @@ define([
 
             notif_cardReset: async function(notifData) {
                 this.cardsManager.removeOpponentDiscard();
-                return this.cardsManager.placeAllToDeck();
+                await this.cardsManager.placeAllToDeck();
+                this.cardsManager.setHandVisibility(false);
             },
 
             notif_attributesReset: async function(notifData) {

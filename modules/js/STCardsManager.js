@@ -79,6 +79,20 @@ define(["dojo/_base/declare",
                 return promise;
             },
 
+            setHandVisibility: function(isVisible) {
+                let CardWrapperEl = document.getElementById("cardsWrapper");
+                let ShowHideToggleEl = document.getElementById("cardsHideShowToggle");
+
+                CardWrapperEl.style.visibility = isVisible ? "visible" : "hidden";
+                ShowHideToggleEl.style.visibility = isVisible ? "visible" : "hidden";
+            },
+
+            getCardsInHand: function()
+            {
+                let cardsInhand = this._handStock.getCards();
+                return cardsInhand.length;
+            },
+
             //Private Methods
             _initCardsManager: function () {
                 const cardWidth = 200 * 0.7;
