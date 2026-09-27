@@ -30,6 +30,43 @@ html {
     background-attachment: fixed, scroll;
 }
 
+/* TODO: Remove this when you had texture atlases: TEMP PRELOAD, DELETE THIS RULE ONCE ALL GROUPS BELOW HAVE A TEXTURE ATLAS.
+   Forces every listed object image to load once, up front, so none of them
+   pops in later when an object's class changes. */
+body::before {
+    content: '';
+    position: fixed;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    background-image:
+        url('img/topBoard.jpg'),
+        url('img/mainBoard.jpg'),
+        url('img/blueMeepleReady.png'),
+        url('img/blueMeepleExhausted.png'),
+        url('img/blueCaptainMeepleReady.png'),
+        url('img/blueMeepleCaptainExhausted.png'),
+        url('img/redMeepleReady.png'),
+        url('img/redMeepleExhausted.png'),
+        url('img/redCaptainMeepleReady.png'),
+        url('img/redMeepleCaptainExhausted.png'),
+        url('img/goalieMeeple.png'),
+        url('img/ball.png'),
+        url('img/morale.png'),
+        url('img/outLinedMorale.png'),
+        url('img/distance.png'),
+        url('img/block.png'),
+        url('img/coachBoard.jpg'),
+        url('img/coachCube.png'),
+        url('img/handPeekButton.svg'),
+        url('img/moveForwardIcon.png'),
+        url('img/moveForwardINearOpponentcon.png'),
+        url('img/freeMoveIcon.png'),
+        url('img/actionIcon.png'),
+        url('img/moveIcon.png');
+}
+
 #trackerBoard {
     --tracker-board-aspect-ratio: 5.6186;
     --scale: 118px;
