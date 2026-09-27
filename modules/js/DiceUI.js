@@ -216,11 +216,11 @@ define([
                 this._fadeInElement(requiredPowerEl);
             }
 
-            GameEventProcessor.RemoveAssignedMorale();
             const DISPLAY_TIME = 5 * 1000;
 
             await this._root.wait(DISPLAY_TIME);
 
+            GameEventProcessor.RemoveAssignedMorale();
             diceRollAreaEl.remove();
         },
 

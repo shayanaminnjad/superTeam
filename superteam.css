@@ -468,11 +468,11 @@ html {
     justify-content: center;
     gap: -10px;
     position: relative;
-    z-index: 999999;
+    z-index: 101;
 }
 
 .floatingArea {
-    z-index: 999999;
+    z-index: 101;
 }
 
 .greenDie{

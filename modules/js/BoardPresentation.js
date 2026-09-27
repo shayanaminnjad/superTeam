@@ -9,9 +9,6 @@ define([
 
         //Public Functions
 
-        //flip mirrors the pitch left-right so the viewing player's own side always
-        //lands on the high-column end, which _projectHex then places at the bottom
-        //in portrait mode (near the player's own panel).
         construct: function (root, ballPosObj, flip = false) {
             this._root = root;
             this._flip = !!flip;
