@@ -467,6 +467,12 @@ html {
     align-items: center;
     justify-content: center;
     gap: -10px;
+    position: relative;
+    z-index: 999999;
+}
+
+.floatingArea {
+    z-index: 999999;
 }
 
 .greenDie{
@@ -533,6 +539,7 @@ html {
 
 .shootTargetTile {
     --rot: 0deg;
+    --orientation-rot: 0deg;
     --scale: 1;
 
     position: absolute;
@@ -543,12 +550,18 @@ html {
     height: 43px;
     z-index: 102;
     pointer-events: all;
-    transform: rotate(var(--rot)) scale(var(--scale));
+    transform: rotate(calc(var(--rot) + var(--orientation-rot))) scale(var(--scale));
     transition: transform 0.25s;
 }
 
 .shootTargetTile:hover {
     --scale: 1.2;
+}
+
+/* These tiles sit directly on the pitch, so they need the same 90deg the pitch
+   background itself gets in portrait mode (see #mainBoard.portrait::before). */
+body.board-portrait .shootTargetTile {
+    --orientation-rot: 90deg;
 }
 
 .coachBoard {

@@ -64,6 +64,8 @@ define(["dojo/_base/declare",
                 tile.className = 'shootTargetTile';
                 tile.style.backgroundImage = image;
                 tile.style.setProperty('--rot', rotation);
+                tile.dataset.hexRow = row;
+                tile.dataset.hexColumn = column;
                 tile.addEventListener('click', e => this._onTileClicked(e, row, column))
                 parent.appendChild(tile);
                 this._root.placeOnObject(tile, Board.convertOffsetCoordToHexId(HexLib.createOffsetCoord(row, column)));

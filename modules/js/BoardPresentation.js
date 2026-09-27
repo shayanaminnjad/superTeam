@@ -177,6 +177,8 @@ define([
             }
 
             this._root.pieceManager.resnapAll();
+
+            this._resnapHexAnchoredElements();
         },
 
         //------------------------------------------------------------------------------------
@@ -232,6 +234,18 @@ define([
                     hexEl.style.height = rect.height + 'px';
                 }
             }
+        },
+
+        //------------------------------------------------------------------------------------
+
+        //Re-places any transient overlay tagged with data-hex-row/data-hex-column (e.g. the
+        //shoot target tiles) back onto its hex, since orientation changes move hexes but
+        //these overlays aren't tracked/resnapped by the piece manager.
+        _resnapHexAnchoredElements: function () {
+            document.querySelectorAll('[data-hex-row]').forEach(el => {
+                const offsetCoord = HexLib.createOffsetCoord(parseInt(el.dataset.hexRow), parseInt(el.dataset.hexColumn));
+                this._root.placeOnObject(el, this.convertOffsetCoordToHexId(offsetCoord));
+            });
         },
 
         //------------------------------------------------------------------------------------
