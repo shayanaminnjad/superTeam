@@ -448,9 +448,9 @@ body::before {
     position: absolute;
     z-index: 102;
     pointer-events: none;
-    color: #000;
+    color: red;
     font-weight: 900;
-    -webkit-text-stroke: 4px #fff;
+    -webkit-text-stroke: 4px black;
     font-family: Impact, sans-serif;
     paint-order: stroke fill;
 }
@@ -627,7 +627,7 @@ body.board-portrait .shootTargetTile {
     position: relative;
     font-size: var(--size);
     color: var(--color);
-    font-weight: 900;
+    font-weight: 400;
     -webkit-text-stroke: 4px black;
     paint-order: stroke fill;
     font-family: Impact, sans-serif;

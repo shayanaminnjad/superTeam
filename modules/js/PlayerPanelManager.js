@@ -80,7 +80,7 @@ define([], function () {
                 const isAttacker = parseInt(playerId) === attackerId;
 
                 element.innerHTML = isAttacker ? "Attacker" : "Defender";
-                element.style.setProperty("--color", isAttacker ? "#DD4720" : "#659ADA");
+                element.style.setProperty("--color", "white");
             }
         },
 
