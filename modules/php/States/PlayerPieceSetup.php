@@ -11,6 +11,7 @@ use Bga\Games\SuperTeam\ClientButtonColor;
 use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PlayerPieceSetupLogic;
+use Bga\Games\SuperTeam\PlayerRole;
 use Bga\Games\SuperTeam\Utility\Logger;
 use BgaUserException;
 
@@ -25,7 +26,7 @@ class PlayerPieceSetup extends PlayerBaseState
             name: "playerPieceSetup",
             type: StateType::ACTIVE_PLAYER,
             description: clienttranslate('${actplayer} must place his player pieces'),
-            descriptionMyTurn: clienttranslate('${you} must place the indicated piece'),
+            descriptionMyTurn: clienttranslate('${you} must place the indicated piece [${pieceType}]'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,
@@ -54,9 +55,12 @@ class PlayerPieceSetup extends PlayerBaseState
                 new ClientButtonParams(ClientButtonColor::ALERT));
         }
 
+        $pieceType = $this->game->getBoard()->getPiece($pieceToPlaceId)->getRole() ===  PlayerRole::Captain->value ? "captain" : "regular";
+
         return [
             "availableStartingPositions" => $possibleLocations,
             "pieceToPlace"=> $pieceToPlaceId,
+            "pieceType" => $pieceType
         ];
     }
 

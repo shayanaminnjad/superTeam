@@ -15,6 +15,21 @@ define([
             //State Overrides
             _onActivePlayerEnter(args) {
                 this._highlightAvailablePlaces();
+
+                const title = $('pagemaintitletext');
+
+                title.innerHTML = title.innerHTML.replace(
+                    `[${args.pieceType}]`,
+                    `<span class="piece ${args.pieceType} ${this._root.myColor} fresh"
+            style="
+            position: static;
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            overflow: visible;
+            vertical-align: middle;
+        "></span>`
+                );
             },
 
             _onInactivePlayerEnter(args) {
