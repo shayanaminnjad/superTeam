@@ -71,7 +71,7 @@ class PlayerPieceSetupLogic
             $piece = &$piecesToPlace[0];
             $piece->setPosition(HexID::fromArray($positionToPlace), true);
 
-            $game->notify->all("placedPiece", clienttranslate('${player_id} places a piece'), [
+            $game->notify->all("placedPiece", "", [
                 "player_id" => $activePlayerId,
                 "placed_piece" => $piece->getId(),
                 "hex_column" => $positionToPlace['hex_column'],
