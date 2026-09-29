@@ -34,9 +34,10 @@ define(["dojo/_base/declare",
             },
 
             //Notifications
-            notif_cubePlaced: function (notifData) {
+            notif_cubePlaced: async function (notifData) {
                 const myCoachBoard = this._root.myPlayerArea.getCoachBoard();
-                myCoachBoard.placeCubeAnimated(parseInt(notifData.skill));
+                myCoachBoard.makeAllNonSelectable();
+                await myCoachBoard.placeCubeAnimated(parseInt(notifData.skill));
                 myCoachBoard.makeAvailableBoxesSelectable(this._args.IsGKAssignable);
 
                 this._updateButtons();
@@ -73,7 +74,7 @@ define(["dojo/_base/declare",
 
                 this._root.statusBar.addActionButton('Restart', () => {
                     this._root.performServerAction("actRestart", {})
-                }, {id: 'restart', color: 'alert', disabled: this._getAssignedCubes() === 0, confirm: _('Are you sure you want to restart?')});
+                }, {id: 'restart', color: 'alert', disabled: this._getAssignedCubes() === 0});
             },
 
             _getAssignedCubes: function() {

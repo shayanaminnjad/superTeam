@@ -29,7 +29,7 @@ define([
             //Public Methods
             placeCubeAnimated: async function (skill) {
                 const animations = this._getCubePlacementAnimation(skill, 1);
-                await this._root.bgaPlayDojoAnimation(dojo.fx.combine(animations));
+                return this._root.bgaPlayDojoAnimation(dojo.fx.combine(animations));
             },
 
             placeCubeImmediate: function (skill, count) {

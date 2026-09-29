@@ -350,7 +350,7 @@ define([
                 return this.forwardNotification(this.notif_placedPiece.name, notifData);
             },
 
-            notif_cubePlaced: function (notifData) {
+            notif_cubePlaced: async function (notifData) {
                 return this.forwardNotification(this.notif_cubePlaced.name, notifData);
             },
 
