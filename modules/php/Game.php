@@ -471,6 +471,11 @@ class Game extends \Bga\GameFramework\Table
         $this->setGameStateInitialValue('starter_player', $newStarterPlayer);
     }
 
+    public function getPlayerStartedFirstHalf() : int
+    {
+        return \intval($this->getGameStateValue('playerStartedFirstHalf'));
+    }
+
     private function initCardFactory()
     {
         $this->cardFactory = new CardFactory();

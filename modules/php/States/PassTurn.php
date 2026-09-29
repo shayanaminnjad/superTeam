@@ -31,6 +31,10 @@
 
      function onEnteringState(int $activePlayerId)
      {
+         //(sha) this happens if we have given the second player a final turn.
+        if ($this->isLastTurn($activePlayerId, TimeTrack::GetTimeTrackPosition()))
+             return ST_END_GAME;
+
          $playerHand = $this->game->getPlayerHand($activePlayerId);
          $wasDiscardShuffled = $playerHand->drawToFour();
 
@@ -74,7 +78,7 @@
             {
                 return HalfTime::class;
             }
-            else if (TimeTrack::IsGameFinished($timeTrackPosition))
+            else if ($this->isLastTurn($activePlayerId, $timeTrackPosition))
             {
                 return ST_END_GAME;
             }
@@ -101,6 +105,18 @@
                 return BeforeCardSelectionReset::class;
             }
         }
+     }
+
+     /**
+      * @param int $activePlayerId
+      * @return bool
+      */
+     public function isLastTurn(int $activePlayerId, int $timeTrackPos): bool
+     {
+         //(sha) we want to make sure that both players play the same amount of turns. the player who starts the first half, starts the first turn of the game.
+         //so if the tracker goes to last space in his turn, we give the other player another turn. but if tracker goes to last space in the second player turn,
+         //then we finish the game.
+         return TimeTrack::IsGameFinished($timeTrackPos) && $activePlayerId !== $this->game->getPlayerStartedFirstHalf();
      }
  }
  

@@ -43,7 +43,7 @@ class HalfTime extends GameState
         }
 
         DBAdapter::getInstance()->storeGlobalInt('is_restart_after_goal', 0);
-        $playerStartedFirstHalf = DBAdapter::getInstance()->getGameStateValue('playerStartedFirstHalf');
+        $playerStartedFirstHalf = $this->game->getPlayerStartedFirstHalf();
         $currentStarterPlayer = $this->game->getStarterPlayer();
 
         if ($playerStartedFirstHalf === $currentStarterPlayer)
