@@ -42,11 +42,15 @@ class HalfTime extends GameState
             $hand->removeUpToTwoFatiguesFromDeck(true);
         }
 
-
-        $isRestartAfterGoal = DBAdapter::getInstance()->getGlobalInt('is_restart_after_goal');
         DBAdapter::getInstance()->storeGlobalInt('is_restart_after_goal', 0);
-        if (!$isRestartAfterGoal)
+        $playerStartedFirstHalf = DBAdapter::getInstance()->getGameStateValue('playerStartedFirstHalf');
+        $currentStarterPlayer = $this->game->getStarterPlayer();
+
+        if ($playerStartedFirstHalf === $currentStarterPlayer)
             $this->game->swapStarterPlayer();
+
+        if ($this->game->getActivePlayerId() != $this->game->getStarterPlayer())
+            $this->game->activeNextPlayer();
 
         //TODO: client should be notified and show a half time banner probably!
 
