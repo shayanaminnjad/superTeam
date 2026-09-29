@@ -92,8 +92,6 @@ class CardSelection extends PlayerBaseState
     {
         $activePlayer = \intval($this->game->getActivePlayerId());
 
-        $this->game->giveExtraTime($activePlayer); //todo: shouldn't do this unless the card action is completed.
-
         if (self::getCardsPlayedThisTurn($this->game) >= 3)
             throw new \BgaUserException("You can't play more than 3 cards in a turn!");
 

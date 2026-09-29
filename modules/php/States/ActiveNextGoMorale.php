@@ -25,7 +25,8 @@ class ActiveNextGoMorale extends GameState
 
     function onEnteringState(int $activePlayerId)
     {
-        $this->game->activeNextPlayer(); //TODO: probably I should give time to this player!
+        $playerId = intval($this->game->activeNextPlayer());
+        $this->game->giveExtraTime($playerId);
 
         return BeforeMoraleAssignment::class;
     }

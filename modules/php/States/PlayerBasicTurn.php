@@ -95,6 +95,8 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actShootBall() : string
     {
+        $this->game->giveExtraTime($this->game->getInactivePlayerId());
+
         $this->gamestate->setAllPlayersMultiactive();
         return ShootTargetSelection::class;
     }
