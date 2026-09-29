@@ -28,6 +28,6 @@ class BeforePlayerTurn extends GameState
     function onEnteringState(int $activePlayerId)
     {
         $this->game->DbQuery(PlayerPiecesDBManager::refreshPiecesQuery($activePlayerId));
-        $this->game->notify->all("piecesRefreshed", "pieces refreshed", ["playerId" => $activePlayerId]);
+        $this->game->notify->all("piecesRefreshed", "", ["playerId" => $activePlayerId]);
     }
 }

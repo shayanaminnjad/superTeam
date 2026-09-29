@@ -52,13 +52,13 @@ class PlayerPiece
             $notificationAdapter = NotificationAdapter::getInstance();
             if ($isFresh)
             {
-                $notificationAdapter->notifyAll("pieceFreshed", \clienttranslate('piece was freshed'), array(
+                $notificationAdapter->notifyAll("pieceFreshed", "", array(
                     "pieceId" => $this->getId(),
                 ));
             }
             else
             {
-                $notificationAdapter->notifyAll("pieceExhausted", \clienttranslate('piece was exhausted'), array(
+                $notificationAdapter->notifyAll("pieceExhausted", "", array(
                     "pieceId" => $this->getId(),
                 ));
             }

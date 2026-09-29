@@ -51,7 +51,7 @@
         $nextPlayer = $this->game->activeNextPlayer();
 
         $this->game->DbQuery(PlayerPiecesDBManager::refreshPiecesQuery($nextPlayer));
-        $this->game->notify->all("piecesRefreshed", "pieces refreshed", ["playerId" => $nextPlayer]);
+        $this->game->notify->all("piecesRefreshed", "", ["playerId" => $nextPlayer]);
 
         $passActionContext = new PassActionContext($activePlayerId);
         $passActionContext->reset(true);
