@@ -24,7 +24,9 @@ class Captain_A_0 extends CaptainCard
         parent::__construct(new CardDefinition(
             "Captain 1",
             CardType::Captain,
-            ""), $game);
+            \clienttranslate("**Requirement:** Play when NOT adjacent to any opponent. 
+**Effect:** Move and perform an action."))
+            , $game);
     }
 
     public function isExecutionPossible(): bool

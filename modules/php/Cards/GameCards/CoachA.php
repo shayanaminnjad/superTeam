@@ -28,7 +28,8 @@ class CoachA extends Card
         parent::__construct(new CardDefinition(
             "Coach A",
             CardType::Coach,
-            ""), $game);
+            \clienttranslate("**Requirement:** Pay 1 Morale.
+**Effect:** Move all Ready pieces up to 2 spaces.")), $game);
     }
 
     public function isExecutionPossible(): bool

@@ -22,7 +22,12 @@ class BasicB extends TacticCard
         parent::__construct(new TacticCardDefinition(
             "Basic B",
             CardType::Basic,
-            "",
+            \clienttranslate('**Offensive**
+**Backward Pass:** Pass the ball to a piece who is at least one row behind of the current ball carrier. 
+---
+**Defensive**
+**Backward Move:** Move one of your pieces backward.
+**Backward Move & Marking:** Move one of your pieces backward and end the movement in an adjacent space to an opponent’s piece. '),
             new CardDefensiveMoves(0, 0, 1, 0, 1),
             new DefensiveReward(1, 0, 0),
             false,

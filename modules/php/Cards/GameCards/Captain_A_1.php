@@ -20,7 +20,8 @@ class Captain_A_1 extends CaptainCard
         parent::__construct(new CardDefinition(
             "Captain 2",
             CardType::Captain,
-            ""), $game);
+            \clienttranslate("**Requirement:** Play after receiving the ball inside the Penalty Area.
+**Effect:** Gain 1 Morale and Shoot.")), $game);
     }
 
     public function isExecutionPossible(): bool

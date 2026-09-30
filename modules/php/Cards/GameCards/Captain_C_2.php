@@ -20,7 +20,8 @@ class Captain_C_2 extends CaptainCard
         parent::__construct(new CardDefinition(
             "Captain 3",
             CardType::Captain,
-            ""), $game);
+            \clienttranslate("**Requirement:** Play after receiving the ball inside the Penalty Area.
+**Effect:** Shoot and skip a block.")), $game);
     }
 
     public static function staticId() : string

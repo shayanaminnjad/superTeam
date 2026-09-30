@@ -21,7 +21,12 @@ class BasicD extends TacticCard
         parent::__construct(new TacticCardDefinition(
             "Basic D",
             CardType::Basic,
-            "",
+            \clienttranslate("**Offensive**
+**Cross Pass:** Pass the ball to a piece who is at the same row as the current ball carrier. 
+---
+**Defensive**
+**Free Move x2:** Move one of your pieces in any direction. 
+"),
             new CardDefensiveMoves(2, 0, 0, 0, 0),
             new DefensiveReward(0, 0, 0),
             false,

@@ -20,7 +20,12 @@ class BasicC extends TacticCard
         parent::__construct(new TacticCardDefinition(
             "Basic C",
             CardType::Basic,
-            "",
+            \clienttranslate("**Offensive**
+**Pressure Pass:** Pass the ball when an opponent is adjacent to the ball carrier. The direction of the ball does not matter.
+---
+**Defensive**
+**Forward Move:** Move one of your pieces forward.
+**Backward Move:** Move one of your pieces backward."),
             new CardDefensiveMoves(0, 1, 1, 0, 0),
             new DefensiveReward(1, 0, 0),
             false,

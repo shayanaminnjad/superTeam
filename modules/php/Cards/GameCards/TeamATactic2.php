@@ -23,7 +23,12 @@ class TeamATactic2 extends TacticCard
         parent::__construct(new TacticCardDefinition(
             "Team B",
             CardType::Team,
-            "",
+            \clienttranslate("**Offensive**
+**Forward & Cross Pass:** Pass the ball to a piece who is at least one row ahead of the current ball carrier. Then pass the ball to another piece at the same row as that piece. 
+---
+**Defensive**
+**Backward Move x2:** Move one of your pieces backward.
+**Forward Move:** Move one of your pieces forward."),
             new CardDefensiveMoves(0, 1, 2, 0, 0),
             new DefensiveReward(1, 0, 1),
             true,

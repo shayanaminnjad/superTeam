@@ -26,7 +26,8 @@ class CoachB extends Card
         parent::__construct(new CardDefinition(
             "Coach B",
             CardType::Coach,
-            ""), $game);
+            \clienttranslate("**Requirement:** Pay 1 Morale 
+**Effect:** Move all Exhausted pieces up to 1 spaces.")), $game);
     }
 
     public function isExecutionPossible(): bool

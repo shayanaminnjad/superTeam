@@ -21,7 +21,7 @@ class Fatigue extends Card
         parent::__construct(new CardDefinition(
             "Fatigue",
             CardType::Fatigue,
-            ""), $game);
+            \clienttranslate("one move")), $game);
     }
     public function isExecutionPossible(): bool
     {
