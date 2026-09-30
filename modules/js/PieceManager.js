@@ -35,14 +35,27 @@ define([
 
                 addMoraleTokenToPieces: function (pieces) {
                     for (let piece of pieces) {
-                        let el = this.getPiece(piece).getDOMElement();
+                        const iconEl = document.createElement('div');
+                        iconEl.className = 'moraleIcon pieceAttachment';
 
-                        el.insertAdjacentHTML('beforeend', `<div class="moraleIcon pieceAttachment"></div>`);
+                        this.attachToPiece(piece, iconEl);
                     }
                 },
 
+                attachToPiece: function (pieceId, contentEl) {
+                    const anchorEl = document.createElement('div');
+                    anchorEl.className = 'pieceAttachmentAnchor';
+                    anchorEl.dataset.pieceId = pieceId;
+                    anchorEl.appendChild(contentEl);
+
+                    Board.getMainBoardElement().appendChild(anchorEl);
+                    this._placeAnchor(anchorEl);
+
+                    return anchorEl;
+                },
+
                 removeAllMoraleTokens: function () {
-                    document.querySelectorAll('.moraleIcon.pieceAttachment').forEach(el => el.remove());
+                    document.querySelectorAll('.moraleIcon.pieceAttachment').forEach(el => el.parentElement.remove());
                 },
 
                 makePieceSelectable: function (pieceId) {
@@ -183,6 +196,15 @@ define([
 
                         this._root.placeOnObject(piece.getDOMElement(), Board.convertOffsetCoordToHexId(pos));
                     }
+
+                    document.querySelectorAll('.pieceAttachmentAnchor').forEach(el => this._placeAnchor(el));
+                },
+
+                //Placed on the piece's hex, not the piece element: on page load the piece
+                //is still sliding in from the player panel when states attach to it.
+                _placeAnchor: function (anchorEl) {
+                    const piece = this.getPiece(parseInt(anchorEl.dataset.pieceId));
+                    this._root.placeOnObject(anchorEl, Board.convertOffsetCoordToHexId(piece.getPosition()));
                 },
 
                 _resetPiece(piece, goalieRow, animations) {

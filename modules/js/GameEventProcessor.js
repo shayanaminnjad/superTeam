@@ -92,12 +92,9 @@ define([
                 const sourceElement =
                     this._root.getPlayerPanelElement(playerId);
 
-                const pieceElement =
-                    piece.getDOMElement();
-
                 const moraleLine =
                     this._createMoraleLine(
-                        pieceElement,
+                        piece,
                         moraleAssigned
                     );
 
@@ -151,7 +148,7 @@ define([
                     return;
 
                 this._createMoraleLine(
-                    piece.getDOMElement(),
+                    piece,
                     moraleAssigned
                 );
             });
@@ -162,12 +159,12 @@ define([
         RemoveAssignedMorale: function () {
             document
                 .querySelectorAll('.pieceMoraleLine')
-                .forEach(el => el.remove());
+                .forEach(el => el.parentElement.remove());
         },
 
         //------------------------------------------------------------------------------------
 
-        _createMoraleLine: function (pieceElement, moraleAmount) {
+        _createMoraleLine: function (piece, moraleAmount) {
             const moraleLine =
                 document.createElement('div');
 
@@ -185,7 +182,7 @@ define([
                 moraleLine.appendChild(moraleIcon);
             }
 
-            pieceElement.appendChild(moraleLine);
+            this._pieceManager.attachToPiece(piece.getId(), moraleLine);
 
             return moraleLine;
         },

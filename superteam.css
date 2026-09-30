@@ -269,12 +269,6 @@ body::before {
     background-repeat: no-repeat;
 }
 
-/* Morale tokens live inside the piece, which is its own stacking context,
-   so the whole piece has to be raised for its tokens to show on top. */
-.piece.moraleOnTop {
-    z-index: 123;
-}
-
 .piece.clickable {
     pointer-events: auto !important;
     cursor: pointer;
@@ -423,6 +417,16 @@ body::before {
     border-radius: 3px;
 }
 
+/* Sits on #mainBoard over its piece instead of inside it, so morale can show
+   above the ball without raising the piece itself. */
+.pieceAttachmentAnchor {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    pointer-events: none;
+    z-index: 123;
+}
+
 .moraleIcon.pieceAttachment{
     width: 16px;
     height: 16px;
@@ -471,7 +475,7 @@ body::before {
     left: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
-    z-index: 102;
+    z-index: 124;
 }
 
 .diceActionTitle {
