@@ -144,7 +144,7 @@ body::before {
     position: absolute;
     width: 100%;
     height: 100%;
-    z-index: 101;
+    z-index: 121;
     pointer-events: none;
 }
 
@@ -267,6 +267,12 @@ body::before {
     background-image: url('img/goalieMeeple.png');
     background-size: contain;
     background-repeat: no-repeat;
+}
+
+/* Morale tokens live inside the piece, which is its own stacking context,
+   so the whole piece has to be raised for its tokens to show on top. */
+.piece.moraleOnTop {
+    z-index: 123;
 }
 
 .piece.clickable {
@@ -446,7 +452,7 @@ body::before {
 
 .powerIndication{
     position: absolute;
-    z-index: 102;
+    z-index: 122;
     pointer-events: none;
     color: red;
     font-weight: 900;
@@ -466,6 +472,23 @@ body::before {
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 102;
+}
+
+.diceActionTitle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #E5DFCB;
+    font-size: 24px;
+    font-weight: 400;
+    font-family: Impact, sans-serif;
+    text-transform: uppercase;
+    -webkit-text-stroke: 4px black;
+    paint-order: stroke fill;
+    pointer-events: none;
+    z-index: 103;
 }
 
 .diceResult {
@@ -588,7 +611,7 @@ body::before {
     overflow: visible;
     width: 37px ;
     height: 43px;
-    z-index: 102;
+    z-index: 120;
     pointer-events: all;
     transform: rotate(calc(var(--rot) + var(--orientation-rot))) scale(var(--scale));
     transition: transform 0.25s;
@@ -814,6 +837,12 @@ body.board-portrait .shootTargetTile {
 .die-white.face-4 { background-position:  60% 100%; }
 .die-white.face-5 { background-position:  80% 100%; }
 .die-white.face-6 { background-position: 100% 100%; }
+
+.diceLogAction {
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+}
 
 .diceLogRow {
     display: flex;

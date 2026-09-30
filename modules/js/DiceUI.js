@@ -29,12 +29,23 @@ define([
             requiredPower,
             blockingPieces,
             distance,
-            skipEnabledPlayerId
+            skipEnabledPlayerId,
+            actionName,
+            passDest = null
         ) {
+
+            if (passDest) {
+                Board.visualizePowerRequired(Board.getHexWithBall(), passDest, attacker !== this._root.player_id);
+            }
 
             Board.getMainBoardElement().insertAdjacentHTML('beforeend', `<div id="diceRollArea"></div>`);
 
             const diceRollAreaEl = document.getElementById('diceRollArea');
+
+            const actionTitleEl = document.createElement('div');
+            actionTitleEl.className = 'diceActionTitle';
+            actionTitleEl.textContent = _(actionName);
+            diceRollAreaEl.appendChild(actionTitleEl);
 
             const rollPlayers = [];
 
@@ -222,6 +233,10 @@ define([
 
             GameEventProcessor.RemoveAssignedMorale();
             diceRollAreaEl.remove();
+
+            if (passDest) {
+                Board.removeRequiredPowerVisualization();
+            }
         },
 
         _fadeInElement: function (element) {
@@ -244,8 +259,8 @@ define([
             };
         },
 
-        formatRollLog: function (rollResults, players, requiredPower, distance, blockingPieces) {
-            let html = '';
+        formatRollLog: function (rollResults, players, requiredPower, distance, blockingPieces, actionName) {
+            let html = `<div class="diceLogAction">${_(actionName)}</div>`;
 
             for (const playerId of Object.keys(rollResults)) {
                 html += this._formatRollLogRow(players[playerId].color, rollResults[playerId]);

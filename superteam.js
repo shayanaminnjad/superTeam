@@ -355,6 +355,12 @@ define([
                 for (const el of document.querySelectorAll('.cardLogItem:not(.tt_processed)')) {
                     el.classList.add('tt_processed');
                     el.id = `cardLogItem_${this._nextCardLogId++}`;
+
+                    const definition = (this.cardDefinitions || {})[el.dataset.cardType];
+                    if (definition) {
+                        el.querySelector('.cardLogName').textContent = definition.name;
+                    }
+
                     this.addTooltipHtml(el.id, this.cardsManager.getCardTooltipHtml(el.dataset.cardType), 500);
                 }
             },
@@ -363,8 +369,8 @@ define([
                 if (log && args && !args.processed) {
                     args.processed = true;
 
-                    if (args.cardType !== undefined && args.cardLog !== undefined && this.cardsManager) {
-                        args.cardLog = this.cardsManager.getCardLogHtml(args.cardType);
+                    if (args.cardType !== undefined && args.cardLog !== undefined) {
+                        args.cardLog = STCardsManager.getCardLogHtml(args.cardType, this.cardDefinitions);
                     }
 
                     if (args.rollResult !== undefined && args.diceLog !== undefined) {
@@ -373,7 +379,8 @@ define([
                             this.gameDatas.players,
                             parseInt(args.requiredPower),
                             parseInt(args.distance),
-                            parseInt(args.blockingPieces)
+                            parseInt(args.blockingPieces),
+                            args.actionName
                         );
                     }
                 }
@@ -493,7 +500,10 @@ define([
                 }
 
                 console.log(rollResults);
-                return DiceUI.showRollAndWait(rollResults, notifData.attacker, notifData.requiredPower, notifData.blockingPieces, notifData.distance, notifData.skipEnabledPlayerId);
+
+                const passDest = notifData.passDest ? STHexLib.createOffsetCoord(notifData.passDest.hex_row, notifData.passDest.hex_column) : null;
+
+                return DiceUI.showRollAndWait(rollResults, notifData.attacker, notifData.requiredPower, notifData.blockingPieces, notifData.distance, notifData.skipEnabledPlayerId, notifData.actionName, passDest);
             },
 
             notif_successfulPass: function (notifData) {

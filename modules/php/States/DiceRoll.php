@@ -60,12 +60,30 @@ class DiceRoll extends GameState
         $notifData["requiredPower"] = $rollData->requiredPower;
         $notifData["attacker"] = $attacker;
         $notifData["diceLog"] = "";
+        $notifData["actionName"] = $this->getActionName($rollData->selfAttribute);
+        if ($rollData->selfAttribute == TeamAttribute::Pass) {
+            $notifData["passDest"] = DBAdapter::getInstance()->getSelectedHexAsHexID()->convertToArray();
+        }
+        $notifData["i18n"] = ["actionName"];
+        //History logs (F5) drop every arg that is not in the message, so the client can rebuild ${diceLog}.
+        $notifData["preserve"] = ["rollResult", "distance", "blockingPieces", "requiredPower", "actionName"];
 
         $this->notify->all("diceRolled", \clienttranslate('${diceLog}'), $notifData);
 
         assert(strlen($rollData->finishTransition) > 0, "no transition is stored for dice roll finish");
 
         return $rollData->finishTransition;
+    }
+
+    private function getActionName(TeamAttribute $attribute): string
+    {
+        return match ($attribute) {
+            TeamAttribute::Pass => \clienttranslate('Pass'),
+            TeamAttribute::Shoot => \clienttranslate('Shoot'),
+            TeamAttribute::Dribble => \clienttranslate('Dribble'),
+            TeamAttribute::Tackle => \clienttranslate('Tackle'),
+            default => throw new \LogicException("No action name for attribute " . $attribute->name),
+        };
     }
 
     private function rollForPlayer(int $playerId, TeamAttribute $relatedAttribute): DiceRollResult
