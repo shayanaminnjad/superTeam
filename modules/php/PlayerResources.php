@@ -80,8 +80,9 @@ class PlayerResources
 
         if ($notify)
         {
-            NotificationAdapter::getInstance()->notifyAll('goalScored', 'goal scored!', array(
+            NotificationAdapter::getInstance()->notifyAll('goalScored', \clienttranslate('${playerName} scored a goal!'), array(
                 "playerId" => $this->playerId,
+                "playerName" => NotificationAdapter::getInstance()->getPlayerNameById($this->playerId),
                 "goals" => $currentGoals,
                 "score" => $currentGoals
             ));
