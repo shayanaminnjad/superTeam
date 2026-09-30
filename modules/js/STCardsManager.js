@@ -94,14 +94,7 @@ define(["dojo/_base/declare",
             },
 
             getCardLogHtml: function (cardType) {
-                const [backXPos, backYPos] = this._getCardPositionInsideAtlas({ type: cardType });
-                const definition = (this._root.cardDefinitions || {})[cardType];
-                const name = definition ? definition.name : cardType;
-
-                return `<span class="cardLogItem" data-card-type="${cardType}">
-                    <span class="cardLogImage st-card-front" style="background-position: ${backXPos} ${backYPos};"></span>
-                    <span class="cardLogName">${name}</span>
-                </span>`;
+                return STCardsManager.getCardLogHtml(cardType, this._root.cardDefinitions);
             },
 
             getCardTooltipHtml: function (cardType) {
@@ -303,6 +296,18 @@ define(["dojo/_base/declare",
 
             _root: null
         });
+
+        //Static so history logs can be formatted on refresh, before any manager instance or card definitions exist.
+        STCardsManager.getCardLogHtml = function (cardType, cardDefinitions) {
+            const [backXPos, backYPos] = STCardsManager.prototype._getCardPositionInsideAtlas({ type: cardType });
+            const definition = (cardDefinitions || {})[cardType];
+            const name = definition ? definition.name : cardType;
+
+            return `<span class="cardLogItem" data-card-type="${cardType}">
+                <span class="cardLogImage st-card-front" style="background-position: ${backXPos} ${backYPos};"></span>
+                <span class="cardLogName">${name}</span>
+            </span>`;
+        };
 
         return STCardsManager;
     });

@@ -108,7 +108,8 @@ class CardSelection extends PlayerBaseState
             'cardLog' => '',
             'activePlayer' => $activePlayer,
             'discards' => $playerHand->getDiscardedCards(),
-            'cardsInDeckCount' => $playerHand->CountCardsInDeck()
+            'cardsInDeckCount' => $playerHand->CountCardsInDeck(),
+            'preserve' => ['cardType'],
             ]);
 
         self::increaseCardsPlayedThisTurnByOne($this->game);
@@ -187,7 +188,8 @@ class CardSelection extends PlayerBaseState
             'cardType' => $cardMoved['type'],
             'cardLog' => '',
             'undoCard' => $cardMoved,
-            'cardsInDeckCount' => $playerHand->CountCardsInDeck()
+            'cardsInDeckCount' => $playerHand->CountCardsInDeck(),
+            'preserve' => ['cardType'],
         ]);
     }
 
