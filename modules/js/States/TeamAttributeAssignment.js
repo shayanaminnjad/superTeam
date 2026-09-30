@@ -60,7 +60,15 @@ define(["dojo/_base/declare",
                 evt.preventDefault();
                 evt.stopPropagation();
 
-                this._root.performServerAction("actPlacedAttrCube", { attributeId: skillSlot.skillIndex });
+                const myCoachBoard = this._root.myPlayerArea.getCoachBoard();
+                myCoachBoard.makeAllNonSelectable();
+
+                try {
+                    this._root.performServerAction("actPlacedAttrCube", { attributeId: skillSlot.skillIndex });
+                }
+                catch (e) {
+                    myCoachBoard.makeAvailableBoxesSelectable(this._args.IsGKAssignable);
+                }
             },
 
             _cleanup: function () {
