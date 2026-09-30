@@ -28,17 +28,27 @@ class PlayerResources
 
     public function setMorale(int $amount, bool $notify) : void
     {
+        $oldMorale = $this->getMorale();
+
         $this->dbAdapter->DbQuery(
             "UPDATE `player` SET `resource_morale` = {$amount} WHERE `player_id` = {$this->playerId}"
         );
 
         if ($notify) 
         {
+            $message = $amount > $oldMorale ?
+                \clienttranslate('${player_name} gained ${absDiff} morale(s).') :
+                \clienttranslate('${player_name} spent ${absDiff} morale(s).');
+
             NotificationAdapter::getInstance()->notifyAll(
                 "moraleChanged",
-                "morale changed to {$amount}",
-                ["amount" => $amount, "playerId" => $this->playerId]
-            );
+                $message,
+                [
+                    "amount" => $amount,
+                    "playerId" => $this->playerId,
+                    "player_name" => NotificationAdapter::getInstance()->getPlayerNameById($this->playerId),
+                    "absDiff" => abs($amount - $oldMorale)
+                ]);
         }
     }
 
