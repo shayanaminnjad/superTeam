@@ -38,13 +38,4 @@ class BasicC extends TacticCard
     {
         return self::staticId();
     }
-
-    function getOffensiveCommands(): array
-    {
-        return [
-            $this->forceNearOpponentTargets(...),
-            $this->goToPassState(...),
-            $this->checkPassResult(...)
-        ];
-    }
 }

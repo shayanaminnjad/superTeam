@@ -41,16 +41,4 @@ class TeamBTactic3 extends TacticCard
     {
         return self::staticId();
     }
-
-    function getOffensiveCommands(): array
-    {
-        return [
-            $this->forceBackwardPassTargets(...),
-            $this->goToPassState(...),
-            $this->checkPassResult(...),
-            $this->forceThroughPassTargets(...),
-            $this->goToPassState(...),
-            $this->checkThroughPassResult(...)
-        ];
-    }
 }

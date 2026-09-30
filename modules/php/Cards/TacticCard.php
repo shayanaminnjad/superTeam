@@ -30,9 +30,6 @@ abstract class TacticCard extends Card
         parent::__construct($definition, $game);
     }
 
-    //TODO: I don't need to implement this per class! the algorithm is the same for all of them, just the parameters change!
-    abstract protected function getOffensiveCommands() : array;
-
     final protected function isOffensiveMovePossible(): bool
     {
         $currentPlayer =  \intval($this->game->GetActivePlayerId());
@@ -93,31 +90,6 @@ abstract class TacticCard extends Card
         return new ExecutionResult($passResult ? ExecutionAction::Continue : ExecutionAction::Failure);
     }
 
-    final protected function forceThroughPassTargets() : ExecutionResult
-    {
-        return $this->forceFeasiblePassTargetsForType(PassTypes::THROUGH);
-    }
-
-    final protected function forceForwardPassTargets() : ExecutionResult
-    {
-        return $this->forceFeasiblePassTargetsForType(PassTypes::FORWARD);
-    }
-
-    final protected function forceBackwardPassTargets() : ExecutionResult
-    {
-        return $this->forceFeasiblePassTargetsForType(PassTypes::BACKWARD);
-    }
-
-    final protected function forceNearOpponentTargets() : ExecutionResult
-    {
-        return $this->forceFeasiblePassTargetsForType(PassTypes::NEAR_OPPONENT);
-    }
-
-    final protected function forceCrossPassTargets() : ExecutionResult
-    {
-        return $this->forceFeasiblePassTargetsForType(PassTypes::CROSS);
-    }
-
     private function forceFeasiblePassTargetsForType(PassTypes $passType) : ExecutionResult
     {
         $playerId = \intval($this->game->GetActivePlayerId());
@@ -161,6 +133,20 @@ abstract class TacticCard extends Card
         }
 
         return new ExecutionResult($passResult ? ExecutionAction::Continue : ExecutionAction::Failure);
+    }
+
+    private function getOffensiveCommands(): array
+    {
+        $commands = [];
+
+        foreach ($this->tacticCardDefinition->offensivePassSequence as $passType)
+        {
+            $commands[] = fn() => $this->forceFeasiblePassTargetsForType($passType);
+            $commands[] = $this->goToPassState(...);
+            $commands[] = $passType === PassTypes::THROUGH ? $this->checkThroughPassResult(...) : $this->checkPassResult(...);
+        }
+
+        return $commands;
     }
 
     private function getDefensiveCommands(): array

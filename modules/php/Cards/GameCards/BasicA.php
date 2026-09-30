@@ -51,13 +51,4 @@ class BasicA extends TacticCard
         return self::staticId();
     }
 
-    protected function getOffensiveCommands(): array
-    {
-        return [
-            $this->forceForwardPassTargets(...),
-            $this->goToPassState(...),
-            $this->checkPassResult(...)
-        ];
-    }
-
 }

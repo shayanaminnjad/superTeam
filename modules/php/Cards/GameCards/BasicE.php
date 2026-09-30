@@ -47,13 +47,4 @@ class BasicE extends TacticCard
     {
         return static::staticId();
     }
-
-    protected function getOffensiveCommands(): array
-    {
-        return [
-            $this->forceThroughPassTargets(...),
-            $this->goToPassState(...),
-            $this->checkThroughPassResult(...)
-        ];
-    }
 }

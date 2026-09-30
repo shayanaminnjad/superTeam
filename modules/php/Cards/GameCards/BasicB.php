@@ -40,13 +40,4 @@ class BasicB extends TacticCard
     {
         return self::staticId();
     }
-
-    protected function getOffensiveCommands(): array
-    {
-        return [
-            $this->forceBackwardPassTargets(...),
-            $this->goToPassState(...),
-            $this->checkPassResult(...)
-        ];
-    }
 }

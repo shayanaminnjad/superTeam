@@ -42,16 +42,4 @@ class TeamATactic1 extends TacticCard
     {
         return static::staticId();
     }
-
-    function getOffensiveCommands(): array
-    {
-        return [
-            $this->forceForwardPassTargets(...),
-            $this->goToPassState(...),
-            $this->checkPassResult(...),
-            $this->forceThroughPassTargets(...),
-            $this->goToPassState(...),
-            $this->checkThroughPassResult(...)
-        ];
-    }
 }
