@@ -27,6 +27,8 @@ class SetupComplete extends GameState
 
     function onEnteringState(int $activePlayerId)
     {
+        $this->game->giveExtraTime($activePlayerId);
+
         $playerId = intval($this->game->activeNextPlayer());
 
         if (!$this->game->getBoard()->doAllPiecesHaveValidPosition($playerId))
@@ -35,8 +37,6 @@ class SetupComplete extends GameState
         }
         else
         {
-            $this->game->giveExtraTime($activePlayerId);
-
             $isRestartAfterGoal = DBAdapter::getInstance()->getGlobalInt('is_restart_after_goal') == 1;
 
             $this->game->getBoard()->updateAttackerAndDefender();

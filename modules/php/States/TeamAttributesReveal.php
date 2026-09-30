@@ -31,6 +31,9 @@ class TeamAttributesReveal extends GameState
 
         $attributes = $this->game->getTeamBoard()->getAttributesAsCollection();
 
+        $this->game->giveExtraTime($activePlayerId);
+        $this->game->giveExtraTime($this->game->getInactivePlayerId());
+
         $this->game->notify->all("attributeAssignmentFinished", "", $attributes);
 
         return DealInitialHand::class;
