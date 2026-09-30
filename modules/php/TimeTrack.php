@@ -17,7 +17,7 @@ class TimeTrack
         if ($withNotify)
         {
             NotificationAdapter::getInstance()->notifyAll(
-                "timeTrackAdvance", 'time track advanced', ['currentPosition' => $timeTrack]
+                "timeTrackAdvance", \clienttranslate('Time track advanced'), ['currentPosition' => $timeTrack]
             );
         }
 
