@@ -10,6 +10,9 @@ class NotificationAdapter
     /** @var callable */
     private $notifyPlayerCallback;
 
+    /** @var callable */
+    private $playerByIdCallback;
+
     /** @var NotificationAdapter */
     private static $instance = null;
 
@@ -24,10 +27,11 @@ class NotificationAdapter
 
     private function __construct() {}
 
-    public function init(callable $notifyAll, callable $notifyPlayer)
+    public function init(callable $notifyAll, callable $notifyPlayer, callable $playerNameById)
     {
         $this->notifyAllCallback = $notifyAll;
         $this->notifyPlayerCallback = $notifyPlayer;
+        $this->playerByIdCallback = $playerNameById;
     }
 
     public function notifyAll(string $name, string $message, array $args)
@@ -38,5 +42,10 @@ class NotificationAdapter
     public function notifyPlayer(int $playerId, string $name, string $message, array $args)
     {
         ($this->notifyPlayerCallback)($playerId, $name, $message, $args);
+    }
+
+    public function getPlayerNameById(int $playerId) : string
+    {
+        return ($this->playerByIdCallback)($playerId);
     }
 }

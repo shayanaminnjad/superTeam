@@ -50,7 +50,8 @@ class Game extends \Bga\GameFramework\Table
 
         NotificationAdapter::getInstance()->init(
             fn($name, $message, $args) => $this->notify->all($name, $message, $args),
-            fn($playerId, $name, $message, $args) => $this->notify->player($playerId, $name, $message, $args)
+            fn($playerId, $name, $message, $args) => $this->notify->player($playerId, $name, $message, $args),
+            fn($playerId) => $this->getPlayerNameById($playerId)
         );
 
         Logger::init(DBAdapter::getInstance(), 'logs');
@@ -493,7 +494,7 @@ class Game extends \Bga\GameFramework\Table
     //-------------------------------------- cheats ----------------------------------------------------------
     //========================================================================================================
     public function debug_setMorale(int $amount) {
-        $playerResource  =new PlayerResources(\intval($this->getActivePlayerId()));
+        $playerResource  = new PlayerResources(\intval($this->getActivePlayerId()), $this->getActivePlayerName());
         $playerResource->setMorale($amount, true);
     }
 
