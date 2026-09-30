@@ -13,7 +13,6 @@ use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\Dice\DiceRollResult;
-use Bga\Games\SuperTeam\Dice\DiceLogFormatter;
 use Bga\Games\SuperTeam\TeamAttribute;
 
 class DiceRoll extends GameState
@@ -53,23 +52,6 @@ class DiceRoll extends GameState
         
         $attacker = Board::getAttacker();
 
-        $diceLogRows = [];
-        foreach ($playersToRollFor as $player) {
-            $diceLogRows[] = DiceLogFormatter::formatRow(
-                $this->game->getPlayerColorById($player),
-                $rollNotifData[$player],
-                $player === $attacker,
-                $rollData->distance,
-                $rollData->blockingPieces
-            );
-        }
-
-        $diceLogRows[] = DiceLogFormatter::formatRequiredPowerRow(
-            $rollData->requiredPower,
-            $rollData->distance,
-            $rollData->blockingPieces
-        );
-
         $notifData = [];
         $notifData["rollResult"] = $rollNotifData;
         $notifData["distance"] = $rollData->distance;
@@ -77,7 +59,7 @@ class DiceRoll extends GameState
         $notifData["skipEnabledPlayerId"] = ($rollData->skipEnabled ? $activePlayerId : -1);
         $notifData["requiredPower"] = $rollData->requiredPower;
         $notifData["attacker"] = $attacker;
-        $notifData["diceLog"] = implode('', $diceLogRows);
+        $notifData["diceLog"] = "";
 
         $this->notify->all("diceRolled", \clienttranslate('${diceLog}'), $notifData);
 

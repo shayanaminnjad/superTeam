@@ -344,6 +344,41 @@ define([
 
             setupNotifications: function () {
                 this.bgaSetupPromiseNotifications();
+
+                dojo.connect(this.notifqueue, 'addToLog', () => this.addTooltipsToLog());
+                this.addTooltipsToLog();
+            },
+
+            addTooltipsToLog: function () {
+                this._nextCardLogId = this._nextCardLogId || 0;
+
+                for (const el of document.querySelectorAll('.cardLogItem:not(.tt_processed)')) {
+                    el.classList.add('tt_processed');
+                    el.id = `cardLogItem_${this._nextCardLogId++}`;
+                    this.addTooltipHtml(el.id, this.cardsManager.getCardTooltipHtml(el.dataset.cardType), 500);
+                }
+            },
+
+            bgaFormatText: function (log, args) {
+                if (log && args && !args.processed) {
+                    args.processed = true;
+
+                    if (args.cardType !== undefined && args.cardLog !== undefined && this.cardsManager) {
+                        args.cardLog = this.cardsManager.getCardLogHtml(args.cardType);
+                    }
+
+                    if (args.rollResult !== undefined && args.diceLog !== undefined) {
+                        args.diceLog = DiceUI.formatRollLog(
+                            args.rollResult,
+                            this.gameDatas.players,
+                            parseInt(args.requiredPower),
+                            parseInt(args.distance),
+                            parseInt(args.blockingPieces)
+                        );
+                    }
+                }
+
+                return { log, args };
             },
 
             notif_placedPiece: function (notifData) {
@@ -387,6 +422,11 @@ define([
             },
 
             notif_cardUndo: function(notifData) {
+                // the undoing player's hand is already restored by the hand refill notification
+                if (parseInt(notifData.player_id) === parseInt(this.player_id)) {
+                    return;
+                }
+
                 PlayerPanelManager.setPlayerCards(this.opponentId, notifData.cardsInDeckCount);
                 this.cardsManager.removeCard(notifData.undoCard);
             },

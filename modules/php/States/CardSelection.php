@@ -99,7 +99,13 @@ class CardSelection extends PlayerBaseState
 
         $playerHand->discardCard($cardId);
 
-        $this->game->notify->all("cardPlayed", "card {$cardId} played", [
+        $playedCardType = $playerHand->getCard($cardId)['type'];
+
+        $this->game->notify->all("cardPlayed", \clienttranslate('${player_name} plays ${cardLog}'), [
+            'player_id' => $activePlayer,
+            'player_name' => $this->game->getPlayerNameById($activePlayer),
+            'cardType' => $playedCardType,
+            'cardLog' => '',
             'activePlayer' => $activePlayer,
             'discards' => $playerHand->getDiscardedCards(),
             'cardsInDeckCount' => $playerHand->CountCardsInDeck()
@@ -175,7 +181,11 @@ class CardSelection extends PlayerBaseState
         $cardMoved = $playerHand->moveLastDiscardedCardToHand();
         self::decreaseCardsPlayedThisTurnByOne($game);
 
-        $game->notify->player($game->getInactivePlayerId(), "cardUndo", "", [
+        $game->notify->all("cardUndo", \clienttranslate('${player_name} undoes playing ${cardLog}'), [
+            'player_id' => $activePlayer,
+            'player_name' => $game->getPlayerNameById($activePlayer),
+            'cardType' => $cardMoved['type'],
+            'cardLog' => '',
             'undoCard' => $cardMoved,
             'cardsInDeckCount' => $playerHand->CountCardsInDeck()
         ]);

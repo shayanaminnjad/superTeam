@@ -93,6 +93,22 @@ define(["dojo/_base/declare",
                 return cardsInhand.length;
             },
 
+            getCardLogHtml: function (cardType) {
+                const [backXPos, backYPos] = this._getCardPositionInsideAtlas({ type: cardType });
+                const definition = (this._root.cardDefinitions || {})[cardType];
+                const name = definition ? definition.name : cardType;
+
+                return `<span class="cardLogItem" data-card-type="${cardType}">
+                    <span class="cardLogImage st-card-front" style="background-position: ${backXPos} ${backYPos};"></span>
+                    <span class="cardLogName">${name}</span>
+                </span>`;
+            },
+
+            getCardTooltipHtml: function (cardType) {
+                const [backXPos, backYPos] = this._getCardPositionInsideAtlas({ type: cardType });
+                return this._buildTooltipHtml({ type: cardType }, backXPos, backYPos);
+            },
+
             //Private Methods
             _initCardsManager: function () {
                 const cardWidth = 200 * 0.7;

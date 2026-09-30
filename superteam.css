@@ -723,6 +723,27 @@ body.board-portrait .shootTargetTile {
     background-image: url("img/cardsAtlas.jpg");
 }
 
+.cardLogItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    vertical-align: middle;
+    cursor: help;
+}
+
+.cardLogImage {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 45px;
+    height: 63px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.cardLogName {
+    font-weight: bold;
+}
+
 .cardTooltip {
     display: flex;
     align-items: flex-start;

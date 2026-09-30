@@ -244,6 +244,57 @@ define([
             };
         },
 
+        formatRollLog: function (rollResults, players, requiredPower, distance, blockingPieces) {
+            let html = '';
+
+            for (const playerId of Object.keys(rollResults)) {
+                html += this._formatRollLogRow(players[playerId].color, rollResults[playerId]);
+            }
+
+            return html + this._formatRequiredPowerLogRow(requiredPower, distance, blockingPieces);
+        },
+
+        _formatRollLogRow: function (playerColor, result) {
+            const totalPower = result.whiteDice.reduce((sum, die) => sum + die, result.greenDie + result.assignedMorale);
+
+            let html = '<div class="diceLogRow">';
+            html += `<span class="diceLogColorMark" style="background-color:#${playerColor}"></span>`;
+            html += `<span class="diceLogIcon superteam-dice-face die-green face-${result.greenDie}"></span>`;
+
+            for (const whiteDie of result.whiteDice) {
+                html += `<span class="diceLogIcon superteam-dice-face die-white face-${whiteDie + 2}"></span>`;
+            }
+
+            if (result.assignedMorale > 0) {
+                html += '<span class="diceLogIcon diceLogMorale"></span>';
+                html += `<span class="diceLogMoraleValue">×${result.assignedMorale}</span>`;
+            }
+
+            html += '<span class="diceLogEquals">=</span>';
+            html += `<span class="diceLogTotal">${totalPower}</span>`;
+            return html + '</div>';
+        },
+
+        _formatRequiredPowerLogRow: function (requiredPower, distance, blockingPieces) {
+            if (requiredPower === 0) {
+                return '';
+            }
+
+            let html = '<div class="diceLogRow diceLogTargetRow">';
+
+            if (distance > 0) {
+                html += '<span class="diceLogIcon diceLogDistance"></span>';
+            }
+
+            if (blockingPieces > 0) {
+                html += '<span class="diceLogIcon diceLogBlocking"></span>';
+            }
+
+            html += '<span class="diceLogEquals">=</span>';
+            html += `<span class="diceLogTotal">${requiredPower}</span>`;
+            return html + '</div>';
+        },
+
         _createRollLineElement: function (parentEl, lineNum, result) {
             const backColor =
                 result.playerId === this._root.player_id
