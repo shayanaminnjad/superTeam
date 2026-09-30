@@ -469,8 +469,15 @@ body::before {
     position: absolute;
     width: calc(var(--main-bg-ratio-x) * var(--main-bg-scale) * 0.35) ;
     height: calc(var(--main-bg-ratio-y) * var(--main-bg-scale) * 0.25) ;
-    background-color: rgba(255, 255, 255, 0.5);
-    border-radius: 10%;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(143, 181, 203, 0.3), transparent 70%),
+        rgba(44, 66, 72, 0.82);
+    border: 2px solid rgba(214, 232, 242, 0.85);
+    border-radius: 16px;
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.6),
+        0 0 18px rgba(143, 181, 203, 0.55),
+        inset 0 0 20px rgba(143, 181, 203, 0.22);
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
