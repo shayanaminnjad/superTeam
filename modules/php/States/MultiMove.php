@@ -106,50 +106,6 @@ class MultiMove extends PlayerBaseState
     #[PossibleAction]
     public function actUndo(int $activePlayerId) : string
     {
-        /*
-        $tacticContext = new TacticContext();
-        $tacticInPlay = $tacticContext->getTacticInPlay();
-
-        $hand = $this->game->getPlayerHand($activePlayerId);
-        $hand->drawCard($tacticInPlay);
-
-        $this->notify->player($activePlayerId, "handRefill", "",
-            [
-                'playerHand' => $hand->getCardsInHand(),
-                'wasDiscardShuffled' => false,
-            ]);
-
-        $moveActionContext = new MoveActionContext();
-        $ballPos = $moveActionContext->getBallInitialLocation();
-        $board = $this->game->getBoard();
-        $board->setBallLocation($ballPos);
-
-        $piecesMoved = $moveActionContext->getPiecesMoved();
-
-        $pieceMovedToSend = [];
-        $freshPieces = [];
-        foreach($piecesMoved as $pieceMoved)
-        {
-            $board->movePieceToHex($pieceMoved->id, $pieceMoved->initialPosition);
-            $pieceMovedToSend[] = ["pieceId" => $pieceMoved->id, "position" => $pieceMoved->initialPosition->convertToArray()];
-            if ($pieceMoved->wasFresh)
-            {
-                $freshPieces [] = $pieceMoved->id;
-                $board->getPiece($pieceMoved->id)->setFreshness(true, false);
-            }
-        }
-
-        $moraleBeforeTactic = $moveActionContext->getMoraleInitialAmount();
-        $playerResources = new PlayerResources($activePlayerId);
-        $playerResources->setMorale($moraleBeforeTactic, true);
-
-        NotificationAdapter::getInstance()->notifyAll("undoMove", "undoMoves",
-        [
-            "ballHex" => $board->getBallHex(),
-            "piecesToHexes" => $pieceMovedToSend,
-            "freshPieces" => $freshPieces
-        ]);*/
-
         if (!$this->hasPerformedAnyMoves(new MoveActionContext()))
         {
             $activePlayerId = \intval($this->game->getActivePlayerId());

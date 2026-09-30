@@ -34,6 +34,11 @@ class BeforeCardSelectionReset extends GameState
 
     public function onEnteringState(int $activePlayerId) : string
     {
+        if (CardSelection::getWasLastActionUndone() === false)
+            $this->game->giveExtraTime($activePlayerId);
+
+        CardSelection::setWasLastActionUndone(false);
+
         $tacticContext = new TacticContext();
         $tacticContext->reset();
 

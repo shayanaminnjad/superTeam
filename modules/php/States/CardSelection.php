@@ -191,6 +191,8 @@ class CardSelection extends PlayerBaseState
             'cardsInDeckCount' => $playerHand->CountCardsInDeck(),
             'preserve' => ['cardType'],
         ]);
+
+        self::setWasLastActionUndone(true);
     }
 
     private static function increaseCardsPlayedThisTurnByOne(Game $game): void
@@ -203,5 +205,15 @@ class CardSelection extends PlayerBaseState
     {
         $cardsPlayedThisTurn = self::getCardsPlayedThisTurn($game);
         $game->setGameStateValue("cardsPlayedThisTurn", $cardsPlayedThisTurn - 1);
+    }
+
+    public static function getWasLastActionUndone() : bool
+    {
+        return DBAdapter::getInstance()->getGlobalBool('was_last_action_undone');
+    }
+
+    public static function setWasLastActionUndone(bool $wasLastActionUndone) : void
+    {
+        DBAdapter::getInstance()->storeGlobalBool('was_last_action_undone', $wasLastActionUndone);
     }
 }
