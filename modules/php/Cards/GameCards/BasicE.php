@@ -24,7 +24,12 @@ class BasicE extends TacticCard
         parent::__construct(new TacticCardDefinition(
             "Basic E",
             CardType::Basic,
-            "",
+            \clienttranslate('**Offensive**
+**Through Pass:** Pass the ball to a space 1 or 2 spaces ahead of another piece. The direction of the ball does not matter.
+---
+**Defensive**
+**Forward Move:** Move one of your pieces forward.
+**Backward Move:** Move one of your pieces backward.'),
             new CardDefensiveMoves(0, 1, 1, 0, 0),
             new DefensiveReward(1, 0, 0),
             false,

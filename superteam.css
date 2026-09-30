@@ -750,10 +750,21 @@ body.board-portrait .shootTargetTile {
     margin-bottom: 5px;
 }
 
-.cardTooltipDescription {
+.cardTooltipLine {
     font-size: 12px;
     line-height: 1.4;
-    white-space: pre-line;
+    margin-bottom: 3px;
+}
+
+.cardTooltipGap {
+    height: 6px;
+}
+
+.cardTooltipDivider {
+    border: none;
+    border-top: 1px solid currentColor;
+    opacity: 0.35;
+    margin: 8px 0;
 }
 
 .superteam-dice-face {

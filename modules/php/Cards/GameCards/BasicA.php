@@ -26,7 +26,12 @@ class BasicA extends TacticCard
         parent::__construct(new TacticCardDefinition(
             "Basic A",
             CardType::Basic,
-            "",
+            \clienttranslate('**Offensive**
+**Forward Pass:** Pass the ball to a piece who is at least one row ahead of the current ball carrier.
+---
+**Defensive**
+**Forward Move:** Move one of your pieces forward.
+**Forward Move & Marking:** Move one of your pieces forward and end the movement in an adjacent space to an opponent’s piece.'),
             new CardDefensiveMoves(0, 1, 0, 1, 0),
             new DefensiveReward(1, 0, 0),
             false,

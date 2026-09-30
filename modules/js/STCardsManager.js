@@ -122,15 +122,39 @@ define(["dojo/_base/declare",
             _buildTooltipHtml: function (card, backXPos, backYPos) {
                 const definition = (this._root.cardDefinitions || {})[card.type];
                 const name = definition ? definition.name : card.type;
-                const description = definition ? definition.toolTip : '';
+                const description = definition && definition.toolTip ? _(definition.toolTip) : '';
 
                 return `<div class="cardTooltip">
                     <div class="cardTooltipImage st-card-front" style="background-position: ${backXPos} ${backYPos};"></div>
                     <div class="cardTooltipText">
                         <div class="cardTooltipName">${name}</div>
-                        <div class="cardTooltipDescription">${description}</div>
+                        ${this._richTextToHtml(description)}
                     </div>
                 </div>`;
+            },
+
+            // Supported markup: **bold**, *italic*, a line with only --- (divider), blank line (gap).
+            _richTextToHtml: function (text) {
+                const escaped = text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+
+                return escaped.split('\n').map(line => {
+                    const trimmed = line.trim();
+
+                    if (trimmed === '---') {
+                        return '<hr class="cardTooltipDivider">';
+                    }
+                    if (trimmed === '') {
+                        return '<div class="cardTooltipGap"></div>';
+                    }
+
+                    const formatted = trimmed
+                        .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+                        .replace(/\*(.+?)\*/g, '<i>$1</i>');
+                    return `<div class="cardTooltipLine">${formatted}</div>`;
+                }).join('');
             },
 
             _getCardPositionInsideAtlas: function (card) {
