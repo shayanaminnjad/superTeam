@@ -900,13 +900,13 @@ body.board-portrait .moveBackNearOpponent {
 }
 
 .action {
-    width: 24px;
-    height: 25px;
+    width: 15px;
+    height: 16px;
     background-image: url("img/actionIcon.png");
 }
 
 .move {
-    width: 24px;
-    height: 20px;
+    width: 19px;
+    height: 16px;
     background-image: url("img/moveIcon.png");
 }
