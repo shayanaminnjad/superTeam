@@ -50,18 +50,18 @@ class TacticRewardResolve extends PlayerBaseState
         if ($remainingReward->action > 0)
         {
             $this->addClientButton(
-                \sprintf(_('%d [action]'), $remainingReward->action),
+                \sprintf(\clienttranslate('%d [action]'), $remainingReward->action),
                 [$this,'actDoOneAction']);
         }
 
         if ($remainingReward->move > 0)
         {
             $this->addClientButton(
-                \sprintf(_('%d [move]'), $remainingReward->move),
+                \sprintf(\clienttranslate('%d [move]'), $remainingReward->move),
                 [$this, 'actDoOneMove']);
         }
 
-        $this->addClientButton(_("Forfeit"), [$this, 'actForfeitReward'], [],
+        $this->addClientButton(\clienttranslate("Forfeit"), [$this, 'actForfeitReward'], [],
             new ClientButtonParams(ClientButtonColor::ALERT));
         
         return [];
