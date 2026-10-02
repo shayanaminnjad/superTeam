@@ -22,7 +22,7 @@ class BasicE extends TacticCard
     public function __construct(Game $game)
     {
         parent::__construct(new TacticCardDefinition(
-            "Basic E",
+            \clienttranslate("Basic E"),
             CardType::Basic,
             \clienttranslate('**Offensive**
 **Through Pass:** Pass the ball to a space 1 or 2 spaces ahead of another piece. The direction of the ball does not matter.

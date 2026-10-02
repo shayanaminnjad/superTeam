@@ -20,7 +20,7 @@ class Captain_C_0 extends CaptainCard
     public function __construct(Game $game)
     {
         parent::__construct(new CardDefinition(
-            "Captain 1",
+            \clienttranslate("Captain 1"),
             CardType::Captain,
             \clienttranslate("**Requirement:** Play when adjacent to any opponent. 
 **Effect:** Swap position with an opponent and perform an action.")), $game);

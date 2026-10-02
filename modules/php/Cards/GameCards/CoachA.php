@@ -26,7 +26,7 @@ class CoachA extends Card
     public function __construct(Game $game)
     {
         parent::__construct(new CardDefinition(
-            "Coach A",
+            \clienttranslate("Coach"),
             CardType::Coach,
             \clienttranslate("**Requirement:** Pay 1 Morale.
 **Effect:** Move all Ready pieces up to 2 spaces.")), $game);

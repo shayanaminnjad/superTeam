@@ -18,7 +18,7 @@ class Captain_C_2 extends CaptainCard
     public function __construct(Game $game)
     {
         parent::__construct(new CardDefinition(
-            "Captain 3",
+            \clienttranslate("Captain 3"),
             CardType::Captain,
             \clienttranslate("**Requirement:** Play after receiving the ball inside the Penalty Area.
 **Effect:** Shoot and skip a block.")), $game);

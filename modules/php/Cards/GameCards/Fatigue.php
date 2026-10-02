@@ -19,7 +19,7 @@ class Fatigue extends Card
     public function __construct(Game $game)
     {
         parent::__construct(new CardDefinition(
-            "Fatigue",
+            \clienttranslate("Fatigue"),
             CardType::Fatigue,
             \clienttranslate("one move")), $game);
     }

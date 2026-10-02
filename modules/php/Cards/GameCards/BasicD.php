@@ -19,7 +19,7 @@ class BasicD extends TacticCard
     public function __construct(Game $game)
     {
         parent::__construct(new TacticCardDefinition(
-            "Basic D",
+            \clienttranslate("Basic D"),
             CardType::Basic,
             \clienttranslate("**Offensive**
 **Cross Pass:** Pass the ball to a piece who is at the same row as the current ball carrier. 

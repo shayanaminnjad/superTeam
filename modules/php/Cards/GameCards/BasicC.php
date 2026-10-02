@@ -18,7 +18,7 @@ class BasicC extends TacticCard
     public function __construct(Game $game)
     {
         parent::__construct(new TacticCardDefinition(
-            "Basic C",
+            \clienttranslate("Basic C"),
             CardType::Basic,
             \clienttranslate("**Offensive**
 **Pressure Pass:** Pass the ball when an opponent is adjacent to the ball carrier. The direction of the ball does not matter.

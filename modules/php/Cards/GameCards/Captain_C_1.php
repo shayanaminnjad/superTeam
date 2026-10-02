@@ -19,7 +19,7 @@ class Captain_C_1 extends CaptainCard
     public function __construct(Game $game)
     {
         parent::__construct(new CardDefinition(
-            "Captain 2",
+            \clienttranslate("Captain 2"),
             CardType::Captain,
             \clienttranslate("**Requirement:** Play when having the ball. 
 **Effect:** Pass the ball and skip a block.")), $game);

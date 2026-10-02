@@ -24,7 +24,7 @@ class BasicA extends TacticCard
     public function __construct(Game $game)
     {
         parent::__construct(new TacticCardDefinition(
-            "Basic A",
+            \clienttranslate("Basic A"),
             CardType::Basic,
             \clienttranslate('**Offensive**
 **Forward Pass:** Pass the ball to a piece who is at least one row ahead of the current ball carrier.

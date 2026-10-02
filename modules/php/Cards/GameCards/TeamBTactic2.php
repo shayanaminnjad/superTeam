@@ -21,7 +21,7 @@ class TeamBTactic2 extends TacticCard
     public function __construct(Game $game)
     {
         parent::__construct(new TacticCardDefinition(
-            "Team B",
+            \clienttranslate("Team B"),
             CardType::Team,
             \clienttranslate("**Offensive**
 **Backward & Forward Pass:** Pass the ball to a piece who is at least one row behind of the current ball carrier. Then pass the ball to another piece who is at least one row ahead of that piece. 
