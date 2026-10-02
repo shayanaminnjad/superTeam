@@ -98,7 +98,7 @@ define([], function () {
 
                 playerResources.insertAdjacentHTML('beforeend', `
                     <div class = "resource">
-                    <span class = "moraleIcon resourceIcon"></span>
+                    <span id="playerMoraleIcon${playerId}" class = "moraleIcon resourceIcon"></span>
                     <span id="playerMorale${playerId}" class= "label">${currentMorale}</span></div>`);
 
                 this.setPlayerMorale(playerId, currentMorale);
@@ -152,7 +152,7 @@ define([], function () {
                 let moraleEl = tempEl.firstElementChild;
                 this._root.getGameAreaElement().appendChild(moraleEl);
 
-                let playerMoraleEl = document.getElementById(`playerMorale${playerId}`);
+                let playerMoraleEl = document.getElementById(`playerMoraleIcon${playerId}`);
 
                 let startEl = isIncrease ? targetEl : playerMoraleEl;
                 let endEl = isIncrease ? playerMoraleEl : targetEl;
