@@ -67,8 +67,8 @@ define([
 
                 PlayerPanelManager.construct(this, gamedatas);
 
-                let orangeGoals = gamedatas.players[this.player_id].goals;
-                let blueGoals = gamedatas.players[this.opponentId].goals;
+                let orangeGoals = gamedatas.players[this.player_id].score;
+                let blueGoals = gamedatas.players[this.opponentId].score;
                 if (this.userInLeftId !== this.player_id)
                 {
                     let temp = orangeGoals;
@@ -532,13 +532,13 @@ define([
                 this.bga.playerPanels.getScoreCounter(notifData.playerId).toValue(notifData.score);
 
                 if (notifData.playerId === this.userInLeftId) {
-                    TrackerBoard.setOrangeGoals(notifData.goals);
+                    TrackerBoard.setOrangeGoals(notifData.score);
                 }
                 else {
-                    TrackerBoard.setBlueGoals(notifData.goals);
+                    TrackerBoard.setBlueGoals(notifData.score);
                 }
 
-                return PlayerPanelManager.setPlayerScoredGoals(notifData.playerId, notifData.goals);
+                return PlayerPanelManager.setPlayerScoredGoals(notifData.playerId, notifData.score);
             },
 
             notif_resetBoard: async function (notifData) {

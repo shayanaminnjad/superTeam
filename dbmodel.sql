@@ -19,7 +19,6 @@
 --       you have to restart a game to see your changes in database.
 
 ALTER TABLE `player` ADD `resource_morale` INT NOT NULL DEFAULT 0;
-ALTER TABLE `player` ADD `goals_scored` INT NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `team_attr_pass` TINYINT NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `team_attr_shoot` TINYINT NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `team_attr_dribble` TINYINT NOT NULL DEFAULT 0;

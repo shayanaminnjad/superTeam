@@ -42,7 +42,7 @@ class ShootPerform extends GameState
         {
             $playerResources = new PlayerResources($attacker);
 
-            $playerResources->addOneGoal(true);
+            $playerResources->addOneGoal($this->game, true);
 
             $cardActionDriver = new CardActionDriver($activePlayerId, $this->game);
 

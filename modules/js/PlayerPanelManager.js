@@ -103,7 +103,7 @@ define([], function () {
 
                 this.setPlayerMorale(playerId, currentMorale);
 
-                let scoredGoals = gamedatas.players[playerId].goals;
+                let scoredGoals = gamedatas.players[playerId].score;
 
                 playerResources.insertAdjacentHTML('beforeend', `
                     <div class ="resource">

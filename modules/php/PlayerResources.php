@@ -60,30 +60,15 @@ class PlayerResources
         $this->setMorale($this->getMorale() + $amount, $notify);
     }
 
-    public function getGoals() : int
+    public function addOneGoal(Game $game, bool $notify) : void
     {
-        $goalsScored = $this->dbAdapter->getUniqueValueFromDB(
-            "SELECT `goals_scored` FROM `player` WHERE `player_id` = {$this->playerId}"
-        );
-
-        return intval($goalsScored);
-    }
-
-    public function addOneGoal(bool $notify) : void
-    {
-        $currentGoals = $this->getGoals();
-        $currentGoals += 1;
-
-        $this->dbAdapter->DbQuery(
-            "UPDATE `player` SET `goals_scored` = {$currentGoals}, `player_score` = {$currentGoals}
-                WHERE player_id = {$this->playerId}");
+        $currentGoals = $game->bga->playerScore->inc($this->playerId, 1);
 
         if ($notify)
         {
             NotificationAdapter::getInstance()->notifyAll('goalScored', \clienttranslate('${playerName} scored a goal!'), array(
                 "playerId" => $this->playerId,
                 "playerName" => NotificationAdapter::getInstance()->getPlayerNameById($this->playerId),
-                "goals" => $currentGoals,
                 "score" => $currentGoals
             ));
         }

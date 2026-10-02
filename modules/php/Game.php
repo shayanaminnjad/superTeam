@@ -61,7 +61,6 @@ class Game extends \Bga\GameFramework\Table
         $this->initCardFactory();
         
         $this->teamBoard = new TeamBoard(DBAdapter::getInstance());
-
         $this->initGameStateLabels([
             "starter_player" => 10,
             "user_in_left_id" => 11,
@@ -220,7 +219,7 @@ class Game extends \Bga\GameFramework\Table
 
         // Get information about players.
         $result["players"] = $this->getCollectionFromDb(
-            "SELECT `player_id` `id`, `player_score` `score`, `resource_morale` `morale`, `goals_scored` `goals`, 
+            "SELECT `player_id` `id`, `player_score` `score`, `resource_morale` `morale`,
                 `team_attr_pass`, `team_attr_shoot` , `team_attr_dribble`, `team_attr_tackle`, `team_attr_gk` FROM `player`"
         );
 
@@ -572,7 +571,7 @@ class Game extends \Bga\GameFramework\Table
     {
         $playerResources = new PlayerResources(\intval($this->getActivePlayerId()));
 
-        $playerResources->addOneGoal(true);
+        $playerResources->addOneGoal($this, true);
     }
 
     //---------------------------------------------------------------------------------------------------------
