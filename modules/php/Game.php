@@ -21,7 +21,11 @@ declare(strict_types=1);
 namespace Bga\Games\SuperTeam;
 use Bga\Games\SuperTeam\Cards\CardFactory;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
+use Bga\Games\SuperTeam\Cards\PlayerHandCreator;
 use Bga\Games\SuperTeam\HexLib\HexLib;
+use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_1;
+use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_3;
+use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPowerBase;
 use Bga\Games\SuperTeam\Utility\Logger;
 
 use Exception;
@@ -82,7 +86,7 @@ class Game extends \Bga\GameFramework\Table
             if (isset($args['player_id']) && !isset($args['player_name']) && str_contains($message, '${player_name}')) {
                 $args['player_name'] = $this->getPlayerNameById($args['player_id']);
             }
-        
+
             if (isset($args['card_id']) && !isset($args['card_name']) && str_contains($message, '${card_name}')) {
                 $args['card_name'] = self::$CARD_TYPES[$args['card_id']]['card_name'];
                 $args['i18n'][] = ['card_name'];
@@ -219,7 +223,7 @@ class Game extends \Bga\GameFramework\Table
 
         // Get information about players.
         $result["players"] = $this->getCollectionFromDb(
-            "SELECT `player_id` `id`, `player_score` `score`, `resource_morale` `morale`,
+            "SELECT `player_id` `id`, `player_score` `score`, `resource_morale` `morale`, `team_power`, `captain_power`, 
                 `team_attr_pass`, `team_attr_shoot` , `team_attr_dribble`, `team_attr_tackle`, `team_attr_gk` FROM `player`"
         );
 
@@ -287,33 +291,32 @@ class Game extends \Bga\GameFramework\Table
      */
     protected function setupNewGame($players, $options = [])
     {
-        $playersDeck = $this->deckFactory->createDeck('player_cards');
         $default_colors = ['DD4720', '479ADA'];
 
-        $teamBoard= 0;
-        $captainBoard = 0;
+        $teamBoard = 0;
+        $captainBoard = CaptainPower_1::staticId();
         foreach ($players as $player_id => $player) {
-            // Now you can access both $player_id and $player array
-            $query_values[] = vsprintf("('%s', '%s', '%s', '%s', '%s')", [
+            $query_values[] = vsprintf("('%s', '%s', '%s', '%s', '%s', '%s', '%s')", [
                 $player_id,
                 array_shift($default_colors),
                 $player["player_canal"],
                 addslashes($player["player_name"]),
                 addslashes($player["player_avatar"]),
+                $captainBoard,
+                $teamBoard
             ]);
 
-            //TODO: this must change, it should be initialized when we have selected captain board and team board.
-            PlayerHand::createPlayerHand($playersDeck, $player_id, $captainBoard, $teamBoard);
             $teamBoard += 1;
-            $captainBoard = 2;
+            $captainBoard = CaptainPower_3::staticId();
         }
 
         static::DbQuery(
             sprintf(
-                "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES %s",
+                "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, captain_power, team_power) VALUES %s",
                 implode(",", $query_values)
             )
         );
+
 
         list($firstPlayer, $secondPlayer) = array_keys($players);
         static::DbQuery("INSERT INTO player_temp_data (player_id) VALUES ($firstPlayer), ($secondPlayer)");
@@ -329,6 +332,17 @@ class Game extends \Bga\GameFramework\Table
         // $this->initStat("player", "player_teststat1", 0);
 
         $this->initGameState($players);
+
+        //TODO: this must change, it should be initialized when we have selected captain board and team board.
+        //make this it's own function!
+        $playersDeck = $this->deckFactory->createDeck('player_cards');
+        foreach ($players as $player_id => $player)
+        {
+            $captainPower = $this->getPlayerCaptainPower($player_id);
+            $teamBoard = $this->getPlayerCoach($player_id);
+
+            PlayerHandCreator::createHand($playersDeck, $player_id, $captainPower->getId(), $teamBoard);
+        }
 
         DBAdapter::getInstance()->initGlobals();
 
@@ -488,6 +502,39 @@ class Game extends \Bga\GameFramework\Table
     {
         return $this->cardFactory;
     }
+
+    //make these a class!
+    public function getPlayerCaptainPower(int $playerId) : ?CaptainPowerBase
+    {
+        $row = DBAdapter::getInstance()->getObjectFromDB("SELECT captain_power FROM player WHERE player_id = $playerId");
+        if ($row['captain_power'] == null)
+            return null;
+        else
+            return $this->CaptainFactory($row['captain_power']);
+    }
+
+    public function getPlayerCoach(int $playerId) : int
+    {
+        $row = DBAdapter::getInstance()->getObjectFromDB("SELECT team_power FROM player WHERE player_id = $playerId");
+        if ($row['team_power'] == null)
+            return -1;
+        else
+            return \intval($row['team_power']);
+    }
+
+    //make this a proper factory!
+    public function CaptainFactory(string $captainId) : ?CaptainPowerBase
+    {
+        if ($captainId == CaptainPower_1::staticId())
+            return new CaptainPower_1($this);
+        else if ($captainId == CaptainPower_3::staticId())
+            return new CaptainPower_3($this);
+        else
+            return null;
+    }
+
+    //class------------
+
 
     //========================================================================================================
     //-------------------------------------- cheats ----------------------------------------------------------

@@ -654,6 +654,22 @@ body.board-portrait .shootTargetTile {
     border-radius: 8px;
 }
 
+.captainPower {
+    --width-ratio: 270px;
+    --heigh-ratio: 373px;
+    --scale: 0.6;
+
+    position: relative;
+    background-size: 600% 100%;
+    background-image: url("img/captainsAtlas.jpeg");
+    background-repeat: no-repeat;
+    overflow: visible;
+    margin: 5px;
+    width: calc(var(--width-ratio) * var(--scale));
+    height: calc(var(--heigh-ratio) * var(--scale));
+    border-radius: 8px;
+}
+
 .readonlyText {
     --size: xx-small;
     --color: red;

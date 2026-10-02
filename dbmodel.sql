@@ -24,6 +24,8 @@ ALTER TABLE `player` ADD `team_attr_shoot` TINYINT NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `team_attr_dribble` TINYINT NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `team_attr_tackle` TINYINT NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `team_attr_gk` TINYINT NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD `captain_power` TINYINT NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD `team_power` TINYINT NOT NULL DEFAULT 0;
 
 
 CREATE TABLE IF NOT EXISTS `player_pieces` (

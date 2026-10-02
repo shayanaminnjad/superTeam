@@ -21,7 +21,7 @@ class PlayerHand
 
     private static string $handName = 'hand';
 
-    private static string $supplyName = 'supply';
+    public static string $supplyName = 'supply';
 
     private $wasShuffled;
 
@@ -212,41 +212,6 @@ class PlayerHand
         return $this->ownerId;
     }
 
-    //TODO: this part deserves it's own class. 
-    public static function createPlayerHand(Deck $deck, int $playerId, int $captainBoardId, int $teamBoardId)
-    {
-        $cardDefinitions = [];
-
-        $BASIC_CARDS_PER_HAND = 5;
-        for ($i = 0; $i < $BASIC_CARDS_PER_HAND; $i++) 
-        {
-            $basicCardType = CardTypeHelper::getBasicCardType($i);
-            $cardDefinitions[] = self::getCardDefinition($basicCardType);
-        }
-
-        $CAPTAIN_CARDS_PER_BOARD = 3;
-
-        for ($i = 0; $i < $CAPTAIN_CARDS_PER_BOARD; $i++) 
-        {
-            $captainCardType = CardTypeHelper::getCaptainCardType($captainBoardId, $i);
-            $cardDefinitions[] = self::getCardDefinition($captainCardType);
-        }
-
-        $TEAM_CARDS_PER_BOARD = 3;
-        for ($i = 0; $i < $TEAM_CARDS_PER_BOARD; $i++)
-        {
-            $teamCardType = CardTypeHelper::getTeamCardType($teamBoardId, $i);
-            $cardDefinitions[] =  self::getCardDefinition($teamCardType);
-        }
-
-        $coachCardType = CardTypeHelper::getCoachCardType($teamBoardId);
-        $cardDefinitions[] =  self::getCardDefinition($coachCardType);
-
-        $deckName = self::getPlayerDeck($playerId);
-        $deck->createCards($cardDefinitions, $deckName);
-        $deck->createCards([self::getCardDefinition(CardTypeHelper::getFatigueCardType(), 16)], self::$supplyName);
-    }
-
     public function getCard(int $cardId)
     {
         return $this->cards->getCard($cardId);
@@ -260,10 +225,5 @@ class PlayerHand
     public static function getPlayerDiscard(int $playerId) :string
     {
         return "{$playerId}_discard";
-    }
-
-    public static function getCardDefinition(string $cardType, int $count = 1): array 
-    {
-        return ["type" => $cardType, 'type_arg' => 0, 'nbr' => $count];
     }
 }

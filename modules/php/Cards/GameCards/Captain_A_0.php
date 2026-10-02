@@ -14,6 +14,7 @@ use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
+use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_1;
 use Bga\Games\SuperTeam\States\MovePieceSelection;
 use Bga\Games\SuperTeam\States\TacticalTurnStateManager;
 
@@ -36,7 +37,7 @@ class Captain_A_0 extends CaptainCard
 
     public static function staticId() : string
     {
-        return CardTypeHelper::getCaptainCardType(0, 0);
+        return CardTypeHelper::getCaptainCardType(CaptainPower_1::staticId(), 0);
     }
 
     public function getId(): string

@@ -167,7 +167,7 @@ define(["dojo/_base/declare",
             },
 
             _getCardPositionInsideAtlas: function (card) {
-                //(sha) I need better row column sorting for the atlas
+                //(sha) todo: I need better row column sorting for the atlas
                 //however it is not final yet, since I don't have all of
                 //the cards, so lets make this work for now.
 
@@ -205,11 +205,11 @@ define(["dojo/_base/declare",
                 else if (cardCategory === 'Captain') {
                     const teamId = tokens[1];
                     const cardNum = Number(tokens[2]);
-                    if (teamId === '0') {
+                    if (teamId === '1') {
                         rowMultiple = 1;
                         colMultiple = 4 + cardNum;
                     }
-                    else if (teamId === '2') {
+                    else if (teamId === '3') {
                         rowMultiple = 2;
                         colMultiple = cardNum;
                     }

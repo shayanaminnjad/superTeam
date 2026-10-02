@@ -39,11 +39,18 @@ define([
                 playerStuffContainer.style.display = 'flex';
                 playerStuffContainer.style.flexDirection = 'row';
                 playerStuffContainer.style.flexWrap = 'wrap'; 
-                playerStuffContainer.style.gap = '20px';
+                playerStuffContainer.style.gap = '5px';
                 playerStuffContainer.style.paddingLeft = '10px';
                 this._areaEl.appendChild(playerStuffContainer);
 
                 this._coachBoard = new CoachBoard(this._ownerId, this._ownerData, this._root, this, playerStuffContainer);
+
+                const captainPower = this._ownerData['captain_power'];
+                const captainCardEl = document.createElement('div');
+                captainCardEl.className = 'captainPower';
+                const captainAtlasPos = this._captainIdToAtlasPos(captainPower)
+                captainCardEl.style.backgroundPosition = `${captainAtlasPos}% 0`;
+                playerStuffContainer.appendChild(captainCardEl);
 
                 if (this._root.player_id === this._ownerId) {
                     const playerHiddenDeck = document.createElement('div');
@@ -79,6 +86,20 @@ define([
                     opponentDiscard.id = 'opponentDiscard';
                     playerStuffContainer.appendChild(opponentDiscard);
                 }
+            },
+
+            _captainIdToAtlasPos: function (Id)
+            {
+                const map = new Map([
+                    ["1", 0],
+                    ["3", 20],
+                    ["4", 40],
+                    ["6", 60],
+                    ["14", 80],
+                    ["21", 100]
+                ]);
+
+                return map.get(Id);
             },
 
             _ownerId: 0,

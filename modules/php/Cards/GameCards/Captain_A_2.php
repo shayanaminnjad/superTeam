@@ -13,6 +13,7 @@ use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
+use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_1;
 use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\States\SwapPiece;
 
@@ -30,7 +31,7 @@ class Captain_A_2 extends CaptainCard
 
     public static function staticId() : string
     {
-        return CardTypeHelper::getCaptainCardType(0, 2);
+        return CardTypeHelper::getCaptainCardType(CaptainPower_1::staticId(), 2);
     }
 
     public function getId(): string
