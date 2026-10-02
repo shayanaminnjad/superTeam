@@ -61,14 +61,6 @@ class MovePieceSelection extends PlayerBaseState
     }
 
     #[PossibleAction]
-    public function actCancel(int $activePlayerId): string
-    {
-        //todo: if we want to support cancel, and if this is a multi move, then we must update moves that has been done!
-        //probably a better architecture here is to late commit that move has been done.
-        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
-    }
-
-    #[PossibleAction]
     public function actPieceSelected(int $pieceId) : string
     {
         $pieceSelectionContext = new PieceSelectionContext();
@@ -86,6 +78,6 @@ class MovePieceSelection extends PlayerBaseState
 
     function zombie(int $playerId): string
     {
-        return $this->actCancel();
+        return DBAdapter::getInstance()->getPlayerActionReturnState($playerId);
     }
 }
