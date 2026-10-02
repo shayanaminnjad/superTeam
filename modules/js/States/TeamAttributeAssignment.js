@@ -80,7 +80,7 @@ define(["dojo/_base/declare",
             _updateButtons: function () {
                 this._root.statusBar.removeActionButtons();
 
-                this._root.statusBar.addActionButton('Restart', () => {
+                this._root.statusBar.addActionButton(_('Restart'), () => {
                     this._root.performServerAction("actRestart", {})
                 }, {id: 'restart', color: 'alert', disabled: this._getAssignedCubes() === 0});
             },

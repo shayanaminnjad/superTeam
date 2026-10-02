@@ -51,7 +51,7 @@ define(["dojo/_base/declare",
 
                 if (this._stateData.args.goalieHasBall)
                 {
-                    this._root.statusBar.addActionButton('Goalie Pass', () => {
+                    this._root.statusBar.addActionButton(_('Goalie Pass'), () => {
                         this._root.performServerAction("actCardSelected", {
                                 cardId: this._selectedCard.id,
                                 asBasic: true
@@ -67,7 +67,7 @@ define(["dojo/_base/declare",
                             })
                         }, {id: 'cardAsBasicButton', color: 'primary', disabled: this._selectedCard === null});
 
-                        this._root.statusBar.addActionButton('Perform tactic', () => {
+                        this._root.statusBar.addActionButton(_('Perform tactic'), () => {
                             this._root.performServerAction("actCardSelected", {
                                 cardId: this._selectedCard.id,
                                 asBasic: false
@@ -95,7 +95,7 @@ define(["dojo/_base/declare",
                 }
 
                 if (this._args.canPass) {
-                    this._root.statusBar.addActionButton('pass', () => {
+                    this._root.statusBar.addActionButton(_('Pass'), () => {
                         this._root.performServerAction("actPass")
                     }, { color: 'alert' });
                 }
