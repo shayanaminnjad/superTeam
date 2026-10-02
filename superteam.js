@@ -131,7 +131,7 @@ define([
 
                 if (this.isCurrentPlayerActive() || this.getActivePlayers().includes(this.player_id)) {
                     if (stateName === 'moraleAssignment') {
-                        this.statusBar.addActionButton('confirm', () => {
+                        this.statusBar.addActionButton(_('Confirm'), () => {
                             let counterValue = STHUIHelpers.getCounterValue('moraleAssign');
                             this.performServerAction("actMoraleAssigned", { amount: counterValue })
                         }, { color: 'primary' });
@@ -529,7 +529,7 @@ define([
             },
 
             notif_goalScored: async function (notifData) {
-                this.scoreCtrl[notifData.playerId].toValue(notifData.score);
+                this.bga.playerPanels.getScoreCounter(notifData.playerId).toValue(notifData.score);
 
                 if (notifData.playerId === this.userInLeftId) {
                     TrackerBoard.setOrangeGoals(notifData.goals);
