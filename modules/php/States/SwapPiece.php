@@ -59,7 +59,7 @@ class SwapPiece extends PlayerBaseState
 
         if (DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
         {
-            $this->addClientButton("Forfeit", [$this, "actForfeit"], [],
+            $this->addClientButton(\clienttranslate("Forfeit"), [$this, "actForfeit"], [],
                 new ClientButtonParams(ClientButtonColor::ALERT));
         }
 

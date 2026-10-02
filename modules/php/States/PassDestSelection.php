@@ -49,12 +49,10 @@ class PassDestSelection extends PlayerBaseState
 
             if (!$tacticContext->GetTacticCommited())
             {
-                $this->addClientButton('Undo', [$this, 'actUndo'], [], new ClientButtonParams(ClientButtonColor::ALERT));
+                $this->addClientButton(\clienttranslate('Undo'), [$this, 'actUndo'], [], new ClientButtonParams(ClientButtonColor::ALERT));
             }
         }
 
-        //todo: do we need to support this?
-        //$this->addClientButton('Cancel', [$this, 'actCancel']);
         return $this->game->getValidPassTargets(null);
     }
 

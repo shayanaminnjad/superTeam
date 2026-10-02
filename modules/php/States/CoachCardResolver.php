@@ -34,8 +34,8 @@ class CoachCardResolver extends PlayerBaseState
     {
         //todo for now both coach cards are about movement I will revise this if other types were introduced.
 
-        $this->addClientButton("Do One Move", [$this, "actMove"]);
-        $this->addClientButton("Pass", [$this, "actPass"], [],
+        $this->addClientButton(\clienttranslate("Do One Move"), [$this, "actMove"]);
+        $this->addClientButton(\clienttranslate("Pass"), [$this, "actPass"], [],
             new ClientButtonParams(ClientButtonColor::ALERT));
 
         return [];

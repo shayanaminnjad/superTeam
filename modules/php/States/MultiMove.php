@@ -57,13 +57,13 @@ class MultiMove extends PlayerBaseState
         {
             if ($value > 0)
             {
-                $this->addClientButton("{$value} [$key]", [$this, 'actMoveChosen'], ['key' => $key]);
+                $this->addClientButton(_("{$value} [$key]"), [$this, 'actMoveChosen'], ['key' => $key]);
             }
         }
 
         if (!$this->hasPerformedAnyMoves($moveActionContext))
         {
-            $this->addClientButton("Undo", [$this, 'actUndo'], [], new ClientButtonParams(ClientButtonColor::ALERT));
+            $this->addClientButton(\clienttranslate("Undo"), [$this, 'actUndo'], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
 
         return [];

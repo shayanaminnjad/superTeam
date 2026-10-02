@@ -47,7 +47,7 @@ class PlayerBasicTurn extends PlayerBaseState
 
         if (DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
         {
-            $this->addClientButton("Forfeit", [$this, "actForfeit"], [], new ClientButtonParams(ClientButtonColor::ALERT));
+            $this->addClientButton(\clienttranslate("Forfeit"), [$this, "actForfeit"], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
 
         if (count($selectablePiecesIds) == 0)
@@ -63,7 +63,7 @@ class PlayerBasicTurn extends PlayerBaseState
         $actionReturnState = DBAdapter::getInstance()->getPlayerActionReturnState($activePlayer);
         if ($actionReturnState === BeforeCardSelectionReset::class)
         {
-            $this->addClientButton("undo", [$this, "actUndo"], [], new ClientButtonParams(ClientButtonColor::ALERT));
+            $this->addClientButton(\clienttranslate("Undo"), [$this, "actUndo"], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
 
         return [];
@@ -161,15 +161,15 @@ class PlayerBasicTurn extends PlayerBaseState
         {
             if ($playerPieceWithBall->getOwner() === $activePlayerId)
             {
-                $this->addClientButton('pass ball', [$this, 'actPassBall']);
+                $this->addClientButton(\clienttranslate('Pass ball'), [$this, 'actPassBall']);
 
                 if ($playerPieceWithBall->getRole() !== PlayerRole::GoalKeeper->value)
                 {
-                    $this->addClientButton('shoot', [$this, 'actShootBall']);
+                    $this->addClientButton(\clienttranslate('Shoot'), [$this, 'actShootBall']);
 
                     if (BoardEvaluator::doesOpponentExistInNeighbours($board, $board->getBallHex(), $activePlayerId, false))
                     {
-                        $this->addClientButton('dribble', [$this, 'actDribble']);
+                        $this->addClientButton(\clienttranslate('Dribble'), [$this, 'actDribble']);
                     }
                 }
             }
@@ -179,7 +179,7 @@ class PlayerBasicTurn extends PlayerBaseState
 
                 if ($anyoneCanTackle)
                 {
-                    $this->addClientButton('tackle', [$this, 'actTackle']);
+                    $this->addClientButton(\clienttranslate('Tackle'), [$this, 'actTackle']);
                 }
             }
         }
@@ -188,7 +188,7 @@ class PlayerBasicTurn extends PlayerBaseState
         if (count($pieceSelectableForMove) > 0 &&
             ($playerPieceWithBall == null || $playerPieceWithBall->getOwner() !== $activePlayerId || $playerPieceWithBall->getRole() !== PlayerRole::GoalKeeper->value))
         {
-            $this->addClientButton('move', [$this, 'actMove']);
+            $this->addClientButton(\clienttranslate('Move'), [$this, 'actMove']);
         }
     }
 
@@ -204,12 +204,12 @@ class PlayerBasicTurn extends PlayerBaseState
         {
             if ($playerPieceWithBall->getId() === $pieceId)
             {
-                $this->addClientButton('pass ball', [$this, 'actPassBall']);
-                $this->addClientButton('shoot', [$this, 'actShootBall']);
+                $this->addClientButton(\clienttranslate('Pass ball'), [$this, 'actPassBall']);
+                $this->addClientButton(\clienttranslate('Shoot'), [$this, 'actShootBall']);
 
                 if (BoardEvaluator::doesOpponentExistInNeighbours($board, $board->getBallHex(), $activePlayerId, false))
                 {
-                    $this->addClientButton('dribble', [$this, 'actDribble']);
+                    $this->addClientButton(\clienttranslate('Dribble'), [$this, 'actDribble']);
                 }
             }
             else
@@ -218,18 +218,18 @@ class PlayerBasicTurn extends PlayerBaseState
 
                 if (array_any($piecesThatCanTackle, fn($v)=> $v->getId() === $pieceId))
                 {
-                    $this->addClientButton('tackle', [$this, 'actTackle']);
+                    $this->addClientButton(\clienttranslate('Tackle'), [$this, 'actTackle']);
                 }
             }
         }
 
         $playerResources = new PlayerResources($activePlayerId);
         if (MovePieceSelectionLogic::canPieceFreeMove($board, $activePlayerId, $piece, $playerResources->getMorale()))
-            $this->addClientButton('move', [$this, 'actMove']);
+            $this->addClientButton(\clienttranslate('Move'), [$this, 'actMove']);
 
         if (count($this->getClientButtons()) == 0)
         {
-            $this->addClientButton('Pass', [$this, 'actPass'], [], new ClientButtonParams(ClientButtonColor::ALERT));
+            $this->addClientButton(\clienttranslate('Pass'), [$this, 'actPass'], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
     }
 }

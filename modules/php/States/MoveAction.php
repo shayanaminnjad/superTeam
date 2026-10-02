@@ -72,7 +72,7 @@ class MoveAction extends PlayerBaseState
         }
 
         if ($movesTaken > 0 && $this->isMoveConditionMet($activePlayerId, $board, $moveActionContext))
-            $this->addClientButton('Finish Movement', [$this, 'actFinishMove'], [],
+            $this->addClientButton(\clienttranslate('Finish Movement'), [$this, 'actFinishMove'], [],
                 new ClientButtonParams(ClientButtonColor::ALERT));
 
         //TODO: send target hexes too.
@@ -202,6 +202,8 @@ class MoveAction extends PlayerBaseState
             return $this->hasPieceMovedForward($board, $movedPieceInfo, $piece, $playerSide) &&
                 BoardEvaluator::hasAdjacentOpponentPieces($board, $piece->getPosition(), $playerId, true);
         }
+
+        return false;
     }
 
     private function hasPieceMovedForward(Board $board, MovedPieceInfo $movedPieceInfo, PlayerPiece $piece,PlayerSide $playerSide) : bool
