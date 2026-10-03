@@ -10,6 +10,7 @@ use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\CardActionDriver;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\NotificationAdapter;
 use Bga\Games\SuperTeam\PlayerResources;
 
 class ShootPerform extends GameState
@@ -40,6 +41,10 @@ class ShootPerform extends GameState
 
         if ($attackerRollResult->getTotal() >= $defenderRollResult->getTotal() + $powerRequired) 
         {
+            $this->notify->all('shootSuccess', \clienttranslate('${player_name} shoot successfully'), [
+                "player_name" => NotificationAdapter::getInstance()->getPlayerNameById($activePlayerId),
+            ]);
+
             $playerResources = new PlayerResources($attacker);
 
             $playerResources->addOneGoal($this->game, true);
@@ -65,8 +70,9 @@ class ShootPerform extends GameState
             $newLocation = BoardEvaluator::correctPositionIfInsideGoalieArea($board, $newLocation);
 
             $board->setBallLocation($newLocation);
-            $this->notify->all('shootFailed', "failed shoot", [
-                "ballHex" => $newLocation->convertToArray()
+            $this->notify->all('shootFailed', \clienttranslate('${player_name}\'s shoot failed'), [
+                "ballHex" => $newLocation->convertToArray(),
+                "player_name" => NotificationAdapter::getInstance()->getPlayerNameById($activePlayerId),
             ]);
 
             return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);

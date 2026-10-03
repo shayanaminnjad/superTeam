@@ -11,6 +11,7 @@ use Bga\Games\SuperTeam\BoardInfo;
 use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\NotificationAdapter;
 
 class PassPerform extends GameState
 {
@@ -49,8 +50,9 @@ class PassPerform extends GameState
             DBAdapter::getInstance()->setGameStateValue('lastPassResult', 1);
 
             $board->setBallLocation($selectedHex);
-            $this->notify->all('successfulPass', "successful pass", [
-                "ballHex" => $selectedHex->convertToArray()
+            $this->notify->all('successfulPass', \clienttranslate('${player_name} passed successfully.'), [
+                "ballHex" => $selectedHex->convertToArray(),
+                "player_name" => NotificationAdapter::getInstance()->getPlayerNameById($activePlayerId),
             ]);
 
 
@@ -72,8 +74,10 @@ class PassPerform extends GameState
             $newLocation = BoardEvaluator::correctPositionIfInsideGoalieArea($board, $newLocation);
 
             $board->setBallLocation($newLocation);
-            $this->notify->all('failedPass', "failed pass", [
-                "ballHex" => $newLocation->convertToArray()
+            NotificationAdapter::getInstance()->notifyAll('failedPass', \clienttranslate('${player_name}\'s pass failed'),
+                [
+                    "ballHex" => $newLocation->convertToArray(),
+                    "player_name" => NotificationAdapter::getInstance()->getPlayerNameById($activePlayerId)
             ]);
 
             $passActionContext->invalidateLastPassReceiverPieceData();

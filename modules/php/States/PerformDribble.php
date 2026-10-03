@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\NotificationAdapter;
 
 class PerformDribble extends GameState
 {
@@ -38,9 +39,16 @@ class PerformDribble extends GameState
             $ballOldHex = $board->getBallHex();
             $board->swapHexesContent($ballOldHex, $selectedHex, true);
 
-            $this->game->notify->all("dribblePerformed", '', [
+            $this->game->notify->all("dribblePerformed", \clienttranslate('${player_name} dribbled successfully'), [
                 "swappedHexes" => [$selectedHex->convertToArray(), $ballOldHex->convertToArray()],
-                "ballPosition" => $board->getBallHex()->convertToArray()
+                "ballPosition" => $board->getBallHex()->convertToArray(),
+                "player_name" => NotificationAdapter::getInstance()->getPlayerNameById($activePlayerId)
+            ]);
+        }
+        else
+        {
+            $this->notify->all('dribbleFailed', \clienttranslate('${player_name}\'s dribble failed'), [
+                "player_name" => NotificationAdapter::getInstance()->getPlayerNameById($activePlayerId),
             ]);
         }
 

@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\NotificationAdapter;
 
 class PerformTackle extends GameState
 {
@@ -36,12 +37,17 @@ class PerformTackle extends GameState
             $selectedHex = DBAdapter::getInstance()->getSelectedHexAsHexID();
             $board->swapHexesContent($board->getBallHex(), $selectedHex, swapBall: false);
 
-            $this->game->notify->all("tacklePerformed", '', [
-                "swappedHexes" => [$selectedHex->convertToArray(), $board->getBallHex()->convertToArray()]
+            $this->game->notify->all("tacklePerformed", \clienttranslate('${player_name} tackled successfully'), [
+                "swappedHexes" => [$selectedHex->convertToArray(), $board->getBallHex()->convertToArray()],
+                "player_name" => NotificationAdapter::getInstance()->getPlayerNameById($activePlayerId)
             ]);
         }
         else
         {
+            $this->notify->all('tackleFailed', \clienttranslate('${player_name}\'s tackle failed'), [
+                "player_name" => NotificationAdapter::getInstance()->getPlayerNameById($activePlayerId),
+            ]);
+
             $selectedHex = DBAdapter::getInstance()->getSelectedHexAsHexID();
             
             $piece = null;
