@@ -544,7 +544,27 @@ define([
                     TrackerBoard.setBlueGoals(notifData.score);
                 }
 
-                return PlayerPanelManager.setPlayerScoredGoals(notifData.playerId, notifData.score);
+                PlayerPanelManager.setPlayerScoredGoals(notifData.playerId, notifData.score);
+
+                return this.showGoalText();
+            },
+
+            showGoalText: function () {
+                if (!this.bga.gameui.bgaAnimationsActive()) {
+                    return Promise.resolve();
+                }
+
+                return new Promise(resolve => {
+                    const el = document.createElement('div');
+                    el.className = 'readonlyText goalText';
+                    el.textContent = _('GOAL!');
+                    el.style.setProperty('--color', `#E5DFCB`);
+                    el.addEventListener('animationend', () => {
+                        el.remove();
+                        resolve();
+                    });
+                    document.body.appendChild(el);
+                });
             },
 
             notif_resetBoard: async function (notifData) {

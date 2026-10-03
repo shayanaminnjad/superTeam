@@ -686,6 +686,40 @@ body.board-portrait .shootTargetTile {
     pointer-events: none;
 }
 
+.goalText {
+    --size: 14vw;
+
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin: 0;
+    font-weight: bold;
+    -webkit-text-stroke: 1.2vw black;
+    z-index: 1000;
+    white-space: nowrap;
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+    animation: goalTextSpin 1.8s ease-out forwards;
+}
+
+@keyframes goalTextSpin {
+    0% {
+        transform: translate(-50%, -50%) scale(0) rotate(0deg);
+        opacity: 1;
+    }
+    60% {
+        transform: translate(-50%, -50%) scale(1) rotate(720deg);
+        opacity: 1;
+    }
+    85% {
+        transform: translate(-50%, -50%) scale(1) rotate(720deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.2) rotate(720deg);
+        opacity: 0;
+    }
+}
+
 .grid{
     --rows: 2;
     --columns: 5;
