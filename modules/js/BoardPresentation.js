@@ -142,6 +142,14 @@ define([
 
         //------------------------------------------------------------------------------------
 
+        //Hex under the mouse right now, tracked independently of any state so a state can
+        //react to a hex the mouse was already resting on when the state started.
+        getHoveredHexElement: function () {
+            return this._hoveredHexEl;
+        },
+
+        //------------------------------------------------------------------------------------
+
         getOrientation: function () {
             return this._orientation;
         },
@@ -209,6 +217,13 @@ define([
                     let hexId = `hex_${y}_${x}`;
                     let rect = this._projectHex(y, x);
                     MAIN_BOARD_EL.insertAdjacentHTML('afterbegin', `<div id='${hexId}' class="hex" style='left:${rect.left}px; top:${rect.top}px; width: ${rect.width}px; height: ${rect.height}px;'></div>`);
+
+                    const hexEl = document.getElementById(hexId);
+                    hexEl.addEventListener('mouseenter', () => this._hoveredHexEl = hexEl);
+                    hexEl.addEventListener('mouseleave', () => {
+                        if (this._hoveredHexEl === hexEl)
+                            this._hoveredHexEl = null;
+                    });
                 }
             }
 
@@ -457,6 +472,7 @@ define([
         _svg: null,
         _rulerWidth: null,
         _rulerEndpoints: null,
+        _hoveredHexEl: null,
         _orientation: 'landscape',
         _landscapeWidth: null,
         _landscapeHeight: null,

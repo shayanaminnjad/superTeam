@@ -35,6 +35,11 @@ define(["dojo/_base/declare",
 
                     Board.makeAllHexesSelectableExcept(allBlockedSpaces);
                 }
+
+                const hoveredHex = Board.getHoveredHexElement();
+
+                if (hoveredHex)
+                    this._showPassRuler(hoveredHex);
             },
 
             _onInactivePlayerEnter: function (args) {
@@ -60,8 +65,12 @@ define(["dojo/_base/declare",
             },
 
             _selfOnHexEnter: async function (evt) {
-                if (evt.currentTarget.classList.contains('selectable')) {
-                    Board.visualizePowerRequired(Board.getHexWithBall(), Board.convertHexIdToOffsetCoord(evt.currentTarget.id));
+                this._showPassRuler(evt.currentTarget);
+            },
+
+            _showPassRuler: function (hexEl) {
+                if (hexEl.classList.contains('selectable')) {
+                    Board.visualizePowerRequired(Board.getHexWithBall(), Board.convertHexIdToOffsetCoord(hexEl.id));
                 }
             },
 
