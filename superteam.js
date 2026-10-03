@@ -507,10 +507,14 @@ define([
             },
 
             notif_successfulPass: function (notifData) {
+                this.bga.gameui.disableNextMoveSound();
+                this.bga.sounds.play('kick');
                 Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
             notif_failedPass: function (notifData) {
+                this.bga.gameui.disableNextMoveSound();
+                this.bga.sounds.play('kick');
                 Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
@@ -525,6 +529,8 @@ define([
             },
 
             notif_shootFailed: async function (notifData) {
+                this.bga.gameui.disableNextMoveSound();
+                this.bga.sounds.play('kick');
                 return Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
