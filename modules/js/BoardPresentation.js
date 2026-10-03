@@ -51,11 +51,12 @@ define([
                 let tempEl = document.createElement("span");
                 tempEl.innerHTML = `<span class="powerIndication">+1</span>`;
                 let powerIndicator = tempEl.firstElementChild;
+                powerIndicator.dataset.hexRow = blockingPieces[i].r;
+                powerIndicator.dataset.hexColumn = blockingPieces[i].c;
+                powerIndicator.dataset.hexOffsetY = -30;
                 this._root.getGameAreaElement().appendChild(powerIndicator);
 
-                this._root.placeOnObject(powerIndicator, el);
-                //TODO: sometimes this might be covered by another piece!
-                powerIndicator.style.top = (parseInt(powerIndicator.style.top) - 30) + 'px';
+                this._placeOnHexWithOffset(powerIndicator, el);
             }
         },
 
@@ -176,6 +177,8 @@ define([
             this._root.pieceManager.resnapAll();
 
             this._resnapHexAnchoredElements();
+
+            this._redrawRuler();
         },
 
         //------------------------------------------------------------------------------------
@@ -241,8 +244,20 @@ define([
         _resnapHexAnchoredElements: function () {
             document.querySelectorAll('[data-hex-row]').forEach(el => {
                 const offsetCoord = HexLib.createOffsetCoord(parseInt(el.dataset.hexRow), parseInt(el.dataset.hexColumn));
-                this._root.placeOnObject(el, this.convertOffsetCoordToHexId(offsetCoord));
+                this._placeOnHexWithOffset(el, this.convertOffsetCoordToHexId(offsetCoord));
             });
+        },
+
+        //------------------------------------------------------------------------------------
+
+        //Optional data-hex-offset-y shifts the overlay vertically after it is centered on the hex.
+        _placeOnHexWithOffset: function (el, hexTarget) {
+            this._root.placeOnObject(el, hexTarget);
+
+            const offsetY = parseFloat(el.dataset.hexOffsetY);
+
+            if (!isNaN(offsetY))
+                el.style.top = (parseFloat(el.style.top) + offsetY) + 'px';
         },
 
         //------------------------------------------------------------------------------------
@@ -337,7 +352,22 @@ define([
         },
 
         //------------------------------------------------------------------------------------
+
+        //The ruler is drawn in pixels taken from the hexes, so it has to be redrawn
+        //after the hexes move (orientation change).
+        _redrawRuler: function () {
+            if (this._rulerEndpoints === null)
+                return;
+
+            const { start, end } = this._rulerEndpoints;
+            this._removeRuler();
+            this._drawRuler(start, end);
+        },
+
+        //------------------------------------------------------------------------------------
         _drawRuler: function (startHex, endHex) {
+            this._rulerEndpoints = { start: startHex, end: endHex };
+
             const startEl = document.getElementById(this.convertOffsetCoordToHexId(startHex));
             const endEl = document.getElementById(this.convertOffsetCoordToHexId(endHex));
 
@@ -407,6 +437,8 @@ define([
         //------------------------------------------------------------------------------------
 
         _removeRuler: function () {
+            this._rulerEndpoints = null;
+
             let rulerEl = document.getElementById('ruler');
 
             if (rulerEl != null)
@@ -424,6 +456,7 @@ define([
         _hexInfo: null,
         _svg: null,
         _rulerWidth: null,
+        _rulerEndpoints: null,
         _orientation: 'landscape',
         _landscapeWidth: null,
         _landscapeHeight: null,
