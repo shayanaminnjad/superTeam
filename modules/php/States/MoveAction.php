@@ -15,6 +15,7 @@ use Bga\Games\SuperTeam\ClientButtonColor;
 use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\MoveHexSelectionLogic;
+use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
 use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Game;
@@ -92,6 +93,10 @@ class MoveAction extends PlayerBaseState
         $ballLocation = $board->getBallHex();
         $pieceOldData = $board->getPlayerPieceData($selectedPiece->id);
 
+        // Must be read before the ball moves: the ball changes the max movement.
+        $maxMovement = BoardEvaluator::getPieceMaxPossibleMovement($board, $activePlayerId, $pieceOldData, new PlayerResources($activePlayerId));
+        $canMoveNearOpponents = PlayerPowers::forPlayer($activePlayerId)->canBallCarrierMoveNearOpponents($pieceOldData);
+
         $ballMoved = 0;
 
         if ($ballLocation->equals($pieceOldData->getPosition()))
@@ -104,7 +109,7 @@ class MoveAction extends PlayerBaseState
 
         $shouldEndMovement = false;
 
-        if ($numberOfMoves === 1)
+        if ($numberOfMoves + 1 >= $maxMovement)
         {
             $shouldEndMovement = true;
         }
@@ -124,7 +129,7 @@ class MoveAction extends PlayerBaseState
             $shouldEndMovement = true;
         }
 
-        if ($ballMoved === 1 &&
+        if ($ballMoved === 1 && !$canMoveNearOpponents &&
             (BoardEvaluator::doesOpponentExistInNeighbours($board, $pieceOldData->getPosition(), \intval($this->game->getActivePlayerId()), true) ||
             BoardEvaluator::doesOpponentExistInNeighbours($board, new HexID($hexColumn, $hexRow), \intval($this->game->getActivePlayerId()), true)))
         {

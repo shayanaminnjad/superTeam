@@ -3,6 +3,7 @@
 namespace Bga\Games\SuperTeam;
 
 use Bga\Games\SuperTeam\HexLib\HexLib;
+use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
 use Bga\Games\SuperTeam\Utility\Logger;
 use Couchbase\Role;
 use function count;
@@ -87,6 +88,8 @@ final class BoardSpatial
 
     public static function canFindPathToTarget(Board $board, HexID $startPos, int $maxMoveDist, bool $hasBall, int $playerId, callable $targetPredicate): bool
     {
+        $stopNearOpponents = self::stopsNearOpponents($board, $startPos, $hasBall);
+
         $queue = [];
         $head = 0;
         $visited = [];
@@ -108,7 +111,7 @@ final class BoardSpatial
 
             $currentNeighbors = HexLib::getNeighbours(HexLib::offsetToCubic($currentNode->node), 1);
 
-            if (self::shouldPieceEndMovement($board, $currentNeighbors, $currentDepth, $hasBall, $playerId))
+            if (self::shouldPieceEndMovement($board, $currentNeighbors, $currentDepth, $stopNearOpponents, $playerId))
                 continue;
 
             foreach ($currentNeighbors as $cubicNeighbor)
@@ -127,6 +130,8 @@ final class BoardSpatial
 
     public static function findMoveableHexesToTarget(Board $board, HexID $startPos, int $maxMoveDist, bool $hasBall, int $playerId, callable $targetPredicate): array
     {
+        $stopNearOpponents = self::stopsNearOpponents($board, $startPos, $hasBall);
+
         $queue = [];
         $head = 0;
         $visited = [];
@@ -153,7 +158,7 @@ final class BoardSpatial
 
             $currentNeighbors = HexLib::getNeighbours(HexLib::offsetToCubic($currentNode->node), 1);
 
-            if (self::shouldPieceEndMovement($board, $currentNeighbors, $currentNode->depth, $hasBall, $playerId))
+            if (self::shouldPieceEndMovement($board, $currentNeighbors, $currentNode->depth, $stopNearOpponents, $playerId))
                 continue;
 
             foreach ($currentNeighbors as $cubicNeighbor)
@@ -219,6 +224,8 @@ final class BoardSpatial
 
     public static function findPathToTarget(Board $board, HexID $startPos, HexID $targetHex, int $maxMoveDist, bool $hasBall, int $playerId): array
     {
+        $stopNearOpponents = self::stopsNearOpponents($board, $startPos, $hasBall);
+
         if ($targetHex->equals($startPos))
             return [];
 
@@ -253,7 +260,7 @@ final class BoardSpatial
 
             $currentNeighbors = HexLib::getNeighbours(HexLib::offsetToCubic($currentNode->node), 1);
 
-            if (self::shouldPieceEndMovement($board, $currentNeighbors, $currentDepth, $hasBall, $playerId))
+            if (self::shouldPieceEndMovement($board, $currentNeighbors, $currentDepth, $stopNearOpponents, $playerId))
                 continue;
 
             foreach ($currentNeighbors as $cubicNeighbor)
@@ -272,6 +279,8 @@ final class BoardSpatial
 
     public static function getMoveableHexes(Board $board, HexID $startPos, int $maxMoveDist, bool $hasBall, int $playerId) : array
     {
+        $stopNearOpponents = self::stopsNearOpponents($board, $startPos, $hasBall);
+
         $res = [];
         $queue = [];
         $head = 0;
@@ -289,7 +298,7 @@ final class BoardSpatial
 
             $currentNeighbors = HexLib::getNeighbours(HexLib::offsetToCubic($currentHex), 1);
 
-            if (self::shouldPieceEndMovement($board, $currentNeighbors, $currentDepth, $hasBall, $playerId))
+            if (self::shouldPieceEndMovement($board, $currentNeighbors, $currentDepth, $stopNearOpponents, $playerId))
                 continue;
 
             foreach($currentNeighbors as $cubicNeighbor)
@@ -333,10 +342,22 @@ final class BoardSpatial
             $playerSide == PlayerSide::Right && $column > $pieceColumn;
     }
 
-    private static function shouldPieceEndMovement(Board $board, array $neighbors, int $movesSofar, bool $hasBall, int $playerId) : bool
+    private static function stopsNearOpponents(Board $board, HexID $startPos, bool $hasBall) : bool
+    {
+        if (!$hasBall)
+            return false;
+
+        $piece = null;
+        if (!$board->tryGetPlayerPieceInHex($startPos, $piece))
+            return true;
+
+        return !PlayerPowers::forPlayer($piece->getOwner())->canBallCarrierMoveNearOpponents($piece);
+    }
+
+    private static function shouldPieceEndMovement(Board $board, array $neighbors, int $movesSofar, bool $stopNearOpponents, int $playerId) : bool
     {
         $shouldStop = false;
-        if ($hasBall && $movesSofar > 0)
+        if ($stopNearOpponents && $movesSofar > 0)
         {
             foreach ($neighbors as $cubicNeighbor)
             {

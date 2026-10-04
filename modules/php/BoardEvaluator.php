@@ -4,6 +4,7 @@ namespace Bga\Games\SuperTeam;
 
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\HexLib\HexLib;
+use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
 
 class BoardEvaluator
 {
@@ -113,7 +114,11 @@ class BoardEvaluator
             }
         }
 
-        if ($pieceMaxMoveDistance > 1 && self::doesPieceHasTheBall($board, $piece))
+        $hasBall = self::doesPieceHasTheBall($board, $piece);
+        $powers = PlayerPowers::forPlayer($piece->getOwner());
+        $pieceMaxMoveDistance = $powers->maxMovement($piece, $hasBall, $pieceMaxMoveDistance);
+
+        if ($pieceMaxMoveDistance > 1 && $hasBall && !$powers->canBallCarrierMoveNearOpponents($piece))
         {
             if (BoardEvaluator::doesOpponentExistInNeighbours($board, $piece->getPosition(), $playerId, true))
             {
