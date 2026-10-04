@@ -146,8 +146,7 @@ class PlayerBasicTurn extends PlayerBaseState
 
     function zombie(int $playerId): string
     {
-        // the code to run when the player is a Zombie
-        return '';
+        return $this->actPass($playerId);
     }
 
     private function addActionsDoableByAllPieces() : void
