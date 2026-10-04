@@ -48,7 +48,7 @@ define([
 
                 this.cardDefinitions = gamedatas.card_definitions;
 
-                this.myColor = gamedatas.players[this.player_id].color === 'DD4720' ? 'red' : 'blue';
+                this.myColor = gamedatas.players[this.player_id].color === 'F86126' ? 'red' : 'blue';
                 this.opponentColor = this.myColor === 'red' ? 'blue' : 'red';
 
                 for (const player of Object.keys(gamedatas.players)) {
@@ -141,6 +141,12 @@ define([
 
             ///////////////////////////////////////////////////
             //// Utility methods
+
+            getPlayerActualColor : function(playerId)
+            {
+                const  colorToMap = playerId === this.opponentId ? this.opponentColor : this.myColor;
+                return colorToMap === 'red' ? '#F86126' : '#00BBF7';
+            },
 
             setupMainBoard: function (gamedatas) {
 
@@ -378,7 +384,8 @@ define([
                             parseInt(args.requiredPower),
                             parseInt(args.distance),
                             parseInt(args.blockingPieces),
-                            args.actionName
+                            args.actionName,
+                            parseInt(args.skipEnabledPlayerId)
                         );
                     }
                 }
