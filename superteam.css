@@ -480,6 +480,18 @@ body::before {
   margin-left: -4px;
 }
 
+.captainStarColumn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+}
+
+.captainStarColumn .blackStar {
+    display: block;
+}
+
 .powerDistance{
     height: 32px;
     width: 32px;
@@ -817,6 +829,11 @@ body.board-portrait .shootTargetTile {
 .diceLogMoraleValue {
     font-weight: bold;
     margin-right: 2px;
+}
+
+.diceLogSkip {
+    font-weight: bold;
+    margin: 0 2px;
 }
 
 .diceLogEquals {

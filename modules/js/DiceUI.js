@@ -91,7 +91,7 @@ define([
                     die.face = finalFace;
                 }
 
-                let totalPower = result.greenDie + result.assignedMorale;
+                let totalPower = result.greenDie + result.assignedMorale + result.captainStars;
 
                 for (const whiteDie of result.whiteDice) {
                     totalPower += whiteDie;
@@ -143,6 +143,24 @@ define([
 
                         this._fadeInElement(moraleEl);
                     }
+                }
+
+                if (result.captainStars > 0) {
+                    const starColumnEl = document.createElement('div');
+
+                    starColumnEl.className = 'captainStarColumn';
+
+                    playerRollLine.appendChild(starColumnEl);
+
+                    for (let j = 0; j < result.captainStars; ++j) {
+                        const starEl = document.createElement('span');
+
+                        starEl.className = 'blackStar';
+
+                        starColumnEl.appendChild(starEl);
+                    }
+
+                    this._fadeInElement(starColumnEl);
                 }
 
                 if (parseInt(result.playerId) !== attacker) {
@@ -255,22 +273,26 @@ define([
                 playerId: playerId,
                 greenDie: rollResult.greenDie,
                 whiteDice: rollResult.whiteDice,
-                assignedMorale: rollResult.assignedMorale
+                assignedMorale: rollResult.assignedMorale,
+                captainStars: rollResult.captainStars
             };
         },
 
-        formatRollLog: function (rollResults, players, requiredPower, distance, blockingPieces, actionName) {
+        formatRollLog: function (rollResults, players, requiredPower, distance, blockingPieces, actionName, skipEnabledPlayerId) {
             let html = `<div class="diceLogAction">${_(actionName)}</div>`;
 
             for (const playerId of Object.keys(rollResults)) {
-                html += this._formatRollLogRow(players[playerId].color, rollResults[playerId]);
+                const skipEnabled = parseInt(playerId) === skipEnabledPlayerId;
+                html += this._formatRollLogRow(this._root.getPlayerActualColor(playerId), rollResults[playerId], skipEnabled);
             }
 
             return html + this._formatRequiredPowerLogRow(requiredPower, distance, blockingPieces);
         },
 
-        _formatRollLogRow: function (playerColor, result) {
-            const totalPower = result.whiteDice.reduce((sum, die) => sum + die, result.greenDie + result.assignedMorale);
+        _formatRollLogRow: function (playerColor, result, skipEnabled) {
+            // Logs written before captain stars existed have no such field.
+            const captainStars = result.captainStars ?? 0;
+            const totalPower = result.whiteDice.reduce((sum, die) => sum + die, result.greenDie + result.assignedMorale + captainStars);
 
             let html = '<div class="diceLogRow">';
             html += `<span class="diceLogColorMark" style="background-color:#${playerColor}"></span>`;
@@ -283,6 +305,15 @@ define([
             if (result.assignedMorale > 0) {
                 html += '<span class="diceLogIcon diceLogMorale"></span>';
                 html += `<span class="diceLogMoraleValue">×${result.assignedMorale}</span>`;
+            }
+
+            if (captainStars > 0) {
+                html += '<span class="blackStar"></span>';
+                html += `<span class="diceLogMoraleValue">×${captainStars}</span>`;
+            }
+
+            if (skipEnabled) {
+                html += `<span class="diceLogSkip">${_('SKIP')}</span>`;
             }
 
             html += '<span class="diceLogEquals">=</span>';
@@ -311,10 +342,7 @@ define([
         },
 
         _createRollLineElement: function (parentEl, lineNum, result) {
-            const backColor =
-                result.playerId === this._root.player_id
-                    ? this._root.myColor
-                    : this._root.opponentColor;
+            const backColor = this._root.getPlayerActualColor(result.playerId);
 
             const pos =
                 lineNum === 0
