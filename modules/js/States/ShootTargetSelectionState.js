@@ -54,15 +54,14 @@ define(["dojo/_base/declare",
                 const myColor = this._root.myColor;
                 let mainBoardEl = Board.getMainBoardElement();
 
-                this._createTargetingTile(mainBoardEl, rotation, leftRow, goalieColumn, `url('${g_gamethemeurl}img/${myColor}TargetLeft.png')`);
-                this._createTargetingTile(mainBoardEl, rotation, 5, goalieColumn, `url('${g_gamethemeurl}img/${myColor}TargetCenter.png')`);
-                this._createTargetingTile(mainBoardEl, rotation, rightRow, goalieColumn, `url('${g_gamethemeurl}img/${myColor}TargetRight.png')`);
+                this._createTargetingTile(mainBoardEl, rotation, leftRow, goalieColumn, `target-${myColor}-left`);
+                this._createTargetingTile(mainBoardEl, rotation, 5, goalieColumn, `target-${myColor}-center`);
+                this._createTargetingTile(mainBoardEl, rotation, rightRow, goalieColumn, `target-${myColor}-right`);
             },
 
-            _createTargetingTile: function (parent, rotation, row, column, image) {
+            _createTargetingTile: function (parent, rotation, row, column, spriteClass) {
                 const tile = document.createElement('div');
-                tile.className = 'shootTargetTile';
-                tile.style.backgroundImage = image;
+                tile.className = `shootTargetTile ${spriteClass}`;
                 tile.style.setProperty('--rot', rotation);
                 tile.dataset.hexRow = row;
                 tile.dataset.hexColumn = column;

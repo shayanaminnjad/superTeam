@@ -30,9 +30,8 @@ html {
     background-attachment: fixed, scroll;
 }
 
-/* TODO: Remove this when you had texture atlases: TEMP PRELOAD, DELETE THIS RULE ONCE ALL GROUPS BELOW HAVE A TEXTURE ATLAS.
-   Forces every listed object image to load once, up front, so none of them
-   pops in later when an object's class changes. */
+/* Icons first appear mid-game (dice, button icons), so load their atlas up front
+   to avoid a pop-in the first time they show. */
 body::before {
     content: '';
     position: fixed;
@@ -41,30 +40,8 @@ body::before {
     overflow: hidden;
     visibility: hidden;
     background-image:
-        url('img/topBoard.jpg'),
-        url('img/mainBoard.jpg'),
-        url('img/blueMeepleReady.png'),
-        url('img/blueMeepleExhausted.png'),
-        url('img/blueCaptainMeepleReady.png'),
-        url('img/blueMeepleCaptainExhausted.png'),
-        url('img/redMeepleReady.png'),
-        url('img/redMeepleExhausted.png'),
-        url('img/redCaptainMeepleReady.png'),
-        url('img/redMeepleCaptainExhausted.png'),
-        url('img/goalieMeeple.png'),
-        url('img/ball.png'),
-        url('img/morale.png'),
-        url('img/outLinedMorale.png'),
-        url('img/distance.png'),
-        url('img/block.png'),
-        url('img/coachBoard.jpg'),
-        url('img/coachCube.png'),
-        url('img/handPeekButton.svg'),
-        url('img/moveForwardIcon.png'),
-        url('img/moveForwardINearOpponentcon.png'),
-        url('img/freeMoveIcon.png'),
-        url('img/actionIcon.png'),
-        url('img/moveIcon.png');
+        url('img/piecesAtlas.png'),
+        url('img/iconsAtlas.png');
 }
 
 #trackerBoard {
@@ -214,59 +191,8 @@ body::before {
     pointer-events: none;
 }
 
-.piece.regular.blue.fresh {
-    background-image: url('img/blueMeepleReady.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-}
-
-.piece.regular.blue.exhausted {
-    background-image: url('img/blueMeepleExhausted.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-}
-
-.piece.captain.blue.fresh {
-    background-image: url('img/blueCaptainMeepleReady.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-}
-
-.piece.captain.blue.exhausted {
-    background-image: url('img/blueMeepleCaptainExhausted.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-}
-
-.piece.regular.red.fresh {
-    background-image: url('img/redMeepleReady.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-}
-
-.piece.regular.red.exhausted {
-    background-image: url('img/redMeepleExhausted.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-}
-
-.piece.captain.red.fresh {
-    background-image: url('img/redCaptainMeepleReady.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-}
-
 .piece.captain.red.exhausted {
     pointer-events: none;
-    background-image: url('img/redMeepleCaptainExhausted.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-}
-
-.piece.goalie {
-    background-image: url('img/goalieMeeple.png');
-    background-size: contain;
-    background-repeat: no-repeat;
 }
 
 .piece.clickable {
@@ -288,9 +214,6 @@ body::before {
     width: 18px;
     height: 18px;
     position: relative;
-    background-image: url('img/ball.png');
-    background-size: contain;
-    background-repeat: no-repeat;
     pointer-events: none;
     z-index: 101;
     transform: translate(0px, 10px);
@@ -353,9 +276,6 @@ body::before {
 {
     width: 16px;
     height: 16px;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
     pointer-events: none;
     flex-shrink: 0;
     display: inline-block;
@@ -363,15 +283,6 @@ body::before {
 
 .resources .label{
     line-height: 1;
-}
-
-
-.resourceIcon.goalsIcon {
-    background-image: url('img/ball.png');
-}
-
-.resourceIcon.moraleIcon {
-    background-image: url('img/morale.png');
 }
 
 .player-morale-counter {
@@ -402,11 +313,7 @@ body::before {
 .pieceMoraleLine .moraleIcon {
     width: 16px;
     height: 16px;
-    background-image: url('img/outLinedMorale.png');
-    background-size: contain;
     overflow: visible;
-    background-repeat: no-repeat;
-    background-position: center;
 }
 
 .cardIcon {
@@ -433,10 +340,6 @@ body::before {
     position: absolute;
     bottom: -10px;
     left: -5px;
-    background-image: url('img/morale.png');
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
     overflow: visible;
     pointer-events: none;
 }
@@ -445,10 +348,6 @@ body::before {
     width: 16px;
     height: 16px;
     position: absolute;
-    background-image: url('img/morale.png');
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
     overflow: visible;
     pointer-events: none;
     z-index: 101;
@@ -573,12 +472,8 @@ body::before {
     display: inline-block;
     width: 32px;
     height: 32px;
-    background-image: url('img/outLinedMorale.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
     pointer-events: none;
-    margin-left: -15px; 
+    margin-left: -15px;
 }
 
 .moraleSpent:first-child {
@@ -588,9 +483,6 @@ body::before {
 .powerDistance{
     height: 32px;
     width: 32px;
-    background-image: url('img/distance.png');
-    background-size: contain;
-    background-repeat: no-repeat;
     pointer-events: none;
     display: inline-block;
     text-align: center;
@@ -601,9 +493,6 @@ body::before {
 .powerBlockingPieces{
     height: 32px;
     width: 32px;
-    background-image: url('img/block.png');
-    background-size: contain;
-    background-repeat: no-repeat;
     pointer-events: none;
     display: inline-block;
     text-align: center;
@@ -617,8 +506,6 @@ body::before {
     --scale: 1;
 
     position: absolute;
-    background-size: contain;
-    background-repeat: no-repeat;
     overflow: visible;
     width: 37px ;
     height: 43px;
@@ -779,11 +666,6 @@ body.board-portrait .shootTargetTile {
 
 .cube {
     position: absolute;
-    
-    background-image: url('img/coachCube.png');
-    background-repeat: no-repeat;
-    background-size: contain;
-    background-position: center;
     overflow: visible;
     z-index: 104;
 }
@@ -898,33 +780,6 @@ body.board-portrait .shootTargetTile {
     margin: 8px 0;
 }
 
-.superteam-dice-face {
-    background-image: url("img/diceAtlas.png");
-    background-repeat: no-repeat;
-    background-size: 600% 200%;
-}
-
-.superteam-dice-face {
-    background-image: url("img/diceAtlas.png");
-    background-repeat: no-repeat;
-
-    background-size: 600% 200%;
-}
-
-.die-green.face-1 { background-position:   0%   0%; }
-.die-green.face-2 { background-position:  20%   0%; }
-.die-green.face-3 { background-position:  40%   0%; }
-.die-green.face-4 { background-position:  60%   0%; }
-.die-green.face-5 { background-position:  80%   0%; }
-.die-green.face-6 { background-position: 100%   0%; }
-
-.die-white.face-1 { background-position:   0% 100%; }
-.die-white.face-2 { background-position:  20% 100%; }
-.die-white.face-3 { background-position:  40% 100%; }
-.die-white.face-4 { background-position:  60% 100%; }
-.die-white.face-5 { background-position:  80% 100%; }
-.die-white.face-6 { background-position: 100% 100%; }
-
 .diceLogAction {
     font-weight: bold;
     text-transform: uppercase;
@@ -959,13 +814,6 @@ body.board-portrait .shootTargetTile {
     flex-shrink: 0;
 }
 
-.diceLogMorale {
-    background-image: url('img/outLinedMorale.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
 .diceLogMoraleValue {
     font-weight: bold;
     margin-right: 2px;
@@ -979,26 +827,12 @@ body.board-portrait .shootTargetTile {
     font-weight: bold;
 }
 
-.diceLogDistance {
-    background-image: url('img/distance.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-}
-
-.diceLogBlocking {
-    background-image: url('img/block.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-}
-
 .diceLogTargetRow {
     opacity: 0.85;
 }
 
 .buttonIcon {
     display: inline-block;
-    background-repeat: no-repeat;
-    background-size: contain;
     vertical-align: middle;
     margin: 2px;
 }
@@ -1006,28 +840,24 @@ body.board-portrait .shootTargetTile {
 .moveForward {
     width: 16px;
     height: 25px;
-    background-image: url("img/moveForwardIcon.png");
     transform: rotate(-90deg);
 }
 
 .moveBackward {
     width: 16px;
     height: 25px;
-    background-image: url("img/moveForwardIcon.png");
     transform: scaleY(-1) rotate(90deg);
 }
 
 .moveForwardNearOpponent {
     width: 24px;
     height: 27px;
-    background-image: url("img/moveForwardINearOpponentcon.png");
     transform: rotate(-90deg);
 }
 
 .moveBackNearOpponent {
     width: 24px;
     height: 27px;
-    background-image: url("img/moveForwardINearOpponentcon.png");
     transform: scaleY(-1) rotate(90deg);
 }
 
@@ -1044,17 +874,343 @@ body.board-portrait .moveBackNearOpponent {
 .moveFree {
     width: 26px;
     height: 24px;
-    background-image: url("img/freeMoveIcon.png");
 }
 
 .action {
     width: 15px;
     height: 16px;
-    background-image: url("img/actionIcon.png");
 }
 
 .move {
     width: 19px;
     height: 16px;
-    background-image: url("img/moveIcon.png");
 }
+
+.blackStar {
+    display: inline-block;
+    width: 17px;
+    height: 16px;
+    vertical-align: middle;
+}
+
+/* atlas:generated:begin */
+/* Written by misc/atlas/pack_atlases.py, edit the script instead. */
+
+.piece.regular.blue.fresh {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 528.8889% 286.6667%;
+    background-position: 25.3886% 2.381%;
+}
+
+.piece.regular.blue.exhausted {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 580.4878% 314.6341%;
+    background-position: 22.8426% 55.6818%;
+}
+
+.piece.captain.blue.fresh {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 528.8889% 286.6667%;
+    background-position: 1.0363% 2.381%;
+}
+
+.piece.captain.blue.exhausted {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 580.4878% 314.6341%;
+    background-position: 1.0152% 55.6818%;
+}
+
+.piece.regular.red.fresh {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 528.8889% 286.6667%;
+    background-position: 98.4456% 2.381%;
+}
+
+.piece.regular.red.exhausted {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 580.4878% 314.6341%;
+    background-position: 66.4975% 55.6818%;
+}
+
+.piece.captain.red.fresh {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 528.8889% 286.6667%;
+    background-position: 74.0933% 2.381%;
+}
+
+.piece.captain.red.exhausted {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 580.4878% 314.6341%;
+    background-position: 44.6701% 55.6818%;
+}
+
+.piece.goalie {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 528.8889% 286.6667%;
+    background-position: 49.7409% 2.381%;
+}
+
+.ball {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 850% 460.7143%;
+    background-position: 61.9048% 91.0891%;
+}
+
+.resourceIcon.goalsIcon {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 898.1132% 486.7925%;
+    background-position: 76.0047% 89.7561%;
+}
+
+.resourceIcon.moraleIcon {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 1518.75% 959.375%;
+    background-position: 0.8811% 98.5455%;
+}
+
+.pieceMoraleLine .moraleIcon {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 1350% 852.7778%;
+    background-position: 90.6667% 74.9077%;
+}
+
+.moraleIcon.pieceAttachment,
+.floatingMorale {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 1518.75% 959.375%;
+    background-position: 0.8811% 98.5455%;
+}
+
+.moraleSpent {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 1350% 852.7778%;
+    background-position: 90.6667% 74.9077%;
+}
+
+.powerDistance {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 528.2609% 333.6957%;
+    background-position: 47.2081% 1.8605%;
+}
+
+.powerBlockingPieces {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 528.2609% 333.6957%;
+    background-position: 22.8426% 1.8605%;
+}
+
+.shootTargetTile.target-blue-left {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 793.3333% 370%;
+    background-position: 99.0385% 52.0528%;
+}
+
+.shootTargetTile.target-blue-center {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 793.3333% 370%;
+    background-position: 83.6538% 52.0528%;
+}
+
+.shootTargetTile.target-blue-right {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 793.3333% 370%;
+    background-position: 0.9615% 97.7318%;
+}
+
+.shootTargetTile.target-red-left {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 793.3333% 370%;
+    background-position: 31.7308% 97.7318%;
+}
+
+.shootTargetTile.target-red-center {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 793.3333% 370%;
+    background-position: 16.3462% 97.7318%;
+}
+
+.shootTargetTile.target-red-right {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 793.3333% 370%;
+    background-position: 47.1154% 97.7318%;
+}
+
+.cube {
+    background-image: url('img/piecesAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 1641.3793% 889.6552%;
+    background-position: 85.0112% 80.3493%;
+}
+
+.superteam-dice-face.die-green.face-1 {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 759.375% 479.6875%;
+    background-position: 0.9479% 55.5556%;
+}
+
+.superteam-dice-face.die-green.face-2 {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 759.375% 479.6875%;
+    background-position: 17.0616% 55.5556%;
+}
+
+.superteam-dice-face.die-green.face-3 {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 759.375% 479.6875%;
+    background-position: 33.1754% 55.5556%;
+}
+
+.superteam-dice-face.die-green.face-4 {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 759.375% 479.6875%;
+    background-position: 49.2891% 55.5556%;
+}
+
+.superteam-dice-face.die-green.face-5 {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 759.375% 479.6875%;
+    background-position: 65.4028% 55.5556%;
+}
+
+.superteam-dice-face.die-green.face-6 {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 759.375% 479.6875%;
+    background-position: 81.5166% 55.5556%;
+}
+
+.superteam-dice-face.die-white.face-1 {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 759.375% 479.6875%;
+    background-position: 97.6303% 55.5556%;
+}
+
+.superteam-dice-face.die-white.face-2 {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 759.375% 479.6875%;
+    background-position: 0.9479% 83.5391%;
+}
+
+.superteam-dice-face.die-white.face-3 {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 759.375% 479.6875%;
+    background-position: 17.0616% 83.5391%;
+}
+
+.superteam-dice-face.die-white.face-4 {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 759.375% 479.6875%;
+    background-position: 33.1754% 83.5391%;
+}
+
+.superteam-dice-face.die-white.face-5 {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 759.375% 479.6875%;
+    background-position: 49.2891% 83.5391%;
+}
+
+.superteam-dice-face.die-white.face-6 {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 759.375% 479.6875%;
+    background-position: 65.4028% 83.5391%;
+}
+
+.diceLogMorale {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 1350% 852.7778%;
+    background-position: 90.6667% 74.9077%;
+}
+
+.diceLogDistance {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 528.2609% 333.6957%;
+    background-position: 47.2081% 1.8605%;
+}
+
+.diceLogBlocking {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 528.2609% 333.6957%;
+    background-position: 22.8426% 1.8605%;
+}
+
+.moveForward,
+.moveBackward {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 597.9331% 241.7323%;
+    background-position: 0.9883% 2.2222%;
+}
+
+.moveForwardNearOpponent,
+.moveBackNearOpponent {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 607.5% 341.1111%;
+    background-position: 69.4581% 1.8433%;
+}
+
+.moveFree {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 650.1672% 444.9275%;
+    background-position: 88.997% 1.6807%;
+}
+
+.action {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 810% 479.6875%;
+    background-position: 80.7512% 83.5391%;
+}
+
+.move {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 1515.7895% 1137.037%;
+    background-position: 8.8118% 96.7857%;
+}
+
+.blackStar {
+    background-image: url('img/iconsAtlas.png');
+    background-repeat: no-repeat;
+    background-size: 1429.4118% 959.375%;
+    background-position: 99.115% 73.8182%;
+}
+/* atlas:generated:end */
