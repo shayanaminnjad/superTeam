@@ -8,19 +8,13 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardEvaluator;
-use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Cards\CardReward;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
-use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
-use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Cards\TacticType;
 use Bga\Games\SuperTeam\Cards\TacticContext;
-use Bga\Games\SuperTeam\PassTargetSelectionLogic;
 use Bga\Games\SuperTeam\PlayerResources;
-use Bga\Games\SuperTeam\PlayerRole;
-use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\Utility\Logger;
 
 class CardSelection extends PlayerBaseState
@@ -167,8 +161,14 @@ class CardSelection extends PlayerBaseState
 
     function zombie(int $playerId): string
     {
-        // the code to run when the player is a Zombie
-        return '';
+        $cardsInHand = $this->game->getPlayerHand($playerId)->getCardsInHand();
+
+        if (self::getCardsPlayedThisTurn($this->game) > 0 || empty($cardsInHand))
+            return $this->actPass();
+
+        $cardIds = array_map(fn($card) => intval($card['id']), array_values($cardsInHand));
+
+        return $this->actCardSelected($this->getRandomZombieChoice($cardIds), true);
     }
 
     private static function getCardsPlayedThisTurn(Game $game): int
