@@ -204,6 +204,10 @@ body::before {
     transform: scale(1.1);
 }
 
+.piece.opponent {
+    scale: -1 1;
+}
+
 #ballParent
 {
     position: absolute;

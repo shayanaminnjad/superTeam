@@ -305,9 +305,13 @@ define([
                 for (let i = 0; i < piecesData.length; ++i) {
                     let el = piecesData[i];
 
-                    let color = parseInt(el.owner_id) === this.player_id ? this.myColor : this.opponentColor;
+                    const isMine = parseInt(el.owner_id) === this.player_id;
+                    let color = isMine ? this.myColor : this.opponentColor;
                     let piece = this.pieceManager.createNewPiece(parseInt(el.id), el, color);
                     this.setPieceClickEvent(piece.getDOMElement());
+
+                    if (!isMine)
+                        piece.getDOMElement().classList.add('opponent');
 
                     if (piece.getPosition() != null) {
                         let offsetCoord = Board.convertOffsetCoordToHexId(piece.getPosition());
