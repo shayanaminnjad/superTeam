@@ -306,7 +306,7 @@ class Game extends \Bga\GameFramework\Table
      */
     protected function setupNewGame($players, $options = [])
     {
-        $default_colors = ['DD4720', '479ADA'];
+        $default_colors = $this->getGameinfos()['player_colors'];
 
         $teamBoard = 0;
         $captainBoard = CaptainPower_1::staticId();
