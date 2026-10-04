@@ -69,16 +69,21 @@ class ShootTargetSelection extends PlayerBaseState
             throw new BgaUserException("invalid hex selected ($hexColumn, $hexRow)");
         }
 
-        $playerId = \intval($this->game->getCurrentPlayerId());
+        $this->selectTarget(\intval($this->game->getCurrentPlayerId()), $selectedHex);
+    }
+
+    function zombie(int $playerId): void
+    {
+        $hex = $this->getRandomZombieChoice($this->getArgs()['selectableHexes']);
+
+        $this->selectTarget($playerId, HexID::fromArray($hex));
+    }
+
+    private function selectTarget(int $playerId, HexID $selectedHex): void
+    {
         DBAdapter::getInstance()->storePlayerTempStr($playerId, 'shootTarget', $selectedHex->toJson());
 
         $this->gamestate->setPlayerNonMultiactive($playerId, ShootTargetReveal::class);
-    }
-
-    function zombie(int $playerId): string
-    {
-        // the code to run when the player is a Zombie
-        return '';
     }
 
     public static function getPlayerShootTarget(int $playerId) : HexID
