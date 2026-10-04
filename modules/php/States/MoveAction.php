@@ -75,7 +75,6 @@ class MoveAction extends PlayerBaseState
             $this->addClientButton(\clienttranslate('Finish Movement'), [$this, 'actFinishMove'], [],
                 new ClientButtonParams(ClientButtonColor::ALERT));
 
-        //TODO: send target hexes too.
         return ["moveableHexes" => $hexesToSend,
                 "selectedPiece" => $selectedPiece->id];
     }

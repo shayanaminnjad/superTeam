@@ -686,7 +686,7 @@ body.board-portrait .shootTargetTile {
     pointer-events: none;
 }
 
-.goalText {
+.bannerText {
     --size: 14vw;
 
     position: fixed;
@@ -698,7 +698,33 @@ body.board-portrait .shootTargetTile {
     z-index: 1000;
     white-space: nowrap;
     transform: translate(-50%, -50%) scale(0) rotate(0deg);
+}
+
+.goalText {
     animation: goalTextSpin 1.8s ease-out forwards;
+}
+
+.halfTimeText {
+    animation: halfTimeTextPop 1.8s ease-out forwards;
+}
+
+@keyframes halfTimeTextPop {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    60% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    85% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0;
+    }
 }
 
 @keyframes goalTextSpin {

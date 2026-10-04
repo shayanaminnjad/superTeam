@@ -15,8 +15,6 @@
  *
  */
 
-//TODO: animations must account for auto replay (they should not play see reverse.js)
-
 define([
     "dojo", "dojo/_base/declare", "dojo/topic",
     g_gamethemeurl + "modules/js/STHexLib.js",
@@ -549,21 +547,33 @@ define([
                 return this.showGoalText();
             },
 
+            notif_halfTime: async function () {
+                return this.showBannerText(_('HALF TIME'), 'halfTimeText');
+            },
+
             showGoalText: function () {
+                return this.showBannerText(_('GOAL!'), 'goalText');
+            },
+
+            // resolves when the text starts to fade out, the element removes itself when the animation ends
+            showBannerText: function (text, animationClass) {
                 if (!this.bga.gameui.bgaAnimationsActive()) {
                     return Promise.resolve();
                 }
 
+                const FADE_START_RATIO = 0.85;
+
                 return new Promise(resolve => {
                     const el = document.createElement('div');
-                    el.className = 'readonlyText goalText';
-                    el.textContent = _('GOAL!');
+                    el.className = `readonlyText bannerText ${animationClass}`;
+                    el.textContent = text;
                     el.style.setProperty('--color', `#E5DFCB`);
-                    el.addEventListener('animationend', () => {
-                        el.remove();
-                        resolve();
-                    });
+                    el.addEventListener('animationend', () => el.remove());
                     document.body.appendChild(el);
+
+                    const animation = el.getAnimations()[0];
+                    const duration = animation.effect.getComputedTiming().duration;
+                    setTimeout(resolve, duration * FADE_START_RATIO);
                 });
             },
 

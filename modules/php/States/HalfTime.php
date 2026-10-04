@@ -30,6 +30,8 @@ class HalfTime extends GameState
 
     function onEnteringState(): string
     {
+        NotificationAdapter::getInstance()->notifyAll('halfTime', '', []);
+
         $this->game->getTeamBoard()->resetAllPlayersAttributes(TeamAttribute::GK, true);
         $playerHands = $this->game->getPlayerHands();
 
@@ -51,8 +53,6 @@ class HalfTime extends GameState
 
         if ($this->game->getActivePlayerId() != $this->game->getStarterPlayer())
             $this->game->activeNextPlayer();
-
-        //TODO: client should be notified and show a half time banner probably!
 
         Board::resetBoard(true);
 

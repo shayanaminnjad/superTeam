@@ -184,7 +184,6 @@ class PlayerBasicTurn extends PlayerBaseState
             }
         }
 
-        //todo: remove this, when you implemented goalie special pass in card selection
         if (count($pieceSelectableForMove) > 0 &&
             ($playerPieceWithBall == null || $playerPieceWithBall->getOwner() !== $activePlayerId || $playerPieceWithBall->getRole() !== PlayerRole::GoalKeeper->value))
         {
