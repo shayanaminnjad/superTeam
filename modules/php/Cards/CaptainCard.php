@@ -27,7 +27,7 @@ abstract class CaptainCard extends Card
 
     protected function giveMorale() : ExecutionResult
     {
-        $playerId = \intval($this->game->getCurrentPlayerId());
+        $playerId = \intval($this->game->getActivePlayerId());
         $playerResources = new PlayerResources($playerId);
         $playerResources->addMorale(1, true);
 
@@ -55,7 +55,7 @@ abstract class CaptainCard extends Card
 
         if ($this->board->getPiece($piecesMoved[0]->id)->getRole() === PlayerRole::Captain->value)
         {
-            $playerId = \intval($this->game->getCurrentPlayerId());
+            $playerId = \intval($this->game->getActivePlayerId());
             $playerResources = new PlayerResources($playerId);
             $playerResources->addMorale(1, true);
         }
