@@ -15,11 +15,6 @@ class CaptainPower_3 extends CaptainPowerBase
             1,0,1, 0);
     }
 
-    public static function getCaptainNumber() : int
-    {
-        return 3;
-    }
-
     public static function staticId() : int
     {
         return 3;

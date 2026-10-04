@@ -66,7 +66,7 @@ class DiceRoll extends GameState
         }
         $notifData["i18n"] = ["actionName"];
         //History logs (F5) drop every arg that is not in the message, so the client can rebuild ${diceLog}.
-        $notifData["preserve"] = ["rollResult", "distance", "blockingPieces", "requiredPower", "actionName"];
+        $notifData["preserve"] = ["rollResult", "distance", "blockingPieces", "requiredPower", "actionName", "skipEnabledPlayerId"];
 
         $this->notify->all("diceRolled", \clienttranslate('${diceLog}'), $notifData);
 
@@ -104,7 +104,10 @@ class DiceRoll extends GameState
         $moraleAssignContext = new MoraleAssignContext();
         $assignedMorale = $moraleAssignContext->getMoraleAssigned($playerId);
 
-        return new DiceRollResult($assignedMorale, $dieRes, $whiteDice);
+        $captainPower = $this->game->getPlayerCaptainPower($playerId);
+        $captainStars = $captainPower?->getPowerFor($relatedAttribute) ?? 0;
+
+        return new DiceRollResult($assignedMorale, $dieRes, $whiteDice, $captainStars);
     }
 }
 

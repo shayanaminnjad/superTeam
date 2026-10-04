@@ -6,12 +6,13 @@ class DiceRollResult
 {
     private array $result;
 
-    public function __construct(int $moraleAssigned = 0, int $greenDie = 0, array $whiteDice = [])
+    public function __construct(int $moraleAssigned = 0, int $greenDie = 0, array $whiteDice = [], int $captainStars = 0)
     {
         $this->result = [
             "assignedMorale" => $moraleAssigned,
             "greenDie" => $greenDie,
             "whiteDice" => $whiteDice,
+            "captainStars" => $captainStars,
         ];
     }
 
@@ -38,7 +39,7 @@ class DiceRollResult
         for ($i = 0; $i < \count($whiteDice) ;$i++)
             $whiteTotal += $whiteDice[$i];
 
-        return $this->result["assignedMorale"] + $this->result["greenDie"] + $whiteTotal;
+        return $this->result["assignedMorale"] + $this->result["greenDie"] + $whiteTotal + ($this->result["captainStars"] ?? 0);
     }
 
     public function getData()

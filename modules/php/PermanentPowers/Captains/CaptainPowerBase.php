@@ -3,6 +3,7 @@
 namespace Bga\Games\SuperTeam\PermanentPowers\Captains;
 
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\TeamAttribute;
 
 abstract class CaptainPowerBase
 {
@@ -46,5 +47,16 @@ abstract class CaptainPowerBase
     final public function getTacklePower(): int
     {
         return $this->tacklePower;
+    }
+
+    final public function getPowerFor(TeamAttribute $attribute): int
+    {
+        return match ($attribute) {
+            TeamAttribute::Pass => $this->passPower,
+            TeamAttribute::Shoot => $this->shootPower,
+            TeamAttribute::Dribble => $this->dribblePower,
+            TeamAttribute::Tackle => $this->tacklePower,
+            default => 0,
+        };
     }
 }
