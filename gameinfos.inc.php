@@ -82,6 +82,8 @@ $gameinfos = [
     // If you want to disable this, set this to true
     'disable_player_order_swap_on_rematch' => false,
 
+    'exception_on_warning' => true,
+
     // Game interface width range (pixels)
     // Note: game interface = space on the left side, without the column on the right
     'game_interface_width' => [
