@@ -34,6 +34,10 @@ require_once(__DIR__ . '/StateMachineConstants.inc.php');
 
 class Game extends \Bga\GameFramework\Table
 {
+    // Values must match option 100 in gameoptions.json.
+    public const GAME_MODE_BASIC = 1;
+    public const GAME_MODE_ADVANCED = 2;
+
     private ?TeamBoard $teamBoard = null;
 
     private CardFactory $cardFactory;
@@ -77,7 +81,8 @@ class Game extends \Bga\GameFramework\Table
             "isAttributesAssignmentFinished" => 18,
             "lastPassResult" => 19,
             "cardsPlayedThisTurn" => 20,
-            "playerStartedFirstHalf" => 21
+            "playerStartedFirstHalf" => 21,
+            "game_mode" => 100
         ]);
 
         /* example of notification decorator.
@@ -173,6 +178,16 @@ class Game extends \Bga\GameFramework\Table
     public function getGameProgression()
     {
         return TimeTrack::GetProgressToEndGame();
+    }
+
+    public function getGameMode(): int
+    {
+        return \intval($this->getGameStateValue('game_mode'));
+    }
+
+    public function isAdvancedMode(): bool
+    {
+        return $this->getGameMode() === self::GAME_MODE_ADVANCED;
     }
 
     /**

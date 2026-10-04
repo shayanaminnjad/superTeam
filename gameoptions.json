@@ -1,1 +1,18 @@
-{}
+{
+  "100": {
+    "name": "Game mode",
+    "values": {
+      "1": {
+        "name": "Basic",
+        "description": "Without team and captain powers",
+        "tmdisplay": "Basic"
+      },
+      "2": {
+        "name": "Advanced",
+        "description": "With team and captain powers",
+        "tmdisplay": "Advanced"
+      }
+    },
+    "default": 1
+  }
+}
