@@ -164,6 +164,10 @@ class MultiMove extends PlayerBaseState
 
     function zombie(int $playerId): string
     {
-        return '';
+        if (!$this->hasPerformedAnyMoves(new MoveActionContext()))
+            return $this->actUndo($playerId);
+
+        // abandon the card, same exit as TacticRewardResolve::actForfeitReward
+        return BeforeCardSelectionReset::class;
     }
 }
