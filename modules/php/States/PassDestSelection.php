@@ -120,7 +120,11 @@ class PassDestSelection extends PlayerBaseState
             $dummyblockingHexes = [];
             $requiredPower = $board->getRequiredPower($hexWithBall, $selectedHex, $this->game->getInactivePlayerId(), $dummyinlineHexes, $dummyblockingHexes);
 
-            DiceRollServices::storeRollInput(\intval($this->game->getActivePlayerId()), $requiredPower, PassPerform::class, TeamAttribute::Pass, TeamAttribute::None, false);
+            $passer = null;
+            $board->tryGetPlayerPieceInHex($hexWithBall, $passer);
+
+            DiceRollServices::storeRollInput(\intval($this->game->getActivePlayerId()), $requiredPower, PassPerform::class, TeamAttribute::Pass, TeamAttribute::None, false,
+                [$activePlayer => $passer->getId()]);
             $moraleAssignContext = new MoraleAssignContext();
             $moraleAssignContext->storeMoraleStateData(DiceRoll::class, false);
 
