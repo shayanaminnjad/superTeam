@@ -86,10 +86,27 @@ class TeamAttributeAssignment extends PlayerBaseState
         $this->game->getTeamBoard()->resetPlayerAttributes($currentPlayerId, $exception, true);
     }
 
-    function zombie(int $playerId): string
+    function zombie(int $playerId): void
     {
-        // the code to run when the player is a Zombie
-        return '';
+        $teamBoard = $this->game->getTeamBoard();
+        $attributes = [TeamAttribute::Pass, TeamAttribute::Shoot, TeamAttribute::Dribble, TeamAttribute::Tackle];
+        if ($this->isGKAssignable())
+            $attributes[] = TeamAttribute::GK;
+
+        while ($teamBoard->getTotalAttributesAssigned($playerId) < TeamBoard::MAX_ALLOWED_ATTRIBUTES)
+        {
+            $choices = array_values(array_filter(
+                $attributes,
+                fn(TeamAttribute $attr) => $teamBoard->getAttribute($playerId, $attr) < TeamBoard::MAX_PER_ATTRIBUTE_VALUE
+            ));
+
+            if (empty($choices))
+                break;
+
+            $teamBoard->tryIncreaseAttribute($playerId, $this->getRandomZombieChoice($choices), false);
+        }
+
+        $this->gamestate->setPlayerNonMultiactive($playerId, TeamAttributesReveal::class);
     }
 
     private function isGKAssignable(): bool

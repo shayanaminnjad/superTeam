@@ -52,7 +52,11 @@ class CaptainCardPerformerSelection extends PlayerBaseState
 
     function zombie(int $playerId): string
     {
-        // the code to run when the player is a Zombie
-        return '';
+        $selectablePieces = (new PieceSelectionContext())->getSelectablePieceIds();
+
+        if (empty($selectablePieces))
+            return BeforeCardSelectionReset::class;
+
+        return $this->actPieceSelected($this->getRandomZombieChoice($selectablePieces));
     }
 }

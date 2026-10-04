@@ -13,6 +13,7 @@ use Bga\Games\SuperTeam\Cards\Moves\MovedPieceInfo;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\ClientButtonColor;
 use Bga\Games\SuperTeam\ClientButtonParams;
+use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\MoveHexSelectionLogic;
 use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\PlayerResources;
@@ -164,9 +165,19 @@ class MoveAction extends PlayerBaseState
             throw new \BgaUserException("You can't finish movement while you haven't met movement conditions and haven't moved at least once.");
     }
 
-    function zombie(int $playerId): string {
-        // the code to run when the player is a Zombie
-        return '';
+    function zombie(int $playerId): string
+    {
+        if (intval($this->game->getGameStateValue('number_of_moves')) > 0)
+            return MoveFinished::class;
+
+        // captain cards read the moved piece after this state, so the zombie must really move
+        $moveableHexes = $this->selfGetArgs()['moveableHexes'];
+        if (empty($moveableHexes))
+            return DBAdapter::getInstance()->getPlayerActionReturnState($playerId);
+
+        $hex = $this->getRandomZombieChoice($moveableHexes);
+
+        return $this->actPieceMoved($hex['hex_column'], $hex['hex_row'], $playerId);
     }
 
     private function isMoveConditionMet(int $playerId, Board $board, MoveActionContext $moveActionContext) : bool

@@ -78,6 +78,11 @@ class MovePieceSelection extends PlayerBaseState
 
     function zombie(int $playerId): string
     {
-        return DBAdapter::getInstance()->getPlayerActionReturnState($playerId);
+        $selectablePieces = (new PieceSelectionContext())->getSelectablePieceIds();
+
+        if (empty($selectablePieces))
+            return DBAdapter::getInstance()->getPlayerActionReturnState($playerId);
+
+        return $this->actPieceSelected($this->getRandomZombieChoice($selectablePieces));
     }
 }

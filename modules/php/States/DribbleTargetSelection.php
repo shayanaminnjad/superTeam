@@ -88,7 +88,13 @@ class DribbleTargetSelection extends GameState
 
     function zombie(int $playerId): string
     {
-        // the code to run when the player is a Zombie
-        return '';
+        $hexes = $this->getArgs()["adjacentOpponents"];
+
+        if (empty($hexes))
+            return DBAdapter::getInstance()->getPlayerActionReturnState($playerId);
+
+        $hex = $this->getRandomZombieChoice($hexes);
+
+        return $this->actTargetSelected($hex['hex_column'], $hex['hex_row']);
     }
 }

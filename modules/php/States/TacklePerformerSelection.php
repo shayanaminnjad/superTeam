@@ -100,8 +100,15 @@ class TacklePerformerSelection extends GameState
         return ActiveNextGoMorale::class;
     }
 
-    function zombie(int $playerId): string {
-        // the code to run when the player is a Zombie
-        return '';
+    function zombie(int $playerId): string
+    {
+        $hexes = $this->getArgs()["HexesWithTacklingPieces"];
+
+        if (empty($hexes))
+            return DBAdapter::getInstance()->getPlayerActionReturnState($playerId);
+
+        $hex = $this->getRandomZombieChoice($hexes);
+
+        return $this->actPieceSelected($hex['hex_column'], $hex['hex_row']);
     }
 }
