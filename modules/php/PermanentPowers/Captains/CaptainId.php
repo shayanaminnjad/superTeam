@@ -2,7 +2,6 @@
 
 namespace Bga\Games\SuperTeam\PermanentPowers\Captains;
 
-// Values match the shirt number printed on the captain card.
 enum CaptainId: int
 {
     case MoveThreeWithoutBall = 1;

@@ -93,7 +93,6 @@ class MoveAction extends PlayerBaseState
         $ballLocation = $board->getBallHex();
         $pieceOldData = $board->getPlayerPieceData($selectedPiece->id);
 
-        // Must be read before the ball moves: the ball changes the max movement.
         $maxMovement = BoardEvaluator::getPieceMaxPossibleMovement($board, $activePlayerId, $pieceOldData, new PlayerResources($activePlayerId));
         $canMoveNearOpponents = PlayerPowers::forPlayer($activePlayerId)->canBallCarrierMoveNearOpponents($pieceOldData);
 

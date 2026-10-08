@@ -344,14 +344,8 @@ final class BoardSpatial
 
     private static function stopsNearOpponents(Board $board, HexID $startPos, bool $hasBall) : bool
     {
-        if (!$hasBall)
-            return false;
-
-        $piece = null;
-        if (!$board->tryGetPlayerPieceInHex($startPos, $piece))
-            return true;
-
-        return !PlayerPowers::forPlayer($piece->getOwner())->canBallCarrierMoveNearOpponents($piece);
+        return $hasBall;
+        //todo: add player powers here.
     }
 
     private static function shouldPieceEndMovement(Board $board, array $neighbors, int $movesSofar, bool $stopNearOpponents, int $playerId) : bool

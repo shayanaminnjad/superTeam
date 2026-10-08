@@ -97,26 +97,9 @@ class BoardEvaluator
 
     public static function getPieceMaxPossibleMovement(Board $board, int $playerId, PlayerPiece $piece, PlayerResources $resources) : int
     {
-        $pieceMaxMoveDistance = 2;
-
-        if (!$piece->isFresh())
-        {
-            $moveActionContext = new MoveActionContext();
-            if ($moveActionContext->doExhaustedNeedMoraleForMovement())
-            {
-                $ownerMorale = $resources->getMorale();
-
-                $pieceMaxMoveDistance = $ownerMorale > 0 ? 1 : 0;
-            }
-            else
-            {
-                $pieceMaxMoveDistance = 1;
-            }
-        }
-
         $hasBall = self::doesPieceHasTheBall($board, $piece);
         $powers = PlayerPowers::forPlayer($piece->getOwner());
-        $pieceMaxMoveDistance = $powers->maxMovement($piece, $hasBall, $pieceMaxMoveDistance);
+        $pieceMaxMoveDistance = $powers->maxMovement($piece, $hasBall, [], $resources->getMorale());
 
         if ($pieceMaxMoveDistance > 1 && $hasBall && !$powers->canBallCarrierMoveNearOpponents($piece))
         {

@@ -2,12 +2,12 @@
 
 namespace Bga\Games\SuperTeam\PermanentPowers;
 
+use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainId;
 use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\PlayerRole;
 
-// Game logic asks this class about rule changes. It must never check captain or board ids itself.
 final class PlayerPowers
 {
     /** @var array<int, PlayerPowers> */
@@ -15,7 +15,6 @@ final class PlayerPowers
 
     private function __construct(private readonly ?CaptainId $captain) {}
 
-    // Cached per request: pathfinding calls this for every visited hex.
     public static function forPlayer(int $playerId): self
     {
         return self::$cache[$playerId] ??= new self(self::loadCaptain($playerId));
@@ -28,18 +27,30 @@ final class PlayerPowers
         return $captainId === null ? null : CaptainId::tryFrom(\intval($captainId));
     }
 
-    // Captain powers only work when the captain piece itself does the action.
     private function isCaptainAction(PlayerPiece $actor, CaptainId $id): bool
     {
         return $this->captain === $id && $actor->getRole() == PlayerRole::Captain->value;
     }
 
-    public function maxMovement(PlayerPiece $mover, bool $hasBall, int $base): int
+    public function maxMovement(PlayerPiece $mover, bool $hasBall, array $movesSoFar, int $moraleResource): int
     {
-        if (!$hasBall && $mover->isFresh() && $this->isCaptainAction($mover, CaptainId::MoveThreeWithoutBall))
-            return max($base, 3);
+        $pieceMaxDistance =
+            $this->isCaptainAction($mover, CaptainId::MoveThreeWithoutBall) && !$hasBall ? 3 : 2;
 
-        return $base;
+        if (!$mover->isFresh())
+        {
+            $moveActionContext = new MoveActionContext();
+            if ($moveActionContext->doExhaustedNeedMoraleForMovement())
+            {
+                $pieceMaxDistance = $moraleResource > 0 ? 1 : 0;
+            }
+            else
+            {
+                $pieceMaxDistance = 1;
+            }
+        }
+
+        return $pieceMaxDistance;
     }
 
     public function canBallCarrierMoveNearOpponents(PlayerPiece $mover): bool
