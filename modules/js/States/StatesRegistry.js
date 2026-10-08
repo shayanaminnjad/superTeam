@@ -18,7 +18,8 @@ define([
     g_gamethemeurl + "modules/js/States/CardSelection.js",
     g_gamethemeurl + "modules/js/States/TacticRewardResolveState.js",
     g_gamethemeurl + "modules/js/States/PieceToSwapSelection.js",
-    g_gamethemeurl + "modules/js/States/CaptainCardPerformerSelection.js"
+    g_gamethemeurl + "modules/js/States/CaptainCardPerformerSelection.js",
+    g_gamethemeurl + "modules/js/States/BypassTargetSelection.js"
 ], function (
     declare,
     PlayerPieceSetupState,
@@ -39,7 +40,8 @@ define([
     CardSelection,
     TacticRewardResolveState,
     PieceToSwapSelection,
-    CaptainCardPerformerSelectionState
+    CaptainCardPerformerSelectionState,
+    BypassTargetSelection
 ) {
 
     const StateRegistry = declare("st.StateRegistry", null, {
@@ -66,6 +68,7 @@ define([
             this.registerState(TacticRewardResolveState);
             this.registerState(PieceToSwapSelection)
             this.registerState(CaptainCardPerformerSelectionState);
+            this.registerState(BypassTargetSelection);
         },
 
         getState: function (name, root, stateData) {

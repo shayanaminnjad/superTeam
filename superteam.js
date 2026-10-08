@@ -432,6 +432,15 @@ define([
                 this.pieceManager.refreshAllPieces(parseInt(notifData.playerId));
             },
 
+            notif_bypassPerformed: async function(notifData) {
+                let piece = this.pieceManager.getPiece(notifData.movedPiece);
+                let destHex = STHexLib.createOffsetCoord(notifData.destHex.hex_row, notifData.destHex.hex_column);
+
+                let animation = GameEventProcessor.MovePieceWithAnimation(piece, destHex, 0, true);
+
+                await this.bgaPlayDojoAnimation(animation);
+            },
+
             notif_cardPlayed: function (notifData) {
                 PlayerPanelManager.setPlayerCards(notifData.activePlayer, notifData.cardsInDeckCount);
                 return this.forwardNotification(this.notif_cardPlayed.name, notifData);
