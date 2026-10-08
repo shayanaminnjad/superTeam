@@ -283,7 +283,7 @@ define([
 
             for (const playerId of Object.keys(rollResults)) {
                 const skipEnabled = parseInt(playerId) === skipEnabledPlayerId;
-                html += this._formatRollLogRow(this._root.getPlayerActualColor(playerId), rollResults[playerId], skipEnabled);
+                html += this._formatRollLogRow(this._root.getPlayerActualColor(parseInt(playerId)), rollResults[playerId], skipEnabled);
             }
 
             return html + this._formatRequiredPowerLogRow(requiredPower, distance, blockingPieces);
