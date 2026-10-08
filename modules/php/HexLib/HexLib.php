@@ -232,6 +232,14 @@ class HexLib
         return $result;
     }
 
+    public static function GetDirectionTo(HexID $start, HexID $end): CubicCoordinate
+    {
+        $startCubic = self::offsetToCubic($start);
+        $endCubic = self::offsetToCubic($end);
+
+        return $endCubic->subtract($startCubic);
+    }
+
     public static function getFrontArc(HexID $start, int $frontSign): array
     {
         $hexResult = [];
