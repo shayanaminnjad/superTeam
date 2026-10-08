@@ -295,7 +295,7 @@ define([
             const totalPower = result.whiteDice.reduce((sum, die) => sum + die, result.greenDie + result.assignedMorale + captainStars);
 
             let html = '<div class="diceLogRow">';
-            html += `<span class="diceLogColorMark" style="background-color:#${playerColor}"></span>`;
+            html += `<span class="diceLogColorMark" style="background-color:${playerColor}"></span>`;
             html += `<span class="diceLogIcon superteam-dice-face die-green face-${result.greenDie}"></span>`;
 
             for (const whiteDie of result.whiteDice) {
