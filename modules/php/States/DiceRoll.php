@@ -61,7 +61,7 @@ class DiceRoll extends GameState
         $notifData["requiredPower"] = $rollData->requiredPower;
         $notifData["attacker"] = $attacker;
         $notifData["diceLog"] = "";
-        $notifData["actionName"] = $this->getActionName($rollData->selfAttribute);
+        $notifData["actionName"] = $rollData->actionName;
         if ($rollData->selfAttribute == TeamAttribute::Pass) {
             $notifData["passDest"] = DBAdapter::getInstance()->getSelectedHexAsHexID()->convertToArray();
         }
@@ -74,17 +74,6 @@ class DiceRoll extends GameState
         assert(strlen($rollData->finishTransition) > 0, "no transition is stored for dice roll finish");
 
         return $rollData->finishTransition;
-    }
-
-    private function getActionName(TeamAttribute $attribute): string
-    {
-        return match ($attribute) {
-            TeamAttribute::Pass => \clienttranslate('Pass'),
-            TeamAttribute::Shoot => \clienttranslate('Shoot'),
-            TeamAttribute::Dribble => \clienttranslate('Dribble'),
-            TeamAttribute::Tackle => \clienttranslate('Tackle'),
-            default => throw new \LogicException("No action name for attribute " . $attribute->name),
-        };
     }
 
     private function rollForPlayer(int $playerId, TeamAttribute $relatedAttribute, int $rollingPieceId): DiceRollResult
@@ -116,6 +105,7 @@ class DiceRoll extends GameState
 
 class DiceRollData
 {
+    public string $actionName;
     public bool $rollForBoth;
     public int $requiredPower;
     public string $finishTransition;
@@ -127,8 +117,9 @@ class DiceRollData
     /** @var array<int, int> */
     public array $rollingPieceIds;
 
-    public function __construct(int $requiredPower, string $finishTransition, int $distance, int $blockingPieces, bool $passEnabled, TeamAttribute $selfAttribute, TeamAttribute $otherAttribute, array $rollingPieceIds, bool $rollForBoth = false)
+    public function __construct(string $actionName, int $requiredPower, string $finishTransition, int $distance, int $blockingPieces, bool $passEnabled, TeamAttribute $selfAttribute, TeamAttribute $otherAttribute, array $rollingPieceIds, bool $rollForBoth = false)
     {
+        $this->actionName = $actionName;
         $this->rollingPieceIds = $rollingPieceIds;
         $this->requiredPower = $requiredPower;
         $this->finishTransition = $finishTransition;
@@ -143,6 +134,7 @@ class DiceRollData
     public function toJson(): string
     {
         $result = [
+            "actionName" => $this->actionName,
             "rollForBoth" => $this->rollForBoth,
             "requiredPower" => $this->requiredPower,
             "distance" => $this->distance,
@@ -163,6 +155,7 @@ class DiceRollData
 
         assert(\is_array($data), "Invalid json format passed!");
 
+        $actionName = $data["actionName"];
         $rollForBoth = $data["rollForBoth"];
         $requiredPower = $data["requiredPower"];
         $distance = $data["distance"];
@@ -173,7 +166,7 @@ class DiceRollData
         $otherAttribute = TeamAttribute::from($data["otherAttribute"]);
         $rollingPieceIds = $data["rollingPieceIds"];
 
-        return new DiceRollData($requiredPower, $finishTransition, $distance, $blockingPieces, $passEnabled, $selfAttribute, $otherAttribute, $rollingPieceIds, $rollForBoth);
+        return new DiceRollData($actionName, $requiredPower, $finishTransition, $distance, $blockingPieces, $passEnabled, $selfAttribute, $otherAttribute, $rollingPieceIds, $rollForBoth);
     }
 }
 
@@ -195,9 +188,9 @@ class DiceRollServices
     }
 
     /** @param array<int, int> $rollingPieceIds player id => id of the piece that rolls for that player */
-    public static function storeRollInput(int $playerId, RequiredPower $requiredPower, string $finishTransition, TeamAttribute $selfAttribute, TeamAttribute $otherAttribute, bool $bothPlayers, array $rollingPieceIds)
+    public static function storeRollInput(string $actionName, int $playerId, RequiredPower $requiredPower, string $finishTransition, TeamAttribute $selfAttribute, TeamAttribute $otherAttribute, bool $bothPlayers, array $rollingPieceIds)
     {
-        $rollData = new DiceRollData($requiredPower->getTotal(), $finishTransition, $requiredPower->distance, \count($requiredPower->blockingHexes), RequiredPower::isSkipEnabled(), $selfAttribute, $otherAttribute, $rollingPieceIds, $bothPlayers);
+        $rollData = new DiceRollData($actionName, $requiredPower->getTotal(), $finishTransition, $requiredPower->distance, \count($requiredPower->blockingHexes), RequiredPower::isSkipEnabled(), $selfAttribute, $otherAttribute, $rollingPieceIds, $bothPlayers);
 
         $dbAdapter = DBAdapter::getInstance();
         $dbAdapter->setGameStateValue('required_power', $requiredPower->getTotal());

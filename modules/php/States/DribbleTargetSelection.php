@@ -81,7 +81,7 @@ class DribbleTargetSelection extends GameState
         $board->tryGetPlayerPieceInHex($selectedHex, $defendingPiece);
         $moraleAssignContext->storeMoraleAssignPieceIds([[$attacker, $pieceWithBall->getId()],[$defender, $defendingPiece->getId()]]);
 
-        DiceRollServices::storeRollInput($activePlayer, new RequiredPower(-1, []), PerformDribble::class, TeamAttribute::Dribble, TeamAttribute::Tackle, true,
+        DiceRollServices::storeRollInput(\clienttranslate("Dribble"), $activePlayer, new RequiredPower(-1, []), PerformDribble::class, TeamAttribute::Dribble, TeamAttribute::Tackle, true,
             [$attacker => $pieceWithBall->getId(), $defender => $defendingPiece->getId()]);
 
         return ActiveNextGoMorale::class;

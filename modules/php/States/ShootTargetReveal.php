@@ -46,7 +46,7 @@ class ShootTargetReveal extends GameState
         $pieceWithBall = null;
         $board->tryGetPlayerPieceInHex($board->getBallHex(), $pieceWithBall);
 
-        DiceRollServices::storeRollInput($activePlayerId, $requiredPower, ShootPerform::class, TeamAttribute::Shoot, TeamAttribute::GK, true,
+        DiceRollServices::storeRollInput(\clienttranslate("Shoot"), $activePlayerId, $requiredPower, ShootPerform::class, TeamAttribute::Shoot, TeamAttribute::GK, true,
             [$attacker => $pieceWithBall->getId(), $defender => $defenderGoalie->getId()]);
         $moraleAssignContext = new MoraleAssignContext();
         $moraleAssignContext->storeMoraleStateData(DiceRoll::class, true);
