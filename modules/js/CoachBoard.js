@@ -170,6 +170,7 @@ define([
                 const coachBoard = document.createElement('div');
                 coachBoard.id = `${this._ownerId}_coachBoard`;
                 coachBoard.className = 'coachBoard';
+                coachBoard.style.backgroundPosition = this._coachBoardIdToAtlasPos(this._ownerData.team_power);
                 this._parentEl.appendChild(coachBoard);
 
                 const computedWidth = Math.round(parseFloat(getComputedStyle(coachBoard).width));
@@ -257,6 +258,20 @@ define([
                     total += 1;
 
                 return total;
+            },
+
+            _coachBoardIdToAtlasPos: function (Id)
+            {
+                const map = new Map([
+                    ["0", "0% 100%"],
+                    ["1", "100% 100%"],
+                    ["2", "50% 100%"],
+                    ["3", "0% 0%"],
+                    ["4", "50% 0%"],
+                    ["5", "100% 0%"]
+                ]);
+
+                return map.get(Id);
             },
 
             //Private Fields

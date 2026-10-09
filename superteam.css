@@ -547,8 +547,8 @@ body.board-portrait .shootTargetTile {
     --scale: 75;
 
     position: relative;
-    background-image: url("img/coachBoard.jpg");
-    background-size: contain;
+    background-image: url("img/coachBoardsAtlas.jpg");
+    background-size: 300% 200%;
     background-repeat: no-repeat;
     overflow: visible;
     margin: 5px;
