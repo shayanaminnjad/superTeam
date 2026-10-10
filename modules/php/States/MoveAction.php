@@ -55,7 +55,7 @@ class MoveAction extends PlayerBaseState
         if ($pieceData === null)
             throw new \BgaUserException("Invalid piece selected!");
 
-        $maxPossibleMovement = BoardEvaluator::getPieceMaxPossibleMovement($board, $activePlayerId, $pieceData, new PlayerResources($activePlayerId));
+        $maxPossibleMovement = BoardEvaluator::getPieceMaxPossibleMovement($board, $activePlayerId, $pieceData, $selectedPiece->getPath(), new PlayerResources($activePlayerId));
 
         if ($maxPossibleMovement == 0)
             throw new \BgaUserException("piece can't be moved!");
@@ -65,7 +65,7 @@ class MoveAction extends PlayerBaseState
 
         $movesTaken = intval($this->game->getGameStateValue('number_of_moves')); //TODO: move this to MoveActionContext class
 
-        $moveableHexes = MoveHexSelectionLogic::GetAvailableHexes($board, $pieceData->getId(), $moveType, $maxPossibleMovement - $movesTaken);
+        $moveableHexes = MoveHexSelectionLogic::GetAvailableHexes($board, $pieceData->getId(), $moveType);
 
         $hexesToSend = [];
         foreach ($moveableHexes as $hex)
@@ -84,37 +84,51 @@ class MoveAction extends PlayerBaseState
     #[PossibleAction]
     public function actPieceMoved(int $hexColumn, int $hexRow, int $activePlayerId) : string
     {
-        //TODO: check if the moved location is valid.
-
+        $destination = new HexID($hexColumn, $hexRow);
         $moveActionContext = new MoveActionContext();
+        $board = $this->game->getBoard();
+
+        $moveableHexes = MoveHexSelectionLogic::GetAvailableHexes($board, $moveActionContext->getSelectedPieceData()->id, $moveActionContext->getCurrentMoveType());
+        if (!array_any($moveableHexes, fn(HexID $hex) => $hex->equals($destination)))
+            throw new \BgaUserException("The selected hex is not reachable!");
+
+        $moveActionContext->addSelectedPieceMove($destination);
         $selectedPiece = $moveActionContext->getSelectedPieceData();
 
-        $board = $this->game->getBoard();
         $ballLocation = $board->getBallHex();
         $pieceOldData = $board->getPlayerPieceData($selectedPiece->id);
-
-        $maxMovement = BoardEvaluator::getPieceMaxPossibleMovement($board, $activePlayerId, $pieceOldData, new PlayerResources($activePlayerId));
-        $canMoveNearOpponents = PlayerPowers::forPlayer($activePlayerId)->canBallCarrierMoveNearOpponents($pieceOldData);
+        // movePieceToHex updates $pieceOldData in place
+        $oldPosition = $pieceOldData->getPosition();
 
         $ballMoved = 0;
 
-        if ($ballLocation->equals($pieceOldData->getPosition()))
+        if ($ballLocation->equals($oldPosition))
         {
             $ballMoved = 1;
             $board->setBallLocation(new HexID($hexColumn, $hexRow));
         }
 
-        $numberOfMoves = intval($this->game->getGameStateValue('number_of_moves'));
+        $oldNumberOfMoves = intval($this->game->getGameStateValue('number_of_moves'));
+
+        $board->movePieceToHex($selectedPiece->id, new HexID($hexColumn, $hexRow));
+        $this->game->setGameStateValue('number_of_moves', $oldNumberOfMoves + 1);
+
+        // no near opponent clamp here: a ball picked up next to an opponent must not end the move,
+        // the carried ball case is handled by the $ballMoved check below
+        $playerPowers = PlayerPowers::forPlayer($activePlayerId);
+        $maxMovement = $playerPowers->maxMovement($pieceOldData, BoardEvaluator::doesPieceHasTheBall($board, $pieceOldData),
+            $selectedPiece->getPath(), new PlayerResources($activePlayerId)->getMorale());
+        $canMoveNearOpponents = $playerPowers->canBallCarrierMoveNearOpponents($pieceOldData);
 
         $shouldEndMovement = false;
 
-        if ($numberOfMoves + 1 >= $maxMovement)
+        if ($oldNumberOfMoves + 1 >= $maxMovement)
         {
             $shouldEndMovement = true;
         }
 
         $spentMorale = 0;
-        if(!$pieceOldData->isFresh() && $numberOfMoves === 0) //player has moved an exhausted piece.
+        if(!$pieceOldData->isFresh() && $oldNumberOfMoves === 0) //player has moved an exhausted piece.
         {
             $moveActionContext = new MoveActionContext();
 
@@ -129,14 +143,11 @@ class MoveAction extends PlayerBaseState
         }
 
         if ($ballMoved === 1 && !$canMoveNearOpponents &&
-            (BoardEvaluator::doesOpponentExistInNeighbours($board, $pieceOldData->getPosition(), \intval($this->game->getActivePlayerId()), true) ||
+            (BoardEvaluator::doesOpponentExistInNeighbours($board, $oldPosition, \intval($this->game->getActivePlayerId()), true) ||
             BoardEvaluator::doesOpponentExistInNeighbours($board, new HexID($hexColumn, $hexRow), \intval($this->game->getActivePlayerId()), true)))
         {
             $shouldEndMovement = true;
         }
-
-        $board->movePieceToHex($selectedPiece->id, new HexID($hexColumn, $hexRow));
-        $this->game->setGameStateValue('number_of_moves', $numberOfMoves + 1);
 
         $this->notify->all("movedPiece", \clienttranslate('${player_name} moves a piece'), array(
             "player_name" => $this->game->getActivePlayerName(),

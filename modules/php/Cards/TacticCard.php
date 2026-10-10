@@ -195,19 +195,16 @@ abstract class TacticCard extends Card
                 continue;
 
             $playerPieceId = $playerPiece->getId();
-            $pieceHasBall = BoardEvaluator::doesPieceHasTheBall($this->board, $playerPiece);
-            $maxMoves = BoardEvaluator::getPieceMaxPossibleMovement($this->board, $playerId, $playerPiece, $resources);
-
             if ($defensiveMoves->getMoves(MoveTypes::FREE) > 0)
             {
-                if (count(BoardSpatial::getMoveableHexes($this->board, $playerPiece->getPosition(),  $maxMoves, $pieceHasBall, $playerId)) > 0)
+                if (BoardSpatial::canFindPathToTarget($this->board, $playerPiece, fn($board, $hex, $playerId) => true))
                 {
                     $piecesAvailableMoves[$playerPieceId][] = MoveTypes::FREE->value;
                 }
             }
             if ($defensiveMoves->getMoves(MoveTypes::BACKWARD) > 0)
             {
-                if (BoardSpatial::canFindPathToTarget($this->board, $playerPiece->getPosition(), $maxMoves, $pieceHasBall, $playerId,
+                if (BoardSpatial::canFindPathToTarget($this->board, $playerPiece,
                     fn($board, $hex, $playerId) => BoardSpatial::isColumnInPieceBackward($playerPiece->getPosition()->getColumn(), $hex->getColumn(), $playerSide)))
                 {
                     $piecesAvailableMoves[$playerPieceId][] = MoveTypes::BACKWARD->value;
@@ -215,7 +212,7 @@ abstract class TacticCard extends Card
             }
             if ($defensiveMoves->getMoves(MoveTypes::FORWARD) > 0)
             {
-                if (BoardSpatial::canFindPathToTarget($this->board, $playerPiece->getPosition(), $maxMoves, $pieceHasBall, $playerId,
+                if (BoardSpatial::canFindPathToTarget($this->board, $playerPiece,
                     fn($board, $hex, $playerId) => BoardSpatial::isColumnInPieceForward($playerPiece->getPosition()->getColumn(), $hex->getColumn(), $playerSide)))
                 {
                     $piecesAvailableMoves[$playerPieceId][] = MoveTypes::FORWARD->value;
@@ -224,7 +221,7 @@ abstract class TacticCard extends Card
             }
             if ($defensiveMoves->getMoves(MoveTypes::BACKWARD_NEAR_OPPONENT) > 0)
             {
-                if (BoardSpatial::canFindPathToTarget($this->board, $playerPiece->getPosition(), $maxMoves, $pieceHasBall, $playerId,
+                if (BoardSpatial::canFindPathToTarget($this->board, $playerPiece,
                     fn($board, $hex, $playerId) => BoardSpatial::isColumnInPieceBackward($playerPiece->getPosition()->getColumn(), $hex->getColumn(), $playerSide) &&
                         BoardEvaluator::hasAdjacentOpponentPieces($board, $hex, $playerId, true)))
                 {
@@ -234,7 +231,7 @@ abstract class TacticCard extends Card
             }
             if ($defensiveMoves->getMoves(MoveTypes::FORWARD_NEAR_OPPONENT) > 0)
             {
-                if (BoardSpatial::canFindPathToTarget($this->board, $playerPiece->getPosition(), $maxMoves, $pieceHasBall, $playerId,
+                if (BoardSpatial::canFindPathToTarget($this->board, $playerPiece,
                     fn($board, $hex, $playerId) => BoardSpatial::isColumnInPieceForward($playerPiece->getPosition()->getColumn(), $hex->getColumn(), $playerSide) &&
                         BoardEvaluator::hasAdjacentOpponentPieces($board, $hex, $playerId, true)))
                 {

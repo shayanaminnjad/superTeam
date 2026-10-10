@@ -246,7 +246,7 @@ class PlayerBasicTurn extends PlayerBaseState
         if (!isset($this->actionsAvailable['Move']))
         {
             $playerResources = new PlayerResources($activePlayerId);
-            if (MovePieceSelectionLogic::canPieceFreeMove($board, $activePlayerId, $actingPiece, $playerResources->getMorale()))
+            if (MovePieceSelectionLogic::canPieceFreeMove($board, $actingPiece, $playerResources->getMorale()))
                 $this->actionsAvailable['Move'] = [\clienttranslate('Move'),[$this, 'actMove']];
         }
     }

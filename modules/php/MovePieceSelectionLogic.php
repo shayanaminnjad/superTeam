@@ -29,18 +29,17 @@ final class MovePieceSelectionLogic
         $res = [];
 
         $playerResources = new PlayerResources($playerId);
-        $playerMorale = $playerResources->getMorale();
         $playerPieces = $board->getPlayerPiecesByOwner($playerId);
         foreach($playerPieces as $piece)
         {
-            if (self::canPieceFreeMove($board, $playerId, $piece, $playerMorale))
+            if (self::canPieceFreeMove($board, $piece, $playerResources->getMorale()))
                 $res[] = $piece;
         }
 
         return $res;
     }
 
-    public static function canPieceFreeMove(Board $board, int $playerId, PlayerPiece $piece, int $playerMorale) : bool
+    public static function canPieceFreeMove(Board $board, PlayerPiece $piece, int $playerMorale) : bool
     {
         if ($piece->getRole() == PlayerRole::GoalKeeper->value)
             return false;
@@ -48,9 +47,7 @@ final class MovePieceSelectionLogic
         if (!$piece->isFresh() && $playerMorale == 0)
             return false;
 
-        $moveableHexes = BoardSpatial::getMoveableHexes($board, $piece->getPosition(),1, false, $playerId);
-
-        return count($moveableHexes) > 0;
+        return BoardSpatial::canFindPathToTarget($board, $piece, fn($board, $hex, $playerId) => true);
     }
 
     public static function extractForwardMoveablePieces(Board $board, int $playerId) : array
@@ -105,7 +102,6 @@ final class MovePieceSelectionLogic
     {
         $res = [];
 
-        $resources = new PlayerResources($playerId);
         $side = Board::getPlayerSide($playerId);
 
         foreach ($board->getPlayerPiecesByOwner($playerId) as $piece)
@@ -113,21 +109,11 @@ final class MovePieceSelectionLogic
             if ($piece->getRole() == PlayerRole::GoalKeeper->value)
                 continue;
 
-            $position = $piece->getPosition();
+            $foundPath = BoardSpatial::canFindPathToTarget($board, $piece,
+                fn($board, $hex, $playerId) => $isValidDestination === null || $isValidDestination($piece->getPosition()->getColumn(), $hex, $side));
 
-            $maxMoves = BoardEvaluator::getPieceMaxPossibleMovement($board, $playerId, $piece, $resources);
-
-            //hasBall is set to false, cause a move with ball also can at least one movement, so it is a moveable piece anyway.
-            $moveableHexes = BoardSpatial::getMoveableHexes($board, $position, $maxMoves,false, $playerId);
-
-            foreach ($moveableHexes as $hex)
-            {
-                if ($isValidDestination === null || $isValidDestination($position->getColumn(), $hex, $side))
-                {
-                    $res[] = $piece;
-                    break;
-                }
-            }
+            if ($foundPath)
+                $res[] = $piece;
         }
 
         return $res;

@@ -5,19 +5,28 @@ use Bga\Games\SuperTeam\HexID;
 
 class MovedPieceInfo
 {
+    /** @param HexID[] $moves hexes entered in order, initial position not included */
     public function __construct(
         public int $id,
         public HexId $initialPosition,
-        public bool $wasFresh
+        public bool $wasFresh,
+        public array $moves = []
     )
     {}
+
+    /** @return HexID[] */
+    public function getPath(): array
+    {
+        return [$this->initialPosition, ...$this->moves];
+    }
 
     public function toArray(): array
     {
         return [
             'id' => $this->id,
             'position' => $this->initialPosition->convertToArray(),
-            'wasFresh' => $this->wasFresh
+            'wasFresh' => $this->wasFresh,
+            'moves' => array_map(fn(HexID $hex) => $hex->convertToArray(), $this->moves)
         ];
     }
 
@@ -26,7 +35,8 @@ class MovedPieceInfo
         return new self(
             $data['id'],
             HexId::fromArray($data['position']),
-            $data['wasFresh']
+            $data['wasFresh'],
+            array_map(fn(array $hex) => HexID::fromArray($hex), $data['moves'] ?? [])
         );
     }
 

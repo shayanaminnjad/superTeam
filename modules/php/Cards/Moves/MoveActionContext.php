@@ -86,6 +86,14 @@ class MoveActionContext
         return MovedPieceInfo::fromJson($movedPieceInfo);
     }
 
+    public function addSelectedPieceMove(HexID $hex): void
+    {
+        $selectedPieceData = $this->getSelectedPieceData();
+        $selectedPieceData->moves[] = $hex;
+
+        $this->dbAdapter->storeGlobalString(self::SELECTED_PIECE_DATA_KEY, $selectedPieceData->toJson());
+    }
+
     public function moveSelectedPieceDataToMovedPieces(): void
     {
         $selectedPieceData = $this->getSelectedPieceData();
