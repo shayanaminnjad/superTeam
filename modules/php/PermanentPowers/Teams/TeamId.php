@@ -1,6 +1,6 @@
 <?php
 
-namespace Bga\Games\SuperTeam\PermanentPowers\Captains;
+namespace Bga\Games\SuperTeam\PermanentPowers\Teams;
 
 enum TeamId: int
 {
