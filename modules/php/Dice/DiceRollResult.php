@@ -42,7 +42,17 @@ class DiceRollResult
         return $this->result["assignedMorale"] + $this->result["greenDie"] + $whiteTotal + ($this->result["captainStars"] ?? 0);
     }
 
-    public function getData()
+    public function getWhiteDice() : array
+    {
+        return $this->result["whiteDice"];
+    }
+
+    public function setWhiteDice(array $whiteDice) : void
+    {
+        $this->result["whiteDice"] = $whiteDice;
+    }
+
+    public function getData() : array
     {
         return $this->result;
     }

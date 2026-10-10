@@ -105,4 +105,9 @@ final class PlayerPowers
     {
         return $this->isCaptainAction($dribbler, CaptainId::MoraleOnDribble) ? 1 : 0;
     }
+
+    public function reRollNegativeDiceOncePerTurn() : bool
+    {
+        return $this->team === TeamId::RerollNegativeDice;
+    }
 }

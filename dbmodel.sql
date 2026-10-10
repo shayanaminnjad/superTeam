@@ -76,7 +76,8 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `is_skip_enabled` INT DEFAULT 0,
     `morale_player_to_piece_map` TEXT,
     `forfeitable_captain_action` BOOLEAN DEFAULT FALSE,
-    `was_last_action_undone` BOOLEAN DEFAULT FALSE
+    `was_last_action_undone` BOOLEAN DEFAULT FALSE,
+    `dice_rerolled_this_turn` BOOLEAN DEFAULT FALSE
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `player_temp_data` (

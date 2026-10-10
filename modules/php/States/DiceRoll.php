@@ -11,6 +11,7 @@ use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Dice\GameDice;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\MoraleAssignContext;
+use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
 use Bga\Games\SuperTeam\PlayerRole;
 use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\Dice\DiceRollResult;
@@ -42,15 +43,28 @@ class DiceRoll extends GameState
             $playersToRollFor[] = $this->game->getInactivePlayerId();
         }
 
+        $activePlayerRollResult = null;
         $rollNotifData = [];
         foreach ($playersToRollFor as $player) {
             $relatedAttribute = $player == $activePlayerId ? $rollData->selfAttribute : $rollData->otherAttribute;
             $rollResult = $this->rollForPlayer($player, $relatedAttribute, $rollData->rollingPieceIds[$player]);
             DiceRollServices::storeRollResult($player, $rollResult);
+            if($player === $activePlayerId)
+                $activePlayerRollResult = $rollResult;
             $rollResultData = $rollResult->getData();
             $rollNotifData[$player] = $rollResultData;
         }
-        
+
+        $playerPower = PlayerPowers::forPlayer($activePlayerId);
+        $hasReroll = false;
+        if ($playerPower->reRollNegativeDiceOncePerTurn() && DiceRollServices::getDiceRerolledThisTurn() === false)
+        {
+            $whiteDiceRolled = $activePlayerRollResult->getWhiteDice();
+
+            if (array_any($whiteDiceRolled, fn(int $face) => $face === -1))
+                $hasReroll = true;
+        }
+
         $attacker = Board::getAttacker();
 
         $notifData = [];
@@ -60,6 +74,7 @@ class DiceRoll extends GameState
         $notifData["skipEnabledPlayerId"] = ($rollData->skipEnabled ? $activePlayerId : -1);
         $notifData["requiredPower"] = $rollData->requiredPower;
         $notifData["attacker"] = $attacker;
+        $notifData["hasReroll"] = $hasReroll;
         $notifData["diceLog"] = "";
         $notifData["actionName"] = $rollData->actionName;
         if ($rollData->selfAttribute == TeamAttribute::Pass) {
@@ -71,9 +86,15 @@ class DiceRoll extends GameState
 
         $this->notify->all("diceRolled", \clienttranslate('${diceLog}'), $notifData);
 
-        assert(strlen($rollData->finishTransition) > 0, "no transition is stored for dice roll finish");
-
-        return $rollData->finishTransition;
+        if ($hasReroll)
+        {
+            return DiceReRollState::class;
+        }
+        else
+        {
+            assert(strlen($rollData->finishTransition) > 0, "no transition is stored for dice roll finish");
+            return $rollData->finishTransition;
+        }
     }
 
     private function rollForPlayer(int $playerId, TeamAttribute $relatedAttribute, int $rollingPieceId): DiceRollResult
@@ -201,5 +222,50 @@ class DiceRollServices
     {
         $json = DBAdapter::getInstance()->getPlayerTempStr($playerId, "dice_roll_input");
         return DiceRollData::fromJson($json);
+    }
+
+    public static function storeDiceRerolledThisTurn(bool $diceRerolled) : void
+    {
+        DBAdapter::getInstance()->storeGlobalBool('dice_rerolled_this_turn', $diceRerolled);
+    }
+
+    public static function getDiceRerolledThisTurn() : bool
+    {
+        return DBAdapter::getInstance()->getGlobalBool('dice_rerolled_this_turn');
+    }
+
+    public static function getClientData(Game $game, int $activePlayerId): array
+    {
+        $rollData = self::getRollData($activePlayerId);
+
+        $playersToRollFor = [$activePlayerId];
+        if ($rollData->rollForBoth) {
+            $playersToRollFor[] = $game->getInactivePlayerId();
+        }
+
+        $rollResults = [];
+        foreach ($playersToRollFor as $playerId) {
+            $rollResults[$playerId] = self::getRollResult($playerId)->getData();
+        }
+
+        $data = [
+            "rollResult"          => $rollResults,
+            "distance"            => $rollData->distance,
+            "blockingPieces"      => $rollData->blockingPieces,
+            "skipEnabledPlayerId" => $rollData->skipEnabled ? $activePlayerId : -1,
+            "requiredPower"       => $rollData->requiredPower,
+            "attacker"            => Board::getAttacker(),
+            "actionName"          => $rollData->actionName,
+            "rollForBoth"         => $rollData->rollForBoth,
+            "selfAttribute"       => $rollData->selfAttribute->value,
+            "otherAttribute"      => $rollData->otherAttribute->value,
+            "rollingPieceIds"     => $rollData->rollingPieceIds,
+        ];
+
+        if ($rollData->selfAttribute == TeamAttribute::Pass) {
+            $data["passDest"] = DBAdapter::getInstance()->getSelectedHexAsHexID()->convertToArray();
+        }
+
+        return $data;
     }
 }

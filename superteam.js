@@ -341,6 +341,28 @@ define([
                 });
             },
 
+            buildDiceParams: function (notifData) {
+                const rollResults = [];
+                for (const player of Object.keys(notifData["rollResult"])) {
+                    rollResults.push(DiceUI.createRollResult(parseInt(player), notifData["rollResult"][player]));
+                }
+
+                const passDest = notifData.passDest
+                    ? STHexLib.createOffsetCoord(notifData.passDest.hex_row, notifData.passDest.hex_column)
+                    : null;
+
+                return {
+                    rollResults,
+                    attacker: notifData.attacker,
+                    requiredPower: notifData.requiredPower,
+                    blockingPieces: notifData.blockingPieces,
+                    distance: notifData.distance,
+                    skipEnabledPlayerId: notifData.skipEnabledPlayerId,
+                    actionName: notifData.actionName,
+                    passDest,
+                };
+            },
+
             assert: function (condition, message = "Assertion failed") {
                 if (!condition) {
                     throw new Error(message);
@@ -511,17 +533,19 @@ define([
                 return this.forwardNotification(this.notif_moraleAssigned.name, notifData);
             },
 
-            notif_diceRolled: function (notifData) {
-                let rollResults = [];
-                for (const player of Object.keys(notifData["rollResult"])) {
-                    rollResults.push(DiceUI.createRollResult(parseInt(player), notifData["rollResult"][player]));
+            notif_diceRolled: async function (notifData) {
+                DiceUI.showRoll(this.buildDiceParams(notifData), false);
+                const DISPLAY_TIME = 5 * 1000;
+                await this.wait(DISPLAY_TIME);
+
+                if(!notifData.hasReroll) {
+                    DiceUI.dismiss();
+                    DiceUI.clearRollVisuals();
                 }
+            },
 
-                console.log(rollResults);
-
-                const passDest = notifData.passDest ? STHexLib.createOffsetCoord(notifData.passDest.hex_row, notifData.passDest.hex_column) : null;
-
-                return DiceUI.showRollAndWait(rollResults, notifData.attacker, notifData.requiredPower, notifData.blockingPieces, notifData.distance, notifData.skipEnabledPlayerId, notifData.actionName, passDest);
+            notif_reroll: async function(notifData) {
+                return this.forwardNotification(this.notif_reroll.name, notifData);
             },
 
             notif_successfulPass: function (notifData) {

@@ -2,8 +2,6 @@
 
 namespace Bga\Games\SuperTeam\Dice;
 
-use Bga\Games\SuperTeam\Dice\Dice;
-
 class GameDice
 {
     public static function greenDie() : Dice

@@ -50,6 +50,8 @@
          {
              $this->game->notify->player($this->game->getInactivePlayerId(), "opponentDiscardShuffle");
          }
+
+         DiceRollServices::storeDiceRerolledThisTurn(false);
          
         $this->game->giveExtraTime($activePlayerId);
         $nextPlayer = $this->game->activeNextPlayer();
