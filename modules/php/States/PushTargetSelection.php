@@ -58,7 +58,7 @@ class PushTargetSelection extends PlayerBaseState
 
         DBAdapter::getInstance()->storeSelectedHex($selectedHex);
 
-        return PushPerform::class;
+        return PushDestinationSelection::class;
     }
 
     function zombie(int $playerId): string

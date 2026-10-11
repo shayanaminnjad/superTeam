@@ -20,7 +20,9 @@ define([
     g_gamethemeurl + "modules/js/States/PieceToSwapSelection.js",
     g_gamethemeurl + "modules/js/States/CaptainCardPerformerSelection.js",
     g_gamethemeurl + "modules/js/States/BypassTargetSelection.js",
-    g_gamethemeurl + "modules/js/States/DiceRerollState.js"
+    g_gamethemeurl + "modules/js/States/DiceRerollState.js",
+    g_gamethemeurl + "modules/js/States/PushTargetSelectionState.js",
+    g_gamethemeurl + "modules/js/States/PushDestinationSelectionState.js"
 ], function (
     declare,
     PlayerPieceSetupState,
@@ -43,7 +45,9 @@ define([
     PieceToSwapSelection,
     CaptainCardPerformerSelectionState,
     BypassTargetSelection,
-    DiceRerollState
+    DiceRerollState,
+    PushTargetSelectionState,
+    PushDestinationSelectionState
 ) {
 
     const StateRegistry = declare("st.StateRegistry", null, {
@@ -72,6 +76,8 @@ define([
             this.registerState(CaptainCardPerformerSelectionState);
             this.registerState(BypassTargetSelection);
             this.registerState(DiceRerollState);
+            this.registerState(PushTargetSelectionState);
+            this.registerState(PushDestinationSelectionState);
         },
 
         getState: function (name, root, stateData) {

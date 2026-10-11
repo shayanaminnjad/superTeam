@@ -4,21 +4,20 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
-use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 
-class PushPerform extends PlayerBaseState
+class PushDestinationSelection extends PlayerBaseState
 {
     function __construct(
         protected Game $game,
     ) {
         parent::__construct(
             $game,
-            id: ST_PUSH_PERFORM,
-            name: 'pushPerform',
+            id: ST_PUSH_DESTINATION_SELECTION_STATE,
+            name: 'pushDestinationSelection',
             type: StateType::ACTIVE_PLAYER,
 
             // optional
