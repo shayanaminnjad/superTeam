@@ -1,8 +1,9 @@
 define([
     "dojo/_base/declare",
     g_gamethemeurl + "modules/js/CoachBoard.js",
+    g_gamethemeurl + "modules/js/STUIHelpers.js",
 ],
-    function (declare, CoachBoard) {
+    function (declare, CoachBoard, STUIHelpers) {
         const PlayerArea = declare("st.PlayerArea", null, {
             constructor: function (ownerId, ownerData, root) {
                 this._ownerId = ownerId;
@@ -47,10 +48,17 @@ define([
 
                 const captainPower = this._ownerData['captain_power'];
                 const captainCardEl = document.createElement('div');
+                captainCardEl.id = `${this._ownerId}_captainPower`;
                 captainCardEl.className = 'captainPower';
                 const captainAtlasPos = this._captainIdToAtlasPos(captainPower)
                 captainCardEl.style.backgroundPosition = `${captainAtlasPos}% 0`;
                 playerStuffContainer.appendChild(captainCardEl);
+
+                const captainDefinition = (this._root.captainDefinitions || {})[captainPower];
+                if (captainDefinition) {
+                    this._root.addTooltipHtml(captainCardEl.id, STUIHelpers.buildTooltipHtml(
+                        'captainTooltipImage', `${captainAtlasPos}% 0`, _(captainDefinition.name), _(captainDefinition.toolTip)));
+                }
 
                 if (this._root.viewerId === this._ownerId) {
                     // a spectator only sees the discard; the deck and hand still need to exist for the cards manager

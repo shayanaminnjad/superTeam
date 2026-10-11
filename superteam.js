@@ -47,6 +47,8 @@ define([
                 this.gameDatas = gamedatas;
 
                 this.cardDefinitions = gamedatas.card_definitions;
+                this.captainDefinitions = gamedatas.captain_definitions;
+                this.coachDefinitions = gamedatas.coach_definitions;
 
                 // the player whose side this screen shows; a spectator gets the left seat from the server
                 this.viewerId = this.isSpectator ? parseInt(gamedatas.viewer_id) : this.player_id;
@@ -744,6 +746,10 @@ define([
             opponentColor: null,
 
             cardDefinitions: null,
+
+            captainDefinitions: null,
+
+            coachDefinitions: null,
 
             serverCallInProgress: false,
 

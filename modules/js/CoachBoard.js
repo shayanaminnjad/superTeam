@@ -1,8 +1,9 @@
 define([
     "dojo/_base/declare",
     g_gamethemeurl + "modules/js/STUIConstants.js",
+    g_gamethemeurl + "modules/js/STUIHelpers.js",
 ],
-    function (declare, UIConstants) {
+    function (declare, UIConstants, STUIHelpers) {
 
         const Skills = {
             Pass: 0,
@@ -170,8 +171,15 @@ define([
                 const coachBoard = document.createElement('div');
                 coachBoard.id = `${this._ownerId}_coachBoard`;
                 coachBoard.className = 'coachBoard';
-                coachBoard.style.backgroundPosition = this._coachBoardIdToAtlasPos(this._ownerData.team_power);
+                const atlasPos = this._coachBoardIdToAtlasPos(this._ownerData.team_power);
+                coachBoard.style.backgroundPosition = atlasPos;
                 this._parentEl.appendChild(coachBoard);
+
+                const coachDefinition = (this._root.coachDefinitions || {})[this._ownerData.team_power];
+                if (coachDefinition) {
+                    this._root.addTooltipHtml(coachBoard.id, STUIHelpers.buildTooltipHtml(
+                        'coachTooltipImage', atlasPos, _(coachDefinition.name), _(coachDefinition.toolTip)));
+                }
 
                 const computedWidth = Math.round(parseFloat(getComputedStyle(coachBoard).width));
                 const computedHeight = Math.round(parseFloat(getComputedStyle(coachBoard).height));

@@ -768,6 +768,18 @@ body.board-portrait .shootTargetTile {
     border-radius: 7px;
 }
 
+.captainTooltipImage {
+    background-image: url("img/captainsAtlas.jpeg");
+    background-size: 600% 100%;
+}
+
+.coachTooltipImage {
+    width: 200px;
+    height: 120px;
+    background-image: url("img/coachBoardsAtlas.jpg");
+    background-size: 300% 200%;
+}
+
 .cardTooltipText {
     flex: 1 1 auto;
     min-width: 135px;

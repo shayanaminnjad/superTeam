@@ -31,5 +31,40 @@ define([], function () {
         removeCounter: function (id) {
             document.getElementById(id).remove();
         },
+
+        // name and description must already be translated
+        buildTooltipHtml: function (imageClass, backgroundPosition, name, description) {
+            return `<div class="cardTooltip">
+                <div class="cardTooltipImage ${imageClass}" style="background-position: ${backgroundPosition};"></div>
+                <div class="cardTooltipText">
+                    <div class="cardTooltipName">${name}</div>
+                    ${this.richTextToHtml(description)}
+                </div>
+            </div>`;
+        },
+
+        // Supported markup: **bold**, *italic*, a line with only --- (divider), blank line (gap).
+        richTextToHtml: function (text) {
+            const escaped = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            return escaped.split('\n').map(line => {
+                const trimmed = line.trim();
+
+                if (trimmed === '---') {
+                    return '<hr class="cardTooltipDivider">';
+                }
+                if (trimmed === '') {
+                    return '<div class="cardTooltipGap"></div>';
+                }
+
+                const formatted = trimmed
+                    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+                    .replace(/\*(.+?)\*/g, '<i>$1</i>');
+                return `<div class="cardTooltipLine">${formatted}</div>`;
+            }).join('');
+        },
     }
 });

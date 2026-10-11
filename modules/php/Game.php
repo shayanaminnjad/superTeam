@@ -26,6 +26,7 @@ use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_1;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_3;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPowerBase;
+use Bga\Games\SuperTeam\PermanentPowers\Coaches\CoachBoards;
 use Bga\Games\SuperTeam\Utility\Logger;
 
 use Exception;
@@ -284,8 +285,48 @@ class Game extends \Bga\GameFramework\Table
         $result['attacker'] = $this->getGameStateValue('attacker');
         $result['time_index'] = TimeTrack::GetTimeTrackPosition();
         $result['card_definitions'] = $this->getCardDefinitionsForClient();
+        $result['captain_definitions'] = $this->getCaptainDefinitionsForClient();
+        $result['coach_definitions'] = $this->getCoachDefinitionsForClient();
 
         return $result;
+    }
+
+    private function getCaptainDefinitionsForClient() : array
+    {
+        $definitions = [];
+
+        foreach (array_keys($this->loadPlayersBasicInfos()) as $playerId)
+        {
+            $captainPower = $this->getPlayerCaptainPower((int) $playerId);
+            if ($captainPower === null)
+                continue;
+
+            $definitions[$captainPower->getId()] = [
+                'name' => $captainPower->getTitle(),
+                'toolTip' => $captainPower->getTooltip(),
+            ];
+        }
+
+        return $definitions;
+    }
+
+    private function getCoachDefinitionsForClient() : array
+    {
+        $definitions = [];
+
+        foreach (array_keys($this->loadPlayersBasicInfos()) as $playerId)
+        {
+            $coachBoardId = $this->getPlayerCoach((int) $playerId);
+            if ($coachBoardId < 0)
+                continue;
+
+            $definitions[$coachBoardId] = [
+                'name' => \clienttranslate("Coach board"),
+                'toolTip' => CoachBoards::getTooltip($coachBoardId),
+            ];
+        }
+
+        return $definitions;
     }
 
     private function getCardDefinitionsForClient() : array
