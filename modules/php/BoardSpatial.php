@@ -163,6 +163,23 @@ final class BoardSpatial
         return [];
     }
 
+    /** @return HexID[]*/
+    public static function findImmediateMoveableNeighbours(Board $board, PlayerPiece $piece) : array
+    {
+        $immediateMoveableHexes = [];
+
+        $currentNeighbors = HexLib::getNeighbours(HexLib::offsetToCubic($piece->getPosition()), 1);
+        foreach ($currentNeighbors as $cubicNeighbor)
+        {
+            $neighborHex = HexLib::cubicToHexID($cubicNeighbor);
+
+            if (self::isHexMoveable($board, $neighborHex))
+                $immediateMoveableHexes[] = $neighborHex;
+        }
+
+        return $immediateMoveableHexes;
+    }
+
     //general movement rules
     public static function isHexMoveable(Board $board, HexID $hexID): bool
     {
