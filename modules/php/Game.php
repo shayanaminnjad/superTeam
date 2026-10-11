@@ -24,8 +24,9 @@ use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\Cards\PlayerHandCreator;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_1;
-use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_3;
+use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_4;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPowerBase;
+use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPowerFactory;
 use Bga\Games\SuperTeam\PermanentPowers\Coaches\CoachBoards;
 use Bga\Games\SuperTeam\Utility\Logger;
 
@@ -85,36 +86,6 @@ class Game extends \Bga\GameFramework\Table
             "playerStartedFirstHalf" => 21,
             "game_mode" => 100
         ]);
-
-        /* example of notification decorator.
-        // automatically complete notification args when needed
-        $this->notify->addDecorator(function(string $message, array $args) {
-            if (isset($args['player_id']) && !isset($args['player_name']) && str_contains($message, '${player_name}')) {
-                $args['player_name'] = $this->getPlayerNameById($args['player_id']);
-            }
-
-            if (isset($args['card_id']) && !isset($args['card_name']) && str_contains($message, '${card_name}')) {
-                $args['card_name'] = self::$CARD_TYPES[$args['card_id']]['card_name'];
-                $args['i18n'][] = ['card_name'];
-            }
-            
-            return $args;
-        });*/
-    }
-
-    public function actPass(): void
-    {
-        // Retrieve the active player ID.
-        $player_id = (int)$this->getActivePlayerId();
-
-        // Notify all players about the choice to pass.
-        $this->notify->all("pass", clienttranslate('${player_name} passes'), [
-            "player_id" => $player_id,
-            "player_name" => $this->getActivePlayerName(), // remove this line if you uncomment notification decorator
-        ]);
-
-        // at the end of the action, move to the next state
-        $this->gamestate->nextState("pass");
     }
 
     //(sha) TODO: probably this must be a part of board? or a piece manager? probably moveLogic!
@@ -368,7 +339,7 @@ class Game extends \Bga\GameFramework\Table
             ]);
 
             $teamBoard += 1;
-            $captainBoard = CaptainPower_3::staticId();
+            $captainBoard = CaptainPower_4::staticId();
         }
 
         static::DbQuery(
@@ -565,7 +536,7 @@ class Game extends \Bga\GameFramework\Table
         if ($row['captain_power'] == null)
             return null;
         else
-            return $this->CaptainFactory($row['captain_power']);
+            return CaptainPowerFactory::GetCaptainPower($row['captain_power'], $this);
     }
 
     public function getPlayerCoach(int $playerId) : int
@@ -576,20 +547,6 @@ class Game extends \Bga\GameFramework\Table
         else
             return \intval($row['team_power']);
     }
-
-    //make this a proper factory!
-    public function CaptainFactory(string $captainId) : ?CaptainPowerBase
-    {
-        if ($captainId == CaptainPower_1::staticId())
-            return new CaptainPower_1($this);
-        else if ($captainId == CaptainPower_3::staticId())
-            return new CaptainPower_3($this);
-        else
-            return null;
-    }
-
-    //class------------
-
 
     //========================================================================================================
     //-------------------------------------- cheats ----------------------------------------------------------
