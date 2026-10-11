@@ -127,7 +127,7 @@ define(["dojo/_base/declare",
                     },
                     setupBackDiv: (card, div) => {
                         div.style.backgroundPositionX = `calc(100%)`;
-                        div.style.backgroundPositionY = `calc(100%)`;
+                        div.style.backgroundPositionY = `calc(0%)`;
                     },
                     isCardVisible: card => {return !!card.location && !card.location.includes("_deck");},
                 });
@@ -142,17 +142,14 @@ define(["dojo/_base/declare",
             },
 
             _getCardPositionInsideAtlas: function (card) {
-                //(sha) todo: I need better row column sorting for the atlas
-                //however it is not final yet, since I don't have all of
-                //the cards, so lets make this work for now.
-
-                rowMultiple = 0; //Basic
-                colMultiple = 0;
 
                 if (!card.type) //covers the case of dummy cards in shuffling. somehow they end up being here.
                 {
-                    return [`calc(100%)`, `calc(100%)`];
+                    return [`calc(100%)`, `calc(0%)`];
                 }
+
+                let rowMultiple = 0; //Basic
+                let colMultiple = 0;
 
                 const tokens = card.type.split('_');
                 const cardCategory = tokens[0];
@@ -160,47 +157,33 @@ define(["dojo/_base/declare",
                     colMultiple = Number(tokens[1].charCodeAt(0) - 'A'.charCodeAt(0));
                 }
                 else if (cardCategory === 'Team') {
-                    const teamId = tokens[1];
+                    const AdvancedCardsPerTeam = 3;
+                    const teamId = Number(tokens[1]);
                     const cardNum = Number(tokens[2]);
-                    if (teamId === '0') {
-                        if (cardNum <= 1) {
-                            rowMultiple = 0;
-                            colMultiple = 5 + cardNum;
-                        }
-                        else {
-                            rowMultiple = 1;
-                            colMultiple = cardNum - 2;
-                        }
-                    }
-                    else if (teamId === '1') {
-                        rowMultiple = 1;
-                        colMultiple = cardNum + 1;
-                    }
+                    rowMultiple = Math.floor(teamId / 2) + 1;
+                    colMultiple = teamId % 2 === 0 ? cardNum : cardNum + AdvancedCardsPerTeam;
                 }
                 else if (cardCategory === 'Captain') {
-                    const teamId = tokens[1];
+                    const cptPerTeam = 3;
+                    const captainId = tokens[1];
+                    let cptInOrder = this._captainIdToNumericOrder(captainId)
                     const cardNum = Number(tokens[2]);
-                    if (teamId === '1') {
-                        rowMultiple = 1;
-                        colMultiple = 4 + cardNum;
-                    }
-                    else if (teamId === '3') {
-                        rowMultiple = 2;
-                        colMultiple = cardNum;
-                    }
+
+                    rowMultiple = Math.floor(cptInOrder / 2) + 4;
+                    colMultiple = captainId % 2 === 0 ? cardNum : cptPerTeam + cardNum;
                 }
                 else if (cardCategory === 'Coach') {
                     const teamId = Number(tokens[1]);
-                    rowMultiple = 2;
-                    colMultiple = 3 + teamId;
+                    rowMultiple = 1 + teamId;
+                    colMultiple = 6 ;
                 }
                 else if (cardCategory === "Fatigue")
                 {
-                    rowMultiple = 2;
+                    rowMultiple = 0;
                     colMultiple = 5;
                 }
 
-                return [`calc(100% / 6 * ${colMultiple})`, `calc(100% / 2 * ${rowMultiple})`];
+                return [`calc(100% / 6 * ${colMultiple})`, `calc(100% / 6 * ${rowMultiple})`];
             },
 
             _initDiscardStock: function () {
@@ -254,6 +237,19 @@ define(["dojo/_base/declare",
                     sort: BgaCards.sort('location_arg'),
                     autoPlace: card => card.location === `${this._root.opponentId}_discard`,
                 });
+            },
+
+            _captainIdToNumericOrder : function(teamId) {
+                const TEAM_ORDER = {
+                    '1': 0,
+                    '3': 1,
+                    '4': 2,
+                    '6': 3,
+                    '14': 4,
+                    '21': 5,
+                };
+
+                return TEAM_ORDER[teamId];
             },
 
             //Private Fields
