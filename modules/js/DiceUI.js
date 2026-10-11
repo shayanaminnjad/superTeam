@@ -134,12 +134,12 @@ define([
 
             await Promise.all(rolls);
 
-            const DISPLAY_TIME = 2 * 1000;
-            await this._root.wait(DISPLAY_TIME);
-
             for (const player of active.players) {
                 player.totalEl.textContent = this._computeTotal(player.result, active.params);
             }
+
+            const DISPLAY_TIME = 2 * 1000;
+            await this._root.wait(DISPLAY_TIME);
 
             return rolls.length > 0;
         },
