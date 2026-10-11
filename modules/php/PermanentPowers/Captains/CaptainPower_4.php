@@ -11,7 +11,7 @@ class CaptainPower_4 extends CaptainPowerBase
         parent::__construct(
             $game,
             \clienttranslate("Captain 4"),
-            \clienttranslate("EXTRA MOVEMENT/MORALE FOR ANY SUCCESSFUL TACTIC INVOLVED!"),
+            \clienttranslate("Gain an extra movement or Morale for any successful tactic this captain is involved in."),
             1,0,0, 1);
     }
 

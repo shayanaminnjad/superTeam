@@ -11,7 +11,7 @@ class CaptainPower_14 extends CaptainPowerBase
         parent::__construct(
             $game,
             \clienttranslate("Captain 14"),
-            \clienttranslate("SKIP BLOCKS WHEN PASSING THE BALL!"),
+            \clienttranslate("Skip blocks when passing the ball."),
             1,1,0, 0);
     }
 

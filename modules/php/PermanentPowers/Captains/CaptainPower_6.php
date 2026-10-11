@@ -11,7 +11,7 @@ class CaptainPower_6 extends CaptainPowerBase
         parent::__construct(
             $game,
             \clienttranslate("Captain 6"),
-            \clienttranslate("MOVE UP TO TWO SPACES WHEN ADJACENT TO AN OPPONENT!"),
+            \clienttranslate("Move up to 2 spaces when adjacent to an opponent."),
             0,1,0, 1);
     }
 

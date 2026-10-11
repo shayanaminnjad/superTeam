@@ -11,7 +11,7 @@ class CaptainPower_3 extends CaptainPowerBase
         parent::__construct(
             $game,
             \clienttranslate("Captain 3"),
-            \clienttranslate("ON DRIBBLE, BYPASS THE OPPONENT"),
+            \clienttranslate("On dribble, bypass the opponent."),
             1,0,1, 0);
     }
 

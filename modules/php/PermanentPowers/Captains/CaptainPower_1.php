@@ -11,7 +11,7 @@ class CaptainPower_1 extends CaptainPowerBase
         parent::__construct(
             $game,
             \clienttranslate("Captain 1"),
-            \clienttranslate("MOVE UP TO 3    SPACES WITHOUT THE BALL!"),
+            \clienttranslate("Move up to 3 spaces without the ball."),
             0,0,1, 1);
     }
 

@@ -11,7 +11,7 @@ class CaptainPower_21 extends CaptainPowerBase
         parent::__construct(
             $game,
             \clienttranslate("Captain 21"),
-            \clienttranslate("GAIN A MORALE AFTER A SUCCESSFUL DRIBBLE!"),
+            \clienttranslate("Gain 1 Morale after a successful dribble."),
             0,1,1, 0);
     }
 
