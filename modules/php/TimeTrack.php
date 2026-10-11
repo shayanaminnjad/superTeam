@@ -6,6 +6,9 @@ class TimeTrack
     static private int $HALF_TIME_INDEX = 3;
     static private int $FULL_TIME_INDEX = 7;
 
+    // index is the time track position; 45' is there twice, end of the first half and start of the second
+    public const MINUTE_BY_POSITION = [0, 15, 30, 45, 45, 60, 75, 90];
+
     static public function AdvanceTimeTrack(bool $withNotify) : int
     {
         $timeTrack = self::GetTimeTrackPosition();
@@ -17,7 +20,10 @@ class TimeTrack
         if ($withNotify)
         {
             NotificationAdapter::getInstance()->notifyAll(
-                "timeTrackAdvance", \clienttranslate('Time track advanced'), ['currentPosition' => $timeTrack]
+                "timeTrackAdvance", \clienttranslate('Time advances to ${minute}\''), [
+                    'currentPosition' => $timeTrack,
+                    'minute' => self::GetMinute($timeTrack),
+                ]
             );
         }
 
@@ -29,6 +35,16 @@ class TimeTrack
         $dbAdapter = DBAdapter::getInstance();
 
         return $dbAdapter->getGlobalInt('time_track_position');
+    }
+
+    static public function GetMinute(int $position) : int
+    {
+        return self::MINUTE_BY_POSITION[$position];
+    }
+
+    static public function GetCurrentMinute() : int
+    {
+        return self::GetMinute(self::GetTimeTrackPosition());
     }
 
     static public function IsHalfTime(int $currentPosition) : bool
