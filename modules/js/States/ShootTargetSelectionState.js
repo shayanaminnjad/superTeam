@@ -77,7 +77,7 @@ define(["dojo/_base/declare",
 
                 //(sha) Make this a function inside root.
                 this._root.statusBar.removeActionButtons();
-                this._root.statusBar.addActionButton('confirm', () => {
+                this._root.statusBar.addActionButton(_('Confirm'), () => {
                     this._root.performServerAction("actTargetSelected", { hexColumn: column, hexRow: row });
                 }, { color: 'primary' });
             },
