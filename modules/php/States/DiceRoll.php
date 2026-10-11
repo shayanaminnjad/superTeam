@@ -215,7 +215,14 @@ class DiceRollServices
 
         $dbAdapter = DBAdapter::getInstance();
         $dbAdapter->setGameStateValue('required_power', $requiredPower->getTotal());
+        // global, because the opponent may be the active player during morale assignment
+        $dbAdapter->storeGlobalString('roll_action_name', addslashes($actionName));
         $dbAdapter->storePlayerTempStr($playerId, "dice_roll_input", $rollData->toJson());
+    }
+
+    public static function getCurrentActionName(): string
+    {
+        return DBAdapter::getInstance()->getGlobalString('roll_action_name');
     }
 
     public static function getRollData(int $playerId): DiceRollData
