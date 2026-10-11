@@ -10,6 +10,8 @@ use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\CardActionDriver;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\GameStats;
+use Bga\Games\SuperTeam\StatAction;
 use Bga\Games\SuperTeam\NotificationAdapter;
 use Bga\Games\SuperTeam\PlayerResources;
 
@@ -39,7 +41,12 @@ class ShootPerform extends GameState
         $defenderRollResult = DiceRollServices::getRollResult($defender);
         $powerRequired = $this->game->getGameStateValue('required_power');
 
-        if ($attackerRollResult->getTotal() >= $defenderRollResult->getTotal() + $powerRequired) 
+        $isShotSuccessful = $attackerRollResult->getTotal() >= $defenderRollResult->getTotal() + $powerRequired;
+        GameStats::recordDiceRoll($this->game, $attacker, $attackerRollResult);
+        GameStats::recordDiceRoll($this->game, $defender, $defenderRollResult);
+        GameStats::recordAction($this->game, $attacker, StatAction::Shoot, $isShotSuccessful);
+
+        if ($isShotSuccessful)
         {
             $this->notify->all('shootSuccess', \clienttranslate('${player_name} shoot successfully'), [
                 "player_name" => NotificationAdapter::getInstance()->getPlayerNameById($activePlayerId),

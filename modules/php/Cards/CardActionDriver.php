@@ -4,6 +4,7 @@ namespace Bga\Games\SuperTeam\Cards;
 
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\GameStats;
 use Bga\Games\SuperTeam\States\BeforeCardSelectionReset;
 use Bga\Games\SuperTeam\States\BeforeRewardResolve;
 use Bga\Games\SuperTeam\States\CardSelection;
@@ -48,6 +49,10 @@ class CardActionDriver
         }
         else
         {
+            $isResolved = $result->action == ExecutionAction::Success || $result->action == ExecutionAction::Failure;
+            if ($isResolved && $card->getDefinition()->type !== CardType::Fatigue)
+                GameStats::recordTacticResult($this->game, $this->activePlayerId, $result->action == ExecutionAction::Success);
+
             //TODO: this part must be part of the class instructions! no need to know about the cards here!
             if ($result->action == ExecutionAction::Success && $card instanceof TacticCard)
             {

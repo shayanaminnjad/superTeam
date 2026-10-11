@@ -63,6 +63,7 @@ class PlayerResources
     public function addOneGoal(Game $game, bool $notify) : void
     {
         $currentGoals = $game->bga->playerScore->inc($this->playerId, 1);
+        GameStats::recordGoal($game, $this->playerId);
 
         if ($notify)
         {

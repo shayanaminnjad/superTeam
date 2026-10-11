@@ -1,1 +1,41 @@
-{}
+{
+  "table": {},
+  "player": {
+    "pass_attempts": { "id": 10, "name": "Passes", "type": "int" },
+    "pass_successful": { "id": 11, "name": "Successful passes", "type": "int" },
+    "pass_success_rate": { "id": 12, "name": "Pass success rate (%)", "type": "float" },
+    "pass_failure_rate": { "id": 13, "name": "Pass failure rate (%)", "type": "float" },
+
+    "shoot_attempts": { "id": 20, "name": "Shots", "type": "int" },
+    "shoot_successful": { "id": 21, "name": "Successful shots", "type": "int" },
+    "shoot_success_rate": { "id": 22, "name": "Shot success rate (%)", "type": "float" },
+    "shoot_failure_rate": { "id": 23, "name": "Shot failure rate (%)", "type": "float" },
+
+    "dribble_attempts": { "id": 30, "name": "Dribbles", "type": "int" },
+    "dribble_successful": { "id": 31, "name": "Successful dribbles", "type": "int" },
+    "dribble_success_rate": { "id": 32, "name": "Dribble success rate (%)", "type": "float" },
+    "dribble_failure_rate": { "id": 33, "name": "Dribble failure rate (%)", "type": "float" },
+
+    "tackle_attempts": { "id": 40, "name": "Tackles", "type": "int" },
+    "tackle_successful": { "id": 41, "name": "Successful tackles", "type": "int" },
+    "tackle_success_rate": { "id": 42, "name": "Tackle success rate (%)", "type": "float" },
+    "tackle_failure_rate": { "id": 43, "name": "Tackle failure rate (%)", "type": "float" },
+
+    "dice_rolls": { "id": 50, "name": "Dice rolls", "type": "int" },
+    "average_dice": { "id": 51, "name": "Average dice result", "type": "float" },
+
+    "goals_0_15": { "id": 60, "name": "Goals 0'-15'", "type": "int" },
+    "goals_15_30": { "id": 61, "name": "Goals 15'-30'", "type": "int" },
+    "goals_30_45": { "id": 62, "name": "Goals 30'-45'", "type": "int" },
+    "goals_45_60": { "id": 63, "name": "Goals 45'-60'", "type": "int" },
+    "goals_60_75": { "id": 64, "name": "Goals 60'-75'", "type": "int" },
+    "goals_75_90": { "id": 65, "name": "Goals 75'-90'", "type": "int" },
+    "goals_90": { "id": 66, "name": "Goals at 90'", "type": "int" },
+
+    "cards_as_basic": { "id": 70, "name": "Cards played as basic", "type": "int" },
+    "cards_as_tactic": { "id": 71, "name": "Cards played as tactic", "type": "int" },
+    "fatigues_played": { "id": 72, "name": "Fatigue cards played", "type": "int" },
+    "tactics_successful": { "id": 73, "name": "Successful tactics", "type": "int" },
+    "tactics_failed": { "id": 74, "name": "Failed tactics", "type": "int" }
+  }
+}

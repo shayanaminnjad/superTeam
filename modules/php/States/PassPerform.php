@@ -10,6 +10,8 @@ use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\BoardInfo;
 use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\GameStats;
+use Bga\Games\SuperTeam\StatAction;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\NotificationAdapter;
 
@@ -45,7 +47,11 @@ class PassPerform extends GameState
         assert($playerPiece != null, "Passing piece can't be null!");
         $passActionContext->addPiecesPassed($playerPiece->getId());
 
-        if ($diceRes->getTotal() >= $powerRequired)
+        $isPassSuccessful = $diceRes->getTotal() >= $powerRequired;
+        GameStats::recordDiceRoll($this->game, $activePlayerId, $diceRes);
+        GameStats::recordAction($this->game, $activePlayerId, StatAction::Pass, $isPassSuccessful);
+
+        if ($isPassSuccessful)
         {
             DBAdapter::getInstance()->setGameStateValue('lastPassResult', 1);
 

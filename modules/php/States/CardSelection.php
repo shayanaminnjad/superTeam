@@ -12,6 +12,7 @@ use Bga\Games\SuperTeam\Cards\CardReward;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\GameStats;
 use Bga\Games\SuperTeam\Cards\TacticType;
 use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\PlayerResources;
@@ -114,6 +115,8 @@ class CardSelection extends PlayerBaseState
         $board = $this->game->getBoard();
         $goalieHasBall = BoardEvaluator::doesPlayerGoalieHasBall($board, $activePlayer);
 
+        GameStats::recordCardPlayed($this->game, $activePlayer, $playedCardType, $asBasic || $goalieHasBall);
+
         $dbAdapter = DBAdapter::getInstance();
         if ($goalieHasBall)
         {
@@ -184,6 +187,7 @@ class CardSelection extends PlayerBaseState
         $playerHand = $game->getPlayerHand($activePlayer);
         $cardMoved = $playerHand->moveLastDiscardedCardToHand();
         self::decreaseCardsPlayedThisTurnByOne($game);
+        GameStats::undoCardPlayed($game, $activePlayer);
 
         $game->notify->all("cardUndo", \clienttranslate('${player_name} undoes playing ${cardLog}'), [
             'player_id' => $activePlayer,

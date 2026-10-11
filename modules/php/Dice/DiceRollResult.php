@@ -42,6 +42,12 @@ class DiceRollResult
         return $this->result["assignedMorale"] + $this->result["greenDie"] + $whiteTotal + ($this->result["captainStars"] ?? 0);
     }
 
+    // dice faces only, without morale and captain stars
+    public function getDiceTotal() : int
+    {
+        return $this->result["greenDie"] + array_sum($this->result["whiteDice"]);
+    }
+
     public function getWhiteDice() : array
     {
         return $this->result["whiteDice"];

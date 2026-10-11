@@ -8,6 +8,8 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\GameStats;
+use Bga\Games\SuperTeam\StatAction;
 use Bga\Games\SuperTeam\NotificationAdapter;
 
 class PerformDribble extends GameState
@@ -33,7 +35,12 @@ class PerformDribble extends GameState
         $attackerRollRes = DiceRollServices::getRollResult($board->getAttacker());
         $defenderRollRes = DiceRollServices::getRollResult($board->getDefender());
 
-        if ($attackerRollRes->getTotal() >= $defenderRollRes->getTotal())
+        $isDribbleSuccessful = $attackerRollRes->getTotal() >= $defenderRollRes->getTotal();
+        GameStats::recordDiceRoll($this->game, $board->getAttacker(), $attackerRollRes);
+        GameStats::recordDiceRoll($this->game, $board->getDefender(), $defenderRollRes);
+        GameStats::recordAction($this->game, $activePlayerId, StatAction::Dribble, $isDribbleSuccessful);
+
+        if ($isDribbleSuccessful)
         {
             $selectedHex = DBAdapter::getInstance()->getSelectedHexAsHexID();
             $ballOldHex = $board->getBallHex();
