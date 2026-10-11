@@ -8,6 +8,7 @@ use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\MovePieceSelectionLogic;
 use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\PlayerRole;
@@ -111,5 +112,11 @@ abstract class CaptainCard extends Card
         }
 
         return $result;
+    }
+
+    protected function getPiecesNotAdjacentToOpponents() : array
+    {
+        $playerId = \intval($this->game->GetActivePlayerId());
+        return MovePieceSelectionLogic::extractMoveableNotAdjacentToOpponentPieces($this->board, $playerId);
     }
 }

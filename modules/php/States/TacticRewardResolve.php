@@ -8,6 +8,8 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 
+use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
@@ -17,6 +19,8 @@ use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
+use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
+use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Cards\TacticType;
 use Bga\Games\SuperTeam\Cards\CardReward;
@@ -42,27 +46,45 @@ class TacticRewardResolve extends PlayerBaseState
 
     public function selfGetArgs() : array
     {
-        $reward = $this->getCardInPlayReward();
-        $rewardClaimed = $this->getRewardClaimed();
+        $activePlayerId = intval($this->game->getActivePlayerId());
 
-        $remainingReward = $reward->diff($rewardClaimed);
-
-        if ($remainingReward->action > 0)
+        if ($this->isChoosingExtraReward())
         {
-            $this->addClientButton(
-                \sprintf(\clienttranslate('%d [action]'), $remainingReward->action),
-                [$this,'actDoOneAction']);
+            $this->addClientButton(\clienttranslate('[move]'), [$this, 'actExtraMove']);
+            $this->addClientButton(\clienttranslate('[morale]'), [$this, 'actGetOneMorale']);
+            $this->addClientButton(\clienttranslate('Back'), [$this, 'actBack']);
         }
-
-        if ($remainingReward->move > 0)
+        else
         {
-            $this->addClientButton(
-                \sprintf(\clienttranslate('%d [move]'), $remainingReward->move),
-                [$this, 'actDoOneMove']);
-        }
+            $reward = $this->getCardInPlayReward();
+            $rewardClaimed = $this->getRewardClaimed();
 
-        $this->addClientButton(\clienttranslate("Forfeit"), [$this, 'actForfeitReward'], [],
-            new ClientButtonParams(ClientButtonColor::ALERT));
+            $remainingReward = $reward->diff($rewardClaimed);
+
+            if ($remainingReward->action > 0)
+            {
+                $this->addClientButton(
+                    \sprintf(\clienttranslate('%d [action]'), $remainingReward->action),
+                    [$this, 'actDoOneAction']);
+            }
+
+            if ($remainingReward->move > 0)
+            {
+                $this->addClientButton(
+                    \sprintf(\clienttranslate('%d [move]'), $remainingReward->move),
+                    [$this, 'actDoOneMove']);
+            }
+
+            $board = $this->game->getBoard();
+            $tacticContext = new TacticContext();
+            if ($tacticContext->hasExtraReward($board, $activePlayerId) && !$tacticContext->isExtraRewardClaimed())
+            {
+                $this->addClientButton(\clienttranslate('[move]/[morale]'), [$this, 'actExtraRewardChoose']);
+            }
+
+            $this->addClientButton(\clienttranslate("Forfeit"), [$this, 'actForfeitReward'], [],
+                new ClientButtonParams(ClientButtonColor::ALERT));
+        }
         
         return [];
     }
@@ -119,6 +141,71 @@ class TacticRewardResolve extends PlayerBaseState
         return MovePieceSelection::class;
     }
 
+    #[PossibleAction]
+    public function actBack() : string
+    {
+        $this->setIsChoosingExtraReward(false);
+        return self::class;
+    }
+
+    #[PossibleAction]
+    public function actExtraRewardChoose(int $activePlayerId) : string
+    {
+        $board = $this->game->getBoard();
+
+        $tacticContext = new TacticContext();
+        if ($tacticContext->hasExtraReward($board, $activePlayerId) && !$tacticContext->isExtraRewardClaimed())
+        {
+            $this->setIsChoosingExtraReward(true);
+            return self::class;
+        }
+        else
+            throw new \BgaUserException(\clienttranslate("You cannot get extra reward now!"));
+    }
+
+    #[PossibleAction]
+    public function actGetOneMorale(int $activePlayerId) : string
+    {
+        $board = $this->game->getBoard();
+
+        $tacticContext = new TacticContext();
+        if ($tacticContext->hasExtraReward($board, $activePlayerId) && !$tacticContext->isExtraRewardClaimed())
+        {
+            $tacticContext->setIsExtraMoveMoraleRewardUsed(true);
+            $this->setIsChoosingExtraReward(false);
+            $playerResources = new PlayerResources($activePlayerId);
+            $playerResources->addMorale(1, true);
+        }
+        else
+            throw new \BgaUserException(\clienttranslate("You cannot get extra reward now!"));
+
+        return self::class;
+    }
+
+    #[PossibleAction]
+    public function actExtraMove(int $activePlayerId) : string
+    {
+        $board = $this->game->getBoard();
+
+        $tacticContext = new TacticContext();
+        if ($tacticContext->hasExtraReward($board, $activePlayerId) && !$tacticContext->isExtraRewardClaimed())
+        {
+            $tacticContext->setIsExtraMoveMoraleRewardUsed(true);
+            $this->setIsChoosingExtraReward(false);
+        }
+        else
+            throw new \BgaUserException(\clienttranslate("You cannot get extra reward now!"));
+
+        DBAdapter::getInstance()->storeActionReturnState($activePlayerId, BeforeRewardResolve::class);
+
+        MovePieceSelectionLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $activePlayerId, MoveTypes::FREE);
+
+        $moveActionContext = new MoveActionContext();
+        $moveActionContext->setCurrentMoveType(MoveTypes::FREE);
+
+        return MovePieceSelection::class;
+    }
+
     function zombie(int $playerId): string
     {
         return $this->actForfeitReward();
@@ -142,5 +229,15 @@ class TacticRewardResolve extends PlayerBaseState
     {
         $tacticContext = new TacticContext();
         return $tacticContext->getCardInPlayReward($this->game);
+    }
+
+    private function isChoosingExtraReward() : bool
+    {
+        return DBAdapter::getInstance()->getGlobalBool('choosing_extra_reward');
+    }
+
+    private function setIsChoosingExtraReward(bool $isChoosing) : void
+    {
+        DBAdapter::getInstance()->storeGlobalBool('choosing_extra_reward', $isChoosing);
     }
 }

@@ -34,7 +34,8 @@ class BeforeRewardResolve extends GameState
 
         $this->claimMoraleIfNotClaimed($activePlayerId, $reward, $claimedReward, $tacticContext);
 
-        if ($reward->isEmpty() || $this->rewardHasBeenClaimed($reward, $claimedReward))
+        $board = $this->game->getBoard();
+        if (($reward->isEmpty() || $this->rewardHasBeenClaimed($reward, $claimedReward)) && (!$tacticContext->hasExtraReward($board, $activePlayerId) || $tacticContext->isExtraRewardClaimed()))
         {
             return BeforeCardSelectionReset::class;
         }

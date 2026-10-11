@@ -2,8 +2,13 @@
 
 namespace Bga\Games\SuperTeam\Cards;
 
+use Bga\Games\SuperTeam\Board;
+use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
+use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
+use Bga\Games\SuperTeam\PlayerPiece;
 
 readonly class TacticContext
 {
@@ -59,6 +64,49 @@ readonly class TacticContext
             return CardReward::fromJson($rewardJson);
     }
 
+    public function hasExtraReward(Board $board, int $activePlayerId) : bool
+    {
+        $playerPowers = PlayerPowers::forPlayer($activePlayerId);
+
+        return $playerPowers->extraMoraleOrMoveForSuccessfulTactic($this->getPlayersInvolvedInTactic($board, $activePlayerId));
+    }
+
+    /**
+     * @return PlayerPiece[]
+     */
+    public function getPlayersInvolvedInTactic(Board $board, int $activePlayerId) : array
+    {
+        $res = [];
+
+        $tacticType = $this->getTacticType();
+
+        if ($tacticType === TacticType::Defensive)
+        {
+            $moveContext = new MoveActionContext();
+            $playersInvolvedIds = $moveContext->getPiecesMoved();
+        }
+        else
+        {
+            $passContext = new PassActionContext($activePlayerId);
+            $playersInvolvedIds = $passContext->getPiecesPassedIds();
+        }
+
+        foreach ($playersInvolvedIds as $playerId)
+            $res[] = $board->getPiece($playerId);
+
+        return $res;
+    }
+
+    public function isExtraRewardClaimed() : bool
+    {
+        return $this->dbAdapter->getGlobalBool("extra_morale_move_used");
+    }
+
+    public function setIsExtraMoveMoraleRewardUsed(bool $value) : void
+    {
+        $this->dbAdapter->storeGlobalBool("extra_morale_move_used", $value);
+    }
+
     public function setTacticType(TacticType $type) : void
     {
         $this->dbAdapter->storeGlobalInt("tactic_type", $type->value);
@@ -93,5 +141,6 @@ readonly class TacticContext
         $this->setRewardUsed(CardReward::empty());
         $this->setTacticType(TacticType::Unknown);
         $this->setTacticCommited(false);
+        $this->setIsExtraMoveMoraleRewardUsed(false);
     }
 }

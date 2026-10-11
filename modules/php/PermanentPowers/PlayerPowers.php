@@ -92,13 +92,13 @@ final class PlayerPowers
     }
 
     /** @param PlayerPiece[] $involvedPieces */
-    public function moraleForSuccessfulTactic(array $involvedPieces): int
+    public function extraMoraleOrMoveForSuccessfulTactic(array $involvedPieces): bool
     {
         foreach ($involvedPieces as $piece)
             if ($this->isCaptainAction($piece, CaptainId::MoraleOnTactic))
-                return 1;
+                return true;
 
-        return 0;
+        return false;
     }
 
     public function moraleForSuccessfulDribble(PlayerPiece $dribbler): int
