@@ -91,7 +91,7 @@ class CardSelection extends PlayerBaseState
         $activePlayer = \intval($this->game->getActivePlayerId());
 
         if (self::getCardsPlayedThisTurn($this->game) >= 3)
-            throw new \BgaUserException("You can't play more than 3 cards in a turn!");
+            throw new \BgaUserException(\clienttranslate("You can't play more than 3 cards in a turn!"));
 
         $playerHand = $this->game->getPlayerHand($activePlayer);
 
@@ -139,7 +139,7 @@ class CardSelection extends PlayerBaseState
             $cardFactory = $this->game->getCardFactory();
             $card = $cardFactory->getCard($cardDef["type"]);
             if (!$card->isExecutionPossible())
-                throw new \BgaUserException("Invalid card selected for execution, execution impossible");
+                throw new \BgaUserException(\clienttranslate("Invalid card selected for execution, execution impossible"));
 
             $tacticContext->setTacticInPlay($cardDef['type']);
             $tacticContext->setTacticProgress(0);

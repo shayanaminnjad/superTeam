@@ -29,7 +29,7 @@ final class MoveHexSelectionLogic
                 $availableHexes = self::getBackwardNearOpponentHexes($board, $pieceId);
                 break;
             default:
-                throw new \BgaUserException("Invalid move type!");
+                throw new \BgaUserException(\clienttranslate("Invalid move type!"));
         }
 
         return $availableHexes;

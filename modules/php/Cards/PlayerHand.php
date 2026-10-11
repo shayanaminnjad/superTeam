@@ -123,7 +123,7 @@ class PlayerHand
             $cards = $this->cards->getCardsOfTypeInLocation($cardType, null, self::$supplyName, null);
 
         if (count($cards) == 0)
-            throw new \BgaUserException("card type `$cardType` does not exist, or is already inside your hand!");
+            throw new \BgaUserException(\clienttranslate('Card type ${cardType} does not exist, or is already inside your hand!'), 100, ['cardType' => $cardType]);
 
         $card = array_values($cards)[0];
 

@@ -74,12 +74,12 @@ class MultiMove extends PlayerBaseState
     {
         $moveType = MoveTypes::tryFrom($key);
         if ($moveType === null)
-            throw new \BgaUserException("invalid key sent `$key`");
+            throw new \BgaUserException(\clienttranslate('Invalid key sent: ${key}'), 100, ['key' => $key]);
 
         $movesRemaining = $this->getRemainingMoves(new MoveActionContext());
 
         if ($movesRemaining->getMoves($moveType) <= 0)
-            throw new \BgaUserException("invalid move selected `$key`");
+            throw new \BgaUserException(\clienttranslate('Invalid move selected: ${key}'), 100, ['key' => $key]);
 
         $moveActionContext = new MoveActionContext();
 
@@ -92,7 +92,7 @@ class MultiMove extends PlayerBaseState
         $anyPieceEnforced = MovePieceSelectionLogic::enforceMovePieceSelectionConstraints($this->game->getBoard(), $playerId, $moveType, true);
 
         if (!$anyPieceEnforced)
-            throw new \BgaUserException("Invalid move selected! no piece can be moved with that criteria!");
+            throw new \BgaUserException(\clienttranslate("Invalid move selected! no piece can be moved with that criteria!"));
 
         $this->keepOnlyPiecesThatLeaveCardCompletable($moveActionContext);
 
@@ -115,7 +115,7 @@ class MultiMove extends PlayerBaseState
         }
         else
         {
-            throw new \BgaUserException("undo is not possible after first move!");
+            throw new \BgaUserException(\clienttranslate("undo is not possible after first move!"));
         }
     }
 
@@ -150,7 +150,7 @@ class MultiMove extends PlayerBaseState
             fn($id) => $card->canPieceSatisfyRemainingDemand($id, $remainingDemand, $alreadyMovedIds)));
 
         if (empty($feasibleIds))
-            throw new \BgaUserException("No piece can be selected here without making the rest of the card impossible to complete!");
+            throw new \BgaUserException(\clienttranslate("No piece can be selected here without making the rest of the card impossible to complete!"));
 
         $pieceSelectionContext->storeSelectablePiecesIds($feasibleIds);
     }

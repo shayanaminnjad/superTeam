@@ -82,7 +82,7 @@ class TacticRewardResolve extends PlayerBaseState
         $rewardRemaining = $cardReward->diff($claimedReward);
 
         if ($rewardRemaining->action == 0)
-            throw new \BgaUserException("Card has no more action rewards");
+            throw new \BgaUserException(\clienttranslate("Card has no more action rewards"));
 
         $claimedReward->action += 1;
         $this->storeRewardClaimed($claimedReward);
@@ -104,7 +104,7 @@ class TacticRewardResolve extends PlayerBaseState
         $rewardRemaining = $cardReward->diff($claimedReward);
 
         if ($rewardRemaining->move == 0)
-            throw new \BgaUserException("Card has no more move rewards");
+            throw new \BgaUserException(\clienttranslate("Card has no more move rewards"));
 
         $claimedReward->move += 1;
         $this->storeRewardClaimed($claimedReward);

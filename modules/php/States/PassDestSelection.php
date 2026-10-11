@@ -78,7 +78,7 @@ class PassDestSelection extends PlayerBaseState
             }
 
             if (!$found)
-                throw new BgaUserException('only given positions should be selected!');
+                throw new BgaUserException(\clienttranslate('only given positions should be selected!'));
         }
         else
         {
@@ -90,7 +90,7 @@ class PassDestSelection extends PlayerBaseState
                 $hex = HexID::fromArray($blockedSpace);
 
                 if ($selectedHex->equals($hex))
-                    throw new BgaUserException('blocked space selected as pass destination!');
+                    throw new BgaUserException(\clienttranslate('blocked space selected as pass destination!'));
             }
 
             //todo: also ensure that the dest is not outside the extent of the board.
@@ -108,8 +108,10 @@ class PassDestSelection extends PlayerBaseState
         {
             $board->setBallLocation($selectedHex);
 
-            $this->notify->all('successfulPass', "successful pass", [
-                "ballHex" => $selectedHex->convertToArray()]);
+            $this->notify->all('successfulPass', \clienttranslate('${player_name} passed successfully.'), [
+                "ballHex" => $selectedHex->convertToArray(),
+                "player_name" => $this->game->getPlayerNameById($activePlayer),
+            ]);
 
             return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayer);
         }
@@ -157,7 +159,7 @@ class PassDestSelection extends PlayerBaseState
             }
         }
 
-        throw new \BgaUserException("You cannot undo this action!");
+        throw new \BgaUserException(\clienttranslate("You cannot undo this action!"));
     }
 
     function zombie(int $playerId): string

@@ -67,7 +67,7 @@ class DribbleTargetSelection extends GameState
         }
 
         if (!$found)
-            throw new \BgaUserException("Invalid tackle target `" . $selectedHex->toString() . "` selected.");
+            throw new \BgaUserException(\clienttranslate('Invalid dribble target ${hex} selected.'), 100, ['hex' => $selectedHex->toString()]);
 
         DBAdapter::getInstance()->storeSelectedHex($selectedHex);
         $moraleAssignContext = new MoraleAssignContext();

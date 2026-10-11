@@ -66,7 +66,7 @@ class ShootTargetSelection extends PlayerBaseState
 
         if (!$isInputCorrect)
         {
-            throw new BgaUserException("invalid hex selected ($hexColumn, $hexRow)");
+            throw new BgaUserException(\clienttranslate('Invalid hex selected (${column}, ${row})'), 100, ['column' => $hexColumn, 'row' => $hexRow]);
         }
 
         $this->selectTarget(\intval($this->game->getCurrentPlayerId()), $selectedHex);

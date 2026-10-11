@@ -42,7 +42,7 @@ class CaptainCardPerformerSelection extends PlayerBaseState
         $selectablePieces = $pieceSelectionContext->getSelectablePieceIds();
 
         if (!array_any($selectablePieces, fn($piece) => $piece == $pieceId))
-            throw new \BgaUserException("Invalid piece selected");
+            throw new \BgaUserException(\clienttranslate("Invalid piece selected"));
 
         $pieceSelectionContext = new PieceSelectionContext();
         $pieceSelectionContext->storeSelectablePiecesIds([$pieceId]);

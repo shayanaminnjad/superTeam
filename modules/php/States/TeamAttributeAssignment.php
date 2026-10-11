@@ -52,22 +52,22 @@ class TeamAttributeAssignment extends PlayerBaseState
         
         if ($totalCubesAssigned == TeamBoard::MAX_ALLOWED_ATTRIBUTES)
         {
-            throw new BgaUserException("You cannot place more than 6 cubes!");
+            throw new BgaUserException(\clienttranslate("You cannot place more than 6 cubes!"));
         }
 
         if (!$teamBoard->isValidAttributeId($attributeId))
         {
-            throw new BgaUserException("Invalid skill Id passed! $attributeId");
+            throw new BgaUserException(\clienttranslate('Invalid skill Id passed! ${attributeId}'), 100, ['attributeId' => $attributeId]);
         }
 
         if ($this->isGKAssignable() == false && $attributeId == TeamAttribute::GK->value)
         {
-            throw new BgaUserException("You cannot re-arrange GK attributes in half time!");
+            throw new BgaUserException(\clienttranslate("You cannot re-arrange GK attributes in half time!"));
         }
         
         if (!$teamBoard->tryIncreaseAttribute($currentPlayer, TeamAttribute::from($attributeId),true))
         {
-            throw new BgaUserException("You cannot assign more than two cubes to an attribute!");
+            throw new BgaUserException(\clienttranslate("You cannot assign more than two cubes to an attribute!"));
         }
 
         $attributesRemaining = TeamBoard::MAX_ALLOWED_ATTRIBUTES - ($totalCubesAssigned + 1);

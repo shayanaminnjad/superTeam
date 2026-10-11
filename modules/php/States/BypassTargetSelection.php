@@ -69,7 +69,7 @@ class BypassTargetSelection extends PlayerBaseState
         }
 
         if (!$found)
-            throw new \BgaUserException("Invalid bypass target `" . $selectedHex->toString() . "` selected.");
+            throw new \BgaUserException(\clienttranslate('Invalid bypass target ${hex} selected.'), 100, ['hex' => $selectedHex->toString()]);
 
         DBAdapter::getInstance()->storeSelectedHex($selectedHex);
         $moraleAssignContext = new MoraleAssignContext();

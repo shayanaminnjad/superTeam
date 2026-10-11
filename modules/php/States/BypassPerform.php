@@ -41,21 +41,21 @@ class BypassPerform extends GameState
             $playerInHex = null;
 
             if (!$board->tryGetPlayerPieceInHex($selectedHex, $playerInHex))
-                throw new \BgaUserException("no player in ball hex!");
+                throw new \BgaUserException(\clienttranslate("no player in ball hex!"));
 
             if ($playerInHex->getOwner() === $activePlayerId)
-                throw new \BgaUserException("you cannot by pass your own piece!");
+                throw new \BgaUserException(\clienttranslate("you cannot by pass your own piece!"));
 
             $destinationHex = BypassLogic::getByPassDest($playerInHex, $board->getBallHex());
 
             if ($board->hasPlayerInHex($destinationHex))
-                throw new \BgaUserException("Impossible bypass! destination hex is blocked by another piece!");
+                throw new \BgaUserException(\clienttranslate("Impossible bypass! destination hex is blocked by another piece!"));
 
             $activePlayerPiece = null;
             $board->tryGetPlayerPieceInHex($board->getBallHex(), $activePlayerPiece);
 
             if ($activePlayerPiece === null)
-                throw new \BgaUserException("Impossible bypass! you don't have the ball");
+                throw new \BgaUserException(\clienttranslate("Impossible bypass! you don't have the ball"));
 
             $board->movePieceToHex($activePlayerPiece->getId(), $destinationHex);
             $board->setBallLocation($destinationHex);

@@ -79,7 +79,7 @@ class TacklePerformerSelection extends GameState
         $selectedHex = new HexID($hexColumn, $hexRow);
 
         if (!array_any($hexes, fn($v) => $selectedHex->equals($v)))
-            throw new \BgaUserException("selected invalid piece id for tackling");
+            throw new \BgaUserException(\clienttranslate("selected invalid piece id for tackling"));
 
         DBAdapter::getInstance()->storeSelectedHex($selectedHex);
         $moraleAssignContext = new MoraleAssignContext();

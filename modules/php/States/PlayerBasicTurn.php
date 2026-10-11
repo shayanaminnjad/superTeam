@@ -150,7 +150,7 @@ class PlayerBasicTurn extends PlayerBaseState
         }
         else
         {
-            throw new \BgaUserException("Undo is not possible, invalid starting state!");
+            throw new \BgaUserException(\clienttranslate("Undo is not possible, invalid starting state!"));
         }
     }
 
@@ -158,7 +158,7 @@ class PlayerBasicTurn extends PlayerBaseState
     public function actForfeit(int $activePlayerId): string
     {
         if (!DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
-            throw new \BgaUserException("Forfeit is not possible!");
+            throw new \BgaUserException(\clienttranslate("Forfeit is not possible!"));
 
         return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }

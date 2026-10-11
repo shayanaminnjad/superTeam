@@ -86,12 +86,12 @@ class PlayerPieceSetup extends PlayerBaseState
 
         if (!$isValidPosition) 
         {
-            throw new BgaUserException("Invalid hex position for placing a piece! (" . $hexColumn . ", " . $hexRow . ")");
+            throw new BgaUserException(\clienttranslate('Invalid hex position for placing a piece! (${column}, ${row})'), 100, ['column' => $hexColumn, 'row' => $hexRow]);
         }
 
         if ($placedPiece !== intval($pieceToPlace))
         {
-            throw new BgaUserException("piece placed is not valid! piece to be placed id was " .  $pieceToPlace . ", received " . $placedPiece);
+            throw new BgaUserException(\clienttranslate('Piece placed is not valid! Piece to be placed id was ${expected}, received ${received}'), 100, ['expected' => $pieceToPlace, 'received' => $placedPiece]);
         }
 
         $this->game->DbQuery("UPDATE `player_pieces` SET `hex_column` = $hexColumn, `hex_row` = $hexRow WHERE `id` = $placedPiece ");

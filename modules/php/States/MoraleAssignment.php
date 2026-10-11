@@ -72,7 +72,7 @@ class MoraleAssignment extends GameState
         $maxMoraleAssignable = $this->getArgs($activePlayerId)['maxMoraleAssignable'];
 
         if ($amount > $maxMoraleAssignable || $amount < 0) {
-            throw new \BgaUserException("$amount morale assigned, max morale assignable is $maxMoraleAssignable");
+            throw new \BgaUserException(\clienttranslate('${amount} morale assigned, max morale assignable is ${maxMorale}'), 100, ['amount' => $amount, 'maxMorale' => $maxMoraleAssignable]);
         }
 
         $moraleAssignContext = new MoraleAssignContext();

@@ -53,12 +53,12 @@ class MoveAction extends PlayerBaseState
         $pieceData = $board->getPlayerPieceData($selectedPiece->id);
 
         if ($pieceData === null)
-            throw new \BgaUserException("Invalid piece selected!");
+            throw new \BgaUserException(\clienttranslate("Invalid piece selected!"));
 
         $maxPossibleMovement = BoardEvaluator::getPieceMaxPossibleMovement($board, $activePlayerId, $pieceData, $selectedPiece->getPath(), new PlayerResources($activePlayerId));
 
         if ($maxPossibleMovement == 0)
-            throw new \BgaUserException("piece can't be moved!");
+            throw new \BgaUserException(\clienttranslate("piece can't be moved!"));
 
         $moveActionContext = new MoveActionContext();
         $moveType = $moveActionContext->getCurrentMoveType();
@@ -90,7 +90,7 @@ class MoveAction extends PlayerBaseState
 
         $moveableHexes = MoveHexSelectionLogic::GetAvailableHexes($board, $moveActionContext->getSelectedPieceData()->id, $moveActionContext->getCurrentMoveType());
         if (!array_any($moveableHexes, fn(HexID $hex) => $hex->equals($destination)))
-            throw new \BgaUserException("The selected hex is not reachable!");
+            throw new \BgaUserException(\clienttranslate("The selected hex is not reachable!"));
 
         $moveActionContext->addSelectedPieceMove($destination);
         $selectedPiece = $moveActionContext->getSelectedPieceData();
@@ -177,7 +177,7 @@ class MoveAction extends PlayerBaseState
         if ($movesTaken > 0 && $this->isMoveConditionMet($activePlayerId, $board, $moveActionContext))
             return MoveFinished::class;
         else
-            throw new \BgaUserException("You can't finish movement while you haven't met movement conditions and haven't moved at least once.");
+            throw new \BgaUserException(\clienttranslate("You can't finish movement while you haven't met movement conditions and haven't moved at least once."));
     }
 
     function zombie(int $playerId): string

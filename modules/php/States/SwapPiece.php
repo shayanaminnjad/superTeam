@@ -80,7 +80,7 @@ class SwapPiece extends PlayerBaseState
         $selectedHex = new HexID($hexColumn, $hexRow);
 
         if (!array_any($hexes, fn($v) => $selectedHex->equals($v)))
-            throw new \BgaUserException("selected invalid piece id for swapping");
+            throw new \BgaUserException(\clienttranslate("selected invalid piece id for swapping"));
 
         $pieceSelectionContext = new PieceSelectionContext();
         $selectablePieces = $pieceSelectionContext->getSelectablePieceIds();
@@ -106,7 +106,7 @@ class SwapPiece extends PlayerBaseState
     public function actForfeit(int $activePlayerId): string
     {
         if (!DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
-            throw new \BgaUserException("Forfeit is not possible!");
+            throw new \BgaUserException(\clienttranslate("Forfeit is not possible!"));
 
         return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }

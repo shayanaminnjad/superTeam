@@ -185,7 +185,7 @@ final class MovePieceSelectionLogic
                 $moveablePieces = self::extractBackwardNearOpponentPieces($board, $playerId);
                 break;
             default:
-                throw new \BgaUserException("Invalid move type!");
+                throw new \BgaUserException(\clienttranslate("Invalid move type!"));
         }
 
         if ($excludePreviouslyMoved)

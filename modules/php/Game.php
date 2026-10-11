@@ -627,7 +627,7 @@ class Game extends \Bga\GameFramework\Table
         }
         else
         {
-            throw new \BgaUserException("This cheat method can only be called in piece setup state!");
+            throw new \BgaUserException(\clienttranslate("This cheat method can only be called in piece setup state!"));
         }
     }
 
@@ -649,7 +649,7 @@ class Game extends \Bga\GameFramework\Table
         }
         else
         {
-            throw new \BgaUserException("This cheat method can only be called in default attribute setup state!");
+            throw new \BgaUserException(\clienttranslate("This cheat method can only be called in default attribute setup state!"));
         }
     }
 
@@ -689,12 +689,12 @@ class Game extends \Bga\GameFramework\Table
 
         $offsetExtent = HexLib::getOffsetExtent();
         if (!$offsetExtent->isInsideExtent($selectedHex))
-            throw new \BgaUserException("selected hex is not inside the board!");
+            throw new \BgaUserException(\clienttranslate("selected hex is not inside the board!"));
 
         $board = $this->getBoard();
         $selectedPiece = $board->getPiece($pieceId);
         if ($selectedPiece === null)
-            throw new \BgaUserException("selected piece id does not exist!");
+            throw new \BgaUserException(\clienttranslate("selected piece id does not exist!"));
 
         $board->movePieceToHex($pieceId, $selectedHex);
 
@@ -715,7 +715,7 @@ class Game extends \Bga\GameFramework\Table
 
         $offsetExtent = HexLib::getOffsetExtent();
         if (!$offsetExtent->isInsideExtent($selectedHex))
-            throw new \BgaUserException("selected hex is not inside the board!");
+            throw new \BgaUserException(\clienttranslate("selected hex is not inside the board!"));
 
         $board = $this->getBoard();
         $board->setBallLocation($selectedHex);
