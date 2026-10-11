@@ -46,6 +46,10 @@ define(["dojo/_base/declare",
                 this._updateButtons();
             },
 
+            _getPlayableTactics: function () {
+                return this._args._private?.playableTactics ?? [];
+            },
+
             _updateButtons: function () {
                 this._root.statusBar.removeActionButtons();
 
@@ -75,7 +79,7 @@ define(["dojo/_base/declare",
                         }, {
                             id: 'performTacticButton',
                             color: 'primary',
-                            disabled: !this._selectedCard || (this._selectedCard && !this._args.playableTactics.includes(this._selectedCard.type))
+                            disabled: !this._selectedCard || (this._selectedCard && !this._getPlayableTactics().includes(this._selectedCard.type))
                         });
                     }
                 }
@@ -89,7 +93,7 @@ define(["dojo/_base/declare",
                         }, {
                             id: 'cardAsBasicButton',
                             color: 'primary',
-                            disabled: !this._selectedCard || (this._selectedCard && !this._args.playableTactics.includes(this._selectedCard.type))
+                            disabled: !this._selectedCard || (this._selectedCard && !this._getPlayableTactics().includes(this._selectedCard.type))
                         });
                     }
                 }

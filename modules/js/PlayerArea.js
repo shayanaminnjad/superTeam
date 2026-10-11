@@ -53,25 +53,33 @@ define([
                 playerStuffContainer.appendChild(captainCardEl);
 
                 if (this._root.viewerId === this._ownerId) {
+                    // a spectator only sees the discard; the deck and hand still need to exist for the cards manager
+                    let deckParent = playerStuffContainer;
+                    let handParent = this._areaEl;
+                    if (this._root.isSpectator) {
+                        const spectatorHiddenEl = document.createElement('div');
+                        spectatorHiddenEl.style.display = 'none';
+                        this._areaEl.appendChild(spectatorHiddenEl);
+                        deckParent = spectatorHiddenEl;
+                        handParent = spectatorHiddenEl;
+                    }
+
                     const playerHiddenDeck = document.createElement('div');
                     playerHiddenDeck.id = 'hiddenDeck';
-                    // spectators get no deck contents, so the stock would show a wrong count
-                    if (this._root.isSpectator)
-                        playerHiddenDeck.style.visibility = 'hidden';
-                    playerStuffContainer.appendChild(playerHiddenDeck);
-                    
+                    deckParent.appendChild(playerHiddenDeck);
+
                     const playerDiscard = document.createElement('div');
                     playerDiscard.id = 'myDiscard';
                     playerStuffContainer.appendChild(playerDiscard);
 
                     const playerCardsWrapper = document.createElement('div');
                     playerCardsWrapper.id = 'cardsWrapper';
-                    this._areaEl.appendChild(playerCardsWrapper);
+                    handParent.appendChild(playerCardsWrapper);
 
                     const hideShowToggle = document.createElement('button');
                     hideShowToggle.id = 'cardsHideShowToggle';
                     hideShowToggle.setAttribute('aria-label', 'Hide hand');
-                    this._areaEl.appendChild(hideShowToggle);
+                    handParent.appendChild(hideShowToggle);
 
                     hideShowToggle.addEventListener('click', e => {
                         const nowLow = playerCardsWrapper.classList.toggle('low');

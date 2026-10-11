@@ -494,6 +494,9 @@ define([
             },
 
             notif_handRefill: function (notifData) {
+                if (this.isSpectator)
+                    return;
+
                 this.cardsManager.setHandVisibility(true);
 
                 if (notifData.wasDiscardShuffled)
@@ -669,6 +672,13 @@ define([
 
             notif_cardReset: async function(notifData) {
                 this.cardsManager.removeOpponentDiscard();
+
+                // no deck for a spectator, so the discard just empties instead of animating into the deck
+                if (this.isSpectator) {
+                    this.cardsManager.removeMyDiscard();
+                    return;
+                }
+
                 await this.cardsManager.placeAllToDeck();
                 this.cardsManager.setHandVisibility(false);
             },

@@ -76,8 +76,11 @@ class CardSelection extends PlayerBaseState
         return [
             'canPass' => $canPass,
             'canPlayCard' => $canPlayCard,
-            'playableTactics' => $playableTactics,
-            'goalieHasBall' => $goalieHasBall
+            'goalieHasBall' => $goalieHasBall,
+            // card types from the hand, so only the active player may receive them
+            '_private' => [
+                $activePlayer => ['playableTactics' => $playableTactics],
+            ],
         ];
     }
 
