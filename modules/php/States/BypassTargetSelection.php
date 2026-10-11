@@ -26,7 +26,7 @@ class BypassTargetSelection extends PlayerBaseState
             type: StateType::ACTIVE_PLAYER,
 
             // optional
-            description: clienttranslate('opponent chooses bypass target'),
+            description: clienttranslate('${actplayer} is choosing bypass target'),
             descriptionMyTurn: clienttranslate('you must choose bypass target'),
             transitions: [],
             updateGameProgression: false,

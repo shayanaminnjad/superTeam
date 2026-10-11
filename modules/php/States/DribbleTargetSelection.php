@@ -27,7 +27,7 @@ class DribbleTargetSelection extends GameState
             type: StateType::ACTIVE_PLAYER,
 
             // optional
-            description: clienttranslate('opponent chooses dribble target'),
+            description: clienttranslate('${actplayer} is choosing dribble target'),
             descriptionMyTurn: clienttranslate('you must choose dribble target'),
             transitions: [],
             updateGameProgression: false,
