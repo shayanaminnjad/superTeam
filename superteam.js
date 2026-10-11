@@ -228,7 +228,8 @@ define([
                     backwardNearOpponent: '<div class="moveBackNearOpponent buttonIcon"></div>',
                     free: '<div class="moveFree buttonIcon"></div>',
                     action: '<div class="action buttonIcon"></div>',
-                    move: '<div class="move buttonIcon"></div>'
+                    move: '<div class="move buttonIcon"></div>',
+                    morale: '<div class="resourceIcon moraleIcon buttonIcon"></div>'
                 };
 
                 const parseIcons = (text) => {
