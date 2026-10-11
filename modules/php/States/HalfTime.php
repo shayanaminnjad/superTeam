@@ -38,9 +38,12 @@ class HalfTime extends GameState
         foreach($playerHands as $hand)
         {
             $hand->MoveAllCardsToDeck();
+        }
 
-            NotificationAdapter::getInstance()->notifyPlayer($hand->getOwner(), 'cardReset', '',[]);
+        NotificationAdapter::getInstance()->notifyAll('cardReset', '', []);
 
+        foreach($playerHands as $hand)
+        {
             $hand->removeUpToTwoFatiguesFromDeck(true);
         }
 

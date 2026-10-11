@@ -234,7 +234,10 @@ class Game extends \Bga\GameFramework\Table
 
         // WARNING: We must only return information visible by the current player.
         $current_player_id = (int) $this->getCurrentPlayerId();
-        $opponent_player_id = (int) $this->getPlayerAfter($current_player_id);
+        $isSpectator = $this->isSpectator();
+        // spectators watch from the left seat, but never get that player's private cards
+        $viewer_id = $isSpectator ? (int) $this->getGameStateValue('user_in_left_id') : $current_player_id;
+        $opponent_player_id = (int) $this->getPlayerAfter($viewer_id);
 
         // Get information about players.
         $result["players"] = $this->getCollectionFromDb(
@@ -263,14 +266,16 @@ class Game extends \Bga\GameFramework\Table
             unset($player);
         }
 
-        $playerHand = $this->getPlayerHand($current_player_id);
+        $playerHand = $this->getPlayerHand($viewer_id);
         $otherHand = $this->getPlayerHand($opponent_player_id);
 
+        $result['viewer_id'] = $viewer_id;
         $result['other_deck_count'] = $otherHand->CountCardsInDeck();
         $result['other_discard'] = $otherHand->getDiscardedCards();
-        $result['player_deck'] = $playerHand->GetCardsInDeckSecret();
+        $result['player_deck'] = $isSpectator ? [] : $playerHand->GetCardsInDeckSecret();
+        $result['player_deck_count'] = $playerHand->CountCardsInDeck();
         $result['player_discard'] = $playerHand->getDiscardedCards();
-        $result['player_hand'] = $playerHand->getCardsInHand();
+        $result['player_hand'] = $isSpectator ? [] : $playerHand->getCardsInHand();
         $result['supply'] = $playerHand->getCardsInSupply(); //todo: a number is enough.
         $result['player_pieces'] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
         $result['ball'] = $this->getObjectFromDB("SELECT * FROM `ball`");

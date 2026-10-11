@@ -52,9 +52,12 @@ define([
                 captainCardEl.style.backgroundPosition = `${captainAtlasPos}% 0`;
                 playerStuffContainer.appendChild(captainCardEl);
 
-                if (this._root.player_id === this._ownerId) {
+                if (this._root.viewerId === this._ownerId) {
                     const playerHiddenDeck = document.createElement('div');
                     playerHiddenDeck.id = 'hiddenDeck';
+                    // spectators get no deck contents, so the stock would show a wrong count
+                    if (this._root.isSpectator)
+                        playerHiddenDeck.style.visibility = 'hidden';
                     playerStuffContainer.appendChild(playerHiddenDeck);
                     
                     const playerDiscard = document.createElement('div');

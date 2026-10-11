@@ -48,11 +48,14 @@ define([
 
                 this.cardDefinitions = gamedatas.card_definitions;
 
-                this.myColor = gamedatas.players[this.player_id].color === 'F86126' ? 'red' : 'blue';
+                // the player whose side this screen shows; a spectator gets the left seat from the server
+                this.viewerId = this.isSpectator ? parseInt(gamedatas.viewer_id) : this.player_id;
+
+                this.myColor = gamedatas.players[this.viewerId].color === 'F86126' ? 'red' : 'blue';
                 this.opponentColor = this.myColor === 'red' ? 'blue' : 'red';
 
                 for (const player of Object.keys(gamedatas.players)) {
-                    if (parseInt(player) !== this.player_id) {
+                    if (parseInt(player) !== this.viewerId) {
                         this.opponentId = parseInt(player);
                         break;
                     }
@@ -65,9 +68,9 @@ define([
 
                 PlayerPanelManager.construct(this, gamedatas);
 
-                let orangeGoals = gamedatas.players[this.player_id].score;
+                let orangeGoals = gamedatas.players[this.viewerId].score;
                 let blueGoals = gamedatas.players[this.opponentId].score;
-                if (this.userInLeftId !== this.player_id)
+                if (this.userInLeftId !== this.viewerId)
                 {
                     let temp = orangeGoals;
                     orangeGoals = blueGoals;
@@ -83,7 +86,7 @@ define([
 
                 this.setupMainBoard(gamedatas);
 
-                this.myPlayerArea = new PlayerArea(this.player_id, gamedatas.players[this.player_id], this);
+                this.myPlayerArea = new PlayerArea(this.viewerId, gamedatas.players[this.viewerId], this);
                 this.opponentPlayerArea = new PlayerArea(this.opponentId, gamedatas.players[this.opponentId], this);
 
                 DiceUI.construct(this);
@@ -153,7 +156,7 @@ define([
                 //Left seat sits on the low-column end, which projects to the top in
                 //portrait mode. Flipping for that seat puts the viewing player's own
                 //side at the bottom instead, near their own player panel.
-                const flipForViewer = this.player_id === this.userInLeftId;
+                const flipForViewer = this.viewerId === this.userInLeftId;
 
                 Board.construct(this, gamedatas['ball'], flipForViewer);
 
@@ -305,7 +308,7 @@ define([
                 for (let i = 0; i < piecesData.length; ++i) {
                     let el = piecesData[i];
 
-                    const isMine = parseInt(el.owner_id) === this.player_id;
+                    const isMine = parseInt(el.owner_id) === this.viewerId;
                     let color = isMine ? this.myColor : this.opponentColor;
                     let piece = this.pieceManager.createNewPiece(parseInt(el.id), el, color);
                     this.setPieceClickEvent(piece.getDOMElement());
@@ -469,12 +472,14 @@ define([
             },
 
             notif_cardUndo: function(notifData) {
+                const playerId = parseInt(notifData.player_id);
+
                 // the undoing player's hand is already restored by the hand refill notification
-                if (parseInt(notifData.player_id) === parseInt(this.player_id)) {
+                if (playerId === this.player_id) {
                     return;
                 }
 
-                PlayerPanelManager.setPlayerCards(this.opponentId, notifData.cardsInDeckCount);
+                PlayerPanelManager.setPlayerCards(playerId, notifData.cardsInDeckCount);
                 this.cardsManager.removeCard(notifData.undoCard);
             },
 
@@ -503,8 +508,14 @@ define([
 
             },
 
-            notif_opponentDiscardShuffle(notifData) {
-                this.cardsManager.removeOpponentDiscard();
+            notif_discardShuffled: function (notifData) {
+                // a player's own discard shuffle is animated by the private hand refill notification
+                if (parseInt(notifData.playerId) === this.opponentId) {
+                    this.cardsManager.removeOpponentDiscard();
+                }
+                else if (this.isSpectator) {
+                    this.cardsManager.removeMyDiscard();
+                }
             },
 
             notif_fatigueRemoved: function(notifData) {
@@ -663,7 +674,7 @@ define([
             },
 
             notif_attributesReset: async function(notifData) {
-                const myAttributes = notifData[this.player_id];
+                const myAttributes = notifData[this.viewerId];
                 const myCoachBoard = this.myPlayerArea.getCoachBoard();
                 myCoachBoard.updateOwnerDataAnimated(myAttributes);
 
@@ -701,6 +712,8 @@ define([
             statesRegistry: null,
 
             pieceManager: null,
+
+            viewerId: null,
 
             opponentId: null,
 

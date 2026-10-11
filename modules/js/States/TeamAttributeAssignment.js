@@ -44,7 +44,7 @@ define(["dojo/_base/declare",
             },
 
             notif_playerAttributesReset: async function(notifData) {
-                const myAttributes = notifData[this._root.player_id];
+                const myAttributes = notifData[this._root.viewerId];
                 const myCoachBoard = this._root.myPlayerArea.getCoachBoard();
 
                 myCoachBoard.makeAllNonSelectable();

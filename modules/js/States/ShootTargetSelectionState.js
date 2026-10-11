@@ -34,10 +34,10 @@ define(["dojo/_base/declare",
             _placeTargetingTiles: function (isAttacker) {
                 let goalieColumn = 16;
                 if (isAttacker) {
-                    if (this._root.player_id === this._root.userInRightId)
+                    if (this._root.viewerId === this._root.userInRightId)
                         goalieColumn = 0;
                 }
-                else if (this._root.player_id !== this._root.userInRightId) {
+                else if (this._root.viewerId !== this._root.userInRightId) {
                     goalieColumn = 0;
 
                 }
@@ -45,7 +45,7 @@ define(["dojo/_base/declare",
                 let rotation = "90deg";
                 let leftRow = 4;
                 let rightRow = 6;
-                if (this._root.player_id === this._root.userInRightId) {
+                if (this._root.viewerId === this._root.userInRightId) {
                     leftRow = 6;
                     rightRow = 4;
                     rotation = "-90deg";
@@ -83,7 +83,7 @@ define(["dojo/_base/declare",
             },
 
             _isCurrentPlayerAttacker: function () {
-                return parseInt(this._args.attacker) === this._root.player_id;
+                return parseInt(this._args.attacker) === this._root.viewerId;
             },
 
             _cleanup: function () {

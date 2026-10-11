@@ -46,11 +46,15 @@ define(["dojo/_base/declare",
                 this._opponentDiscardStock.removeAll();
             },
 
+            removeMyDiscard: function () {
+                this._discardStock.removeAll();
+            },
+
             placeAllToDeck: function() {
                 let discardedCards = this._discardStock.getCards()
                 for(card of discardedCards)
                 {
-                    card.location = `${this._root.player_id}_deck`;
+                    card.location = `${this._root.viewerId}_deck`;
                 }
 
                 let discardPromise =  this._hiddenDeck.addCards(this._discardStock.getCards());
@@ -59,7 +63,7 @@ define(["dojo/_base/declare",
 
                 for(card of cardsInhand)
                 {
-                    card.location = `${this._root.player_id}_deck`;
+                    card.location = `${this._root.viewerId}_deck`;
                 }
 
                 let handPromise = this._hiddenDeck.addCards(this._handStock.getCards());
@@ -71,7 +75,7 @@ define(["dojo/_base/declare",
                 let cards = this._discardStock.getCards()
                 for(card of cards)
                 {
-                    card.location = `${this._root.player_id}_deck`;
+                    card.location = `${this._root.viewerId}_deck`;
                 } 
 
                 let promise =  this._hiddenDeck.addCards(this._discardStock.getCards()).then(() => this._hiddenDeck.shuffle());
@@ -231,7 +235,7 @@ define(["dojo/_base/declare",
             _initDiscardStock: function () {
                 this._discardStock = new BgaCards.DiscardDeck(this._cardsManager, document.getElementById('myDiscard'), {
                     sort: BgaCards.sort('location_arg'),
-                    autoPlace: card => card.location === `${this._root.player_id}_discard`,
+                    autoPlace: card => card.location === `${this._root.viewerId}_discard`,
                     counter: {
                         position: 'center',
                         extraClasses: 'text-shadow'
@@ -249,7 +253,7 @@ define(["dojo/_base/declare",
                         outlineSize: 2,
                         outlineColor: 'green',
                     },
-                    autoPlace: card => card.location === 'hand' && parseInt(card.location_arg) === this._root.player_id,
+                    autoPlace: card => card.location === 'hand' && parseInt(card.location_arg) === this._root.viewerId,
                 });
             },
 
@@ -260,7 +264,7 @@ define(["dojo/_base/declare",
                         position: 'center',
                         extraClasses: 'text-shadow',
                     },
-                    autoPlace: card => card.location === `${this._root.player_id}_deck`,
+                    autoPlace: card => card.location === `${this._root.viewerId}_deck`,
                     autoUpdateCardNumber: true
                 });
             },

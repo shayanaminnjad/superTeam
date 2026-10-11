@@ -27,7 +27,7 @@ define(["dojo/_base/declare",
                     Board.visualizePowerRequired(
                         Board.getHexWithBall(),
                         selectedHex,
-                        parseInt(args.attacker) !== this._root.player_id,
+                        parseInt(args.attacker) !== this._root.viewerId,
                         !args.isShooting
                     );
                 }
@@ -50,7 +50,7 @@ define(["dojo/_base/declare",
                     Board.visualizePowerRequired(
                         Board.getHexWithBall(),
                         selectedHex,
-                        parseInt(args.attacker) !== this._root.player_id,
+                        parseInt(args.attacker) !== this._root.viewerId,
                         false
                     );
                 }

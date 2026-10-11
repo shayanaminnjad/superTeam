@@ -48,7 +48,7 @@
 
          if ($wasDiscardShuffled)
          {
-             $this->game->notify->player($this->game->getInactivePlayerId(), "opponentDiscardShuffle");
+             $this->game->notify->all("discardShuffled", "", ["playerId" => $activePlayerId]);
          }
 
          DiceRollServices::storeDiceRerolledThisTurn(false);

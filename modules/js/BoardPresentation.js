@@ -27,7 +27,7 @@ define([
             
             this._drawRuler(start, end);
 
-            const blockingPiecesOwner = opponentPerspective ? this._root.player_id : this._root.opponentId;
+            const blockingPiecesOwner = opponentPerspective ? this._root.viewerId : this._root.opponentId;
 
             let hexesInLine = HexLib.getHexesInLine(start, end);
 

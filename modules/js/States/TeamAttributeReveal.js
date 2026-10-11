@@ -26,7 +26,7 @@ define(["dojo/_base/declare",
 
             //Notifications
             notif_attributeAssignmentFinished: function (notifData) {
-                const myAttributes = notifData[this._root.player_id]
+                const myAttributes = notifData[this._root.viewerId]
                 const myCoachBoard = this._root.myPlayerArea.getCoachBoard();
                 myCoachBoard.updateOwnerDataAnimated(myAttributes);
 

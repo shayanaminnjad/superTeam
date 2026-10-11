@@ -41,7 +41,7 @@ define([
             const { rollResults, attacker, requiredPower, blockingPieces, distance, actionName, passDest = null } = params;
 
             if (passDest) {
-                Board.visualizePowerRequired(Board.getHexWithBall(), passDest, attacker !== this._root.player_id);
+                Board.visualizePowerRequired(Board.getHexWithBall(), passDest, attacker !== this._root.viewerId);
                 this._passDestShown = true;
             }
 

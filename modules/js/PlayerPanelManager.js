@@ -132,7 +132,7 @@ define([], function () {
             this.setAttacker(parseInt(gamedatas.attacker));
 
             this.setPlayerCards(this._root.opponentId, gamedatas.other_deck_count);
-            this.setPlayerCards(this._root.player_id, gamedatas.player_deck.length);
+            this.setPlayerCards(this._root.viewerId, gamedatas.player_deck_count);
         },
 
         _animateMoraleChange: function (playerId, targetMorale, targetEl, isIncrease = true) {
