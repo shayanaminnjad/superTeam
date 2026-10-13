@@ -19,6 +19,7 @@ use Bga\Games\SuperTeam\Cards\GameCards\Captain_C_1;
 use Bga\Games\SuperTeam\Cards\GameCards\Captain_C_2;
 use Bga\Games\SuperTeam\Cards\GameCards\CoachA;
 use Bga\Games\SuperTeam\Cards\GameCards\CoachB;
+use Bga\Games\SuperTeam\Cards\GameCards\CoachC;
 use Bga\Games\SuperTeam\Cards\GameCards\Fatigue;
 use Bga\Games\SuperTeam\Cards\GameCards\TeamATactic1;
 use Bga\Games\SuperTeam\Cards\GameCards\TeamATactic2;
@@ -26,6 +27,9 @@ use Bga\Games\SuperTeam\Cards\GameCards\TeamATactic3;
 use Bga\Games\SuperTeam\Cards\GameCards\TeamBTactic1;
 use Bga\Games\SuperTeam\Cards\GameCards\TeamBTactic2;
 use Bga\Games\SuperTeam\Cards\GameCards\TeamBTactic3;
+use Bga\Games\SuperTeam\Cards\GameCards\TeamCTactic1;
+use Bga\Games\SuperTeam\Cards\GameCards\TeamCTactic2;
+use Bga\Games\SuperTeam\Cards\GameCards\TeamCTactic3;
 
 class CardRegistrar
 {
@@ -51,22 +55,28 @@ class CardRegistrar
         $cardFactory->registerCard(TeamBTactic2::staticId(), fn() => new TeamBTactic2($game));
         $cardFactory->registerCard(TeamBTactic3::staticId(), fn() => new TeamBTactic3($game));
 
-        //coach
+        //team 3
+        $cardFactory->registerCard(TeamCTactic1::staticId(), fn() => new TeamCTactic1($game));
+        $cardFactory->registerCard(TeamCTactic2::staticId(), fn() => new TeamCTactic2($game));
+        $cardFactory->registerCard(TeamCTactic3::staticId(), fn() => new TeamCTactic3($game));
+
+        //coachs
         $cardFactory->registerCard(CoachA::staticId(), fn() => new CoachA($game));
         $cardFactory->registerCard(CoachB::staticId(), fn() => new CoachB($game));
+        $cardFactory->registerCard(CoachC::staticId(), fn() => new CoachC($game));
 
-        //captain
-        //team 1
+        //captains
+        //captain 1
         $cardFactory->registerCard(Captain_A_0::staticId(), fn() => new Captain_A_0($game));
         $cardFactory->registerCard(Captain_A_1::staticId(), fn() => new Captain_A_1($game));
         $cardFactory->registerCard(Captain_A_2::staticId(), fn() => new Captain_A_2($game));
 
-        //team 3
+        //captain 3
         $cardFactory->registerCard(Captain_C_0::staticId(), fn() => new Captain_C_0($game));
         $cardFactory->registerCard(Captain_C_1::staticId(), fn() => new Captain_C_1($game));
         $cardFactory->registerCard(Captain_C_2::staticId(), fn() => new Captain_C_2($game));
 
-        //team 4
+        //captain 4
         $cardFactory->registerCard(Captain_4_0::staticId(), fn()=> new Captain_4_0($game));
         $cardFactory->registerCard(Captain_4_1::staticId(), fn()=> new Captain_4_1($game));
         $cardFactory->registerCard(Captain_4_2::staticId(), fn()=> new Captain_4_2($game));
