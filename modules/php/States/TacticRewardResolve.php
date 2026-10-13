@@ -8,8 +8,6 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 
-use Bga\Games\SuperTeam\Board;
-use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
@@ -19,10 +17,7 @@ use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
-use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
-use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\PlayerResources;
-use Bga\Games\SuperTeam\Cards\TacticType;
 use Bga\Games\SuperTeam\Cards\CardReward;
 
 class TacticRewardResolve extends PlayerBaseState
