@@ -6,6 +6,8 @@ use Bga\Games\SuperTeam\HexLib\HexLib;
 
 class BypassLogic
 {
+    private const string BYPASS_REQUIRES_DICE_ROLL_KEY = 'bypass_requires_dice_roll';
+
     /**
      * @return PlayerPiece[]
      */
@@ -36,5 +38,15 @@ class BypassLogic
         $opponentPos = $opponent->getPosition();
         $dir = HexLib::GetDirectionTo($myLocation, $opponentPos);
         return HexLib::cubicToHexID(HexLIb::offsetToCubic($myLocation)->add($dir->scale(2)));
+    }
+
+    public static function doesBypassRequiresDiceRoll() : bool
+    {
+        return DBAdapter::getInstance()->getGlobalBool(self::BYPASS_REQUIRES_DICE_ROLL_KEY);
+    }
+
+    public static function setBypassRollRequirement(bool $requiresDice) : void
+    {
+        DBAdapter::getInstance()->storeGlobalBool(self::BYPASS_REQUIRES_DICE_ROLL_KEY, $requiresDice);
     }
 }

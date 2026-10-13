@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `rewards_used` TEXT,
     `extra_morale_move_used` BOOLEAN DEFAULT FALSE,
     `choosing_extra_reward` BOOLEAN DEFAULT FALSE,
+    `bypass_requires_dice_roll` BOOLEAN DEFAULT FALSE,
     `moves_performed` TEXT,
     `current_move_type` TEXT,
     `no_morale_for_exhausted` BOOLEAN DEFAULT FALSE,

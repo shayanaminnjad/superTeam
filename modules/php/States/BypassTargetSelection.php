@@ -72,21 +72,27 @@ class BypassTargetSelection extends PlayerBaseState
             throw new \BgaUserException(\clienttranslate('Invalid bypass target ${hex} selected.'), 100, ['hex' => $selectedHex->toString()]);
 
         DBAdapter::getInstance()->storeSelectedHex($selectedHex);
-        $moraleAssignContext = new MoraleAssignContext();
-        $moraleAssignContext->storeMoraleStateData(DiceRoll::class, true);
 
-        $attacker = $board->getAttacker();
-        $pieceWithBall = null;
-        $board->tryGetPlayerPieceInHex($board->getBallHex(), $pieceWithBall);
-        $defender = $board->getDefender();
-        $defendingPiece = null;
-        $board->tryGetPlayerPieceInHex($selectedHex, $defendingPiece);
-        $moraleAssignContext->storeMoraleAssignPieceIds([[$attacker, $pieceWithBall->getId()],[$defender, $defendingPiece->getId()]]);
+        if (BypassLogic::doesBypassRequiresDiceRoll())
+        {
+            $moraleAssignContext = new MoraleAssignContext();
+            $moraleAssignContext->storeMoraleStateData(DiceRoll::class, true);
 
-        DiceRollServices::storeRollInput(\clienttranslate("Bypass"), $activePlayer, new RequiredPower(-1, []), BypassPerform::class, TeamAttribute::Dribble, TeamAttribute::Tackle, true,
-            [$attacker => $pieceWithBall->getId(), $defender => $defendingPiece->getId()]);
+            $attacker = $board->getAttacker();
+            $pieceWithBall = null;
+            $board->tryGetPlayerPieceInHex($board->getBallHex(), $pieceWithBall);
+            $defender = $board->getDefender();
+            $defendingPiece = null;
+            $board->tryGetPlayerPieceInHex($selectedHex, $defendingPiece);
+            $moraleAssignContext->storeMoraleAssignPieceIds([[$attacker, $pieceWithBall->getId()], [$defender, $defendingPiece->getId()]]);
 
-        return ActiveNextGoMorale::class;
+            DiceRollServices::storeRollInput(\clienttranslate("Bypass"), $activePlayer, new RequiredPower(-1, []), BypassPerform::class, TeamAttribute::Dribble, TeamAttribute::Tackle, true,
+                [$attacker => $pieceWithBall->getId(), $defender => $defendingPiece->getId()]);
+
+            return ActiveNextGoMorale::class;
+        }
+        else
+            return BypassPerform::class;
     }
 
     function zombie(int $playerId): string

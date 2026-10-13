@@ -123,6 +123,7 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actBypass() : string
     {
+        BypassLogic::setBypassRollRequirement(true);
         return BypassTargetSelection::class;
     }
 
