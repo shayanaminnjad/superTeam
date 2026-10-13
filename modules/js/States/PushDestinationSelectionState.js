@@ -12,13 +12,7 @@ define(["dojo/_base/declare",
 
             //State Overrides
             _onActivePlayerEnter: function (args) {
-                let pushHexes = [];
-
-                for (const space of args.pushHexes) {
-                    pushHexes.push(Board.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(space.hex_row, space.hex_column)));
-                }
-
-                Board.makeHexesSelectable(pushHexes);
+                this._makeHexesAvailable();
             },
 
             _onInactivePlayerEnter: function (args) {
@@ -38,8 +32,25 @@ define(["dojo/_base/declare",
 
                     var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
 
-                    await this._root.performServerAction("actTargetSelected", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r });
+                    try {
+                        Board.makeAllHexesNonSelectable();
+                        await this._root.performServerAction("actTargetSelected", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r });
+                    }
+                    catch (error) {
+                        this._makeHexesAvailable();
+                        throw error;
+                    }
                 }
+            },
+
+            _makeHexesAvailable: function() {
+                let pushHexes = [];
+
+                for (const space of this._args.pushHexes) {
+                    pushHexes.push(Board.convertOffsetCoordToHexId(STHexLib.createOffsetCoord(space.hex_row, space.hex_column)));
+                }
+
+                Board.makeHexesSelectable(pushHexes);
             },
 
             getName: function () {
