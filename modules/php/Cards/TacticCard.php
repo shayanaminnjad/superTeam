@@ -107,6 +107,7 @@ abstract class TacticCard extends Card
             return new ExecutionResult(ExecutionAction::Failure);
     }
 
+    //FIXME: why I do this? I can simply just check the pass result from the dice?
     final protected function checkThroughPassResult() : ExecutionResult
     {
         $passResult = false;
@@ -143,7 +144,7 @@ abstract class TacticCard extends Card
         {
             $commands[] = fn() => $this->forceFeasiblePassTargetsForType($passType);
             $commands[] = $this->goToPassState(...);
-            $commands[] = $passType === PassTypes::THROUGH ? $this->checkThroughPassResult(...) : $this->checkPassResult(...);
+            $commands[] = PassTargetSelectionLogic::isThroughPassFamily($passType) ? $this->checkThroughPassResult(...) : $this->checkPassResult(...);
         }
 
         return $commands;

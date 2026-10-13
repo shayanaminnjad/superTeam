@@ -25,8 +25,8 @@ class MovePieceSelection extends PlayerBaseState
             type: StateType::ACTIVE_PLAYER,
 
             // optional
-            description: clienttranslate('${actplayer} is choosing a piece'),
-            descriptionMyTurn: clienttranslate('${you} must choose a piece'),
+            description: clienttranslate('${actplayer} is choosing a piece to move'),
+            descriptionMyTurn: clienttranslate('${you} must choose a piece to move'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,

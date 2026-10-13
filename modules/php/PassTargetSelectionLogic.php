@@ -8,40 +8,26 @@ use http\Exception\RuntimeException;
 
 class PassTargetSelectionLogic
 {
-    public static function getPassTargetsHexes(Board $board, PassTypes $passType, int $playerId, HexId $passStart, PlayerSide $playerSide): array
-    {
-        $passTargetHexes = [];
-
-        $passTargetPieces = self::getPassTargetPieces($board, $passType, $playerId, $passStart, $playerSide);
-        $notPassedPieces = self::filterNotPassedPieces($playerId, $passTargetPieces);
-
-        if (PassTypes::THROUGH === $passType)
-        {
-            foreach ($notPassedPieces as $piece)
-            {
-                $arcHexes = HexLib::getFrontArc($piece->getPosition(), ($playerSide === PlayerSide::Left) ? 1 : -1);
-                $passTargetHexes = array_merge($passTargetHexes, $arcHexes);
-            }
-
-            $passTargetHexes = array_values(array_filter($passTargetHexes, fn($hex) => $board->isHexEmpty($hex)));
-        }
-        else
-        {
-            $passTargetHexes = self::getPiecesPositions($notPassedPieces);
-        }
-
-        return $passTargetHexes;
-    }
-
     public static function getFeasiblePassTargetsHexes(Board $board, PassTypes $passType, array $remainingPassTypesAfterThis, int $playerId, HexId $passStart, PlayerSide $playerSide): array
     {
         $passTargetHexes = [];
 
-        $passTargetPieces = self::getPassTargetPieces($board, $passType, $playerId, $passStart, $playerSide);
-        $notPassedPieces = self::filterNotPassedPieces($playerId, $passTargetPieces);
-        $feasiblePieces = self::filterFeasibleContinuations($board, $playerId, $playerSide, $remainingPassTypesAfterThis, $notPassedPieces);
+        $passActionContext = new PassActionContext($playerId);
+        $piecesPassedIds = $passActionContext->getPiecesPassedIds();
+        $piecesPassed = array_map(fn($id) => $board->getPiece(intval($id)), $piecesPassedIds);
 
-        if (PassTypes::THROUGH === $passType)
+        $passTargetPieces = self::getPassTargetPieces($board, $passType, $playerId, $passStart, $playerSide, $piecesPassed);
+        if ($passType == PassTypes::THROUGH_PREVIOUS)
+        {
+            $feasiblePieces = $passTargetPieces;
+        }
+        else
+        {
+            $notPassedPieces = self::filterNotPassedPieces($playerId, $passTargetPieces);
+            $feasiblePieces = self::filterFeasibleContinuations($board, $playerId, $playerSide, $remainingPassTypesAfterThis, $notPassedPieces);
+        }
+
+        if (self::isThroughPassFamily($passType))
         {
             foreach ($feasiblePieces as $piece)
             {
@@ -69,7 +55,7 @@ class PassTargetSelectionLogic
         }));
     }
 
-    public static function getPassTargetPieces(Board $board, PassTypes $passType, int $playerId, HexID $passStart, PlayerSide $playerSide) : array
+    public static function getPassTargetPieces(Board $board, PassTypes $passType, int $playerId, HexID $passStart, PlayerSide $playerSide, array $piecesPassedSoFar) : array
     {
         switch ($passType)
         {
@@ -81,25 +67,16 @@ class PassTargetSelectionLogic
                 return self::getForwardPassTargets($board, $playerId, $playerSide, $passStart);
             case PassTypes::THROUGH:
                 return self::getThroughPassTargets($board, $playerId);
+            case PassTypes::THROUGH_BACKWARD:
+                return self::getBackwardThroughPassTargets($board, $playerId, $playerSide, $passStart);
+            case PassTypes::THROUGH_FORWARD:
+                return self::getForwardThroughPassTargets($board, $playerId, $playerSide, $passStart);
+            case PassTypes::THROUGH_PREVIOUS:
+                return [$piecesPassedSoFar[count($piecesPassedSoFar) - 1]];
             case PassTypes::NEAR_OPPONENT:
                 return self::getNearOpponentPassTargets($board, $passStart, $playerId);
             default:
                 throw new RuntimeException("Unknown pass type! have you updated the game with an expansion?");
-        }
-    }
-
-    public static function forcePassTargets(Board $board, PassTypes $passType, int $playerId, HexId $passStart, PlayerSide $playerSide): bool
-    {
-        $passTargetHexes = self::getPassTargetsHexes($board, $passType, $playerId, $passStart, $playerSide);
-
-        if (!empty($passTargetHexes))
-        {
-            self::storeForcedTargets($playerId, self::getPositionsAsJson($passTargetHexes));
-            return true;
-        }
-        else
-        {
-            return false;
         }
     }
 
@@ -187,11 +164,19 @@ class PassTargetSelectionLogic
 
         $playerPiecesPassed[] = $passingPiece;
 
-        $targetPieces = self::getPassTargetPieces($board, $passType, $playerId, $passingPiece->getPosition(), $playerSide);
+        $targetPieces = self::getPassTargetPieces($board, $passType, $playerId, $passingPiece->getPosition(), $playerSide, $playerPiecesPassed);
 
-        $piecesNotPassed = array_filter($targetPieces, function($target) use ($playerPiecesPassed) {
-            return !array_any($playerPiecesPassed, fn($passed) => $passed->getId() === $target->getId());
-        });
+        if ($passType == PassTypes::THROUGH_PREVIOUS)
+        {
+            $piecesNotPassed = $targetPieces;
+        }
+        else
+        {
+            $piecesNotPassed = array_filter($targetPieces, function ($target) use ($playerPiecesPassed)
+            {
+                return !array_any($playerPiecesPassed, fn($passed) => $passed->getId() === $target->getId());
+            });
+        }
 
         if (empty($piecesNotPassed))
             return false;
@@ -239,6 +224,38 @@ class PassTargetSelectionLogic
         }
 
         return $targets;
+    }
+
+    private static function getBackwardThroughPassTargets(Board $board, int $playerId, PlayerSide $playerSide, HexID $passStart) : array
+    {
+        $throughPassTargets = self::getThroughPassTargets($board, $playerId);
+        $forwardPassTargets = self::getBackwardPassTargets($board, $playerId, $playerSide, $passStart);
+
+        $backwardIds = array_map(
+            fn(PlayerPiece $piece) => $piece->getId(),
+            $forwardPassTargets
+        );
+
+        return array_filter(
+            $throughPassTargets,
+            fn(PlayerPiece $piece) => in_array($piece->getId(), $backwardIds, true)
+        );
+    }
+
+    private static function getForwardThroughPassTargets(Board $board, int $playerId, PlayerSide $playerSide, HexID $passStart) : array
+    {
+        $throughPassTargets = self::getThroughPassTargets($board, $playerId);
+        $forwardPassTargets = self::getForwardPassTargets($board, $playerId, $playerSide, $passStart);
+
+        $forwardIds = array_map(
+            fn(PlayerPiece $piece) => $piece->getId(),
+            $forwardPassTargets
+        );
+
+        return array_filter(
+            $throughPassTargets,
+            fn(PlayerPiece $piece) => in_array($piece->getId(), $forwardIds, true)
+        );
     }
 
     private static function getNearOpponentPassTargets(Board $board, HexID $passStart, int $playerId) : array
@@ -293,5 +310,11 @@ class PassTargetSelectionLogic
         $piecesPassedIds = $passActionContext->getPiecesPassedIds();
 
         return array_filter($pieces, fn($el) => !array_any($piecesPassedIds, fn($passedPieceId)=> $el->getId() == intval($passedPieceId)));
+    }
+
+    public static function isThroughPassFamily(PassTypes $passType) : bool
+    {
+        return $passType === PassTypes::THROUGH_BACKWARD || $passType === PassTypes::THROUGH_FORWARD ||
+            $passType === PassTypes::THROUGH || $passType === PassTypes::THROUGH_PREVIOUS;
     }
 }
