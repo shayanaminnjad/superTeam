@@ -12,6 +12,8 @@ use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
+use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
+use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\States\MovePieceSelection;
 
 class Fatigue extends Card
@@ -21,7 +23,7 @@ class Fatigue extends Card
         parent::__construct(new CardDefinition(
             \clienttranslate("Fatigue"),
             CardType::Fatigue,
-            \clienttranslate("one move")), $game);
+            \clienttranslate("One move")), $game);
     }
     public function isExecutionPossible(): bool
     {
@@ -45,7 +47,8 @@ class Fatigue extends Card
     protected function getCommands(): array
     {
         return [
-            $this->goToFreeMovementState(...)
+            $this->goToFreeMovementState(...),
+            $this->gainMoraleIfHavePower(...)
             ];
     }
 
@@ -63,5 +66,18 @@ class Fatigue extends Card
         $moveActionContext->setCurrentMoveType(MoveTypes::FREE);
 
         return new ExecutionResult(ExecutionAction::GoToState, MovePieceSelection::class);
+    }
+
+    private function gainMoraleIfHavePower() : ExecutionResult
+    {
+        $playerId = intval($this->game->getActivePlayerId());
+
+        if (PlayerPowers::forPlayer($playerId)->gainsMoraleOnFatiguePlay())
+        {
+            $playerResources = new PlayerResources($playerId);
+            $playerResources->addMorale(1, true);
+        }
+
+        return new ExecutionResult(ExecutionAction::Success);
     }
 }

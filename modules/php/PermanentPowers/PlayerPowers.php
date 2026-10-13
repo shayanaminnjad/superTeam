@@ -110,4 +110,9 @@ final class PlayerPowers
     {
         return $this->team === TeamId::RerollNegativeDice;
     }
+
+    public function gainsMoraleOnFatiguePlay() : bool
+    {
+        return $this->team === TeamId::GainMoraleOnFatiguePlay;
+    }
 }
