@@ -7,8 +7,13 @@ use Bga\Games\SuperTeam\Cards\CaptainCard;
 use Bga\Games\SuperTeam\Cards\CardDefinition;
 use Bga\Games\SuperTeam\Cards\CardType;
 use Bga\Games\SuperTeam\Cards\CardTypeHelper;
+use Bga\Games\SuperTeam\Cards\ExecutionAction;
+use Bga\Games\SuperTeam\Cards\ExecutionResult;
+use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_4;
+use Bga\Games\SuperTeam\PlayerResources;
+use Bga\Games\SuperTeam\PlayerRole;
 
 class Captain_4_0 extends CaptainCard
 {
@@ -24,7 +29,6 @@ class Captain_4_0 extends CaptainCard
 
     public function isExecutionPossible(): bool
     {
-        return false;
         $playerId = \intval($this->game->GetActivePlayerId());
 
         return count(BoardEvaluator::getPlayerPiecesAdjacentToOpponent($this->board, $playerId)) > 0;
@@ -41,8 +45,12 @@ class Captain_4_0 extends CaptainCard
 
     protected function getCommands(): array
     {
-        //TODO: implement push first!
-        // TODO: Implement getCommands() method.
+        return [
+            $this->goToPushState(...),
+            $this->makeNextActionForfeitable(...),
+            $this->goToFreeMoveState(...),
+            $this->ifCaptainSelectedGiveMorale(...)
+        ];
     }
 
     protected function cleanup(): void
