@@ -8,6 +8,8 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
+use Bga\Games\SuperTeam\ClientButtonColor;
+use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 
@@ -51,6 +53,11 @@ class MovePieceSelection extends PlayerBaseState
                 $exhaustedSelectablePieceIds[] = $pieceData->getId();
         }
 
+        if (DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
+        {
+            $this->addClientButton(\clienttranslate("Forfeit"), [$this, "actForfeit"], [], new ClientButtonParams(ClientButtonColor::ALERT));
+        }
+
         $moveActionContext = new MoveActionContext();
 
         return [
@@ -74,6 +81,15 @@ class MovePieceSelection extends PlayerBaseState
         $moveActionContext->setSelectedPieceData($board->getPlayerPieceData($pieceId));
 
         return MoveAction::class;
+    }
+
+    #[PossibleAction]
+    public function actForfeit(int $activePlayerId): string
+    {
+        if (!DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
+            throw new \BgaUserException(\clienttranslate("Forfeit is not possible!"));
+
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 
     function zombie(int $playerId): string
