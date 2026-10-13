@@ -551,7 +551,7 @@ define([
             },
 
             notif_diceRolled: async function (notifData) {
-                DiceUI.showRoll(this.buildDiceParams(notifData), false);
+                await DiceUI.showRoll(this.buildDiceParams(notifData), false);
                 const DISPLAY_TIME = 5 * 1000;
                 await this.wait(DISPLAY_TIME);
 
