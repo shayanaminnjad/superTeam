@@ -15,6 +15,7 @@ use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\MoraleAssignContext;
+use Bga\Games\SuperTeam\PassTargetSelectionLogic;
 use Bga\Games\SuperTeam\PlayerSide;
 use Bga\Games\SuperTeam\TeamAttribute;
 use BgaUserException;
@@ -53,15 +54,17 @@ class PassDestSelection extends PlayerBaseState
             }
         }
 
-        return $this->game->getValidPassTargets(null);
+        return PassTargetSelectionLogic::getValidPassTargets($this->game->getBoard(), $activePlayer,null);
     }
 
     #[PossibleAction]
     public function actDestSelected(int $hexColumn, int $hexRow) : string
     {
+        $board = $this->game->getBoard();
+        $activePlayer = intval($this->game->getActivePlayerId());
         $selectedHex = new HexID($hexColumn, $hexRow);
 
-        $passDestArgs = $this->game->getValidPassTargets(null);
+        $passDestArgs = PassTargetSelectionLogic::getValidPassTargets($board, $activePlayer,null);
 
         $forcedPositions = $passDestArgs["forcedPositions"];
 
@@ -96,8 +99,6 @@ class PassDestSelection extends PlayerBaseState
             //todo: also ensure that the dest is not outside the extent of the board.
         }
 
-        $board = $this->game->getBoard();
-        $activePlayer = intval($this->game->getActivePlayerId());
         $goalieHasBall = BoardEvaluator::doesPlayerGoalieHasBall($board, $activePlayer);
 
         $playerSide = $this->game->getPlayerSide($activePlayer);

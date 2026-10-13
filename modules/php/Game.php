@@ -24,6 +24,7 @@ use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\Cards\PlayerHandCreator;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_1;
+use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_3;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_4;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPowerBase;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPowerFactory;
@@ -37,7 +38,6 @@ require_once(__DIR__ . '/StateMachineConstants.inc.php');
 class Game extends \Bga\GameFramework\Table
 {
     // Values must match option 100 in gameoptions.json.
-    public const GAME_MODE_BASIC = 1;
     public const GAME_MODE_ADVANCED = 2;
 
     private ?TeamBoard $teamBoard = null;
@@ -86,55 +86,6 @@ class Game extends \Bga\GameFramework\Table
             "playerStartedFirstHalf" => 21,
             "game_mode" => 100
         ]);
-    }
-
-    //(sha) TODO: probably this must be a part of board? or a piece manager? probably moveLogic!
-    public function getValidPassTargets(?callable $additionalCondition): array
-    {
-        $currentPlayer = \intval($this->getActivePlayerId());
-        $forcedTargetsJson = DBAdapter::getInstance()->getPlayerTempStr($currentPlayer, "forced_pass_targets");
-        $forcedTargetsArray = json_decode($forcedTargetsJson, true);
-
-        if (!\is_array($forcedTargetsArray)) 
-            $forcedTargetsArray = [];
-
-        $forcedPositions = [];
-
-        foreach($forcedTargetsArray as $forcedTarget)
-        {
-            $forcedPositions[] = HexID::fromJson($forcedTarget)->convertToArray();
-        }
-
-        $board = $this->getBoard();
-
-        $allPieces = $board->getPieces();
-
-        $blockedSpaces = [];
-
-        $currentPlayerId = \intval($this->getActivePlayerId());
-
-        foreach ($allPieces as $piece) {
-            if ($piece->getOwner() !== $currentPlayerId && $piece->getRole() !== PlayerRole::GoalKeeper->value && (!$additionalCondition || $additionalCondition($piece))) {
-                $piecePos = $piece->getPosition();
-                $blockedSpaces[] = $piecePos->convertToArray();
-            }
-        }
-
-        $playerGoaliePos = $board->getPlayerGoalie($currentPlayerId)->getPosition();
-
-        foreach (BoardInfo::$GOALIE_SPECIFIC_LOCATIONS as $goalieLocation) {
-            if (!$goalieLocation->equals($playerGoaliePos)) {
-                $blockedSpaces[] = $goalieLocation->convertToArray();
-            }
-        }
-
-        $hexWithBall = $board->getBallHex();
-
-        return [
-            "hexWithBall" => $hexWithBall->convertToArray(),
-            "blockedSpaces" => $blockedSpaces,
-            "forcedPositions" => $forcedPositions
-        ];
     }
 
     /**
@@ -326,7 +277,7 @@ class Game extends \Bga\GameFramework\Table
         $default_colors = $this->getGameinfos()['player_colors'];
 
         $teamBoard = 0;
-        $captainBoard = CaptainPower_1::staticId();
+        $captainBoard = CaptainPower_3::staticId();
         foreach ($players as $player_id => $player) {
             $query_values[] = vsprintf("('%s', '%s', '%s', '%s', '%s', '%s', '%s')", [
                 $player_id,

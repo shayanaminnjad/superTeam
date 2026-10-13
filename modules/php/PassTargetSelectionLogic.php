@@ -129,6 +129,49 @@ class PassTargetSelectionLogic
         return false;
     }
 
+    public static function getValidPassTargets(Board $board, int $currentPlayer, ?callable $additionalCondition): array
+    {
+        $forcedTargetsJson = DBAdapter::getInstance()->getPlayerTempStr($currentPlayer, "forced_pass_targets");
+        $forcedTargetsArray = json_decode($forcedTargetsJson, true);
+
+        if (!\is_array($forcedTargetsArray))
+            $forcedTargetsArray = [];
+
+        $forcedPositions = [];
+
+        foreach($forcedTargetsArray as $forcedTarget)
+        {
+            $forcedPositions[] = HexID::fromJson($forcedTarget)->convertToArray();
+        }
+
+        $allPieces = $board->getPieces();
+
+        $blockedSpaces = [];
+
+        foreach ($allPieces as $piece) {
+            if ($piece->getOwner() !== $currentPlayer && $piece->getRole() !== PlayerRole::GoalKeeper->value && (!$additionalCondition || $additionalCondition($piece))) {
+                $piecePos = $piece->getPosition();
+                $blockedSpaces[] = $piecePos->convertToArray();
+            }
+        }
+
+        $playerGoaliePos = $board->getPlayerGoalie($currentPlayer)->getPosition();
+
+        foreach (BoardInfo::$GOALIE_SPECIFIC_LOCATIONS as $goalieLocation) {
+            if (!$goalieLocation->equals($playerGoaliePos)) {
+                $blockedSpaces[] = $goalieLocation->convertToArray();
+            }
+        }
+
+        $hexWithBall = $board->getBallHex();
+
+        return [
+            "hexWithBall" => $hexWithBall->convertToArray(),
+            "blockedSpaces" => $blockedSpaces,
+            "forcedPositions" => $forcedPositions
+        ];
+    }
+
     public static function reset(int $playerId) : void
     {
         DBAdapter::GetInstance()->storePlayerTempStr($playerId, "forced_pass_targets", "");
