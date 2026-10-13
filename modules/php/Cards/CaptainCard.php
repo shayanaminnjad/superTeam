@@ -114,6 +114,30 @@ abstract class CaptainCard extends Card
         return $result;
     }
 
+    protected function isBallReceiverOutsidePenaltyArea() : bool
+    {
+        $result = false;
+
+        $playerId = intval($this->game->getActivePlayerId());
+        $passActionContext = new PassActionContext($playerId);
+
+        $pieceId = $passActionContext->getLastPassReceiverIdThisTurn();
+
+        if (PlayerPiece::getInvalidPieceId() != $pieceId &&
+            !BoardEvaluator::isInsideOpponentPenaltyArea($playerId, $passActionContext->getLastPassReceiverPosThisTurn()))
+        {
+            $playerPiece = $this->board->getPlayerPieceData($pieceId);
+            if (!BoardEvaluator::isInsideOpponentPenaltyArea($playerId, $playerPiece->getPosition()))
+            {
+                assert($playerPiece->getPosition()->equals($this->board->getBallHex()));
+
+                $result = true;
+            }
+        }
+
+        return $result;
+    }
+
     protected function getPiecesNotAdjacentToOpponents() : array
     {
         $playerId = \intval($this->game->GetActivePlayerId());

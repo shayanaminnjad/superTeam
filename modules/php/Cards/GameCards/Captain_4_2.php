@@ -28,7 +28,7 @@ class Captain_4_2 extends CaptainCard
 
     public function isExecutionPossible(): bool
     {
-        return !$this->isBallReceiverInsidePenaltyArea();
+        return $this->isBallReceiverOutsidePenaltyArea();
     }
 
     public static function staticId() : string
