@@ -38,8 +38,13 @@ class PushDestinationSelection extends PlayerBaseState
         $board->tryGetPlayerPieceInHex($selectedPushTarget, $playerPiece);
 
         $pushHexes = BoardSpatial::findImmediateMoveableNeighbours($board, $playerPiece);
+        $pushHexesArray = [];
+        foreach($pushHexes as $hex)
+        {
+            $pushHexesArray[] = $hex->convertToArray();
+        }
 
-        return ["pushHexes" => $pushHexes];
+        return ["pushHexes" => $pushHexesArray];
     }
 
     #[PossibleAction]
@@ -48,14 +53,14 @@ class PushDestinationSelection extends PlayerBaseState
         $board = $this->game->getBoard();
         $selectedHex = new HexID($hexColumn, $hexRow);
 
-        //todo: check whether the hex is selectable at all!
-        if (!BoardSpatial::isHexMoveable($board, $selectedHex))
+        $hexesArray = $this->getArgs()["pushHexes"];
+        if (!array_any($hexesArray, fn($hex) => HexID::fromArray($hex)->equals($selectedHex)))
             throw new \BgaUserException(clienttranslate("Invalid hex selected."));
 
         $selectedPushTarget = DBAdapter::getInstance()->getSelectedHexAsHexID();
-        $playerPiece = null;
-        $board->tryGetPlayerPieceInHex($selectedPushTarget, $playerPiece);
-        $board->movePieceToHex($playerPiece->getId(), $selectedHex);
+        $opponentPiece = null;
+        $board->tryGetPlayerPieceInHex($selectedPushTarget, $opponentPiece);
+        $board->movePieceToHex($opponentPiece->getId(), $selectedHex);
 
         $ballMoved = false;
         if ($board->getBallHex()->equals($selectedPushTarget))
@@ -66,7 +71,7 @@ class PushDestinationSelection extends PlayerBaseState
 
         $this->notify->all("movedPiece", \clienttranslate('${player_name} pushes a piece'), array(
             "player_name" => $this->game->getActivePlayerName(),
-            "movedPiece" => $playerPiece->id,
+            "movedPiece" => $opponentPiece->getId(),
             "hex_column" => $hexColumn,
             "hex_row" => $hexRow,
             "ballMoved" => $ballMoved,

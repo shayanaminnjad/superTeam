@@ -34,7 +34,12 @@ class PushTargetSelection extends PlayerBaseState
         $board = $this->game->getBoard();
         $activePlayer = \intval($this->game->getActivePlayerId());
 
-        $adjacentOpponents = BoardEvaluator::getAdjacentOpponentPieces($board, $board->getBallHex(), $activePlayer, false);
+        $selectedHex = DBAdapter::getInstance()->getSelectedHexAsHexID();
+        $selectedPiece = null;
+        if (!$board->tryGetPlayerPieceInHex($selectedHex, $selectedPiece) || $selectedPiece->getOwner() !== $activePlayer)
+            throw new \BgaUserException(clienttranslate("Invalid piece selected for push!"));
+
+        $adjacentOpponents = BoardEvaluator::getAdjacentOpponentPieces($board, $selectedHex, $activePlayer, false);
         $pushablePiecesArray = [];
         foreach ($adjacentOpponents as $opponent)
         {
