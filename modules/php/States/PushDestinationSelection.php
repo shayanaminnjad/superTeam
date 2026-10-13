@@ -62,10 +62,10 @@ class PushDestinationSelection extends PlayerBaseState
         $board->tryGetPlayerPieceInHex($selectedPushTarget, $opponentPiece);
         $board->movePieceToHex($opponentPiece->getId(), $selectedHex);
 
-        $ballMoved = false;
+        $ballMoved = 0;
         if ($board->getBallHex()->equals($selectedPushTarget))
         {
-            $ballMoved = true;
+            $ballMoved = 1;
             $board->setBallLocation($selectedHex);
         }
 
