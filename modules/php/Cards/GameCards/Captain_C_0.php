@@ -52,7 +52,7 @@ class Captain_C_0 extends CaptainCard
             $this->goToSwapPieceState(...),
             $this->makeNextActionForfeitable(...),
             $this->goToBasicActionState(...),
-            $this->ifCaptainGiveMorale(...)
+            $this->ifCaptainSelectedGiveMorale(...)
         ];
     }
 
@@ -60,36 +60,8 @@ class Captain_C_0 extends CaptainCard
     {
     }
 
-    private function enforceAdjacentPieces() : ExecutionResult
-    {
-        $playerId = \intval($this->game->GetActivePlayerId());
-        $adjacentPieces = BoardEvaluator::getPlayerPiecesAdjacentToOpponent($this->board, $playerId);
-
-        $pieceSelectionContext = new PieceSelectionContext();
-        $pieceSelectionContext->storeSelectablePieces($adjacentPieces);
-
-        return new ExecutionResult(ExecutionAction::Continue);
-    }
-
     private function goToSwapPieceState() : ExecutionResult
     {
         return new ExecutionResult(ExecutionAction::GoToState, SwapPiece::class);
-    }
-
-    private function ifCaptainGiveMorale() : ExecutionResult
-    {
-        $pieceSelectionContext = new PieceSelectionContext();
-        $selectablePieces = $pieceSelectionContext->getSelectablePieceIds();
-
-        assert(count($selectablePieces) == 1);
-
-        if ($this->board->getPiece($selectablePieces[0])->getRole() == PlayerRole::Captain->value)
-        {
-            $playerId = \intval($this->game->GetActivePlayerId());
-            $playerResources = new PlayerResources($playerId);
-            $playerResources->addMorale(1, true);
-        }
-
-        return new ExecutionResult(ExecutionAction::Success);
     }
 }

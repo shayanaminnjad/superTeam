@@ -17,6 +17,8 @@ use Bga\Games\SuperTeam\States\CaptainCardPerformerSelection;
 use Bga\Games\SuperTeam\States\MovePieceSelection;
 use Bga\Games\SuperTeam\States\PassDestSelection;
 use Bga\Games\SuperTeam\States\PlayerBasicTurn;
+use Bga\Games\SuperTeam\States\PushingPieceSelection;
+use Bga\Games\SuperTeam\States\PushTargetSelection;
 use Bga\Games\SuperTeam\States\ShootTargetSelection;
 
 abstract class CaptainCard extends Card
@@ -64,6 +66,23 @@ abstract class CaptainCard extends Card
         return new ExecutionResult(ExecutionAction::Continue);
     }
 
+    protected function ifCaptainSelectedGiveMorale() : ExecutionResult
+    {
+        $pieceSelectionContext = new PieceSelectionContext();
+        $selectablePieces = $pieceSelectionContext->getSelectablePieceIds();
+
+        assert(count($selectablePieces) == 1);
+
+        if ($this->board->getPiece($selectablePieces[0])->getRole() == PlayerRole::Captain->value)
+        {
+            $playerId = \intval($this->game->GetActivePlayerId());
+            $playerResources = new PlayerResources($playerId);
+            $playerResources->addMorale(1, true);
+        }
+
+        return new ExecutionResult(ExecutionAction::Success);
+    }
+
     protected function goToCaptainCardPerformerSelectionState() : ExecutionResult
     {
         return new ExecutionResult(ExecutionAction::GoToState, CaptainCardPerformerSelection::class);
@@ -72,6 +91,11 @@ abstract class CaptainCard extends Card
     protected function goToBasicActionState() : ExecutionResult
     {
         return new ExecutionResult(ExecutionAction::GoToState, PlayerBasicTurn::class);
+    }
+
+    protected function goToPushState() : ExecutionResult
+    {
+        return new ExecutionResult(ExecutionAction::GoToState, PushingPieceSelection::class);
     }
 
     protected function makeNextActionForfeitable()
@@ -142,5 +166,16 @@ abstract class CaptainCard extends Card
     {
         $playerId = \intval($this->game->GetActivePlayerId());
         return MovePieceSelectionLogic::extractMoveableNotAdjacentToOpponentPieces($this->board, $playerId);
+    }
+
+    protected function enforceAdjacentPieces() : ExecutionResult
+    {
+        $playerId = \intval($this->game->GetActivePlayerId());
+        $adjacentPieces = BoardEvaluator::getPlayerPiecesAdjacentToOpponent($this->board, $playerId);
+
+        $pieceSelectionContext = new PieceSelectionContext();
+        $pieceSelectionContext->storeSelectablePieces($adjacentPieces);
+
+        return new ExecutionResult(ExecutionAction::Continue);
     }
 }
