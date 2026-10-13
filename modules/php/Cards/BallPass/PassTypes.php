@@ -8,5 +8,8 @@ enum PassTypes: string
     case FORWARD = 'forward';
     case CROSS = 'cross';
     case THROUGH = 'through';
+    case THROUGH_BACKWARD = 'through_backward';
+    case THROUGH_FORWARD = 'through_forward';
+    case THROUGH_PREVIOUS = 'through_previous';
     case NEAR_OPPONENT = 'nearOpponent';
 }
