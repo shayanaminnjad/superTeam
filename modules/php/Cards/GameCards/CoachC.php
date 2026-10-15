@@ -11,6 +11,7 @@ use Bga\Games\SuperTeam\Cards\ExecutionAction;
 use Bga\Games\SuperTeam\Cards\ExecutionResult;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PlayerResources;
+use Bga\Games\SuperTeam\States\MakeExhaustedReady;
 
 class CoachC extends Card
 {
@@ -47,8 +48,7 @@ class CoachC extends Card
     {
         return [
             $this->spendOneMorale(...),
-            $this->goToCoachCardState(...),
-            $this->finishOrJumpToMove(...)
+            $this->goToMakeExhaustedReadState(...),
         ];
     }
 
@@ -59,6 +59,11 @@ class CoachC extends Card
         $playerResources->addMorale(-1, true);
 
         return new ExecutionResult(ExecutionAction::Continue);
+    }
+
+    private function goToMakeExhaustedReadState() : ExecutionResult
+    {
+        return new ExecutionResult(ExecutionAction::GoToState, MakeExhaustedReady::class);
     }
 
     protected function cleanup(): void

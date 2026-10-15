@@ -533,6 +533,11 @@ define([
                 pieceData.setFreshness(false);
             },
 
+            notif_pieceFreshed: function (notifData) {
+                let pieceData = this.pieceManager.getPiece(parseInt(notifData.pieceId));
+                pieceData.setFreshness(true);
+            },
+
             notif_moraleChanged: async function (notifData) {
                 let playerMorale = PlayerPanelManager.getPlayerMorale(notifData.playerId);
 

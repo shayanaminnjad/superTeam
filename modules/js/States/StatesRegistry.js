@@ -24,6 +24,7 @@ define([
     g_gamethemeurl + "modules/js/States/PushTargetSelectionState.js",
     g_gamethemeurl + "modules/js/States/PushDestinationSelectionState.js",
     g_gamethemeurl + "modules/js/States/PushingPieceSelection.js",
+    g_gamethemeurl + "modules/js/States/MakeExhaustedPieceReady.js",
 ], function (
     declare,
     PlayerPieceSetupState,
@@ -49,7 +50,8 @@ define([
     DiceRerollState,
     PushTargetSelectionState,
     PushDestinationSelectionState,
-    PushingPieceSelection
+    PushingPieceSelection,
+    MakeExhaustedPieceReady
 ) {
 
     const StateRegistry = declare("st.StateRegistry", null, {
@@ -81,6 +83,7 @@ define([
             this.registerState(PushTargetSelectionState);
             this.registerState(PushDestinationSelectionState);
             this.registerState(PushingPieceSelection);
+            this.registerState(MakeExhaustedPieceReady);
         },
 
         getState: function (name, root, stateData) {

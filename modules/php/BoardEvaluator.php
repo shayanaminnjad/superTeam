@@ -25,6 +25,12 @@ class BoardEvaluator
         return $freshPieces;
     }
 
+    /**
+     * @param Board $board
+     * @param int $playerId
+     * @param bool $includeGoalie
+     * @return PlayerPiece[]
+     */
     public static function getExhaustedPlayerPieces(Board $board, int $playerId, bool $includeGoalie = false) : array
     {
         $playerPieces = $board->getPlayerPiecesByOwner($playerId);
