@@ -7,13 +7,8 @@ use Bga\Games\SuperTeam\Cards\CaptainCard;
 use Bga\Games\SuperTeam\Cards\CardDefinition;
 use Bga\Games\SuperTeam\Cards\CardType;
 use Bga\Games\SuperTeam\Cards\CardTypeHelper;
-use Bga\Games\SuperTeam\Cards\ExecutionAction;
-use Bga\Games\SuperTeam\Cards\ExecutionResult;
-use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_4;
-use Bga\Games\SuperTeam\PlayerResources;
-use Bga\Games\SuperTeam\PlayerRole;
 
 class Captain_4_0 extends CaptainCard
 {
