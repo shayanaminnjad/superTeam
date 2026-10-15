@@ -29,8 +29,8 @@ class TacklePerformerSelection extends GameState
             type: StateType::ACTIVE_PLAYER,
 
             // optional
-            description: clienttranslate('opponent must choose a player to tackle'),
-            descriptionMyTurn: clienttranslate('you must choose a player to tackle'),
+            description: clienttranslate('${actplayer} must choose a player for tackle'),
+            descriptionMyTurn: clienttranslate('you must choose a player for tackle'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,
