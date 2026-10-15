@@ -107,34 +107,6 @@ abstract class TacticCard extends Card
             return new ExecutionResult(ExecutionAction::Failure);
     }
 
-    final protected function checkThroughPassResult() : ExecutionResult
-    {
-        $passResult = false;
-
-        $playerId = \intval($this->game->GetActivePlayerId());
-        $ballHex = $this->board->getBallHex();
-
-        $playerPieces = $this->board->getPlayerPiecesByOwner($playerId);
-        $playerSideSign = $this->game->getPlayerSide($playerId) === PlayerSide::Left ? 1 : -1;
-
-        for($i = 0; $i < count($playerPieces) && $passResult == false; ++$i)
-        {
-            $piece = $playerPieces[$i];
-            $frontHexes = HexLib::getFrontArc($piece->getPosition(), $playerSideSign);
-
-            foreach($frontHexes as $frontHex)
-            {
-                if ($ballHex->equals($frontHex))
-                {
-                    $passResult = true;
-                    break;
-                }
-            }
-        }
-
-        return new ExecutionResult($passResult ? ExecutionAction::Continue : ExecutionAction::Failure);
-    }
-
     private function getOffensiveCommands(): array
     {
         $commands = [];
@@ -143,7 +115,7 @@ abstract class TacticCard extends Card
         {
             $commands[] = fn() => $this->forceFeasiblePassTargetsForType($passType);
             $commands[] = $this->goToPassState(...);
-            $commands[] = PassTargetSelectionLogic::isThroughPassFamily($passType) ? $this->checkThroughPassResult(...) : $this->checkPassResult(...);
+            $commands[] = $this->checkPassResult(...);
         }
 
         return $commands;
