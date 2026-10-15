@@ -149,7 +149,7 @@ class MoveAction extends PlayerBaseState
             $shouldEndMovement = true;
         }
 
-        $this->notify->all("movedPiece", \clienttranslate('${player_name} moves a piece'), array(
+        $this->notify->all("movedPiece", "", array(
             "player_name" => $this->game->getActivePlayerName(),
             "movedPiece" => $selectedPiece->id,
             "hex_column" => $hexColumn,
