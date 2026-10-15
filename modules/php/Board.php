@@ -96,6 +96,10 @@ class Board
         return null;
     }
 
+
+    /**
+     * @return PlayerPiece[]
+     */
     public function getPlayerPiecesByOwner(int $owner): array
     {
         $result = [];
