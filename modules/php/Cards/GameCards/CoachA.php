@@ -54,6 +54,7 @@ class CoachA extends Card
     {
         return [
             $this->spendOneMorale(...),
+            $this->enforceMaxMove(...),
             $this->goToCoachCardState(...),
             $this->finishOrJumpToMove(...)
         ];
@@ -78,6 +79,14 @@ class CoachA extends Card
         $playerId = intval($this->game->GetActivePlayerId());
         $playerResources = new PlayerResources($playerId);
         $playerResources->addMorale(-1, true);
+
+        return new ExecutionResult(ExecutionAction::Continue);
+    }
+
+    private function enforceMaxMove() : ExecutionResult
+    {
+        $moveActionContext = new MoveActionContext();
+        $moveActionContext->storeEnforcedMaxMoves(2);
 
         return new ExecutionResult(ExecutionAction::Continue);
     }

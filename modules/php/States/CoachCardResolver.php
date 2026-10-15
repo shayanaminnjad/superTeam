@@ -32,7 +32,7 @@ class CoachCardResolver extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
-        $this->addClientButton(\clienttranslate("Do One Move"), [$this, "actMove"]);
+        $this->addClientButton(\clienttranslate("Do one [move]"), [$this, "actMove"]);
         $this->addClientButton(\clienttranslate("Pass"), [$this, "actPass"], [],
             new ClientButtonParams(ClientButtonColor::ALERT));
 

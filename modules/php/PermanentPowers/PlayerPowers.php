@@ -62,7 +62,12 @@ final class PlayerPowers
             $pieceMaxDistance =
                 $this->isCaptainAction($mover, CaptainId::MoveThreeWithoutBall) && !$hasBall ? 3 : 2;
 
-            if ($this->team == TeamId::MoveThreeAlongSideRows && !empty($movesSoFar))
+            $moveActionContext = new MoveActionContext();
+            $enforcedMaxMoves = $moveActionContext->getEnforcedMaxMoves();
+            if ($enforcedMaxMoves > 0)
+                $pieceMaxDistance = $enforcedMaxMoves;
+
+            if ($this->team == TeamId::MoveThreeAlongSideRows && !empty($movesSoFar) && $enforcedMaxMoves <= 0)
             {
                 $isOnTopRow = fn(HexID $hex) => $hex->getRow() == 0;
                 // odd columns have one row less

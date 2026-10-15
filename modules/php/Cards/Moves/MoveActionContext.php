@@ -21,6 +21,7 @@ class MoveActionContext
     private const string BALL_BEFORE_MOVE_lOCATION_KEY = 'ball_before_tactic_location';
     private const string MORALE_BEFORE_MOVE_KEY = 'morale_before_tactic';
     private const string NO_MORALE_FOR_EXHAUSTED_KEY = 'no_morale_for_exhausted';
+    private const string MOVEMENT_ENFORCED_MAX = 'movement_enforced_max';
 
 
     public function __construct()
@@ -136,6 +137,16 @@ class MoveActionContext
         $this->dbAdapter->storeGlobalInt(self::NO_MORALE_FOR_EXHAUSTED_KEY, $needMorale ? 0 : 1);
     }
 
+    public function storeEnforcedMaxMoves(int $maxMoves) : void
+    {
+        $this->dbAdapter->storeGlobalInt(self::MOVEMENT_ENFORCED_MAX, $maxMoves);
+    }
+
+    public function getEnforcedMaxMoves() : int
+    {
+        return $this->dbAdapter->getGlobalInt(self::MOVEMENT_ENFORCED_MAX);
+    }
+
     private function storeMovedPieces() : void
     {
         $this->dbAdapter->storeGlobalString(self::PIECES_MOVED_KEY,
@@ -155,6 +166,7 @@ class MoveActionContext
         $this->dbAdapter->storeGlobalString(self::BALL_BEFORE_MOVE_lOCATION_KEY, '');
         $this->dbAdapter->storeGlobalInt(self::MORALE_BEFORE_MOVE_KEY, -1);
         $this->dbAdapter->storeGlobalInt(self::NO_MORALE_FOR_EXHAUSTED_KEY, 0);
+        $this->dbAdapter->storeGlobalInt(self::MOVEMENT_ENFORCED_MAX, -1);
     }
 
     private function loadPiecesMoved(): void
