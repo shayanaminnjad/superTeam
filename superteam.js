@@ -464,7 +464,7 @@ define([
                 let piece = this.pieceManager.getPiece(notifData.movedPiece);
                 let destHex = STHexLib.createOffsetCoord(notifData.destHex.hex_row, notifData.destHex.hex_column);
 
-                let animation = GameEventProcessor.MovePieceWithAnimation(piece, destHex, 0, true);
+                let animation = GameEventProcessor.MovePieceWithAnimation(piece, destHex, 0, notifData.movedBall);
 
                 await this.bgaPlayDojoAnimation(animation);
             },

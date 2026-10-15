@@ -11,6 +11,24 @@ class BypassLogic
     /**
      * @return PlayerPiece[]
      */
+    public static function getPiecesThatCanBypass(int $ownerPlayer, Board $board) : array
+    {
+        $res = [];
+
+        $ownerPieces = $board->getPlayerPiecesByOwner($ownerPlayer);
+
+        foreach($ownerPieces as $piece)
+        {
+            if (count(self::getBypassTargets($board, $ownerPlayer, $piece->getPosition())) > 0)
+                $res[] = $piece;
+        }
+
+        return $res;
+    }
+
+    /**
+     * @return PlayerPiece[]
+     */
     public static function getBypassTargets(Board $board, int $playerId, HexId $playerHex): array
     {
         $adjacentOpponents = BoardEvaluator::getAdjacentOpponentPieces($board, $board->getBallHex(), $playerId, false);

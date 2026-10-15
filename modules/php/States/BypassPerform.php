@@ -6,8 +6,10 @@ use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\StateType;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BypassLogic;
+use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\NotificationAdapter;
 
@@ -61,30 +63,41 @@ class BypassPerform extends GameState
         $selectedHex = DBAdapter::getInstance()->getSelectedHexAsHexID();
         $playerInHex = null;
 
-        if (!$board->tryGetPlayerPieceInHex($selectedHex, $playerInHex))
-            throw new \BgaUserException(\clienttranslate("no player in ball hex!"));
+        $board->tryGetPlayerPieceInHex($selectedHex, $playerInHex);
 
-        if ($playerInHex->getOwner() === $activePlayerId)
-            throw new \BgaUserException(\clienttranslate("you cannot by pass your own piece!"));
-
-        $destinationHex = BypassLogic::getByPassDest($playerInHex, $board->getBallHex());
-
-        if ($board->hasPlayerInHex($destinationHex))
-            throw new \BgaUserException(\clienttranslate("Impossible bypass! destination hex is blocked by another piece!"));
+        $bypassingPieceHex = $this->getBypassingPieceHex($board);
+        $destinationHex = BypassLogic::getByPassDest($playerInHex, $bypassingPieceHex);
 
         $activePlayerPiece = null;
-        $board->tryGetPlayerPieceInHex($board->getBallHex(), $activePlayerPiece);
-
-        if ($activePlayerPiece === null)
-            throw new \BgaUserException(\clienttranslate("Impossible bypass! you don't have the ball"));
-
+        $board->tryGetPlayerPieceInHex($bypassingPieceHex, $activePlayerPiece);
         $board->movePieceToHex($activePlayerPiece->getId(), $destinationHex);
-        $board->setBallLocation($destinationHex);
+
+        $shouldMoveBall = $board->getBallHex()->equals($bypassingPieceHex);
+        if ($shouldMoveBall)
+        {
+            $board->setBallLocation($destinationHex);
+        }
 
         $this->game->notify->all("bypassPerformed", \clienttranslate('${player_name} bypassed successfully'), [
             "movedPiece" => $activePlayerPiece->getId(),
             "destHex" => $destinationHex->convertToArray(),
+            "movedBall" => $shouldMoveBall,
             "player_name" => NotificationAdapter::getInstance()->getPlayerNameById($activePlayerId)
         ]);
+    }
+
+    private function getBypassingPieceHex(Board $board) : HexID
+    {
+        $pieceSelectionContext = new PieceSelectionContext();
+        $selectablePieceIds = $pieceSelectionContext->getSelectablePieceIds();
+
+        if (count($selectablePieceIds) === 0)
+        {
+            return $board->getBallHex();
+        }
+        else //happens with captain
+        {
+            return $board->getPiece($selectablePieceIds[0])->getPosition();
+        }
     }
 }

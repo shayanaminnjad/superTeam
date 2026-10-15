@@ -4,8 +4,10 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
+use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\BypassLogic;
+use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
@@ -39,7 +41,7 @@ class BypassTargetSelection extends PlayerBaseState
         $board = $this->game->getBoard();
         $activePlayer = \intval($this->game->getActivePlayerId());
 
-        $bypassableOpponents = BypassLogic::getBypassTargets($board, $activePlayer, $board->getBallHex());
+        $bypassableOpponents = BypassLogic::getBypassTargets($board, $activePlayer, $this->getPlayerHex($board));
         $bypassableOpponentsAsArray = [];
         foreach ($bypassableOpponents as $opponent) {
 
@@ -54,7 +56,7 @@ class BypassTargetSelection extends PlayerBaseState
     {
         $board = $this->game->getBoard();
         $activePlayer = \intval($this->game->getActivePlayerId());
-        $bypassableOpponents = BypassLogic::getBypassTargets($board, $activePlayer, $board->getBallHex());
+        $bypassableOpponents = BypassLogic::getBypassTargets($board, $activePlayer, $this->getPlayerHex($board));
 
         $selectedHex = new HexID($hexColumn, $hexRow);
 
@@ -73,7 +75,7 @@ class BypassTargetSelection extends PlayerBaseState
 
         DBAdapter::getInstance()->storeSelectedHex($selectedHex);
 
-        if (BypassLogic::doesBypassRequiresDiceRoll())
+        if (BypassLogic::doesBypassRequiresDiceRoll()) //happens with dribble power only
         {
             $moraleAssignContext = new MoraleAssignContext();
             $moraleAssignContext->storeMoraleStateData(DiceRoll::class, true);
@@ -95,6 +97,21 @@ class BypassTargetSelection extends PlayerBaseState
             return BypassPerform::class;
     }
 
+    private function getPlayerHex(Board $board) : HexID
+    {
+        $pieceSelectionContext = new PieceSelectionContext();
+        $selectablePieceIds = $pieceSelectionContext->getSelectablePieceIds();
+
+        if (count($selectablePieceIds) === 0)
+        {
+            return $board->getBallHex();
+        }
+        else //happens with captain
+        {
+            return $board->getPiece($selectablePieceIds[0])->getPosition();
+        }
+    }
+
     function zombie(int $playerId): string
     {
         $hexes = $this->getArgs()["bypassableOpponents"];
@@ -106,5 +123,4 @@ class BypassTargetSelection extends PlayerBaseState
 
         return $this->actTargetSelected($hex['hex_column'], $hex['hex_row']);
     }
-
 }
