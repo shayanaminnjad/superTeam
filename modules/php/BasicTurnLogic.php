@@ -18,6 +18,8 @@ enum ActionTypes : string
 
 class BasicTurnLogic
 {
+    private const string CAN_MOVE_IN_BASIC_TURN_KEY = 'can_move_in_basic_turn';
+
     /*
      * @return ActionTypes[]
      */
@@ -110,7 +112,7 @@ class BasicTurnLogic
             }
         }
 
-        if (!isset($excludedActions[ActionTypes::Move->value]) && DBAdapter::getInstance()->getGlobalBool('can_move_in_basic_turn'))
+        if (!isset($excludedActions[ActionTypes::Move->value]) && self::getMoveAvailabilityInBasic())
         {
             $playerResources = new PlayerResources($activePlayerId);
             if (MovePieceSelectionLogic::canPieceFreeMove($board, $actingPiece, $playerResources->getMorale()))
@@ -123,5 +125,15 @@ class BasicTurnLogic
     public static function isAnyActionAvailable(Board $board, int $activePlayerId, int $inactivePlayerId): bool
     {
         return count(self::getActionsDoableByAllPieces($board, $activePlayerId, $inactivePlayerId)) > 0;
+    }
+
+    public static function setMoveAvailabilityInBasic(bool $isAvailable) : void
+    {
+        DBAdapter::getInstance()->storeGlobalBool(self::CAN_MOVE_IN_BASIC_TURN_KEY, $isAvailable);
+    }
+
+    public static function getMoveAvailabilityInBasic() : bool
+    {
+        return DBAdapter::getInstance()->getGlobalBool(self::CAN_MOVE_IN_BASIC_TURN_KEY);
     }
 }

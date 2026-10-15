@@ -90,7 +90,7 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actMove(int $activePlayerId): string
     {
-        if (!DBAdapter::getInstance()->getGlobalBool('can_move_in_basic_turn'))
+        if (!BasicTurnLogic::getMoveAvailabilityInBasic())
             throw new \BgaUserException(clienttranslate("Movement not allowed now"));
 
         $pieceSelectionContext = new PieceSelectionContext();

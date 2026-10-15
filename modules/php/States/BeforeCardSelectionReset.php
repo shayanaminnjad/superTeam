@@ -4,6 +4,7 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\StateType;
+use Bga\Games\SuperTeam\BasicTurnLogic;
 use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
@@ -79,7 +80,7 @@ class BeforeCardSelectionReset extends GameState
         $moraleAssignContext->reset([$activePlayerId, $opponent_player_id]);
 
         DBAdapter::getInstance()->storeGlobalBool('forfeitable_captain_action', false);
-        DBAdapter::getInstance()->storeGlobalBool('can_move_in_basic_turn', false);
+        BasicTurnLogic::setMoveAvailabilityInBasic(false);
 
         return CardSelection::class;
     }
