@@ -20,6 +20,7 @@ use Bga\Games\SuperTeam\States\PlayerBasicTurn;
 use Bga\Games\SuperTeam\States\PushingPieceSelection;
 use Bga\Games\SuperTeam\States\PushTargetSelection;
 use Bga\Games\SuperTeam\States\ShootTargetSelection;
+use Bga\Games\SuperTeam\States\SwapPiece;
 
 abstract class CaptainCard extends Card
 {
@@ -96,6 +97,11 @@ abstract class CaptainCard extends Card
     protected function goToPushState() : ExecutionResult
     {
         return new ExecutionResult(ExecutionAction::GoToState, PushingPieceSelection::class);
+    }
+
+    protected function goToSwapPieceState() : ExecutionResult
+    {
+        return new ExecutionResult(ExecutionAction::GoToState, SwapPiece::class);
     }
 
     protected function makeNextActionForfeitable()

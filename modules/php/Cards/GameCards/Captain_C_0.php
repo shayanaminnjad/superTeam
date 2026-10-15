@@ -59,9 +59,4 @@ class Captain_C_0 extends CaptainCard
     protected function cleanup() : void
     {
     }
-
-    private function goToSwapPieceState() : ExecutionResult
-    {
-        return new ExecutionResult(ExecutionAction::GoToState, SwapPiece::class);
-    }
 }
