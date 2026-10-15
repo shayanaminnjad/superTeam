@@ -195,4 +195,18 @@ abstract class CaptainCard extends Card
 
         return new ExecutionResult(ExecutionAction::Continue);
     }
+
+    protected function giveMoraleIfCaptainShoot() : ExecutionResult
+    {
+        $shootingPieceId = DBAdapter::getInstance()->getGlobalInt('last_player_who_shoot');
+        $piece = $this->board->getPiece($shootingPieceId);
+
+        if ($piece->getRole() === PlayerRole::Captain->value)
+        {
+            $playerResources = new PlayerResources(intval($this->game->getActivePlayerId()));
+            $playerResources->addMorale(1, true);
+        }
+
+        return new ExecutionResult(ExecutionAction::Continue);
+    }
 }

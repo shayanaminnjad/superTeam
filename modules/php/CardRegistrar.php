@@ -11,6 +11,9 @@ use Bga\Games\SuperTeam\Cards\GameCards\BasicE;
 use Bga\Games\SuperTeam\Cards\GameCards\Captain_4_0;
 use Bga\Games\SuperTeam\Cards\GameCards\Captain_4_1;
 use Bga\Games\SuperTeam\Cards\GameCards\Captain_4_2;
+use Bga\Games\SuperTeam\Cards\GameCards\Captain_6_0;
+use Bga\Games\SuperTeam\Cards\GameCards\Captain_6_1;
+use Bga\Games\SuperTeam\Cards\GameCards\Captain_6_2;
 use Bga\Games\SuperTeam\Cards\GameCards\Captain_A_0;
 use Bga\Games\SuperTeam\Cards\GameCards\Captain_A_1;
 use Bga\Games\SuperTeam\Cards\GameCards\Captain_A_2;
@@ -80,5 +83,10 @@ class CardRegistrar
         $cardFactory->registerCard(Captain_4_0::staticId(), fn()=> new Captain_4_0($game));
         $cardFactory->registerCard(Captain_4_1::staticId(), fn()=> new Captain_4_1($game));
         $cardFactory->registerCard(Captain_4_2::staticId(), fn()=> new Captain_4_2($game));
+
+        //captain 6
+        $cardFactory->registerCard(Captain_6_0::staticId(), fn()=> new Captain_6_0($game));
+        $cardFactory->registerCard(Captain_6_1::staticId(), fn()=> new Captain_6_1($game));
+        $cardFactory->registerCard(Captain_6_2::staticId(), fn()=> new Captain_6_2($game));
     }
 }

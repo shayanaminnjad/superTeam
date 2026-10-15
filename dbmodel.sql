@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `was_last_action_undone` BOOLEAN DEFAULT FALSE,
     `dice_rerolled_this_turn` BOOLEAN DEFAULT FALSE,
     `can_move_in_basic_turn` BOOLEAN DEFAULT FALSE,
+    `last_player_who_shoot` INT DEFAULT -1,
     `last_card_play_stat` TEXT,
     `roll_action_name` TEXT
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

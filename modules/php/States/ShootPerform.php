@@ -46,6 +46,10 @@ class ShootPerform extends GameState
         GameStats::recordDiceRoll($this->game, $defender, $defenderRollResult);
         GameStats::recordAction($this->game, $attacker, StatAction::Shoot, $isShotSuccessful);
 
+        $shootingPiece = null;
+        $board->tryGetPlayerPieceInHex($board->getBallHex(), $shootingPiece);
+        DBAdapter::getInstance()->storeGlobalInt('last_player_who_shoot', $shootingPiece->getId());
+
         if ($isShotSuccessful)
         {
             $this->notify->all('shootSuccess', \clienttranslate('${player_name} shoot successfully'), [
