@@ -13,6 +13,7 @@ use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\PlayerRole;
 use Bga\Games\SuperTeam\RequiredPower;
+use Bga\Games\SuperTeam\States\BypassTargetSelection;
 use Bga\Games\SuperTeam\States\CaptainCardPerformerSelection;
 use Bga\Games\SuperTeam\States\MovePieceSelection;
 use Bga\Games\SuperTeam\States\PassDestSelection;
@@ -50,6 +51,11 @@ abstract class CaptainCard extends Card
         $moveActionContext->setCurrentMoveType(MoveTypes::FREE);
 
         return new ExecutionResult(ExecutionAction::GoToState, MovePieceSelection::class);
+    }
+
+    protected function goToByPassState() : ExecutionResult
+    {
+        return new ExecutionResult(ExecutionAction::GoToState, ByPassTargetSelection::class);
     }
 
     protected function ifCaptainMovedGiveMorale() : ExecutionResult
@@ -102,6 +108,11 @@ abstract class CaptainCard extends Card
     protected function goToSwapPieceState() : ExecutionResult
     {
         return new ExecutionResult(ExecutionAction::GoToState, SwapPiece::class);
+    }
+
+    protected function goToMovePieceSelection() : ExecutionResult
+    {
+        return new ExecutionResult(ExecutionAction::GoToState, MovePieceSelection::class);
     }
 
     protected function makeNextActionForfeitable()

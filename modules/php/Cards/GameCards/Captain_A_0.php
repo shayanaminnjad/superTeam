@@ -70,11 +70,6 @@ class Captain_A_0 extends CaptainCard
         return new ExecutionResult(ExecutionAction::Continue);
     }
 
-    private function goToMovePieceSelection() : ExecutionResult
-    {
-        return new ExecutionResult(ExecutionAction::GoToState, MovePieceSelection::class);
-    }
-
     private function enforceLastPieceSelected() : ExecutionResult
     {
         $moveActionContext = new MoveActionContext();
