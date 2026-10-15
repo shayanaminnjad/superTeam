@@ -8,6 +8,7 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 
+use Bga\Games\SuperTeam\BasicTurnLogic;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
@@ -56,7 +57,8 @@ class TacticRewardResolve extends PlayerBaseState
 
             $remainingReward = $reward->diff($rewardClaimed);
 
-            if ($remainingReward->action > 0)
+            $inactivePlayerId = $this->game->getInactivePlayerId();
+            if ($remainingReward->action > 0 && BasicTurnLogic::isAnyActionAvailable($this->game->getBoard(), $activePlayerId, $inactivePlayerId))
             {
                 $this->addClientButton(
                     \sprintf(\clienttranslate('%d [action]'), $remainingReward->action),
@@ -174,7 +176,7 @@ class TacticRewardResolve extends PlayerBaseState
         else
             throw new \BgaUserException(\clienttranslate("You cannot get extra reward now!"));
 
-        return self::class;
+        return BeforeRewardResolve::class;
     }
 
     #[PossibleAction]

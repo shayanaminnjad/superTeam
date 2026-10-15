@@ -83,7 +83,10 @@ readonly class TacticContext
         if ($tacticType === TacticType::Defensive)
         {
             $moveContext = new MoveActionContext();
-            $playersInvolvedIds = $moveContext->getPiecesMoved();
+            $piecesMoved = $moveContext->getPiecesMoved();
+
+            foreach($piecesMoved as $piece)
+                $playersInvolvedIds[] = $piece->id;
         }
         else
         {

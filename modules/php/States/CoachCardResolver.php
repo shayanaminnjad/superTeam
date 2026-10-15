@@ -32,8 +32,6 @@ class CoachCardResolver extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
-        //todo for now both coach cards are about movement I will revise this if other types were introduced.
-
         $this->addClientButton(\clienttranslate("Do One Move"), [$this, "actMove"]);
         $this->addClientButton(\clienttranslate("Pass"), [$this, "actPass"], [],
             new ClientButtonParams(ClientButtonColor::ALERT));

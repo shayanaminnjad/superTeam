@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `moves_performed` TEXT,
     `current_move_type` TEXT,
     `no_morale_for_exhausted` BOOLEAN DEFAULT FALSE,
+    `movement_enforced_max` INT DEFAULT -1,
     `pieces_moved` TEXT,
     `pieces_passed` TEXT,
     `move_selected_piece_data` TEXT,
@@ -81,6 +82,7 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `forfeitable_captain_action` BOOLEAN DEFAULT FALSE,
     `was_last_action_undone` BOOLEAN DEFAULT FALSE,
     `dice_rerolled_this_turn` BOOLEAN DEFAULT FALSE,
+    `can_move_in_basic_turn` BOOLEAN DEFAULT FALSE,
     `last_card_play_stat` TEXT,
     `roll_action_name` TEXT
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

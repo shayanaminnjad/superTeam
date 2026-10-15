@@ -126,6 +126,7 @@ class CardSelection extends PlayerBaseState
         else if ($asBasic)
         {
             $dbAdapter->storeActionReturnState($activePlayer, BeforeCardSelectionReset::class);
+            $dbAdapter->storeGlobalBool('can_move_in_basic_turn', true);
             return PlayerBasicTurn::class;
         }
         else
@@ -188,6 +189,7 @@ class CardSelection extends PlayerBaseState
         $cardMoved = $playerHand->moveLastDiscardedCardToHand();
         self::decreaseCardsPlayedThisTurnByOne($game);
         GameStats::undoCardPlayed($game, $activePlayer);
+        DBAdapter::getInstance()->storeGlobalBool('can_move_in_basic_turn', false);
 
         $game->notify->all("cardUndo", \clienttranslate('${player_name} undoes playing ${cardLog}'), [
             'player_id' => $activePlayer,

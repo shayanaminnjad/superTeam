@@ -107,7 +107,6 @@ abstract class TacticCard extends Card
             return new ExecutionResult(ExecutionAction::Failure);
     }
 
-    //FIXME: why I do this? I can simply just check the pass result from the dice?
     final protected function checkThroughPassResult() : ExecutionResult
     {
         $passResult = false;

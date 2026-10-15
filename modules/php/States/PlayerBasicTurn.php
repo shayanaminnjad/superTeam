@@ -6,6 +6,8 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
+use Bga\Games\SuperTeam\ActionTypes;
+use Bga\Games\SuperTeam\BasicTurnLogic;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\BypassLogic;
@@ -21,6 +23,7 @@ use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
 use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\PlayerRole;
+use http\Exception\RuntimeException;
 use function count;
 use function intval;
 
@@ -56,17 +59,19 @@ class PlayerBasicTurn extends PlayerBaseState
             $this->addClientButton(\clienttranslate("Forfeit"), [$this, "actForfeit"], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
 
+        $actionsAvailable = [];
+        $board = $this->game->getBoard();
+        $inactivePlayerId =  $this->game->getInactivePlayerId();
         if (count($selectablePiecesIds) == 0)
         {
-            $this->addActionsDoableByAllPieces();
+            $actionsAvailable = BasicTurnLogic::getActionsDoableByAllPieces($board, $activePlayer, $inactivePlayerId);
         }
         else
         {
-            $board = $this->game->getBoard();
-            $this->addActionsDoableByPiece($board, $activePlayer, $board->getPiece($selectablePiecesIds[0])); //this only happens in captain actions
+            $actionsAvailable = BasicTurnLogic::getActionsDoableByPiece($board, $board->getPiece($selectablePiecesIds[0]), $activePlayer, $inactivePlayerId); //this only happens in captain actions
         }
 
-        $this->addActionsAvailableButtons();
+        $this->addActionsAvailableButtons($actionsAvailable);
 
         if (count($this->getClientButtons()) == 0)
         {
@@ -85,6 +90,9 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actMove(int $activePlayerId): string
     {
+        if (!DBAdapter::getInstance()->getGlobalBool('can_move_in_basic_turn'))
+            throw new \BgaUserException(clienttranslate("Movement not allowed now"));
+
         $pieceSelectionContext = new PieceSelectionContext();
         $selectablePiecesIds = $pieceSelectionContext->getSelectablePieceIds();
 
@@ -169,95 +177,31 @@ class PlayerBasicTurn extends PlayerBaseState
         return $this->actPass($playerId);
     }
 
-    private function addActionsDoableByAllPieces() : void
+    private function addActionsAvailableButtons(array $actions) : void
     {
-        $board = $this->game->getBoard();
-        $activePlayerId = intval($this->game->getActivePlayerId());
-        $playerPieces = $board->getPlayerPiecesByOwner($activePlayerId);
-
-        $playerWithBall = null;
-        if ($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerWithBall))
-        {
-            if ($playerWithBall->getOwner() === $activePlayerId && $playerWithBall->getRole() === PlayerRole::GoalKeeper->value)
-            {
-                if (!isset($this->actionsAvailable['Passball'])) {
-                    $this->actionsAvailable['Passball']  = [\clienttranslate('Goalie Pass'), [$this, 'actPassBall']];
-                }
-
-                return;
-            }
-        }
-
-        foreach ($playerPieces as $piece)
-        {
-            $this->addActionsDoableByPiece($board, $activePlayerId, $piece);
+        foreach ($actions as $action) {
+            $button = $this->actionTypeToButton($action);
+            $this->addClientButton($button[0], $button[1]);
         }
     }
 
-    private function addActionsDoableByPiece(Board $board, int $activePlayerId, PlayerPiece $actingPiece) : void
+    private function actionTypeToButton(ActionTypes $action) : array
     {
-        $playerPieceWithBall = null;
-        if($board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPieceWithBall))
-        {
-            if ($playerPieceWithBall->getId() === $actingPiece->getId())
-            {
-                if (!isset($this->actionsAvailable['Passball'])) {
-                    $this->actionsAvailable['Passball']  = [\clienttranslate('Pass ball'), [$this, 'actPassBall']];
-                }
-
-                if (!isset($this->actionsAvailable['Shoot'])) {
-                    $this->actionsAvailable['Shoot']  = [\clienttranslate('Shoot'), [$this, 'actShootBall']];
-                }
-
-                if (!isset($this->actionsAvailable['Dribble']) && !isset($this->actionsAvailable['Bypass']))
-                {
-                    $playerPowers = PlayerPowers::forPlayer($activePlayerId);
-
-                    if ($playerPowers->bypassesOpponentOnDribble($actingPiece))
-                    {
-                        if (BypassLogic::getBypassTargets($board, $activePlayerId, $actingPiece->getPosition()))
-                        {
-                            $this->actionsAvailable['Bypass'] = [\clienttranslate('Bypass'), [$this, 'actBypass']];
-                        }
-                    }
-                    else
-                    {
-                        $adjacentOpponentPieces = BoardEvaluator::getAdjacentOpponentPieces($board, $board->getBallHex(), $activePlayerId, false);
-                        if (count($adjacentOpponentPieces) > 0)
-                        {
-                            $this->actionsAvailable['Dribble'] = [\clienttranslate('Dribble'), [$this, 'actDribble']];
-                        }
-                    }
-                }
-            }
-            else if ($playerPieceWithBall->getOwner() !== $activePlayerId)
-            {
-                if (!isset($this->actionsAvailable['Tackle']))
-                {
-                    $piecesThatCanTackle = BoardEvaluator::getPiecesThatCanTackle($board, intval($this->game->getActivePlayerId()), $this->game->getInactivePlayerId());
-
-                    if (array_any($piecesThatCanTackle, fn($v) => $v->getId() === $actingPiece->getId()))
-                    {
-                        $this->actionsAvailable['Tackle']  = [\clienttranslate('Tackle'),[$this, 'actTackle']];
-                    }
-                }
-            }
-        }
-
-        if (!isset($this->actionsAvailable['Move']))
-        {
-            $playerResources = new PlayerResources($activePlayerId);
-            if (MovePieceSelectionLogic::canPieceFreeMove($board, $actingPiece, $playerResources->getMorale()))
-                $this->actionsAvailable['Move'] = [\clienttranslate('Move'),[$this, 'actMove']];
-        }
+        if ($action === ActionTypes::GoaliePass)
+            return [\clienttranslate('Goalie Pass'), [$this, 'actPassBall']];
+        else if ($action === ActionTypes::PassBall)
+            return [\clienttranslate('Pass ball'), [$this, 'actPassBall']];
+        else if ($action === ActionTypes::Shoot)
+            return [\clienttranslate('Shoot'), [$this, 'actShootBall']];
+        else if ($action === ActionTypes::Bypass)
+            return [\clienttranslate('Bypass'), [$this, 'actBypass']];
+        else if ($action === ActionTypes::Dribble)
+            return [\clienttranslate('Dribble'), [$this, 'actDribble']];
+        else if ($action === ActionTypes::Tackle)
+            return [\clienttranslate('Tackle'), [$this, 'actTackle']];
+        else if ($action === ActionTypes::Move)
+            return [\clienttranslate('Move'), [$this, 'actMove']];
+        else
+            throw new RuntimeException("Unknown action type!");
     }
-
-    private function addActionsAvailableButtons() : void
-    {
-        foreach ($this->actionsAvailable as [$label, $action]) {
-            $this->addClientButton($label, $action);
-        }
-    }
-
-    private $actionsAvailable = [];
 }

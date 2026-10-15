@@ -79,6 +79,7 @@ class BeforeCardSelectionReset extends GameState
         $moraleAssignContext->reset([$activePlayerId, $opponent_player_id]);
 
         DBAdapter::getInstance()->storeGlobalBool('forfeitable_captain_action', false);
+        DBAdapter::getInstance()->storeGlobalBool('can_move_in_basic_turn', false);
 
         return CardSelection::class;
     }
