@@ -17,7 +17,9 @@ use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\PassTargetSelectionLogic;
+use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
 use Bga\Games\SuperTeam\PlayerSide;
+use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\TeamAttribute;
 use BgaUserException;
 
@@ -34,7 +36,7 @@ class PassDestSelection extends PlayerBaseState
 
             // optional
             description: clienttranslate('${actplayer} is choosing hex to pass the ball'),
-            descriptionMyTurn: clienttranslate('choose a hex to pass the ball'),
+            descriptionMyTurn: clienttranslate('${you} must choose a hex to pass the ball'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,
@@ -128,7 +130,10 @@ class PassDestSelection extends PlayerBaseState
             $passer = null;
             $board->tryGetPlayerPieceInHex($hexWithBall, $passer);
 
-            DiceRollServices::storeRollInput(\clienttranslate("Pass"), \intval($this->game->getActivePlayerId()), $requiredPower, PassPerform::class, TeamAttribute::Pass, TeamAttribute::None, false,
+            if (PlayerPowers::forPlayer($activePlayer)->ignoresPassBlocks($passer))
+                RequiredPower::setSkipEnabled(true);
+
+            DiceRollServices::storeRollInput(\clienttranslate("Pass"), $activePlayer, $requiredPower, PassPerform::class, TeamAttribute::Pass, TeamAttribute::None, false,
                 [$activePlayer => $passer->getId()]);
             $moraleAssignContext = new MoraleAssignContext();
             $moraleAssignContext->storeMoraleStateData(DiceRoll::class, false);
