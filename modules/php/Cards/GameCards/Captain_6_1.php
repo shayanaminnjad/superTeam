@@ -89,7 +89,9 @@ class Captain_6_1 extends CaptainCard
         $moveActionContext = new MoveActionContext();
 
         $piecesMoved = $moveActionContext->getPiecesMoved();
+
         $movedPiecePosition = $this->board->getPiece($piecesMoved[0]->id)->getPosition();
+
         if (count(BypassLogic::getBypassTargets($this->board, intval($this->game->getActivePlayerId()), $movedPiecePosition)) > 0)
         {
             return new ExecutionResult(ExecutionAction::GoToState, BypassTargetSelection::class);

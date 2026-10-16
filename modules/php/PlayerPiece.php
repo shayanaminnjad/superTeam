@@ -90,6 +90,9 @@ class PlayerPiece
         return $this->position->getColumn() != -1 && $this->position->getRow() != -1;
     }
 
+    /**
+     * @return HexID
+     */
     public function getPosition(): HexID
     {
         return $this->position;
