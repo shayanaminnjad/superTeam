@@ -70,7 +70,15 @@ class MultiCardSelectState extends PlayerBaseState
 
     function zombie(int $playerId): string
     {
-        //todo: select random cards up to minimum;
-        return'';
+        $minCards = $this->selfGetArgs()['minCards'];
+
+        $playerHand = $this->game->getPlayerHand($playerId);
+        $cardsInHand = $playerHand->getCardsInHand();
+
+        $cardsSelected = [];
+        for($i = 0; $i < $minCards; $i++)
+            $cardsSelected[] = intval($cardsInHand[$i]['id']);
+
+        return $this->actCardsSelected($cardsSelected);
     }
 }
