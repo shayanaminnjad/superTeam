@@ -13,6 +13,7 @@ use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\MoraleAssignContext;
+use Bga\Games\SuperTeam\MultiCardSelectionContext;
 use Bga\Games\SuperTeam\PassTargetSelectionLogic;
 use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\RequiredPower;
@@ -81,6 +82,9 @@ class BeforeCardSelectionReset extends GameState
 
         DBAdapter::getInstance()->storeGlobalBool('forfeitable_captain_action', false);
         BasicTurnLogic::setMoveAvailabilityInBasic(false);
+
+        $multiCardSelectionContext = new MultiCardSelectionContext($activePlayerId);
+        $multiCardSelectionContext->reset();
 
         return CardSelection::class;
     }

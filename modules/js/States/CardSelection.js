@@ -11,7 +11,7 @@ define(["dojo/_base/declare",
             //State Overrides
             _onActivePlayerEnter: function (args) {
 
-                this._cardManager.setHandCardsSelectability(true);
+                this._cardManager.setHandCardsSelectability("single");
                 this._cardManager.setHandCardClickHandler(this._onCardClick.bind(this));
 
                 this._updateButtons();
@@ -21,7 +21,7 @@ define(["dojo/_base/declare",
             },
 
             _onActivePlayerLeave: function () {
-                this._cardManager.setHandCardsSelectability(false);
+                this._cardManager.setHandCardsSelectability('none');
                 this._cardManager.setHandCardClickHandler(null);
             },
 

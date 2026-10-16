@@ -19,8 +19,8 @@ define(["dojo/_base/declare",
             },
 
             //Public Methods
-            setHandCardsSelectability: function (selectable) {
-                this._handStock.setSelectionMode(selectable ? 'single' : 'none');
+            setHandCardsSelectability: function (mode) {
+                this._handStock.setSelectionMode(mode);
             },
 
             setHandCardClickHandler: function (handler) {
@@ -96,6 +96,16 @@ define(["dojo/_base/declare",
             {
                 let cardsInhand = this._handStock.getCards();
                 return cardsInhand.length;
+            },
+
+            getCardsSelectedIds: function(){
+                let res = [];
+                const selection = this._handStock.getSelection();
+
+                for(let card of selection)
+                    res.push(card.id);
+
+                return res;
             },
 
             getCardLogHtml: function (cardType) {
