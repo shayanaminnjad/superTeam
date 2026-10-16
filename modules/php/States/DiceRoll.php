@@ -10,6 +10,7 @@ use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\Dice\GameDice;
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\Math\Math;
 use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
 use Bga\Games\SuperTeam\PlayerRole;
@@ -67,10 +68,12 @@ class DiceRoll extends GameState
 
         $attacker = Board::getAttacker();
 
+        $blockingPieces = Math::clamp($rollData->skipEnabled ? $rollData->blockingPieces - 1 : $rollData->blockingPieces, 0, $rollData->blockingPieces);
+
         $notifData = [];
         $notifData["rollResult"] = $rollNotifData;
         $notifData["distance"] = $rollData->distance;
-        $notifData["blockingPieces"] = $rollData->blockingPieces;
+        $notifData["blockingPieces"] = $blockingPieces;
         $notifData["skipEnabledPlayerId"] = ($rollData->skipEnabled ? $activePlayerId : -1);
         $notifData["requiredPower"] = $rollData->requiredPower;
         $notifData["attacker"] = $attacker;
