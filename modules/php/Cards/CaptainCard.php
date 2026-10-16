@@ -39,6 +39,24 @@ abstract class CaptainCard extends Card
         return new ExecutionResult(ExecutionAction::Continue);
     }
 
+    protected function giveMoraleIfCaptainPassed() : ExecutionResult
+    {
+        $playerId = intval($this->game->getActivePlayerId());
+        $passActionContext = new PassActionContext($playerId);
+
+        $piecesPassedIds = $passActionContext->getPiecesPassedIds();
+        assert(count($piecesPassedIds) ==1);
+
+        if ($this->board->getPiece($piecesPassedIds[0])->getRole() == PlayerRole::Captain->value)
+        {
+            $playerId = \intval($this->game->GetActivePlayerId());
+            $playerResources = new PlayerResources($playerId);
+            $playerResources->addMorale(1, true);
+        }
+
+        return new ExecutionResult(ExecutionAction::Success);
+    }
+
     protected function goToShootState() : ExecutionResult
     {
         $this->game->gamestate->setAllPlayersMultiactive();
