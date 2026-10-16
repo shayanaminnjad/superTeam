@@ -19,8 +19,10 @@ class TimeTrack
 
         if ($withNotify)
         {
+            $notificationMessage = $timeTrack !== 4 ? \clienttranslate('Time advances to ${minute}\'') : "";
+
             NotificationAdapter::getInstance()->notifyAll(
-                "timeTrackAdvance", \clienttranslate('Time advances to ${minute}\''), [
+                "timeTrackAdvance", $notificationMessage, [
                     'currentPosition' => $timeTrack,
                     'minute' => self::GetMinute($timeTrack),
                 ]
