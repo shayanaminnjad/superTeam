@@ -29,7 +29,7 @@ class Captain_6_2 extends CaptainCard
         $piece = null;
         if ($this->board->tryGetPlayerPieceInHex($ballHex, $piece))
         {
-            $activePlayerId = $this->game->getActivePlayerId();
+            $activePlayerId = intval($this->game->getActivePlayerId());
 
             if ($piece->getOwner() === $activePlayerId)
                 return true;
