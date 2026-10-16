@@ -104,13 +104,16 @@ define([
 
         _initGoalTracker: function(orangeGoals, blueGoals)
         {
-            //todo: also compute width and heigh of each element based on the board size.
+            const top = `${0.307627118 * this._computedBoardHeight}px`;
+            const orangeLeft = this._root.myColor === 'red' ? `${0.503323262839 * this._computedBoardWidth}px` : `${0.43021148 * this._computedBoardWidth}px`;
+            const blueLeft = this._root.myColor === 'blue' ? `${0.503323262839 * this._computedBoardWidth}px` : `${0.43021148 * this._computedBoardWidth}px`;
+
             const orangeEl = document.createElement('div');
             orangeEl.id = "orange_scoreBoard";
-            orangeEl.className = 'scoreBoard'
+            orangeEl.className = 'scoreBoard';
             orangeEl.style.backgroundColor = '#e67e22';
-            orangeEl.style.left = `${0.43021148 * this._computedBoardWidth}px`
-            orangeEl.style.top = `${0.307627118 * this._computedBoardHeight}px`
+            orangeEl.style.left = orangeLeft;
+            orangeEl.style.top = top;
             orangeEl.innerText = orangeGoals;
 
             this._trackerBoard.appendChild(orangeEl);
@@ -118,8 +121,8 @@ define([
             const blueEl = document.createElement('div');
             blueEl.id = "blue_scoreBoard";
             blueEl.className = 'scoreBoard';
-            blueEl.style.left = `${0.503323262839 * this._computedBoardWidth}px`;
-            blueEl.style.top = `${0.307627118 * this._computedBoardHeight}px`;
+            blueEl.style.left = blueLeft;
+            blueEl.style.top = top;
             blueEl.style.backgroundColor = '#3498db';
             blueEl.innerText = blueGoals;
 

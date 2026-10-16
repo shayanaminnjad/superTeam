@@ -65,11 +65,6 @@ define([], function () {
             return this._animateMoraleChange(playerId, targetMorale, PlaceSpentOn, false);
         },
 
-        setPlayerScoredGoals: function (playerId, amount) {
-            let scoredGoalsEl = document.getElementById(`playerGoals${playerId}`);
-            scoredGoalsEl.innerHTML = amount;
-        },
-
         setPlayerCards: function (playerId, amount) {
             let cardsEl = document.getElementById(`playerCards${playerId}`);
             cardsEl.innerHTML = amount;

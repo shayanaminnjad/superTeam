@@ -615,8 +615,6 @@ define([
                     TrackerBoard.setBlueGoals(notifData.score);
                 }
 
-                PlayerPanelManager.setPlayerScoredGoals(notifData.playerId, notifData.score);
-
                 return this.showGoalText();
             },
 
