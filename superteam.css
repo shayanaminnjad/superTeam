@@ -474,8 +474,8 @@ body::before {
 
 .moraleSpent{
     display: inline-block;
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
     pointer-events: none;
     margin-left: -15px;
 }
