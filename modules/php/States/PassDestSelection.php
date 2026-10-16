@@ -14,6 +14,7 @@ use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\PassTargetSelectionLogic;
 use Bga\Games\SuperTeam\PlayerSide;
@@ -64,6 +65,9 @@ class PassDestSelection extends PlayerBaseState
         $activePlayer = intval($this->game->getActivePlayerId());
         $selectedHex = new HexID($hexColumn, $hexRow);
 
+        if (!HexLib::getOffsetExtent()->isInsideExtent($selectedHex))
+            throw new BgaUserException(clienttranslate("Selected a hex outside of the board boundary!"));
+
         $passDestArgs = PassTargetSelectionLogic::getValidPassTargets($board, $activePlayer,null);
 
         $forcedPositions = $passDestArgs["forcedPositions"];
@@ -95,8 +99,6 @@ class PassDestSelection extends PlayerBaseState
                 if ($selectedHex->equals($hex))
                     throw new BgaUserException(\clienttranslate('blocked space selected as pass destination!'));
             }
-
-            //todo: also ensure that the dest is not outside the extent of the board.
         }
 
         $goalieHasBall = BoardEvaluator::doesPlayerGoalieHasBall($board, $activePlayer);

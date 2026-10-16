@@ -24,7 +24,6 @@ enum Direction: int
 
 class HexLib
 {
-    //TODO: This should be really set from outside, but for now it is ok.
     private static ?OffsetExtent $offsetExtent = null;
     private static HexInfo $hexInfo;
 
