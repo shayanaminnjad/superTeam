@@ -22,7 +22,7 @@ class MakeExhaustedReady extends PlayerBaseState
 
             // optional
             description: clienttranslate('${actplayer} is selecting a piece to refresh'),
-            descriptionMyTurn: clienttranslate('select a piece to refresh'),
+            descriptionMyTurn: clienttranslate('${you} must select a piece to refresh'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,

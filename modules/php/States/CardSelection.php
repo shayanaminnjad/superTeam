@@ -31,8 +31,8 @@ class CardSelection extends PlayerBaseState
             type: StateType::ACTIVE_PLAYER,
 
             // optional
-            description: clienttranslate('actplayer must play a card or pass'),
-            descriptionMyTurn: clienttranslate('you must play a card or pass'),
+            description: clienttranslate('${actplayer} must play a card or pass'),
+            descriptionMyTurn: clienttranslate('${you} must play a card or pass'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,

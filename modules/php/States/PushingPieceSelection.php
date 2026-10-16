@@ -24,7 +24,7 @@ class PushingPieceSelection extends PlayerBaseState
 
             // optional
             description: clienttranslate('${actplayer} is choosing a piece for push'),
-            descriptionMyTurn: clienttranslate('you must choose a piece for push'),
+            descriptionMyTurn: clienttranslate('${you} must choose a piece for push'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,

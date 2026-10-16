@@ -23,7 +23,7 @@ class MultiCardSelectState extends PlayerBaseState
 
             // optional
             description: clienttranslate('${actplayer} must select up to ${maxCards} cards'),
-            descriptionMyTurn: clienttranslate('you select up to ${maxCards} cards'),
+            descriptionMyTurn: clienttranslate('${you} must select up to ${maxCards} cards'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,

@@ -25,8 +25,8 @@ class TeamAttributeAssignment extends PlayerBaseState
             type: StateType::MULTIPLE_ACTIVE_PLAYER,
 
             // optional
-            description: clienttranslate('actplayer must assign coach markers'),
-            descriptionMyTurn: clienttranslate('you must assign your coach markers'),
+            description: clienttranslate('${actplayer} must assign coach markers'),
+            descriptionMyTurn: clienttranslate('${you} must assign your coach markers'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,

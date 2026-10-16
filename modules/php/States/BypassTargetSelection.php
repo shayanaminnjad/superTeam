@@ -29,7 +29,7 @@ class BypassTargetSelection extends PlayerBaseState
 
             // optional
             description: clienttranslate('${actplayer} is choosing bypass target'),
-            descriptionMyTurn: clienttranslate('you must choose bypass target'),
+            descriptionMyTurn: clienttranslate('${you} must choose bypass target'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,

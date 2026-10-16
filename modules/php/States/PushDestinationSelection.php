@@ -22,7 +22,7 @@ class PushDestinationSelection extends PlayerBaseState
 
             // optional
             description: clienttranslate('${actplayer} is choosing a push destination'),
-            descriptionMyTurn: clienttranslate('you must choose push destination'),
+            descriptionMyTurn: clienttranslate('${you} must choose push destination'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,

@@ -35,7 +35,7 @@ class MoveAction extends PlayerBaseState
 
             // optional
             description: clienttranslate('${actplayer} is moving a piece'),
-            descriptionMyTurn: clienttranslate('move the selected piece'),
+            descriptionMyTurn: clienttranslate('${you} must move the selected piece'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,

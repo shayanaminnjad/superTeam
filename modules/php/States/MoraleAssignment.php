@@ -29,7 +29,7 @@ class MoraleAssignment extends GameState
 
             // optional
             description: clienttranslate('${actplayer} is assigning morale for ${actionName}'),
-            descriptionMyTurn: clienttranslate('assign morale for ${actionName} (Max ${maxMoraleAssignable})'),
+            descriptionMyTurn: clienttranslate('${you} must assign morale for ${actionName} (Max ${maxMoraleAssignable})'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,

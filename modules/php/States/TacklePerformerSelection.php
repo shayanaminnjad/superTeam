@@ -30,7 +30,7 @@ class TacklePerformerSelection extends GameState
 
             // optional
             description: clienttranslate('${actplayer} must choose a player for tackle'),
-            descriptionMyTurn: clienttranslate('you must choose a player for tackle'),
+            descriptionMyTurn: clienttranslate('${you} must choose a player for tackle'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,

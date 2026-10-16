@@ -6,6 +6,8 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\BoardSpatial;
+use Bga\Games\SuperTeam\ClientButtonColor;
+use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
@@ -23,7 +25,7 @@ class PushTargetSelection extends PlayerBaseState
 
             // optional
             description: clienttranslate('${actplayer} is choosing push target'),
-            descriptionMyTurn: clienttranslate('you must choose push target'),
+            descriptionMyTurn: clienttranslate('${you} must choose push target'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,
@@ -47,6 +49,11 @@ class PushTargetSelection extends PlayerBaseState
                 $pushablePiecesArray[] = $opponent->getPosition()->convertToArray();
         }
 
+        if (DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
+        {
+            $this->addClientButton(\clienttranslate("Forfeit"), [$this, "actForfeit"], [], new ClientButtonParams(ClientButtonColor::ALERT));
+        }
+
         return ["pushablePieces" => $pushablePiecesArray];
     }
 
@@ -64,6 +71,15 @@ class PushTargetSelection extends PlayerBaseState
         DBAdapter::getInstance()->storeSelectedHex($selectedHex);
 
         return PushDestinationSelection::class;
+    }
+
+    #[PossibleAction]
+    public function actForfeit(int $activePlayerId) : string
+    {
+        if (!DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
+            throw new \BgaUserException(\clienttranslate("Forfeit is not possible!"));
+
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 
     function zombie(int $playerId): string

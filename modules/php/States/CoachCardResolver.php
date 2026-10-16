@@ -23,7 +23,7 @@ class CoachCardResolver extends PlayerBaseState
 
             // optional
             description: clienttranslate('${actplayer} should resolve coach card'),
-            descriptionMyTurn: clienttranslate('${actplayer} resolve coach card'),
+            descriptionMyTurn: clienttranslate('${you} should resolve your coach card'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,

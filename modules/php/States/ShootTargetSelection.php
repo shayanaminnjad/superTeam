@@ -24,7 +24,7 @@ class ShootTargetSelection extends PlayerBaseState
 
             // optional
             description: clienttranslate('your opponent is choosing a target tile'),
-            descriptionMyTurn: clienttranslate('you must choose a target tile'),
+            descriptionMyTurn: clienttranslate('${you} must choose a target tile'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,

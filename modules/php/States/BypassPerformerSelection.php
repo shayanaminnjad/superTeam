@@ -23,7 +23,7 @@ class BypassPerformerSelection extends PlayerBaseState
 
             // optional
             description: clienttranslate('${actplayer} must choose a player for bypass'),
-            descriptionMyTurn: clienttranslate('you must choose a player for bypass'),
+            descriptionMyTurn: clienttranslate('${you} must choose a player for bypass'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,
