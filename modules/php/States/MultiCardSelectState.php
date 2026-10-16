@@ -76,8 +76,13 @@ class MultiCardSelectState extends PlayerBaseState
         $cardsInHand = $playerHand->getCardsInHand();
 
         $cardsSelected = [];
-        for($i = 0; $i < $minCards; $i++)
-            $cardsSelected[] = intval($cardsInHand[$i]['id']);
+        foreach($cardsInHand as $card)
+        {
+            $cardsSelected[] = intval($card['id']);
+
+            if (count($cardsSelected) === $minCards)
+                break;
+        }
 
         return $this->actCardsSelected($cardsSelected);
     }
