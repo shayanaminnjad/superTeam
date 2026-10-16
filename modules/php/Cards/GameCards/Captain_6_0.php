@@ -48,6 +48,8 @@ class Captain_6_0 extends CaptainCard
     protected function getCommands(): array
     {
         return [
+            $this->enforceAdjacentPieces(...),
+            $this->goToCaptainCardPerformerSelectionState(...),
             $this->goToSwapPieceState(...),
             $this->enableMoveInBasic(...),
             $this->goToBasicActionState(...),
