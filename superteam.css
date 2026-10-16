@@ -607,11 +607,11 @@ body.board-portrait .shootTargetTile {
     animation: goalTextSpin 1.8s ease-out forwards;
 }
 
-.halfTimeText {
-    animation: halfTimeTextPop 1.8s ease-out forwards;
+.timeAdvanceText {
+    animation: timeAdvanceTextPop 1.8s ease-out forwards;
 }
 
-@keyframes halfTimeTextPop {
+@keyframes timeAdvanceTextPop {
     0% {
         transform: translate(-50%, -50%) scale(0);
         opacity: 1;

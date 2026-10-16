@@ -621,7 +621,7 @@ define([
             },
 
             notif_halfTime: async function () {
-                return this.showBannerText(_('HALF TIME'), 'halfTimeText');
+                return this.showBannerText(_('HALF TIME'), 'timeAdvanceText');
             },
 
             showGoalText: function () {
@@ -682,7 +682,9 @@ define([
             },
 
             notif_timeTrackAdvance: async function(notifData) {
-                //todo: show banner text for here.
+                if (parseInt(notifData.minute) !== 45)
+                    this.showBannerText(notifData.minute, 'timeAdvanceText');
+
                 return TrackerBoard.animateTrackerTo(notifData.currentPosition);
             },
 
