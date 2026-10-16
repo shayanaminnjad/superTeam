@@ -53,6 +53,15 @@ define(["dojo/_base/declare",
             _updateButtons: function () {
                 this._root.statusBar.removeActionButtons();
 
+                if (this._args.canPass) {
+                    this._root.statusBar.addActionButton(_('Pass'), () => {
+                        this._root.performServerAction("actPass")
+                    }, { color: 'alert' });
+                }
+
+                if (this._cardManager.getCardsInHand() === 0)
+                    return;
+
                 if (this._stateData.args.goalieHasBall)
                 {
                     this._root.statusBar.addActionButton(_('Goalie Pass'), () => {
@@ -96,12 +105,6 @@ define(["dojo/_base/declare",
                             disabled: !this._selectedCard || (this._selectedCard && !this._getPlayableTactics().includes(this._selectedCard.type))
                         });
                     }
-                }
-
-                if (this._args.canPass) {
-                    this._root.statusBar.addActionButton(_('Pass'), () => {
-                        this._root.performServerAction("actPass")
-                    }, { color: 'alert' });
                 }
             },
 
