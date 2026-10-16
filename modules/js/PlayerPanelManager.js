@@ -79,8 +79,8 @@ define([], function () {
             for (const [playerId, element] of Object.entries(this._tacticalStateElMap)) {
                 const isAttacker = parseInt(playerId) === attackerId;
 
-                element.innerHTML = isAttacker ? "Attacker" : "Defender";
-                element.style.setProperty("--color", "white");
+                element.innerHTML = isAttacker ? _("ATTACKER") : _("DEFENDER");
+                element.style.setProperty("--color", "#E5DFCB");
             }
         },
 
@@ -102,15 +102,6 @@ define([], function () {
                     <span id="playerMorale${playerId}" class= "label">${currentMorale}</span></div>`);
 
                 this.setPlayerMorale(playerId, currentMorale);
-
-                let scoredGoals = gamedatas.players[playerId].score;
-
-                playerResources.insertAdjacentHTML('beforeend', `
-                    <div class ="resource">
-                    <span class = "goalsIcon resourceIcon"></span>
-                    <span id="playerGoals${playerId}" class= "label">${scoredGoals}</span></div>`);
-
-                this.setPlayerScoredGoals(playerId, scoredGoals);
 
                 let cards = gamedatas.players[playerId].cards;
 

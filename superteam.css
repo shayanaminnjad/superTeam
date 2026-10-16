@@ -581,7 +581,7 @@ body.board-portrait .shootTargetTile {
     font-size: var(--size);
     color: var(--color);
     font-weight: 400;
-    -webkit-text-stroke: 4px black;
+    -webkit-text-stroke: 3px black;
     paint-order: stroke fill;
     font-family: Impact, sans-serif;
 
