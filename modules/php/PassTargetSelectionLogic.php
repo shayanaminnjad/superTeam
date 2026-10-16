@@ -75,6 +75,12 @@ class PassTargetSelectionLogic
                 return [$piecesPassedSoFar[count($piecesPassedSoFar) - 1]];
             case PassTypes::NEAR_OPPONENT:
                 return self::getNearOpponentPassTargets($board, $passStart, $playerId);
+            case PassTypes::BACKWARD_NEAR_OPPONENT:
+                return self::getBackwardNearOpponentPassTargets($board, $passStart, $playerId, $playerSide);
+            case PassTypes::CROSS_NEAR_OPPONENT:
+                return self::getCrossNearOpponentsTargets($board, $passStart, $playerId);
+            case PassTypes::FORWARD_NEAR_OPPONENT_TO_NEAR_OPPONENT:
+                return self::getForwardNearOpponentToNearOpponent($board, $passStart, $playerId, $playerSide);
             default:
                 throw new RuntimeException("Unknown pass type! have you updated the game with an expansion?");
         }
@@ -231,15 +237,7 @@ class PassTargetSelectionLogic
         $throughPassTargets = self::getThroughPassTargets($board, $playerId);
         $forwardPassTargets = self::getBackwardPassTargets($board, $playerId, $playerSide, $passStart);
 
-        $backwardIds = array_map(
-            fn(PlayerPiece $piece) => $piece->getId(),
-            $forwardPassTargets
-        );
-
-        return array_filter(
-            $throughPassTargets,
-            fn(PlayerPiece $piece) => in_array($piece->getId(), $backwardIds, true)
-        );
+        return self::getCandidatesIntersection($forwardPassTargets, $throughPassTargets);
     }
 
     private static function getForwardThroughPassTargets(Board $board, int $playerId, PlayerSide $playerSide, HexID $passStart) : array
@@ -247,15 +245,7 @@ class PassTargetSelectionLogic
         $throughPassTargets = self::getThroughPassTargets($board, $playerId);
         $forwardPassTargets = self::getForwardPassTargets($board, $playerId, $playerSide, $passStart);
 
-        $forwardIds = array_map(
-            fn(PlayerPiece $piece) => $piece->getId(),
-            $forwardPassTargets
-        );
-
-        return array_filter(
-            $throughPassTargets,
-            fn(PlayerPiece $piece) => in_array($piece->getId(), $forwardIds, true)
-        );
+        return self::getCandidatesIntersection($forwardPassTargets, $throughPassTargets);
     }
 
     private static function getNearOpponentPassTargets(Board $board, HexID $passStart, int $playerId) : array
@@ -275,6 +265,40 @@ class PassTargetSelectionLogic
             }
         }
         return $passTargetPieces;
+    }
+
+
+    private static function getBackwardNearOpponentPassTargets(Board $board, HexID $passStart, int $playerId, PlayerSide $playerSide) : array
+    {
+        $nearOpponentPassTargets = self::getNearOpponentPassTargets($board, $passStart, $playerId);
+        $backwardPassTargets = self::getBackwardPassTargets($board, $playerId, $playerSide, $passStart);
+
+        return self::getCandidatesIntersection($backwardPassTargets, $nearOpponentPassTargets);
+    }
+
+    private static function getCrossNearOpponentsTargets(Board $board, HexID $passStart, int $playerId) : array
+    {
+        $nearOpponentPassTargets = self::getNearOpponentPassTargets($board, $passStart, $playerId);
+        $crossPassTargets = self::getSameColumnPassTargets($board, $playerId, $passStart);
+
+        return self::getCandidatesIntersection($nearOpponentPassTargets, $crossPassTargets);
+    }
+
+    private static function getForwardNearOpponentToNearOpponent(Board $board, HexID $passStart, int $playerId, PlayerSide $playerSide) : array
+    {
+        $nearOpponentPassTargets = self::getNearOpponentPassTargets($board, $passStart, $playerId);
+        $forwardPassTargets = self::getForwardPassTargets($board, $playerId, $playerSide, $passStart);
+
+        $forwardNearOpponentTargets = self::getCandidatesIntersection($nearOpponentPassTargets, $forwardPassTargets);
+
+        $targets = [];
+        foreach($forwardNearOpponentTargets as $piece)
+        {
+            if (count(BoardEvaluator::getAdjacentOpponentPieces($board, $piece->getPosition(), $playerId, false)) > 0)
+                $targets[] = $piece;
+        }
+
+        return $targets;
     }
 
     private static function storeForcedTargets(int $playerId, string $jsonTargets) : void
@@ -316,5 +340,18 @@ class PassTargetSelectionLogic
     {
         return $passType === PassTypes::THROUGH_BACKWARD || $passType === PassTypes::THROUGH_FORWARD ||
             $passType === PassTypes::THROUGH || $passType === PassTypes::THROUGH_PREVIOUS;
+    }
+
+    private static function getCandidatesIntersection(array $first, array $second) : array
+    {
+        $firstIds = array_map(
+            fn(PlayerPiece $piece) => $piece->getId(),
+            $first
+        );
+
+        return array_filter(
+            $second,
+            fn(PlayerPiece $piece) => in_array($piece->getId(), $firstIds, true)
+        );
     }
 }

@@ -81,6 +81,11 @@ final class PlayerPowers
         return $pieceMaxDistance;
     }
 
+    public function maxMoraleAssignable() : int
+    {
+        return $this->team == TeamId::SpendFourOnBoost ? 4 : 3;
+    }
+
     public function canBallCarrierMoveNearOpponents(PlayerPiece $mover): bool
     {
         return $this->isCaptainAction($mover, CaptainId::MoveTwoNearOpponent);

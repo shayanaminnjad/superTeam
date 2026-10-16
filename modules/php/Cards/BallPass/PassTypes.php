@@ -12,4 +12,7 @@ enum PassTypes: string
     case THROUGH_FORWARD = 'through_forward';
     case THROUGH_PREVIOUS = 'through_previous';
     case NEAR_OPPONENT = 'nearOpponent';
+    case BACKWARD_NEAR_OPPONENT = 'backwardNearOpponent';
+    case CROSS_NEAR_OPPONENT = 'crossNearOpponent';
+    case FORWARD_NEAR_OPPONENT_TO_NEAR_OPPONENT = 'forwardNearOpponentToNearOpponent';
 }

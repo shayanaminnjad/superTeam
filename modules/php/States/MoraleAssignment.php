@@ -11,14 +11,13 @@ use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\MoraleAssignContext;
+use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
 use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\Math\Math;
 use Bga\Games\SuperTeam\DBAdapter;
 
 class MoraleAssignment extends GameState
 {
-    private const MAX_MORALE_PER_ACTION = 3;
-
     function __construct(
         protected Game $game,
     ) {
@@ -41,7 +40,9 @@ class MoraleAssignment extends GameState
     {
         $playerResources = new PlayerResources($activePlayerId);
 
-        $maxMoraleAssignable = Math::clamp($playerResources->getMorale(), 0, self::MAX_MORALE_PER_ACTION);
+        $maxMoralePerAction = PlayerPowers::forPlayer($activePlayerId)->maxMoraleAssignable();
+
+        $maxMoraleAssignable = Math::clamp($playerResources->getMorale(), 0, $maxMoralePerAction);
 
         $requiredPower = $this->game->getGameStateValue('required_power');
 
