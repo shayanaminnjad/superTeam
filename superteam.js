@@ -401,6 +401,11 @@ define([
                 }
             },
 
+            playSound: function(soundName){
+                this.bga.gameui.disableNextMoveSound();
+                this.bga.sounds.play(soundName);
+            },
+
             bgaFormatText: function (log, args) {
                 if (log && args && !args.processed) {
                     args.processed = true;
@@ -575,14 +580,12 @@ define([
             },
 
             notif_successfulPass: function (notifData) {
-                this.bga.gameui.disableNextMoveSound();
-                this.bga.sounds.play('kick');
+                this.playSound('kick');
                 Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
             notif_failedPass: function (notifData) {
-                this.bga.gameui.disableNextMoveSound();
-                this.bga.sounds.play('kick');
+                this.playSound('kick');
                 Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
@@ -597,12 +600,12 @@ define([
             },
 
             notif_shootFailed: async function (notifData) {
-                this.bga.gameui.disableNextMoveSound();
-                this.bga.sounds.play('kick');
+                this.playSound('kick');
                 return Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
             notif_goalScored: async function (notifData) {
+                this.playSound('stadium_cheer');
                 this.bga.playerPanels.getScoreCounter(notifData.playerId).toValue(notifData.score);
 
                 if (notifData.playerId === this.userInLeftId) {
@@ -679,6 +682,7 @@ define([
             },
 
             notif_timeTrackAdvance: async function(notifData) {
+                //todo: show banner text for here.
                 return TrackerBoard.animateTrackerTo(notifData.currentPosition);
             },
 
