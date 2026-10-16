@@ -25,8 +25,8 @@ class Captain_A_2 extends CaptainCard
         parent::__construct(new CardDefinition(
             \clienttranslate("Captain 3"),
             CardType::Captain,
-            \clienttranslate("**Requirement:** Play after receiving the ball inside the Penalty Area.
-**Effect:** Gain 1 Morale and Shoot.")), $game);
+            \clienttranslate("**Requirement:** Play when NOT adjacent to any opponent.
+**Effect:** Move and swap position with an opponent.")), $game);
     }
 
     public static function staticId() : string
