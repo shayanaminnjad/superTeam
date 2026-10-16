@@ -170,7 +170,7 @@ define(["dojo/_base/declare",
                     const cardNum = Number(tokens[2]);
 
                     rowMultiple = Math.floor(cptInOrder / 2) + 4;
-                    colMultiple = captainId % 2 === 0 ? cardNum : cptPerTeam + cardNum;
+                    colMultiple = cptInOrder % 2 === 0 ? cardNum : cptPerTeam + cardNum;
                 }
                 else if (cardCategory === 'Coach') {
                     const teamId = Number(tokens[1]);
