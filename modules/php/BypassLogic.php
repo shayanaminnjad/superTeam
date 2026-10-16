@@ -31,7 +31,7 @@ class BypassLogic
      */
     public static function getBypassTargets(Board $board, int $playerId, HexId $playerHex): array
     {
-        $adjacentOpponents = BoardEvaluator::getAdjacentOpponentPieces($board, $board->getBallHex(), $playerId, false);
+        $adjacentOpponents = BoardEvaluator::getAdjacentOpponentPieces($board, $playerHex, $playerId, false);
 
         $bypassableOpponents = [];
         foreach ($adjacentOpponents as $opponent) {
