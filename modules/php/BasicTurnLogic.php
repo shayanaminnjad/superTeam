@@ -5,17 +5,6 @@ namespace Bga\Games\SuperTeam;
 use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
 use Bga\Games\SuperTeam\Utility\Logger;
 
-enum ActionTypes : string
-{
-    case GoaliePass = 'Goalie Pass';
-    case PassBall = 'PassBall';
-    case Shoot = 'Shoot';
-    case Dribble = 'Dribble';
-    case Tackle = 'Tackle';
-    case Move = 'Move';
-    case Bypass = 'Bypass';
-}
-
 class BasicTurnLogic
 {
     private const string CAN_MOVE_IN_BASIC_TURN_KEY = 'can_move_in_basic_turn';
