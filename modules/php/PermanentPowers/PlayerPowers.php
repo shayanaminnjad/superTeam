@@ -4,6 +4,7 @@ namespace Bga\Games\SuperTeam\PermanentPowers;
 
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainId;
 use Bga\Games\SuperTeam\PermanentPowers\Teams\TeamId;
@@ -26,6 +27,10 @@ final class PlayerPowers
 
     private static function load(int $playerId): self
     {
+        $gameMode = DBAdapter::getInstance()->getGameStateValue('game_mode');
+        if ($gameMode !== Game::GAME_MODE_ADVANCED)
+            return new self(null, null);
+
         $player = DBAdapter::getInstance()->getObjectFromDB(
             "SELECT captain_power, team_power FROM player WHERE player_id = $playerId");
 

@@ -120,7 +120,7 @@ class DiceRoll extends GameState
 
         $captainStars = 0;
         $rollingPiece = $this->game->getBoard()->getPiece($rollingPieceId);
-        if ($rollingPiece->getRole() == PlayerRole::Captain->value)
+        if ($this->game->isAdvancedMode() && $rollingPiece->getRole() == PlayerRole::Captain->value)
             $captainStars = $this->game->getPlayerCaptainPower($playerId)?->getPowerFor($relatedAttribute) ?? 0;
 
         return new DiceRollResult($assignedMorale, $dieRes, $whiteDice, $captainStars);
