@@ -63,7 +63,7 @@ class MoveAction extends PlayerBaseState
         $moveActionContext = new MoveActionContext();
         $moveType = $moveActionContext->getCurrentMoveType();
 
-        $movesTaken = intval($this->game->getGameStateValue('number_of_moves')); //TODO: move this to MoveActionContext class
+        $movesTaken = intval($this->game->getGameStateValue('number_of_moves'));
 
         $moveableHexes = MoveHexSelectionLogic::GetAvailableHexes($board, $pieceData->getId(), $moveType);
 
@@ -71,6 +71,11 @@ class MoveAction extends PlayerBaseState
         foreach ($moveableHexes as $hex)
         {
             $hexesToSend[] = $hex->convertToArray();
+        }
+
+        if ($movesTaken == 0 && DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
+        {
+            $this->addClientButton(\clienttranslate("Forfeit"), [$this, "actForfeit"], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
 
         if ($movesTaken > 0 && $this->isMoveConditionMet($activePlayerId, $board, $moveActionContext))
@@ -173,11 +178,20 @@ class MoveAction extends PlayerBaseState
     {
         $board = $this->game->getBoard();
         $moveActionContext = new MoveActionContext();
-        $movesTaken = intval($this->game->getGameStateValue('number_of_moves')); //TODO: move this to MoveActionContext class
+        $movesTaken = intval($this->game->getGameStateValue('number_of_moves'));
         if ($movesTaken > 0 && $this->isMoveConditionMet($activePlayerId, $board, $moveActionContext))
             return MoveFinished::class;
         else
             throw new \BgaUserException(\clienttranslate("You can't finish movement while you haven't met movement conditions and haven't moved at least once."));
+    }
+
+    #[PossibleAction]
+    public function actForfeit(int $activePlayerId): string
+    {
+        if (!DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
+            throw new \BgaUserException(\clienttranslate("Forfeit is not possible!"));
+
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 
     function zombie(int $playerId): string
