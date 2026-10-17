@@ -8,8 +8,6 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\ActionTypes;
 use Bga\Games\SuperTeam\BasicTurnLogic;
-use Bga\Games\SuperTeam\Board;
-use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\BypassLogic;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveTypes;
@@ -19,13 +17,8 @@ use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
-use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
-use Bga\Games\SuperTeam\PlayerPiece;
-use Bga\Games\SuperTeam\PlayerResources;
-use Bga\Games\SuperTeam\PlayerRole;
 use http\Exception\RuntimeException;
 use function count;
-use function intval;
 
 class PlayerBasicTurn extends PlayerBaseState
 {
