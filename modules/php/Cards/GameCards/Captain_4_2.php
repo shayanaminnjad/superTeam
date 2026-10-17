@@ -45,26 +45,8 @@ class Captain_4_2 extends CaptainCard
         return [
             $this->giveMorale(...),
             $this->goToShootState(...),
-            $this->giveMoraleIfWasCaptain(...)
+            $this->giveMoraleIfCaptainShoot(...)
         ];
-    }
-
-    private function giveMoraleIfWasCaptain() : ExecutionResult
-    {
-        $playerId = intval($this->game->getActivePlayerId());
-
-        $passActionContext = new PassActionContext($playerId);
-        $pieceId = $passActionContext->getLastPassReceiverIdThisTurn();
-
-        $playerPiece = $this->board->getPlayerPieceData($pieceId);
-
-        if ($playerPiece->getRole() == PlayerRole::Captain->value)
-        {
-            $playerResources = new PlayerResources($playerId);
-            $playerResources->addMorale(1, true);
-        }
-
-        return new ExecutionResult(ExecutionAction::Success);
     }
 
     protected function cleanup(): void
