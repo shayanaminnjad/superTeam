@@ -50,6 +50,19 @@ final class MovePieceSelectionLogic
         return BoardSpatial::canFindPathToTarget($board, $piece, fn($board, $hex, $playerId) => true);
     }
 
+    public static function trySelectPieceForFreeMove(Board $board, PlayerPiece $piece, int $playerId) : bool
+    {
+        $playerResources = new PlayerResources($playerId);
+        if (!self::canPieceFreeMove($board, $piece, $playerResources->getMorale()))
+            return false;
+
+        $moveActionContext = new MoveActionContext();
+        $moveActionContext->setCurrentMoveType(MoveTypes::FREE);
+        $moveActionContext->setSelectedPieceData($piece);
+
+        return true;
+    }
+
     public static function extractForwardMoveablePieces(Board $board, int $playerId) : array
     {
         return self::extractMoveablePieces($board, $playerId,

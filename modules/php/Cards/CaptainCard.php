@@ -2,6 +2,7 @@
 
 namespace Bga\Games\SuperTeam\Cards;
 
+use Bga\Games\SuperTeam\BasicTurnLogic;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
@@ -15,6 +16,7 @@ use Bga\Games\SuperTeam\PlayerRole;
 use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\States\BypassTargetSelection;
 use Bga\Games\SuperTeam\States\CaptainCardPerformerSelection;
+use Bga\Games\SuperTeam\States\MoveAction;
 use Bga\Games\SuperTeam\States\MovePieceSelection;
 use Bga\Games\SuperTeam\States\PassDestSelection;
 use Bga\Games\SuperTeam\States\PlayerBasicTurn;
@@ -72,6 +74,23 @@ abstract class CaptainCard extends Card
         return new ExecutionResult(ExecutionAction::GoToState, MovePieceSelection::class);
     }
 
+    // Second part move: the performer is already known, so piece selection is skipped.
+    protected function goToFreeMoveWithSelectedPiece() : ExecutionResult
+    {
+        $selectablePieces = (new PieceSelectionContext())->getSelectablePieceIds();
+
+        if (count($selectablePieces) != 1)
+            return $this->goToFreeMoveState();
+
+        $playerId = \intval($this->game->getActivePlayerId());
+        $piece = $this->board->getPiece($selectablePieces[0]);
+
+        if (!MovePieceSelectionLogic::trySelectPieceForFreeMove($this->board, $piece, $playerId))
+            return new ExecutionResult(ExecutionAction::Continue);
+
+        return new ExecutionResult(ExecutionAction::GoToState, MoveAction::class);
+    }
+
     protected function goToByPassState() : ExecutionResult
     {
         return new ExecutionResult(ExecutionAction::GoToState, ByPassTargetSelection::class);
@@ -116,6 +135,18 @@ abstract class CaptainCard extends Card
 
     protected function goToBasicActionState() : ExecutionResult
     {
+        $selectablePieces = (new PieceSelectionContext())->getSelectablePieceIds();
+
+        if (count($selectablePieces) == 1)
+        {
+            $playerId = \intval($this->game->getActivePlayerId());
+            $actions = BasicTurnLogic::getActionsDoableByPiece($this->board, $this->board->getPiece($selectablePieces[0]),
+                $playerId, $this->game->getInactivePlayerId());
+
+            if (empty($actions))
+                return new ExecutionResult(ExecutionAction::Continue);
+        }
+
         return new ExecutionResult(ExecutionAction::GoToState, PlayerBasicTurn::class);
     }
 

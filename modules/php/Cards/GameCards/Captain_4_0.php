@@ -43,7 +43,7 @@ class Captain_4_0 extends CaptainCard
         return [
             $this->goToPushState(...),
             $this->makeNextActionForfeitable(...),
-            $this->goToFreeMoveState(...),
+            $this->goToFreeMoveWithSelectedPiece(...),
             $this->ifCaptainSelectedGiveMorale(...)
         ];
     }

@@ -51,7 +51,7 @@ class Captain14_1 extends CaptainCard
             $this->goToPassState(...),
             $this->makeNextActionForfeitable(...),
             $this->enforcePasser(...),
-            $this->goToFreeMoveState(...),
+            $this->goToFreeMoveWithSelectedPiece(...),
             $this->giveMoraleIfCaptainPassed(...)
         ];
     }
@@ -69,8 +69,6 @@ class Captain14_1 extends CaptainCard
 
         return new ExecutionResult(ExecutionAction::Continue);
     }
-
-    //todo: go to free state if possible.
 
     protected function cleanup(): void
     {
