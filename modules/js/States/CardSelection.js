@@ -53,58 +53,54 @@ define(["dojo/_base/declare",
             _updateButtons: function () {
                 this._root.statusBar.removeActionButtons();
 
+                if (this._cardManager.getCardsInHand() > 0) {
+                    if (this._stateData.args.goalieHasBall) {
+                        this._root.statusBar.addActionButton(_('Goalie Pass'), () => {
+                            this._root.performServerAction("actCardSelected", {
+                                cardId: this._selectedCard.id,
+                                asBasic: true
+                            })
+                        }, {id: 'cardAsBasicButton', color: 'primary', disabled: this._selectedCard === null});
+                    } else if (!this._selectedCard || this._selectedCard.type !== 'Fatigue') {
+                        if (this._args.canPlayCard) {
+                            this._root.statusBar.addActionButton('<div class="action buttonIcon"></div>|<div class ="move buttonIcon"></div>', () => {
+                                this._root.performServerAction("actCardSelected", {
+                                    cardId: this._selectedCard.id,
+                                    asBasic: true
+                                })
+                            }, {id: 'cardAsBasicButton', color: 'primary', disabled: this._selectedCard === null});
+
+                            this._root.statusBar.addActionButton(_('Perform tactic'), () => {
+                                this._root.performServerAction("actCardSelected", {
+                                    cardId: this._selectedCard.id,
+                                    asBasic: false
+                                })
+                            }, {
+                                id: 'performTacticButton',
+                                color: 'primary',
+                                disabled: !this._selectedCard || (this._selectedCard && !this._getPlayableTactics().includes(this._selectedCard.type))
+                            });
+                        }
+                    } else {
+                        if (this._args.canPlayCard) {
+                            this._root.statusBar.addActionButton('<div class ="move buttonIcon">', () => {
+                                this._root.performServerAction("actCardSelected", {
+                                    cardId: this._selectedCard.id,
+                                    asBasic: false
+                                })
+                            }, {
+                                id: 'cardAsBasicButton',
+                                color: 'primary',
+                                disabled: !this._selectedCard || (this._selectedCard && !this._getPlayableTactics().includes(this._selectedCard.type))
+                            });
+                        }
+                    }
+                }
+
                 if (this._args.canPass) {
                     this._root.statusBar.addActionButton(_('Pass'), () => {
                         this._root.performServerAction("actPass")
                     }, { color: 'alert' });
-                }
-
-                if (this._cardManager.getCardsInHand() === 0)
-                    return;
-
-                if (this._stateData.args.goalieHasBall)
-                {
-                    this._root.statusBar.addActionButton(_('Goalie Pass'), () => {
-                        this._root.performServerAction("actCardSelected", {
-                                cardId: this._selectedCard.id,
-                                asBasic: true
-                            })
-                        }, {id: 'cardAsBasicButton', color: 'primary', disabled: this._selectedCard === null});
-                }
-                else if (!this._selectedCard || this._selectedCard.type !== 'Fatigue') {
-                    if (this._args.canPlayCard) {
-                        this._root.statusBar.addActionButton('<div class="action buttonIcon"></div>|<div class ="move buttonIcon"></div>', () => {
-                            this._root.performServerAction("actCardSelected", {
-                                cardId: this._selectedCard.id,
-                                asBasic: true
-                            })
-                        }, {id: 'cardAsBasicButton', color: 'primary', disabled: this._selectedCard === null});
-
-                        this._root.statusBar.addActionButton(_('Perform tactic'), () => {
-                            this._root.performServerAction("actCardSelected", {
-                                cardId: this._selectedCard.id,
-                                asBasic: false
-                            })
-                        }, {
-                            id: 'performTacticButton',
-                            color: 'primary',
-                            disabled: !this._selectedCard || (this._selectedCard && !this._getPlayableTactics().includes(this._selectedCard.type))
-                        });
-                    }
-                }
-                else {
-                    if (this._args.canPlayCard) {
-                        this._root.statusBar.addActionButton('<div class ="move buttonIcon">', () => {
-                            this._root.performServerAction("actCardSelected", {
-                                cardId: this._selectedCard.id,
-                                asBasic: false
-                            })
-                        }, {
-                            id: 'cardAsBasicButton',
-                            color: 'primary',
-                            disabled: !this._selectedCard || (this._selectedCard && !this._getPlayableTactics().includes(this._selectedCard.type))
-                        });
-                    }
                 }
             },
 
