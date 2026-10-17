@@ -68,7 +68,12 @@ class DiceRoll extends GameState
 
         $attacker = Board::getAttacker();
 
-        $blockingPieces = Math::clamp($rollData->skipEnabled ? $rollData->blockingPieces - 1 : $rollData->blockingPieces, 0, $rollData->blockingPieces);
+        $blockingPieces = $rollData->blockingPieces;
+        $inactivePlayerPowers = PlayerPowers::forPlayer($this->game->getInactivePlayerId());
+        if ($blockingPieces > 0 && $inactivePlayerPowers->extraPowerOnBlocksForOpponent())
+            $blockingPieces += 1;
+
+        $blockingPieces = Math::clamp($rollData->skipEnabled ? $blockingPieces - 1 : $blockingPieces, 0, $blockingPieces);
 
         $notifData = [];
         $notifData["rollResult"] = $rollNotifData;

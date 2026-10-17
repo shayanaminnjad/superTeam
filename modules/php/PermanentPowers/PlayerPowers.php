@@ -130,4 +130,9 @@ final class PlayerPowers
     {
         return $this->team === TeamId::GainMoraleOnFatiguePlay;
     }
+
+    public function extraPowerOnBlocksForOpponent() : bool
+    {
+        return $this->team === TeamId::OpponentNeedsExtraOneOnBlock;
+    }
 }
