@@ -24,8 +24,8 @@ ALTER TABLE `player` ADD `team_attr_shoot` TINYINT NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `team_attr_dribble` TINYINT NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `team_attr_tackle` TINYINT NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `team_attr_gk` TINYINT NOT NULL DEFAULT 0;
-ALTER TABLE `player` ADD `captain_power` TINYINT NOT NULL DEFAULT 0;
-ALTER TABLE `player` ADD `team_power` TINYINT NOT NULL DEFAULT 0;
+ALTER TABLE `player` ADD `captain_power` TINYINT NOT NULL DEFAULT -1;
+ALTER TABLE `player` ADD `team_power` TINYINT NOT NULL DEFAULT -1;
 
 
 CREATE TABLE IF NOT EXISTS `player_pieces` (
@@ -100,7 +100,9 @@ CREATE TABLE IF NOT EXISTS `player_temp_data` (
     `last_pass_pos_this_turn` TEXT,
     `multicard_selection_next_state` TEXT,
     `selectable_cards_in_multicard_range` TEXT,
-    `cards_selected_in_multicard_state` TEXT
+    `cards_selected_in_multicard_state` TEXT,
+    `draft_captain_offer` TEXT,
+    `draft_coach_offer` TEXT
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `logs` (

@@ -46,6 +46,8 @@ define([
 
                 this.gameDatas = gamedatas;
 
+                this.trackDojoAnimations();
+
                 this.cardDefinitions = gamedatas.card_definitions;
                 this.captainDefinitions = gamedatas.captain_definitions;
                 this.coachDefinitions = gamedatas.coach_definitions;
@@ -178,10 +180,43 @@ define([
                 Board.getMainBoardElement().insertAdjacentElement('afterend', rotateButton);
 
                 rotateButton.addEventListener('click', () => {
-                    const nextOrientation = Board.getOrientation() === 'landscape' ? 'portrait' : 'landscape';
-                    Board.setOrientation(nextOrientation);
-                    rotateButton.setAttribute('aria-label', nextOrientation === 'landscape' ? 'Rotate board to portrait' : 'Rotate board to landscape');
+                    const currentOrientation = this._pendingOrientation ?? Board.getOrientation();
+                    this._pendingOrientation = currentOrientation === 'landscape' ? 'portrait' : 'landscape';
+                    this.applyPendingOrientation();
                 });
+            },
+
+            // Dojo slide animations aim at pixel positions computed when they start, so the board
+            // must not rotate while one is running. A rotation requested meanwhile waits for idle.
+            applyPendingOrientation: function () {
+                if (this._pendingOrientation === null || this._runningDojoAnimations > 0)
+                    return;
+
+                const orientation = this._pendingOrientation;
+                this._pendingOrientation = null;
+
+                Board.setOrientation(orientation);
+
+                document.getElementById('boardRotateToggle').setAttribute('aria-label',
+                    orientation === 'landscape' ? 'Rotate board to portrait' : 'Rotate board to landscape');
+            },
+
+            trackDojoAnimations: function () {
+                const playAnimation = this.bgaPlayDojoAnimation.bind(this);
+
+                this.bgaPlayDojoAnimation = (animation) => {
+                    this._runningDojoAnimations++;
+
+                    const promise = Promise.resolve(playAnimation(animation));
+
+                    const onDone = () => {
+                        this._runningDojoAnimations--;
+                        this.applyPendingOrientation();
+                    };
+                    promise.then(onDone, onDone);
+
+                    return promise;
+                };
             },
 
             initHexClickListener: function () {
@@ -428,6 +463,14 @@ define([
                 }
 
                 return { log, args };
+            },
+
+            notif_draftRevealed: function (notifData) {
+                return this.forwardNotification(this.notif_draftRevealed.name, notifData);
+            },
+
+            notif_deckCreated: function (notifData) {
+                return this.forwardNotification(this.notif_deckCreated.name, notifData);
             },
 
             notif_placedPiece: function (notifData) {
@@ -766,6 +809,10 @@ define([
             coachDefinitions: null,
 
             serverCallInProgress: false,
+
+            _runningDojoAnimations: 0,
+
+            _pendingOrientation: null,
 
             gameDatas: null,
 

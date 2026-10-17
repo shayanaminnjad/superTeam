@@ -54,7 +54,10 @@ define([
                 players: [],
                 dismissTimer: null,
                 dismissResolve: null,
+                resizeObserver: new ResizeObserver(() => this._fitLines(areaEl)),
             };
+
+            active.resizeObserver.observe(areaEl);
 
             const actionTitleEl = document.createElement('div');
             actionTitleEl.className = 'diceActionTitle';
@@ -148,6 +151,7 @@ define([
             if (!this._active) {
                 return;
             }
+            this._active.resizeObserver.disconnect();
             this._active.areaEl.remove();
             this._active = null;
         },
@@ -384,7 +388,26 @@ define([
                 </div>`
             );
 
-            return document.getElementById(`${result.playerId}_RollLine`);
+            return this._trackLine(document.getElementById(`${result.playerId}_RollLine`));
+        },
+
+        // Lines keep a single row and are scaled down whenever their content is wider than the roll area.
+        _trackLine: function (line) {
+            this._active.resizeObserver.observe(line);
+            return line;
+        },
+
+        _fitLines: function (areaEl) {
+            for (const line of areaEl.querySelectorAll('.diceResult')) {
+                // transforms do not change offsetWidth, so this is always the natural width
+                if (!line.offsetWidth) {
+                    continue;
+                }
+
+                const scale = Math.min(1, areaEl.clientWidth / line.offsetWidth);
+                line.style.transformOrigin = line.classList.contains('left') ? 'left center' : 'right center';
+                line.style.transform = scale < 1 ? `scale(${scale})` : '';
+            }
         },
 
         _createNeutralRollLineElement: function (parentEl) {
@@ -397,7 +420,7 @@ define([
                 </div>`
             );
 
-            return document.getElementById('neutral_RollLine');
+            return this._trackLine(document.getElementById('neutral_RollLine'));
         },
 
         _getDistancePowerContribution: function (distance) {

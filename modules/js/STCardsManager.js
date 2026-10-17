@@ -112,6 +112,11 @@ define(["dojo/_base/declare",
                 return STCardsManager.getCardLogHtml(cardType, this._root.cardDefinitions);
             },
 
+            // [x, y] background position of a card type inside the cards atlas
+            getCardAtlasPosition: function (cardType) {
+                return this._getCardPositionInsideAtlas({ type: cardType });
+            },
+
             getCardTooltipHtml: function (cardType) {
                 const [backXPos, backYPos] = this._getCardPositionInsideAtlas({ type: cardType });
                 return this._buildTooltipHtml({ type: cardType }, backXPos, backYPos);

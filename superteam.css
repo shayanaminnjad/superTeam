@@ -414,8 +414,10 @@ body::before {
     pointer-events: none;
     z-index: 103;
 
-    width: auto;
+    width: max-content;
     height: auto;
+    flex-wrap: nowrap;
+    white-space: nowrap;
     padding-left: 8px;
     padding-right: 8px;
 }
@@ -571,6 +573,88 @@ body.board-portrait .shootTargetTile {
     width: calc(var(--width-ratio) * var(--scale));
     height: calc(var(--heigh-ratio) * var(--scale));
     border-radius: 8px;
+}
+
+.undrafted {
+    visibility: hidden;
+}
+
+/* no cards exist yet while drafting, so every card pile and counter is hidden */
+body.drafting #hiddenDeck,
+body.drafting #myDiscard,
+body.drafting #opponentDiscard,
+body.drafting #supply,
+body.drafting #cardsWrapper,
+body.drafting #cardsHideShowToggle,
+body.drafting .resource:has(.cardIcon) {
+    visibility: hidden;
+}
+
+.draftingPanel {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 10px;
+}
+
+.draftingPanel.locked {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.draftingTitle {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.draftingOptions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+}
+
+.draftingOption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px;
+    border-radius: 10px;
+    outline: 3px solid transparent;
+    cursor: pointer;
+}
+
+.draftingOption:hover {
+    outline-color: rgba(0, 0, 0, 0.3);
+}
+
+.draftingOption.selected {
+    outline-color: green;
+    background-color: rgba(0, 128, 0, 0.12);
+}
+
+.draftingBoard {
+    --scale: 0.5;
+}
+
+.coachBoard.draftingBoard {
+    --scale: 55;
+}
+
+.draftingCards {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.draftingCard {
+    width: 62px;
+    height: 87px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .readonlyText {

@@ -21,6 +21,11 @@ define([
                 return this._coachBoard;
             },
 
+            setPowers(captainId, coachBoardId) {
+                this._applyCaptain(captainId);
+                this._coachBoard.setCoachBoard(coachBoardId);
+            },
+
             _init: function () {
                 this._areaEl = document.createElement('div');
                 this._areaEl.id = `${this._ownerId}_PlayerArea`;
@@ -46,19 +51,11 @@ define([
 
                 this._coachBoard = new CoachBoard(this._ownerId, this._ownerData, this._root, this, playerStuffContainer);
 
-                const captainPower = this._ownerData['captain_power'];
-                const captainCardEl = document.createElement('div');
-                captainCardEl.id = `${this._ownerId}_captainPower`;
-                captainCardEl.className = 'captainPower';
-                const captainAtlasPos = this._captainIdToAtlasPos(captainPower)
-                captainCardEl.style.backgroundPosition = `${captainAtlasPos}% 0`;
-                playerStuffContainer.appendChild(captainCardEl);
-
-                const captainDefinition = (this._root.captainDefinitions || {})[captainPower];
-                if (captainDefinition) {
-                    this._root.addTooltipHtml(captainCardEl.id, STUIHelpers.buildTooltipHtml(
-                        'captainTooltipImage', `${captainAtlasPos}% 0`, _(captainDefinition.name), _(captainDefinition.toolTip)));
-                }
+                this._captainCardEl = document.createElement('div');
+                this._captainCardEl.id = `${this._ownerId}_captainPower`;
+                this._captainCardEl.className = 'captainPower';
+                playerStuffContainer.appendChild(this._captainCardEl);
+                this._applyCaptain(this._ownerData['captain_power']);
 
                 if (this._root.viewerId === this._ownerId) {
                     // a spectator only sees the discard; the deck and hand still need to exist for the cards manager
@@ -107,24 +104,28 @@ define([
                 }
             },
 
-            _captainIdToAtlasPos: function (Id)
-            {
-                const map = new Map([
-                    ["1", 0],
-                    ["3", 20],
-                    ["4", 40],
-                    ["6", 60],
-                    ["14", 80],
-                    ["21", 100]
-                ]);
+            // a negative id means the captain is not drafted yet and stays hidden
+            _applyCaptain: function (captainId) {
+                const atlasPercent = STUIHelpers.captainAtlasPercent(captainId);
+                this._captainCardEl.classList.toggle('undrafted', atlasPercent === undefined);
 
-                return map.get(Id);
+                if (atlasPercent === undefined)
+                    return;
+
+                this._captainCardEl.style.backgroundPosition = `${atlasPercent}% 0`;
+
+                const captainDefinition = (this._root.captainDefinitions || {})[captainId];
+                if (captainDefinition) {
+                    this._root.removeTooltip(this._captainCardEl.id);
+                    this._root.addTooltipHtml(this._captainCardEl.id, STUIHelpers.buildCaptainTooltipHtml(captainDefinition, captainId));
+                }
             },
 
             _ownerId: 0,
             _ownerData: null,
             _root: null,
             _areaEl: null,
+            _captainCardEl: null,
             _coachBoard: null
         });
 

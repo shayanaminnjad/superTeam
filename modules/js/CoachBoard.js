@@ -58,6 +58,23 @@ define([
                 return this._root.bgaPlayDojoAnimation(dojo.fx.combine(animations));
             },
 
+            // a negative id means the board is not drafted yet and stays hidden
+            setCoachBoard: function (coachBoardId) {
+                const atlasPos = STUIHelpers.coachBoardAtlasPosition(coachBoardId);
+                this._boardEl.classList.toggle('undrafted', atlasPos === undefined);
+
+                if (atlasPos === undefined)
+                    return;
+
+                this._boardEl.style.backgroundPosition = atlasPos;
+
+                const coachDefinition = (this._root.coachDefinitions || {})[coachBoardId];
+                if (coachDefinition) {
+                    this._root.removeTooltip(this._boardEl.id);
+                    this._root.addTooltipHtml(this._boardEl.id, STUIHelpers.buildCoachTooltipHtml(coachDefinition, coachBoardId));
+                }
+            },
+
             makeAllNonSelectable: function () {
                 for (const skillBox of this._skillSlots) {
                     skillBox.element.classList.remove('selectable');
@@ -171,15 +188,9 @@ define([
                 const coachBoard = document.createElement('div');
                 coachBoard.id = `${this._ownerId}_coachBoard`;
                 coachBoard.className = 'coachBoard';
-                const atlasPos = this._coachBoardIdToAtlasPos(this._ownerData.team_power);
-                coachBoard.style.backgroundPosition = atlasPos;
                 this._parentEl.appendChild(coachBoard);
-
-                const coachDefinition = (this._root.coachDefinitions || {})[this._ownerData.team_power];
-                if (coachDefinition) {
-                    this._root.addTooltipHtml(coachBoard.id, STUIHelpers.buildTooltipHtml(
-                        'coachTooltipImage', atlasPos, _(coachDefinition.name), _(coachDefinition.toolTip)));
-                }
+                this._boardEl = coachBoard;
+                this.setCoachBoard(this._ownerData.team_power);
 
                 const computedWidth = Math.round(parseFloat(getComputedStyle(coachBoard).width));
                 const computedHeight = Math.round(parseFloat(getComputedStyle(coachBoard).height));
@@ -268,21 +279,8 @@ define([
                 return total;
             },
 
-            _coachBoardIdToAtlasPos: function (Id)
-            {
-                const map = new Map([
-                    ["0", "0% 100%"],
-                    ["1", "100% 100%"],
-                    ["2", "50% 100%"],
-                    ["3", "0% 0%"],
-                    ["4", "50% 0%"],
-                    ["5", "100% 0%"]
-                ]);
-
-                return map.get(Id);
-            },
-
             //Private Fields
+            _boardEl: null,
             _cubeWidth: 0,
             _cubeHeight: 0,
             _ownerId: 0,

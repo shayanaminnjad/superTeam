@@ -32,6 +32,44 @@ define([], function () {
             document.getElementById(id).remove();
         },
 
+        // x position (percent) of a captain inside captainsAtlas, undefined for an unknown id
+        captainAtlasPercent: function (captainId) {
+            const map = new Map([
+                ["1", 0],
+                ["3", 20],
+                ["4", 40],
+                ["6", 60],
+                ["14", 80],
+                ["21", 100]
+            ]);
+
+            return map.get(String(captainId));
+        },
+
+        // background-position of a coach board inside coachBoardsAtlas, undefined for an unknown id
+        coachBoardAtlasPosition: function (coachBoardId) {
+            const map = new Map([
+                ["0", "0% 100%"],
+                ["1", "100% 100%"],
+                ["2", "50% 100%"],
+                ["3", "0% 0%"],
+                ["4", "50% 0%"],
+                ["5", "100% 0%"]
+            ]);
+
+            return map.get(String(coachBoardId));
+        },
+
+        buildCaptainTooltipHtml: function (captainDefinition, captainId) {
+            return this.buildTooltipHtml('captainTooltipImage', `${this.captainAtlasPercent(captainId)}% 0`,
+                _(captainDefinition.name), _(captainDefinition.toolTip));
+        },
+
+        buildCoachTooltipHtml: function (coachDefinition, coachBoardId) {
+            return this.buildTooltipHtml('coachTooltipImage', this.coachBoardAtlasPosition(coachBoardId),
+                _(coachDefinition.name), _(coachDefinition.toolTip));
+        },
+
         // name and description must already be translated
         buildTooltipHtml: function (imageClass, backgroundPosition, name, description) {
             return `<div class="cardTooltip">

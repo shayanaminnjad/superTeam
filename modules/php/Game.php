@@ -21,14 +21,12 @@ declare(strict_types=1);
 namespace Bga\Games\SuperTeam;
 use Bga\Games\SuperTeam\Cards\CardFactory;
 use Bga\Games\SuperTeam\Cards\PlayerHand;
-use Bga\Games\SuperTeam\Cards\PlayerHandCreator;
 use Bga\Games\SuperTeam\HexLib\HexLib;
-use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_1;
-use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_3;
-use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_4;
+use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainId;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPowerBase;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPowerFactory;
 use Bga\Games\SuperTeam\PermanentPowers\Coaches\CoachBoards;
+use Bga\Games\SuperTeam\PermanentPowers\Teams\TeamId;
 use Bga\Games\SuperTeam\Utility\Logger;
 
 use Exception;
@@ -168,6 +166,22 @@ class Game extends \Bga\GameFramework\Table
                 `team_attr_pass`, `team_attr_shoot` , `team_attr_dribble`, `team_attr_tackle`, `team_attr_gk` FROM `player`"
         );
 
+        $isDraftPublic = \intval($this->getUniqueValueFromDB("SELECT COUNT(*) FROM `player` WHERE `captain_power` < 0 OR `team_power` < 0")) === 0;
+
+        if (!$isDraftPublic)
+        {
+            foreach ($result["players"] as &$player)
+            {
+                if ($player['id'] != $current_player_id)
+                {
+                    $player['captain_power'] = -1;
+                    $player['team_power'] = -1;
+                }
+            }
+
+            unset($player);
+        }
+
         $isAttributesPublic = \intval($this->getGameStateValue('isAttributesAssignmentFinished')) === 1;
 
         if (!$isAttributesPublic)
@@ -217,9 +231,9 @@ class Game extends \Bga\GameFramework\Table
     {
         $definitions = [];
 
-        foreach (array_keys($this->loadPlayersBasicInfos()) as $playerId)
+        foreach (CaptainId::cases() as $captainId)
         {
-            $captainPower = $this->getPlayerCaptainPower((int) $playerId);
+            $captainPower = CaptainPowerFactory::GetCaptainPower((string) $captainId->value, $this);
             if ($captainPower === null)
                 continue;
 
@@ -236,15 +250,11 @@ class Game extends \Bga\GameFramework\Table
     {
         $definitions = [];
 
-        foreach (array_keys($this->loadPlayersBasicInfos()) as $playerId)
+        foreach (TeamId::cases() as $teamId)
         {
-            $coachBoardId = $this->getPlayerCoach((int) $playerId);
-            if ($coachBoardId < 0)
-                continue;
-
-            $definitions[$coachBoardId] = [
+            $definitions[$teamId->value] = [
                 'name' => \clienttranslate("Coach board"),
-                'toolTip' => CoachBoards::getTooltip($coachBoardId),
+                'toolTip' => CoachBoards::getTooltip($teamId->value),
             ];
         }
 
@@ -276,21 +286,15 @@ class Game extends \Bga\GameFramework\Table
     {
         $default_colors = $this->getGameinfos()['player_colors'];
 
-        $teamBoard = 0;
-        $captainBoard = CaptainPower_3::staticId();
+        // captain power and coach board stay -1 until the drafting state
         foreach ($players as $player_id => $player) {
-            $query_values[] = vsprintf("('%s', '%s', '%s', '%s', '%s', '%s', '%s')", [
+            $query_values[] = vsprintf("('%s', '%s', '%s', '%s', '%s', -1, -1)", [
                 $player_id,
                 array_shift($default_colors),
                 $player["player_canal"],
                 addslashes($player["player_name"]),
-                addslashes($player["player_avatar"]),
-                $captainBoard,
-                $teamBoard
+                addslashes($player["player_avatar"])
             ]);
-
-            $teamBoard += 1;
-            $captainBoard = CaptainPower_4::staticId();
         }
 
         static::DbQuery(
@@ -310,17 +314,6 @@ class Game extends \Bga\GameFramework\Table
 
         $this->initGameState($players);
 
-        //TODO: this must change, it should be initialized when we have selected captain board and team board.
-        //make this it's own function!
-        $playersDeck = $this->deckFactory->createDeck('player_cards');
-        foreach ($players as $player_id => $player)
-        {
-            $captainPower = $this->getPlayerCaptainPower($player_id);
-            $teamBoard = $this->getPlayerCoach($player_id);
-
-            PlayerHandCreator::createHand($playersDeck, $player_id, $captainPower->getId(), $teamBoard);
-        }
-
         DBAdapter::getInstance()->initGlobals();
 
         $this->initBoard($players);
@@ -331,7 +324,7 @@ class Game extends \Bga\GameFramework\Table
         if ($activePlayerId != $starterPlayer)
             $this->activeNextPlayer();
 
-        return ST_PLAYER_PIECE_SETUP;
+        return ST_DRAFTING;
     }
 
     private function initGameState(array $players): void

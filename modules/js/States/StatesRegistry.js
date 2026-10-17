@@ -27,6 +27,7 @@ define([
     g_gamethemeurl + "modules/js/States/MakeExhaustedPieceReady.js",
     g_gamethemeurl + "modules/js/States/BypassPerformerSelection.js",
     g_gamethemeurl + "modules/js/States/MultiCardSelectionState.js",
+    g_gamethemeurl + "modules/js/States/DraftingState.js",
 ], function (
     declare,
     PlayerPieceSetupState,
@@ -55,7 +56,8 @@ define([
     PushingPieceSelection,
     MakeExhaustedPieceReady,
     BypassPerformerSelection,
-    MultiCardSelectionState
+    MultiCardSelectionState,
+    DraftingState
 ) {
 
     const StateRegistry = declare("st.StateRegistry", null, {
@@ -90,6 +92,7 @@ define([
             this.registerState(MakeExhaustedPieceReady);
             this.registerState(BypassPerformerSelection);
             this.registerState(MultiCardSelectionState);
+            this.registerState(DraftingState);
         },
 
         getState: function (name, root, stateData) {
