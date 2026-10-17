@@ -8,6 +8,7 @@ use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\NotificationAdapter;
 
 class SetupComplete extends GameState
 {
@@ -28,6 +29,11 @@ class SetupComplete extends GameState
     function onEnteringState(int $activePlayerId)
     {
         $this->game->giveExtraTime($activePlayerId);
+
+        NotificationAdapter::getInstance()->notifyAll("finishSetup",clienttranslate('${player_name} finished piece setup'),
+            [
+                'player_name' => NotificationAdapter::getInstance()->getPlayerNameById($activePlayerId),
+            ]);
 
         $playerId = intval($this->game->activeNextPlayer());
 

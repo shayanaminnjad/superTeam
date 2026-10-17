@@ -34,7 +34,7 @@ class TeamAttributesReveal extends GameState
         $this->game->giveExtraTime($activePlayerId);
         $this->game->giveExtraTime($this->game->getInactivePlayerId());
 
-        $this->game->notify->all("attributeAssignmentFinished", "", $attributes);
+        $this->game->notify->all("attributeAssignmentFinished", clienttranslate("Players finished attribute assignment"), $attributes);
 
         return DealInitialHand::class;
     }

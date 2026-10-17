@@ -98,7 +98,7 @@ class PlayerPieceSetup extends PlayerBaseState
 
         $playerId = (int)$this->game->getActivePlayerId();
 
-        $this->notify->all("placedPiece", clienttranslate('${player_name} places a piece'), [
+        $this->notify->all("placedPiece", '', [
             "player_id" => $playerId,
             "player_name" => $this->game->getActivePlayerName(), // remove this line if you uncomment notification decorator
             "placed_piece" => $placedPiece,
