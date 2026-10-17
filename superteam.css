@@ -605,7 +605,10 @@ body.drafting .resource:has(.cardIcon) {
 
 .draftingTitle {
     font-size: 18px;
-    font-weight: bold;
+    color: #E5DFCB;
+    -webkit-text-stroke: 3px black;
+    paint-order: stroke fill;
+    font-family: Impact, sans-serif;
     text-align: center;
     margin-bottom: 8px;
 }
@@ -664,7 +667,6 @@ body.drafting .resource:has(.cardIcon) {
     position: relative;
     font-size: var(--size);
     color: var(--color);
-    font-weight: 400;
     -webkit-text-stroke: 3px black;
     paint-order: stroke fill;
     font-family: Impact, sans-serif;
