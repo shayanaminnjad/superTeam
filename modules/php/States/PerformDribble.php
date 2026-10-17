@@ -9,6 +9,8 @@ use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\GameStats;
+use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
+use Bga\Games\SuperTeam\PlayerResources;
 use Bga\Games\SuperTeam\StatAction;
 use Bga\Games\SuperTeam\NotificationAdapter;
 
@@ -43,8 +45,18 @@ class PerformDribble extends GameState
         if ($isDribbleSuccessful)
         {
             $selectedHex = DBAdapter::getInstance()->getSelectedHexAsHexID();
+
+            $playerPiece = null;
+            $board->tryGetPlayerPieceInHex($selectedHex, $playerPiece);
+            if (PlayerPowers::forPlayer($activePlayerId)->moraleForSuccessfulDribble($playerPiece))
+            {
+                $playerResources = new PlayerResources($activePlayerId);
+                $playerResources->addMorale(1, true);
+            }
+
             $ballOldHex = $board->getBallHex();
             $board->swapHexesContent($ballOldHex, $selectedHex, true);
+
 
             $this->game->notify->all("dribblePerformed", \clienttranslate('${player_name} dribbled successfully'), [
                 "swappedHexes" => [$selectedHex->convertToArray(), $ballOldHex->convertToArray()],
