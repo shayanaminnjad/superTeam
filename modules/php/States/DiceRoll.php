@@ -48,7 +48,7 @@ class DiceRoll extends GameState
         $rollNotifData = [];
         foreach ($playersToRollFor as $player) {
             $relatedAttribute = $player == $activePlayerId ? $rollData->selfAttribute : $rollData->otherAttribute;
-            $rollResult = $this->rollForPlayer($player, $relatedAttribute, $rollData->rollingPieceIds[$player]);
+            $rollResult = $this->rollForPlayer($player, $activePlayerId, $relatedAttribute, $rollData->rollingPieceIds[$player]);
             DiceRollServices::storeRollResult($player, $rollResult);
             if($player === $activePlayerId)
                 $activePlayerRollResult = $rollResult;
