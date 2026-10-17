@@ -48,6 +48,9 @@ class BypassLogic
     {
         $destination = self::getByPassDest($opponent, $myLocation);
 
+        if (!HexLib::getOffsetExtent()->isInsideExtent($destination))
+            return false;
+
         return !$board->hasPlayerInHex($destination);
     }
 
