@@ -15,6 +15,10 @@ define(["dojo/_base/declare",
             },
 
             _onInactivePlayerEnter: function (args) {
+                const target = args._private?.selectedTarget;
+                if (target) {
+                    this._visualizeTarget(HexLib.createOffsetCoord(target.hex_row, target.hex_column));
+                }
             },
 
             _onActivePlayerLeave: function () {
@@ -73,13 +77,17 @@ define(["dojo/_base/declare",
             _onTileClicked: function (tile, row, column) {
                 const selectedTile = HexLib.createOffsetCoord(row, column);
 
-                Board.visualizePowerRequired(Board.getHexWithBall(), selectedTile, !this._isCurrentPlayerAttacker(), false);
+                this._visualizeTarget(selectedTile);
 
                 //(sha) Make this a function inside root.
                 this._root.statusBar.removeActionButtons();
                 this._root.statusBar.addActionButton(_('Confirm'), () => {
                     this._root.performServerAction("actTargetSelected", { hexColumn: column, hexRow: row });
                 }, { color: 'primary' });
+            },
+
+            _visualizeTarget: function (targetTile) {
+                Board.visualizePowerRequired(Board.getHexWithBall(), targetTile, !this._isCurrentPlayerAttacker(), false);
             },
 
             _isCurrentPlayerAttacker: function () {

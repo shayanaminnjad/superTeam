@@ -118,6 +118,7 @@ class PlayerBasicTurn extends PlayerBaseState
     {
         $this->game->giveExtraTime($this->game->getInactivePlayerId());
 
+        ShootTargetSelection::resetTargets($this->game);
         $this->gamestate->setAllPlayersMultiactive();
         return ShootTargetSelection::class;
     }

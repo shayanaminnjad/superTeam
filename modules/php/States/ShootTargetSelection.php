@@ -37,6 +37,16 @@ class ShootTargetSelection extends PlayerBaseState
         $defender = $board->getDefender();
         $goalieCol = $board->getPlayerGoalie($defender)->getPosition()->getColumn();
 
+        $private = [];
+        foreach ([$board->getAttacker(), $defender] as $playerId)
+        {
+            $target = self::getPlayerShootTarget(\intval($playerId));
+            if ($target->isValid())
+            {
+                $private[$playerId] = ['selectedTarget' => $target->convertToArray()];
+            }
+        }
+
         return [
             'attacker' => $board->getAttacker(),
             'defender' => $defender,
@@ -44,8 +54,18 @@ class ShootTargetSelection extends PlayerBaseState
                 new HexID($goalieCol, 4)->convertToArray(),
                 new HexID($goalieCol, 5)->convertToArray(),
                 new HexID($goalieCol, 6)->convertToArray(),
-            ]
+            ],
+            // each target is private until the reveal
+            '_private' => $private,
         ];
+    }
+
+    public static function resetTargets(Game $game): void
+    {
+        $db = DBAdapter::getInstance();
+        $invalid = HexID::GetInvalidId()->toJson();
+        $db->storePlayerTempStr(\intval($game->getActivePlayerId()), 'shootTarget', $invalid);
+        $db->storePlayerTempStr(\intval($game->getInactivePlayerId()), 'shootTarget', $invalid);
     }
 
     #[PossibleAction]
