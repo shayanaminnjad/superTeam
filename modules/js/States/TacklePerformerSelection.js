@@ -11,13 +11,7 @@ define(["dojo/_base/declare",
 
             //State Overrides
             _onActivePlayerEnter: function (args) {
-                let tacklablePieces = [];
-
-                for (const space of args.HexesWithTacklingPieces) {
-                    tacklablePieces.push(Board.convertOffsetCoordToHexId(HexLib.createOffsetCoord(space.hex_row, space.hex_column)));
-                }
-
-                Board.makeHexesSelectable(tacklablePieces);
+                this._makeHexesSelectable();
             },
 
             _onInactivePlayerEnter: function (args) {
@@ -37,8 +31,24 @@ define(["dojo/_base/declare",
 
                     var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
 
-                    await this._root.performServerAction("actPieceSelected", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r });
+                    Board.makeAllHexesNonSelectable();
+                    try {
+                        await this._root.performServerAction("actPieceSelected", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r });
+                    }
+                    catch (e) {
+                        this._makeHexesSelectable();
+                    }
                 }
+            },
+
+            _makeHexesSelectable: function () {
+                let tacklablePieces = [];
+
+                for (const space of this._args.HexesWithTacklingPieces) {
+                    tacklablePieces.push(Board.convertOffsetCoordToHexId(HexLib.createOffsetCoord(space.hex_row, space.hex_column)));
+                }
+
+                Board.makeHexesSelectable(tacklablePieces);
             },
 
             getName: function () {
