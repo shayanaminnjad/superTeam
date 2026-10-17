@@ -26,6 +26,7 @@ define([], function () {
                 node: moraleEl,
                 duration: stepDuration * totalSteps,
                 onPlay: function () {
+                    clearTimeout(moraleEl._moraleHoldTimeout);
                     moraleEl.classList.add("morale-changing");
 
                     let counter = currentAmount;
@@ -39,8 +40,10 @@ define([], function () {
                     }, stepDuration);
                 },
                 onEnd: function () {
-                    moraleEl.classList.remove("morale-changing");
                     moraleEl.innerHTML = amount;
+                    moraleEl._moraleHoldTimeout = setTimeout(function () {
+                        moraleEl.classList.remove("morale-changing");
+                    }, 500);
                 }
             });
 
