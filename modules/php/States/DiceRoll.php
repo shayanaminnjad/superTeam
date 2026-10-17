@@ -100,13 +100,16 @@ class DiceRoll extends GameState
         }
     }
 
-    private function rollForPlayer(int $playerId, TeamAttribute $relatedAttribute, int $rollingPieceId): DiceRollResult
+    private function rollForPlayer(int $playerId, int $activePlayerId, TeamAttribute $relatedAttribute, int $rollingPieceId): DiceRollResult
     {
         $whiteDice = [];
         if ($relatedAttribute != TeamAttribute::None)
         {
             $teamBoard = $this->game->getTeamBoard();
             $attrCount = $teamBoard->getAttribute($playerId, $relatedAttribute);
+
+            if ($activePlayerId == $playerId && DBAdapter::getInstance()->getGlobalBool('has_extra_die_for_whole_turn'))
+                $attrCount += 1;
 
             for($i = 0; $i < $attrCount; $i++)
             {

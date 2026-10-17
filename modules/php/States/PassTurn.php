@@ -1,58 +1,59 @@
 <?php
 
- declare(strict_types=1);
- 
- namespace Bga\Games\SuperTeam\States;
- 
- use Bga\GameFramework\StateType;
- use Bga\GameFramework\States\GameState;
- use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
- use Bga\Games\SuperTeam\DBAdapter;
- use Bga\Games\SuperTeam\Game;
- use Bga\Games\SuperTeam\NotificationAdapter;
- use Bga\Games\SuperTeam\PlayerPiecesDBManager;
- use Bga\Games\SuperTeam\TimeTrack;
+declare(strict_types=1);
 
- class PassTurn extends GameState
- {
-     function __construct(
-         protected Game $game,
-     ) {
-         parent::__construct(
-             $game,
-             id: ST_PASS_TURN,
-             name: 'passTurn',
-             type: StateType::GAME,
-             transitions: [],
-             updateGameProgression: true,
-             initialPrivate: null,
-         );
-     }
+namespace Bga\Games\SuperTeam\States;
 
-     function onEnteringState(int $activePlayerId)
-     {
-         //(sha) this happens if we have given the second player a final turn.
+use Bga\GameFramework\StateType;
+use Bga\GameFramework\States\GameState;
+use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
+use Bga\Games\SuperTeam\DBAdapter;
+use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\NotificationAdapter;
+use Bga\Games\SuperTeam\PlayerPiecesDBManager;
+use Bga\Games\SuperTeam\TimeTrack;
+
+class PassTurn extends GameState
+{
+    function __construct(
+        protected Game $game,
+    )
+    {
+        parent::__construct(
+            $game,
+            id: ST_PASS_TURN,
+            name: 'passTurn',
+            type: StateType::GAME,
+            transitions: [],
+            updateGameProgression: true,
+            initialPrivate: null,
+        );
+    }
+
+    function onEnteringState(int $activePlayerId)
+    {
+        //(sha) this happens if we have given the second player a final turn.
         if ($this->isLastTurn($activePlayerId, TimeTrack::GetTimeTrackPosition()))
-             return ST_END_GAME;
+            return ST_END_GAME;
 
-         $playerHand = $this->game->getPlayerHand($activePlayerId);
-         $wasDiscardShuffled = $playerHand->drawToFour();
+        $playerHand = $this->game->getPlayerHand($activePlayerId);
+        $wasDiscardShuffled = $playerHand->drawToFour();
 
-         $this->game->notify->player($activePlayerId, "handRefill", "",
-         [
-             'playerHand' => $playerHand->getCardsInHand(),
-             'wasDiscardShuffled' => $wasDiscardShuffled,
-         ]);
+        $this->game->notify->player($activePlayerId, "handRefill", "",
+            [
+                'playerHand' => $playerHand->getCardsInHand(),
+                'wasDiscardShuffled' => $wasDiscardShuffled,
+            ]);
 
-         $this->game->notify->all("deckCountChanged", "", [[$activePlayerId, $playerHand->CountCardsInDeck()]]);
+        $this->game->notify->all("deckCountChanged", "", [[$activePlayerId, $playerHand->CountCardsInDeck()]]);
 
-         if ($wasDiscardShuffled)
-         {
-             $this->game->notify->all("discardShuffled", "", ["playerId" => $activePlayerId]);
-         }
+        if ($wasDiscardShuffled)
+        {
+            $this->game->notify->all("discardShuffled", "", ["playerId" => $activePlayerId]);
+        }
 
-         DiceRollServices::storeDiceRerolledThisTurn(false);
-         
+        DiceRollServices::storeDiceRerolledThisTurn(false);
+
         $this->game->giveExtraTime($activePlayerId);
         $nextPlayer = $this->game->activeNextPlayer();
 
@@ -62,15 +63,16 @@
         $passActionContext = new PassActionContext($activePlayerId);
         $passActionContext->reset(true);
 
-         $this->game->setGameStateValue("cardsPlayedThisTurn", 0);
+        $this->game->setGameStateValue("cardsPlayedThisTurn", 0);
+        DBAdapter::getInstance()->storeGlobalBool('has_extra_die_for_whole_turn', false);
 
-         $isRestartAfterGoal = DBAdapter::getInstance()->getGlobalInt('is_restart_after_goal');
+        $isRestartAfterGoal = DBAdapter::getInstance()->getGlobalInt('is_restart_after_goal');
 
-         if ($isRestartAfterGoal)
-         {
-             if ($this->game->getStarterPlayer() != $nextPlayer)
-                 $this->game->swapStarterPlayer();
-         }
+        if ($isRestartAfterGoal)
+        {
+            if ($this->game->getStarterPlayer() != $nextPlayer)
+                $this->game->swapStarterPlayer();
+        }
 
         if ($wasDiscardShuffled)
         {
@@ -79,46 +81,41 @@
             if (TimeTrack::IsHalfTime($timeTrackPosition))
             {
                 return HalfTime::class;
-            }
-            else if ($this->isLastTurn($activePlayerId, $timeTrackPosition))
+            } else if ($this->isLastTurn($activePlayerId, $timeTrackPosition))
             {
                 return ST_END_GAME;
-            }
-            else
+            } else
             {
                 if ($isRestartAfterGoal)
                 {
                     return BoardReset::class;
-                }
-                else
+                } else
                 {
                     return BeforeCardSelectionReset::class;
                 }
             }
-        }
-        else
+        } else
         {
             if ($isRestartAfterGoal)
             {
                 return BoardReset::class;
-            }
-            else
+            } else
             {
                 return BeforeCardSelectionReset::class;
             }
         }
-     }
+    }
 
-     /**
-      * @param int $activePlayerId
-      * @return bool
-      */
-     public function isLastTurn(int $activePlayerId, int $timeTrackPos): bool
-     {
-         //(sha) we want to make sure that both players play the same amount of turns. the player who starts the first half, starts the first turn of the game.
-         //so if the tracker goes to last space in his turn, we give the other player another turn. but if tracker goes to last space in the second player turn,
-         //then we finish the game.
-         return TimeTrack::IsGameFinished($timeTrackPos) && $activePlayerId !== $this->game->getPlayerStartedFirstHalf();
-     }
- }
+    /**
+     * @param int $activePlayerId
+     * @return bool
+     */
+    public function isLastTurn(int $activePlayerId, int $timeTrackPos): bool
+    {
+        //(sha) we want to make sure that both players play the same amount of turns. the player who starts the first half, starts the first turn of the game.
+        //so if the tracker goes to last space in his turn, we give the other player another turn. but if tracker goes to last space in the second player turn,
+        //then we finish the game.
+        return TimeTrack::IsGameFinished($timeTrackPos) && $activePlayerId !== $this->game->getPlayerStartedFirstHalf();
+    }
+}
  

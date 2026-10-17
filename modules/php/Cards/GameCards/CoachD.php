@@ -2,7 +2,6 @@
 
 namespace Bga\Games\SuperTeam\Cards\GameCards;
 
-use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\Card;
 use Bga\Games\SuperTeam\Cards\CardDefinition;
 use Bga\Games\SuperTeam\Cards\CardType;
@@ -14,7 +13,6 @@ use Bga\Games\SuperTeam\MultiCardSelectionContext;
 use Bga\Games\SuperTeam\NotificationAdapter;
 use Bga\Games\SuperTeam\PermanentPowers\Teams\TeamId;
 use Bga\Games\SuperTeam\PlayerResources;
-use Bga\Games\SuperTeam\States\MakeExhaustedReady;
 use Bga\Games\SuperTeam\States\MultiCardSelectState;
 
 class CoachD extends Card

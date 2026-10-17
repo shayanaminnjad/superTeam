@@ -85,7 +85,8 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `can_move_in_basic_turn` BOOLEAN DEFAULT FALSE,
     `last_player_who_shoot` INT DEFAULT -1,
     `last_card_play_stat` TEXT,
-    `roll_action_name` TEXT
+    `roll_action_name` TEXT,
+    `has_extra_die_for_whole_turn` BOOLEAN DEFAULT FALSE
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `player_temp_data` (
