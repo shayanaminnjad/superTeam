@@ -11,6 +11,7 @@ use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\GameStats;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\MultiCardSelectionContext;
@@ -40,6 +41,8 @@ class BeforeCardSelectionReset extends GameState
             $this->game->giveExtraTime($activePlayerId);
 
         CardSelection::setWasLastActionUndone(false);
+
+        GameStats::recordTacticAbandoned($this->game, $activePlayerId);
 
         $tacticContext = new TacticContext();
         $tacticContext->reset();

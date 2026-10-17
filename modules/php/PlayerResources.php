@@ -34,7 +34,9 @@ class PlayerResources
             "UPDATE `player` SET `resource_morale` = {$amount} WHERE `player_id` = {$this->playerId}"
         );
 
-        if ($notify) 
+        GameStats::recordMoraleChange($this->playerId, $amount - $oldMorale);
+
+        if ($notify)
         {
             $message = $amount > $oldMorale ?
                 \clienttranslate('${player_name} gained ${absDiff} morale(s).') :

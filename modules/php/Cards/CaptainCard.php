@@ -59,6 +59,7 @@ abstract class CaptainCard extends Card
 
     protected function goToShootState() : ExecutionResult
     {
+        ShootTargetSelection::resetTargets($this->game);
         $this->game->gamestate->setAllPlayersMultiactive();
         return new ExecutionResult(ExecutionAction::GoToState, ShootTargetSelection::class);
     }

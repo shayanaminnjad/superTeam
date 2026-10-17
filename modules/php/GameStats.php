@@ -7,9 +7,17 @@ use Bga\Games\SuperTeam\Dice\DiceRollResult;
 
 class GameStats
 {
+    private static ?Game $game = null;
+
+    // PlayerResources has no game at hand, so morale stats reach it through this
+    public static function bind(Game $game): void
+    {
+        self::$game = $game;
+    }
+
     public static function initAll(Game $game): void
     {
-        $names = ['dice_rolls', 'average_dice', 'cards_as_basic', 'cards_as_tactic', 'fatigues_played', 'tactics_successful', 'tactics_failed'];
+        $names = ['dice_rolls', 'average_dice', 'cards_as_basic', 'cards_as_tactic', 'fatigues_played', 'tactics_successful', 'tactics_failed', 'pushes', 'bypasses', 'morale_gained', 'morale_spent'];
 
         foreach (StatAction::cases() as $action)
         {
@@ -85,5 +93,33 @@ class GameStats
     public static function recordTacticResult(Game $game, int $playerId, bool $success): void
     {
         $game->playerStats->inc($success ? 'tactics_successful' : 'tactics_failed', 1, $playerId);
+
+        // resolved, so neither an undo nor an abandon check may touch this card again
+        DBAdapter::getInstance()->storeGlobalString('last_card_play_stat', '');
+    }
+
+    // a tactic that ends without a driver result (coach card declined, zombie leaving a card) is a failure
+    public static function recordTacticAbandoned(Game $game, int $playerId): void
+    {
+        if (DBAdapter::getInstance()->getGlobalString('last_card_play_stat') === 'cards_as_tactic')
+            self::recordTacticResult($game, $playerId, false);
+    }
+
+    public static function recordPush(Game $game, int $playerId): void
+    {
+        $game->playerStats->inc('pushes', 1, $playerId);
+    }
+
+    public static function recordBypass(Game $game, int $playerId): void
+    {
+        $game->playerStats->inc('bypasses', 1, $playerId);
+    }
+
+    public static function recordMoraleChange(int $playerId, int $delta): void
+    {
+        if ($delta === 0)
+            return;
+
+        self::$game->playerStats->inc($delta > 0 ? 'morale_gained' : 'morale_spent', abs($delta), $playerId);
     }
 }

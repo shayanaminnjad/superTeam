@@ -63,6 +63,7 @@ class Game extends \Bga\GameFramework\Table
         );
 
         Logger::init(DBAdapter::getInstance(), 'logs');
+        GameStats::bind($this);
 
         HexLib::SetHexInfo(BoardInfo::GetHexInfo());
         BoardInfo::init();

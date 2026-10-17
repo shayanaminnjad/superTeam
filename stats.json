@@ -21,6 +21,12 @@
     "tackle_success_rate": { "id": 42, "name": "Tackle success rate (%)", "type": "float" },
     "tackle_failure_rate": { "id": 43, "name": "Tackle failure rate (%)", "type": "float" },
 
+    "pushes": { "id": 80, "name": "Pushes", "type": "int" },
+    "bypasses": { "id": 81, "name": "Bypasses", "type": "int" },
+
+    "morale_gained": { "id": 82, "name": "Morale gained", "type": "int" },
+    "morale_spent": { "id": 83, "name": "Morale spent", "type": "int" },
+
     "dice_rolls": { "id": 50, "name": "Dice rolls", "type": "int" },
     "average_dice": { "id": 51, "name": "Average dice result", "type": "float" },
 

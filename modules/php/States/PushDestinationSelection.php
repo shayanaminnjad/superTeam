@@ -7,6 +7,7 @@ use Bga\GameFramework\StateType;
 use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\GameStats;
 use Bga\Games\SuperTeam\HexID;
 
 class PushDestinationSelection extends PlayerBaseState
@@ -79,6 +80,8 @@ class PushDestinationSelection extends PlayerBaseState
         ));
 
         $activePlayer = \intval($this->game->getActivePlayerId());
+        GameStats::recordPush($this->game, $activePlayer);
+
         return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayer);
     }
 
