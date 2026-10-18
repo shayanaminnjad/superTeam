@@ -87,17 +87,19 @@ class PlayerHand
 
     public function drawToFour() : bool
     {
-        $this->wasShuffled = false;
-
         $diffToFour = self::$MAX_CARDS_IN_HAND - $this->CountCardsInHand();
 
-        if ($diffToFour < 0)
-            throw new \BgaSystemException("Cards in hand can never be more than 4!");
+        return $this->drawCards($diffToFour);
+    }
+
+    public function drawCards(int $count) : bool
+    {
+        $this->wasShuffled = false;
 
         $this->cards->autoreshuffle_custom = [$this->deckName => $this->discardName];
         $this->cards->autoreshuffle_trigger = ['obj' => $this, 'method' => 'onReshuffle'];
 
-        $this->cards->pickCards($diffToFour, $this->deckName, $this->ownerId);
+        $this->cards->pickCards($count, $this->deckName, $this->ownerId);
 
         return $this->wasShuffled;
     }
