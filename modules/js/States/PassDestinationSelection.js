@@ -11,7 +11,59 @@ define(["dojo/_base/declare",
 
             //State Overrides
             _onActivePlayerEnter: function (args) {
+                this._makeDestinationsSelectable();
+            },
+
+            _onInactivePlayerEnter: function (args) {
+            },
+
+            _onActivePlayerLeave: function () {
+                this._makeDestinationsUnSelectable();
+            },
+
+            _onInactivePlayerLeave: function () {
+            },
+
+            _selfOnHexClicked: async function (evt) {
+                if (evt.currentTarget.classList.contains('selectable')) {
+                    evt.preventDefault();
+                    evt.stopPropagation();
+
+                    var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
+
+                    this._makeDestinationsUnSelectable();
+
+                    try {
+                        await this._root.performServerAction("actDestSelected", {
+                            hexColumn: offsetCoord.c,
+                            hexRow: offsetCoord.r
+                        });
+                    }
+                    catch(e)
+                    {
+                        console.log('Sending destination failed with error: ', e);
+                        this._makeDestinationsSelectable();
+                    }
+                }
+            },
+
+            _selfOnHexEnter: async function (evt) {
+                this._showPassRuler(evt.currentTarget);
+            },
+
+            _showPassRuler: function (hexEl) {
+                if (hexEl.classList.contains('selectable')) {
+                    Board.visualizePowerRequired(Board.getHexWithBall(), Board.convertHexIdToOffsetCoord(hexEl.id));
+                }
+            },
+
+            _selfOnHexLeave: async function(evt) {
+                Board.removeRequiredPowerVisualization();
+            },
+
+            _makeDestinationsSelectable: function() {
                 let allForcedPositions = [];
+                const args = this._args;
 
                 for(const forcedSpace of args.forcedPositions)
                 {
@@ -42,39 +94,8 @@ define(["dojo/_base/declare",
                     this._showPassRuler(hoveredHex);
             },
 
-            _onInactivePlayerEnter: function (args) {
-            },
-
-            _onActivePlayerLeave: function () {
+            _makeDestinationsUnSelectable: function(){
                 Board.makeAllHexesNonSelectable();
-                Board.removeRequiredPowerVisualization();
-            },
-
-            _onInactivePlayerLeave: function () {
-            },
-
-            _selfOnHexClicked: async function (evt) {
-                if (evt.currentTarget.classList.contains('selectable')) {
-                    evt.preventDefault();
-                    evt.stopPropagation();
-
-                    var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
-
-                    await this._root.performServerAction("actDestSelected", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r });
-                }
-            },
-
-            _selfOnHexEnter: async function (evt) {
-                this._showPassRuler(evt.currentTarget);
-            },
-
-            _showPassRuler: function (hexEl) {
-                if (hexEl.classList.contains('selectable')) {
-                    Board.visualizePowerRequired(Board.getHexWithBall(), Board.convertHexIdToOffsetCoord(hexEl.id));
-                }
-            },
-
-            _selfOnHexLeave: async function(evt) {
                 Board.removeRequiredPowerVisualization();
             },
 
