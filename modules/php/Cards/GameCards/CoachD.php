@@ -49,12 +49,12 @@ class CoachD extends Card
     protected function getCommands(): array
     {
         return [
-            $this->goToDiscardCardThenGetMorale(...),
+            $this->goToDiscardCard(...),
             $this->discardCardsThenGiveMorale(...)
         ];
     }
 
-    private function goToDiscardCardThenGetMorale() : ExecutionResult
+    private function goToDiscardCard() : ExecutionResult
     {
         $multiCardSelectionContext = new MultiCardSelectionContext(intval($this->game->getActivePlayerId()));
         $multiCardSelectionContext->storeSelectableCardsRange(1, 2);
