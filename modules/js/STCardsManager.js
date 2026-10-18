@@ -62,7 +62,7 @@ define(["dojo/_base/declare",
 
                 let cardsInhand = this._handStock.getCards();
 
-                for(card of cardsInhand)
+                for(let card of cardsInhand)
                 {
                     card.location = `${this._root.viewerId}_deck`;
                 }
@@ -70,6 +70,20 @@ define(["dojo/_base/declare",
                 let handPromise = this._hiddenDeck.addCards(this._handStock.getCards());
 
                 return Promise.all([discardPromise, handPromise]);
+            },
+
+            placeCardFromHandToDeck: function(cardId) {
+                const cardsInHand = this._handStock.getCards();
+
+                for(let card of cardsInHand)
+                {
+                    if (parseInt(card.id) === cardId)
+                    {
+                        card.location = `${this._root.viewerId}_deck`;
+                        this._hiddenDeck.addCards([card]);
+                        break;
+                    }
+                }
             },
 
             shuffleDeck: function () {

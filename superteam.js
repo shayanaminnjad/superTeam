@@ -544,6 +544,10 @@ define([
                 });
             },
 
+            notif_cardPutOnTopOfDeck: function(notifData) {
+                this.cardsManager.placeCardFromHandToDeck(notifData.movedCard);
+            },
+
             notif_resetPlayerPieces: async function (notifData) {
                 return this.forwardNotification(this.notif_resetPlayerPieces.name, notifData);
             },

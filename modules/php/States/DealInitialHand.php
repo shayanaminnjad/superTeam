@@ -5,7 +5,9 @@ namespace Bga\Games\SuperTeam\States;
 
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\StateType;
+use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
 
 class DealInitialHand extends GameState
 {
@@ -32,7 +34,7 @@ class DealInitialHand extends GameState
         {
             $playerHand->shuffleDeck();
 
-            $wasDiscardShuffled = $playerHand->drawToFour();
+            $wasDiscardShuffled = $playerHand->drawToAmount(PlayerPowers::forPlayer($playerHand->getOwner())->drawFiveKeepFour() ? 5 : PlayerHand::$DEFAULT_DRAW_AMOUNT);
 
             $this->game->notify->player($playerHand->getOwner(), "handRefill", "",
                 [

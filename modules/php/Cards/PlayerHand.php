@@ -9,7 +9,7 @@ use Bga\Games\SuperTeam\NotificationAdapter;
 
 class PlayerHand
 {
-    public static int $MAX_CARDS_IN_HAND = 4;
+    public static int $DEFAULT_DRAW_AMOUNT = 4;
 
     private $cards;
 
@@ -85,9 +85,9 @@ class PlayerHand
         return $cards;
     }
 
-    public function drawToFour() : bool
+    public function drawToAmount($amount) : bool
     {
-        $diffToFour = self::$MAX_CARDS_IN_HAND - $this->CountCardsInHand();
+        $diffToFour = $amount - $this->CountCardsInHand();
 
         return $this->drawCards($diffToFour);
     }
@@ -130,6 +130,11 @@ class PlayerHand
         $card = array_values($cards)[0];
 
         $this->cards->moveCard($card["id"], self::$handName, $this->ownerId);
+    }
+
+    public function putCardOnTopOfDrawDeck(int $cardId) : void
+    {
+        $this->cards->insertCardOnExtremePosition($cardId, $this->deckName, true);
     }
 
     public function discardCard(int $cardId) :void

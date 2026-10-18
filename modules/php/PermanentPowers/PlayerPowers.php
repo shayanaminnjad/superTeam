@@ -135,4 +135,9 @@ final class PlayerPowers
     {
         return $this->team === TeamId::OpponentNeedsExtraOneOnBlock;
     }
+
+    public function drawFiveKeepFour() : bool
+    {
+        return $this->team === TeamId::DrawFiveKeepFour;
+    }
 }

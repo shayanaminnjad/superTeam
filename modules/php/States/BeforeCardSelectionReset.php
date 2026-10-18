@@ -16,6 +16,7 @@ use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\MultiCardSelectionContext;
 use Bga\Games\SuperTeam\PassTargetSelectionLogic;
+use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
 use Bga\Games\SuperTeam\PlayerPiece;
 use Bga\Games\SuperTeam\RequiredPower;
 
@@ -89,6 +90,17 @@ class BeforeCardSelectionReset extends GameState
         $multiCardSelectionContext = new MultiCardSelectionContext($activePlayerId);
         $multiCardSelectionContext->reset();
 
-        return CardSelection::class;
+        if (PlayerPowers::forPlayer($activePlayerId)->drawFiveKeepFour() && $this->game->getPlayerHand($activePlayerId)->CountCardsInHand() === 5)
+        {
+            $multiCardSelectionContext = new MultiCardSelectionContext(intval($this->game->getActivePlayerId()));
+            $multiCardSelectionContext->storeSelectableCardsRange(1, 1);
+            $multiCardSelectionContext->storeNextState(PutCardOnTopOfDeckState::class);
+
+            return MultiCardSelectState::class;
+        }
+        else
+        {
+            return CardSelection::class;
+        }
     }
 }

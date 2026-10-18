@@ -54,19 +54,10 @@ class CardSelection extends PlayerBaseState
             foreach ($cardsInHand as $cardDef)
             {
                 $cardFactory = $this->game->getCardFactory();
-
-                //TODO: remove this, this is only for the ease of development, should not end up in production code.
-                if ($cardFactory->hasCard($cardDef["type"]))
+                $card = $cardFactory->getCard($cardDef["type"]);
+                if ($card->isExecutionPossible())
                 {
-                    $card = $cardFactory->getCard($cardDef["type"]);
-
-                    if ($card->isExecutionPossible())
-                    {
-                        $playableTactics[] = $card->getId();
-                    }
-                } else
-                {
-                    Logger::logError("card type does not exist in card factory " . $cardDef["type"]);
+                    $playableTactics[] = $card->getId();
                 }
             }
         }

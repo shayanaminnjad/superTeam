@@ -7,9 +7,11 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
+use Bga\Games\SuperTeam\Cards\PlayerHand;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\NotificationAdapter;
+use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
 use Bga\Games\SuperTeam\PlayerPiecesDBManager;
 use Bga\Games\SuperTeam\TimeTrack;
 
@@ -37,7 +39,8 @@ class PassTurn extends GameState
             return ST_END_GAME;
 
         $playerHand = $this->game->getPlayerHand($activePlayerId);
-        $wasDiscardShuffled = $playerHand->drawToFour();
+
+        $wasDiscardShuffled = $playerHand->drawToAmount(PlayerPowers::forPlayer($activePlayerId)->drawFiveKeepFour() ? 5 : PlayerHand::$DEFAULT_DRAW_AMOUNT);
 
         $this->game->notify->player($activePlayerId, "handRefill", "",
             [
