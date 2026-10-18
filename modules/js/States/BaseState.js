@@ -92,7 +92,6 @@ define(["dojo/_base/declare", "dojo/topic"], function (declare, topic) {
 
         },
 
-        //TODO: composition is a better suit here.
         subscribeEvent: function (eventName, handler) {
             this._eventHandles.push(topic.subscribe(eventName, handler));
         },

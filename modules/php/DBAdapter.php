@@ -83,7 +83,6 @@ class DBAdapter
     }
 
 
-    //TODO: These shouldn't be here, these are utils on data base.
     public function storeSelectedHex(HexID $hexID) : void
     {
         $json = $hexID->toJson();

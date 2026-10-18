@@ -223,7 +223,6 @@ body::before {
     transform: translate(0px, 10px);
 }
 
-/*TODO: probably this should also be selectable*/
 .hex.availableToPlacePiece:not(.inputBlocked)
 {
     background-color: white;

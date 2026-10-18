@@ -1,5 +1,3 @@
-//TODO: probably I should separate BoardLogic, from this.
-
 define([
     g_gamethemeurl + "modules/js/STHexLib.js",
     g_gamethemeurl + "modules/js/STUIConstants.js",

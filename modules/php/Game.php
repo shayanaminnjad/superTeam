@@ -214,7 +214,7 @@ class Game extends \Bga\GameFramework\Table
         $result['player_deck_count'] = $playerHand->CountCardsInDeck();
         $result['player_discard'] = $playerHand->getDiscardedCards();
         $result['player_hand'] = $isSpectator ? [] : $playerHand->getCardsInHand();
-        $result['supply'] = $playerHand->getCardsInSupply(); //todo: a number is enough.
+        $result['supply'] = $playerHand->getCardsInSupply();
         $result['player_pieces'] = $this->getObjectListFromDB("SELECT * FROM `player_pieces`");
         $result['ball'] = $this->getObjectFromDB("SELECT * FROM `ball`");
         $result['user_in_right_id'] = $this->getGameStateValue('user_in_right_id');
@@ -563,9 +563,6 @@ class Game extends \Bga\GameFramework\Table
         $playerHand = $this->getPlayerHand($currentPlayerId);
 
         $playerHand->drawCard($cardType);
-
-        //TODO: this notification must change, I need to also send whether the played card can be played for tactics or not.
-        //that happens in the state on enter, so I need a refresh in web browser right now.
 
         $playerHand->notifyPlayerOfHandRefill();
     }
