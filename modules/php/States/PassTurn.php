@@ -74,9 +74,18 @@ class PassTurn extends GameState
                 $this->game->swapStarterPlayer();
         }
 
-        if ($wasDiscardShuffled)
+        $wasPlayerHandShuffledDuringTurn = DBAdapter::getInstance()->getGlobalBool("player_hand_shuffled_during_turn");
+        DBAdapter::getInstance()->storeGlobalBool("player_hand_shuffled_during_turn", false);
+        if ($wasDiscardShuffled || $wasPlayerHandShuffledDuringTurn)
         {
-            $timeTrackPosition = TimeTrack::AdvanceTimeTrack(true);
+            if (!$wasPlayerHandShuffledDuringTurn)
+            {
+                $timeTrackPosition = TimeTrack::AdvanceTimeTrack(true);
+            }
+            else
+            {
+                $timeTrackPosition = TimeTrack::GetTimeTrackPosition();
+            }
 
             if (TimeTrack::IsHalfTime($timeTrackPosition))
             {
