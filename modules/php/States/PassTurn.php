@@ -112,10 +112,9 @@ class PassTurn extends GameState
      */
     public function isLastTurn(int $activePlayerId, int $timeTrackPos): bool
     {
-        //(sha) we want to make sure that both players play the same amount of turns. the player who starts the first half, starts the first turn of the game.
-        //so if the tracker goes to last space in his turn, we give the other player another turn. but if tracker goes to last space in the second player turn,
-        //then we finish the game.
-        return TimeTrack::IsGameFinished($timeTrackPos) && $activePlayerId !== $this->game->getPlayerStartedFirstHalf();
+        //(sha) we want to make sure that both players play the same amount of turns. Amir wanted the player who had started the first half, to be the one
+        //who finished the game in his turn.
+        return TimeTrack::IsGameFinished($timeTrackPos) && $activePlayerId === $this->game->getPlayerStartedFirstHalf();
     }
 }
  
