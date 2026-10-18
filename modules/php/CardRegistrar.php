@@ -31,6 +31,7 @@ use Bga\Games\SuperTeam\Cards\GameCards\CoachB;
 use Bga\Games\SuperTeam\Cards\GameCards\CoachC;
 use Bga\Games\SuperTeam\Cards\GameCards\CoachD;
 use Bga\Games\SuperTeam\Cards\GameCards\CoachE;
+use Bga\Games\SuperTeam\Cards\GameCards\CoachF;
 use Bga\Games\SuperTeam\Cards\GameCards\Fatigue;
 use Bga\Games\SuperTeam\Cards\GameCards\TeamATactic1;
 use Bga\Games\SuperTeam\Cards\GameCards\TeamATactic2;
@@ -47,6 +48,9 @@ use Bga\Games\SuperTeam\Cards\GameCards\TeamDTactic3;
 use Bga\Games\SuperTeam\Cards\GameCards\TeamETactic1;
 use Bga\Games\SuperTeam\Cards\GameCards\TeamETactic2;
 use Bga\Games\SuperTeam\Cards\GameCards\TeamETactic3;
+use Bga\Games\SuperTeam\Cards\GameCards\TeamFTactic1;
+use Bga\Games\SuperTeam\Cards\GameCards\TeamFTactic2;
+use Bga\Games\SuperTeam\Cards\GameCards\TeamFTactic3;
 use Bga\Games\SuperTeam\PermanentPowers\Captains\CaptainPower_14;
 
 class CardRegistrar
@@ -88,12 +92,18 @@ class CardRegistrar
         $cardFactory->registerCard(TeamETactic2::staticId(), fn() => new TeamETactic2($game));
         $cardFactory->registerCard(TeamETactic3::staticId(), fn() => new TeamETactic3($game));
 
+        //team 6
+        $cardFactory->registerCard(TeamFTactic1::staticId(), fn() => new TeamFTactic1($game));
+        $cardFactory->registerCard(TeamFTactic2::staticId(), fn() => new TeamFTactic2($game));
+        $cardFactory->registerCard(TeamFTactic3::staticId(), fn() => new TeamFTactic3($game));
+
         //coach
         $cardFactory->registerCard(CoachA::staticId(), fn() => new CoachA($game));
         $cardFactory->registerCard(CoachB::staticId(), fn() => new CoachB($game));
         $cardFactory->registerCard(CoachC::staticId(), fn() => new CoachC($game));
         $cardFactory->registerCard(CoachD::staticId(), fn() => new CoachD($game));
         $cardFactory->registerCard(CoachE::staticId(), fn() => new CoachE($game));
+        $cardFactory->registerCard(CoachF::staticId(), fn() => new CoachF($game));
 
         //captains
         //captain 1
