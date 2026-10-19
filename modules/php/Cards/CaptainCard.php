@@ -77,6 +77,9 @@ abstract class CaptainCard extends Card
     // Second part move: the performer is already known, so piece selection is skipped.
     protected function goToFreeMoveWithSelectedPiece() : ExecutionResult
     {
+        if (DBAdapter::getInstance()->getGlobalInt('is_restart_after_goal') == 1)
+            return new ExecutionResult(ExecutionAction::Continue);
+
         $selectablePieces = (new PieceSelectionContext())->getSelectablePieceIds();
 
         if (count($selectablePieces) != 1)

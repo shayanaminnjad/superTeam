@@ -60,6 +60,8 @@ class ShootPerform extends GameState
 
             $playerResources->addOneGoal($this->game, true);
 
+            DBAdapter::getInstance()->storeGlobalInt('is_restart_after_goal', 1);
+
             $cardActionDriver = new CardActionDriver($activePlayerId, $this->game);
 
             if ($cardActionDriver->isCardInProgress())
@@ -67,8 +69,6 @@ class ShootPerform extends GameState
                 $stateToReturnTo = $cardActionDriver->progress();
                 assert($stateToReturnTo == BeforeCardSelectionReset::class);
             }
-
-            DBAdapter::getInstance()->storeGlobalInt('is_restart_after_goal', 1);
 
             return PassTurn::class;
         } 
