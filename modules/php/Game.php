@@ -83,6 +83,7 @@ class Game extends \Bga\GameFramework\Table
             "lastPassResult" => 19,
             "cardsPlayedThisTurn" => 20,
             "playerStartedFirstHalf" => 21,
+            "isFinalTurn" => 22,
             "game_mode" => 100
         ]);
     }
@@ -208,6 +209,7 @@ class Game extends \Bga\GameFramework\Table
         $otherHand = $this->getPlayerHand($opponent_player_id);
 
         $result['viewer_id'] = $viewer_id;
+        $result['is_advanced_mode'] = $this->isAdvancedMode();
         $result['other_deck_count'] = $otherHand->CountCardsInDeck();
         $result['other_discard'] = $otherHand->getDiscardedCards();
         $result['player_deck'] = $isSpectator ? [] : $playerHand->GetCardsInDeckSecret();
@@ -221,6 +223,7 @@ class Game extends \Bga\GameFramework\Table
         $result['user_in_left_id'] = $this->getGameStateValue('user_in_left_id');
         $result['attacker'] = $this->getGameStateValue('attacker');
         $result['time_index'] = TimeTrack::GetTimeTrackPosition();
+        $result['is_final_turn'] = (int) $this->getGameStateValue('isFinalTurn') === 1;
         $result['card_definitions'] = $this->getCardDefinitionsForClient();
         $result['captain_definitions'] = $this->getCaptainDefinitionsForClient();
         $result['coach_definitions'] = $this->getCoachDefinitionsForClient();
@@ -346,6 +349,7 @@ class Game extends \Bga\GameFramework\Table
         $this->setGameStateInitialValue("isAttributesAssignmentFinished", 0);
         $this->setGameStateInitialValue("lastPassResult", 0);
         $this->setGameStateInitialValue("cardsPlayedThisTurn", 0);
+        $this->setGameStateInitialValue("isFinalTurn", 0);
     }
 
     private function initBoard(array $players): void

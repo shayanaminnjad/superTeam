@@ -156,6 +156,50 @@ body::before {
     user-select: none;
 }
 
+#lastTurnBanner {
+    position: absolute;
+    left: 50%;
+    bottom: -12px;
+    transform: translateX(-50%);
+    padding: 3px 14px;
+
+    background-color: #c0392b;
+    border: 2px solid white;
+    border-radius: 12px;
+
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    white-space: nowrap;
+
+    z-index: 5;
+    user-select: none;
+}
+
+#gameModeBadge {
+    position: absolute;
+    left: 8px;
+    top: -12px;
+    padding: 3px 14px;
+
+    background-color: #5f6b76;
+    border: 2px solid white;
+    border-radius: 12px;
+
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+
+    z-index: 5;
+    user-select: none;
+}
+
+#gameModeBadge.advanced {
+    background-color: #6c3fb5;
+}
+
 .hex_debug {
     position: absolute;
     background-color: red;

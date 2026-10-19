@@ -81,7 +81,7 @@ define([
                     blueGoals = temp;
                 }
 
-                TrackerBoard.construct(this, gamedatas.time_index, orangeGoals, blueGoals);
+                TrackerBoard.construct(this, gamedatas.time_index, orangeGoals, blueGoals, gamedatas.is_final_turn, gamedatas.is_advanced_mode);
 
                 this.pieceManager = PieceManager.getPieceManager();
                 this.pieceManager.construct(this);
@@ -731,6 +731,10 @@ define([
                     this.showBannerText(notifData.minute, 'timeAdvanceText');
 
                 return TrackerBoard.animateTrackerTo(notifData.currentPosition);
+            },
+
+            notif_finalTurnStarted: async function(notifData) {
+                TrackerBoard.setFinalTurnBannerVisible(true);
             },
 
             notif_cardReset: async function(notifData) {
