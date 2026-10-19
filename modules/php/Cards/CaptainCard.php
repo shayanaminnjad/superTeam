@@ -235,13 +235,36 @@ abstract class CaptainCard extends Card
         return MovePieceSelectionLogic::extractMoveableNotAdjacentToOpponentPieces($this->board, $playerId);
     }
 
-    protected function enforceAdjacentPieces() : ExecutionResult
+    /**
+     * @return PlayerPiece[]
+     */
+    protected function getPiecesThatCanSwap() : array
     {
         $playerId = \intval($this->game->GetActivePlayerId());
-        $adjacentPieces = BoardEvaluator::getPlayerPiecesAdjacentToOpponent($this->board, $playerId);
 
+        return array_values(array_filter(
+            $this->board->getPlayerPiecesByOwner($playerId),
+            fn(PlayerPiece $piece) => $piece->getRole() !== PlayerRole::GoalKeeper->value
+                && BoardEvaluator::hasAdjacentOpponentPieces($this->board, $piece->getPosition(), $playerId, false)));
+    }
+
+    /**
+     * @return PlayerPiece[]
+     */
+    protected function getPiecesThatCanPush() : array
+    {
+        $playerId = \intval($this->game->GetActivePlayerId());
+
+        return array_values(array_filter(
+            $this->board->getPlayerPiecesByOwner($playerId),
+            fn(PlayerPiece $piece) => $piece->getRole() !== PlayerRole::GoalKeeper->value
+                && count(BoardEvaluator::getPushableOpponentPieces($this->board, $piece, $playerId)) > 0));
+    }
+
+    protected function enforcePiecesThatCanSwap() : ExecutionResult
+    {
         $pieceSelectionContext = new PieceSelectionContext();
-        $pieceSelectionContext->storeSelectablePieces($adjacentPieces);
+        $pieceSelectionContext->storeSelectablePieces($this->getPiecesThatCanSwap());
 
         return new ExecutionResult(ExecutionAction::Continue);
     }
