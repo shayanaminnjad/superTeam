@@ -232,8 +232,10 @@ define([
             },
 
             onHexClicked: async function (evt) {
-                if (this.serverCallInProgress)
+                if (this.serverCallInProgress) {
+                    console.warn('hex click ignored, a server call is still in progress');
                     return;
+                }
 
                 await this.currentState.onHexClicked(evt);
             },
