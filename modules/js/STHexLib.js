@@ -5,12 +5,15 @@ define([
 
         //------------------------------------------------------------------------------------
 
+        // rounding error grows with the magnitude of the coordinates, so a few EPSILON is too strict
+        const CUBIC_SUM_TOLERANCE = 1e-9;
+
         function createCubicCoord(q, r, s, safe = true) {
             q = parseFloat(q, 10);
             r = parseFloat(r, 10);
             s = parseFloat(s, 10);
 
-            if (Math.abs(q + r + s) > 5 * Number.EPSILON && safe) {
+            if (Math.abs(q + r + s) > CUBIC_SUM_TOLERANCE && safe) {
                 throw `Invalid cube coordinate (${q}, ${r}, ${s}): q + r + s must be 0, it is ${q + r + s}`;
             }
 
