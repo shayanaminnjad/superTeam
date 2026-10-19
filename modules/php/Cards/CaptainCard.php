@@ -47,6 +47,9 @@ abstract class CaptainCard extends Card
         $passActionContext = new PassActionContext($playerId);
 
         $piecesPassedIds = $passActionContext->getPiecesPassedIds();
+        if (empty($piecesPassedIds))
+            return new ExecutionResult(ExecutionAction::Success);
+
         assert(count($piecesPassedIds) ==1);
 
         if ($this->board->getPiece($piecesPassedIds[0])->getRole() == PlayerRole::Captain->value)
@@ -81,6 +84,9 @@ abstract class CaptainCard extends Card
             return new ExecutionResult(ExecutionAction::Continue);
 
         $selectablePieces = (new PieceSelectionContext())->getSelectablePieceIds();
+
+        if (empty($selectablePieces))
+            return new ExecutionResult(ExecutionAction::Continue);
 
         if (count($selectablePieces) != 1)
             return $this->goToFreeMoveState();
