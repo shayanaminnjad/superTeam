@@ -58,6 +58,7 @@ class CoachD extends Card
     {
         $multiCardSelectionContext = new MultiCardSelectionContext(intval($this->game->getActivePlayerId()));
         $multiCardSelectionContext->storeSelectableCardsRange(1, 2);
+        $multiCardSelectionContext->storeTitle(clienttranslate('discard 1 or 2 cards to gain morale'));
         return new ExecutionResult(ExecutionAction::GoToState, MultiCardSelectState::class);
     }
 

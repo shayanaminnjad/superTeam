@@ -94,6 +94,7 @@ class BeforeCardSelectionReset extends GameState
         {
             $multiCardSelectionContext = new MultiCardSelectionContext(intval($this->game->getActivePlayerId()));
             $multiCardSelectionContext->storeSelectableCardsRange(1, 1);
+            $multiCardSelectionContext->storeTitle(clienttranslate('select a card to put on top of your deck'));
             $multiCardSelectionContext->storeNextState(PutCardOnTopOfDeckState::class);
 
             return MultiCardSelectState::class;

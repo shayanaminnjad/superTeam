@@ -60,6 +60,7 @@ class CoachF extends Card
     {
         $multiCardSelectionContext = new MultiCardSelectionContext(intval($this->game->getActivePlayerId()));
         $multiCardSelectionContext->storeSelectableCardsRange(1, 3);
+        $multiCardSelectionContext->storeTitle(clienttranslate('discard 1 to 3 cards to draw the same amount'));
         return new ExecutionResult(ExecutionAction::GoToState, MultiCardSelectState::class);
     }
 

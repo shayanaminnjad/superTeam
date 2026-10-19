@@ -22,8 +22,8 @@ class MultiCardSelectState extends PlayerBaseState
             type: StateType::ACTIVE_PLAYER,
 
             // optional
-            description: clienttranslate('${actplayer} must select up to ${maxCards} cards'),
-            descriptionMyTurn: clienttranslate('${you} must select up to ${maxCards} cards'),
+            description: clienttranslate('${actplayer} must ${selectionTitle}'),
+            descriptionMyTurn: clienttranslate('${you} must ${selectionTitle}'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,
@@ -36,9 +36,15 @@ class MultiCardSelectState extends PlayerBaseState
         $multicardSelectionContext = new MultiCardSelectionContext($activePlayerId);
         $range = $multicardSelectionContext->getSelectableCardsRange();
 
+        $title = $multicardSelectionContext->getTitle();
+        if ($title === '')
+            $title = clienttranslate('select cards');
+
         return [
             'minCards' => $range[0],
-            'maxCards' => $range[1]
+            'maxCards' => $range[1],
+            'selectionTitle' => $title,
+            'i18n' => ['selectionTitle'],
         ];
     }
 

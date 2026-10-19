@@ -7,6 +7,7 @@ class MultiCardSelectionContext
     private const string MULTICARD_SELECTION_NEXT_STATE_KEY = 'multicard_selection_next_state';
     private const string SELECTABLE_CARDS_IN_MULTICARD_RANGE_KEY = 'selectable_cards_in_multicard_range';
     private const string CARDS_SELECTED_IN_MULTICARD_STATE_KEY = 'cards_selected_in_multicard_state';
+    private const string MULTICARD_SELECTION_TITLE_KEY = 'multicard_selection_title';
 
     private readonly int $playerId;
     private readonly DBAdapter $dbAdapter;
@@ -25,6 +26,19 @@ class MultiCardSelectionContext
     public function getNextState() : string
     {
         return $this->dbAdapter->getPlayerTempStr($this->playerId, self::MULTICARD_SELECTION_NEXT_STATE_KEY);
+    }
+
+    /**
+     * @param string $title untranslated phrase wrapped in clienttranslate(), completing "<player> must ..."
+     */
+    public function storeTitle(string $title) : void
+    {
+        $this->dbAdapter->storePlayerTempStr($this->playerId, self::MULTICARD_SELECTION_TITLE_KEY, $title);
+    }
+
+    public function getTitle() : string
+    {
+        return $this->dbAdapter->getPlayerTempStr($this->playerId, self::MULTICARD_SELECTION_TITLE_KEY);
     }
 
     /**
@@ -62,6 +76,7 @@ class MultiCardSelectionContext
     public function reset() : void
     {
         $this->storeNextState("");
+        $this->storeTitle("");
         $this->storeCardsSelected([]);
         $this->storeSelectableCardsRange(-1, -1);
     }

@@ -103,6 +103,7 @@ CREATE TABLE IF NOT EXISTS `player_temp_data` (
     `multicard_selection_next_state` TEXT,
     `selectable_cards_in_multicard_range` TEXT,
     `cards_selected_in_multicard_state` TEXT,
+    `multicard_selection_title` TEXT,
     `draft_captain_offer` TEXT,
     `draft_coach_offer` TEXT
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
