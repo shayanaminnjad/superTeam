@@ -65,12 +65,9 @@ class BeforeCardSelectionReset extends GameState
         {
             $ballHex = $board->getBallHex();
             $outPlayer = null;
-            if ($board->tryGetPlayerPieceInHex($ballHex, $outPlayer))
+            if (!$board->tryGetPlayerPieceInHex($ballHex, $outPlayer) || $outPlayer->getId() != $lastPassReceiverId)
             {
-                if ($outPlayer->getId() != $lastPassReceiverId)
-                {
-                    $passActionContext->invalidateLastPassReceiverPieceData();
-                }
+                $passActionContext->invalidateLastPassReceiverPieceData();
             }
         }
 
