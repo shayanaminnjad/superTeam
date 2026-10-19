@@ -5,7 +5,6 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 use Bga\Games\SuperTeam\BoardEvaluator;
-use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\ClientButtonColor;
 use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
@@ -41,12 +40,10 @@ class PushTargetSelection extends PlayerBaseState
         if (!$board->tryGetPlayerPieceInHex($selectedHex, $selectedPiece) || $selectedPiece->getOwner() !== $activePlayer)
             throw new \BgaUserException(clienttranslate("Invalid piece selected for push!"));
 
-        $adjacentOpponents = BoardEvaluator::getAdjacentOpponentPieces($board, $selectedHex, $activePlayer, false);
         $pushablePiecesArray = [];
-        foreach ($adjacentOpponents as $opponent)
+        foreach (BoardEvaluator::getPushableOpponentPieces($board, $selectedPiece, $activePlayer) as $opponent)
         {
-            if (count (BoardSpatial::findImmediateMoveableNeighbours($board, $opponent)) > 0)
-                $pushablePiecesArray[] = $opponent->getPosition()->convertToArray();
+            $pushablePiecesArray[] = $opponent->getPosition()->convertToArray();
         }
 
         if (DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
