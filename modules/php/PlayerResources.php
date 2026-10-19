@@ -39,8 +39,8 @@ class PlayerResources
         if ($notify)
         {
             $message = $amount > $oldMorale ?
-                \clienttranslate('${player_name} gained ${absDiff} morale(s).') :
-                \clienttranslate('${player_name} spent ${absDiff} morale(s).');
+                \clienttranslate('${player_name} gained ${absDiff} ${moraleIcon}.') :
+                \clienttranslate('${player_name} spent ${absDiff} ${moraleIcon}.');
 
             NotificationAdapter::getInstance()->notifyAll(
                 "moraleChanged",
@@ -49,7 +49,8 @@ class PlayerResources
                     "amount" => $amount,
                     "playerId" => $this->playerId,
                     "player_name" => NotificationAdapter::getInstance()->getPlayerNameById($this->playerId),
-                    "absDiff" => abs($amount - $oldMorale)
+                    "absDiff" => abs($amount - $oldMorale),
+                    "moraleIcon" => 'morale'
                 ]);
         }
     }

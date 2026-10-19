@@ -76,11 +76,12 @@ class CoachD extends Card
         }
 
         NotificationAdapter::getInstance()->notifyAll("cardsDiscarded",
-            clienttranslate('${player_name} discarded ${cardsPlayed} card(s) to gain ${cardsPlayed} morale(s)'),
+            clienttranslate('${player_name} discarded ${cardsPlayed} card(s) to gain ${cardsPlayed} ${moraleIcon}'),
             [
                 'discards' => $playerHand->getDiscardedCards(),
                 'player_name' => NotificationAdapter::getInstance()->getPlayerNameById($activePlayer),
                 'cardsPlayed' => count($cardsSelected),
+                'moraleIcon' => 'morale',
             ]);
 
         $playerResources = new PlayerResources($activePlayer);

@@ -256,29 +256,12 @@ define([
                 if (!clientButtons)
                     return;
 
-                const iconMap = {
-                    forward: '<div class="moveForward buttonIcon"></div>',
-                    backward: '<div class="moveBackward buttonIcon"></div>',
-                    forwardNearOpponent: '<div class="moveForwardNearOpponent buttonIcon"></div>',
-                    backwardNearOpponent: '<div class="moveBackNearOpponent buttonIcon"></div>',
-                    free: '<div class="moveFree buttonIcon"></div>',
-                    action: '<div class="action buttonIcon"></div>',
-                    move: '<div class="move buttonIcon"></div>',
-                    morale: '<div class="resourceIcon moraleIcon buttonIcon"></div>'
-                };
-
-                const parseIcons = (text) => {
-                    return text.replace(/\[([^\]]+)\]/g, (match, key) => {
-                        return iconMap[key] ?? match;
-                    });
-                };
-
                 for (let i = 0; i < clientButtons.length; i++) {
                     const clientButton = clientButtons[i];
                     const params = clientButton['buttonParams'] || {};
 
                     let label = params['label'] ?? clientButton['name'];
-                    label = parseIcons(label);
+                    label = STHUIHelpers.parseIcons(label);
 
                     const buttonOptions = {
                         color: params['color'] ?? 'primary',
@@ -444,6 +427,10 @@ define([
             bgaFormatText: function (log, args) {
                 if (log && args && !args.processed) {
                     args.processed = true;
+
+                    if (args.moraleIcon !== undefined) {
+                        args.moraleIcon = STHUIHelpers.iconMap.morale;
+                    }
 
                     if (args.cardType !== undefined && args.cardLog !== undefined) {
                         args.cardLog = STCardsManager.getCardLogHtml(args.cardType, this.cardDefinitions);

@@ -104,5 +104,23 @@ define([], function () {
                 return `<div class="cardTooltipLine">${formatted}</div>`;
             }).join('');
         },
+
+        // [token] markers in button labels from the server, e.g. "[move]"
+        iconMap: {
+            forward: '<div class="moveForward buttonIcon"></div>',
+            backward: '<div class="moveBackward buttonIcon"></div>',
+            forwardNearOpponent: '<div class="moveForwardNearOpponent buttonIcon"></div>',
+            backwardNearOpponent: '<div class="moveBackNearOpponent buttonIcon"></div>',
+            free: '<div class="moveFree buttonIcon"></div>',
+            action: '<div class="action buttonIcon"></div>',
+            move: '<div class="move buttonIcon"></div>',
+            morale: '<div class="resourceIcon moraleIcon buttonIcon"></div>'
+        },
+
+        parseIcons: function (text) {
+            return text.replace(/\[([^\]]+)\]/g, (match, key) => {
+                return this.iconMap[key] ?? match;
+            });
+        },
     }
 });
