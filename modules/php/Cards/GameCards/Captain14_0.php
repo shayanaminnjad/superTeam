@@ -38,9 +38,7 @@ class Captain14_0 extends CaptainCard
     }
     public function isExecutionPossible(): bool
     {
-        $playerId = \intval($this->game->GetActivePlayerId());
-
-        return count(BoardEvaluator::getPlayerPiecesAdjacentToOpponent($this->board, $playerId)) > 0;
+        return count($this->getPiecesThatCanSwap()) > 0;
     }
 
     /**
@@ -49,20 +47,25 @@ class Captain14_0 extends CaptainCard
     protected function getCommands(): array
     {
         return [
-            $this->enforceAdjacentPieces(...),
+            $this->enforcePiecesThatCanSwap(...),
             $this->goToCaptainCardPerformerSelectionState(...),
             $this->goToSwapPieceState(...),
             $this->makeNextActionForfeitable(...),
-            $this->goToPushTargetSelectionState(...),
+            $this->goToPushTargetSelectionStateIfPossible(...),
             $this->ifCaptainSelectedGiveMorale(...)
         ];
     }
 
-    private function goToPushTargetSelectionState() : ExecutionResult
+    private function goToPushTargetSelectionStateIfPossible(): ExecutionResult
     {
         $pieceSelectionContext = new PieceSelectionContext();
-        $selectablePiece = $pieceSelectionContext->getSelectablePieceIds()[0];
-        DBAdapter::getInstance()->storeSelectedHex($this->board->getPiece($selectablePiece)->getPosition());
+        $selectablePiece = $this->board->getPiece($pieceSelectionContext->getSelectablePieceIds()[0]);
+
+        $playerId = \intval($this->game->getActivePlayerId());
+        if (count(BoardEvaluator::getPushableOpponentPieces($this->board, $selectablePiece, $playerId)) == 0)
+            return new ExecutionResult(ExecutionAction::Continue);
+
+        DBAdapter::getInstance()->storeSelectedHex($selectablePiece->getPosition());
         return new ExecutionResult(ExecutionAction::GoToState, PushTargetSelection::class);
     }
 
