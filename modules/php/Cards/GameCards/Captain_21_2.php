@@ -49,7 +49,7 @@ class Captain_21_2 extends CaptainCard
     protected function getCommands(): array
     {
         return [
-            $this->enforceAdjacentPieces(...),
+            $this->enforceAdjacentPiecesThatCanDoAnAction(...),
             $this->goToCaptainCardPerformerSelectionState(...),
             $this->goToBasicActionState(...),
             $this->makeNextActionForfeitable(...),
