@@ -2,7 +2,6 @@
 
 namespace Bga\Games\SuperTeam\Cards\GameCards;
 
-use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\CaptainCard;
 use Bga\Games\SuperTeam\Cards\CardDefinition;
 use Bga\Games\SuperTeam\Cards\CardType;
@@ -24,9 +23,7 @@ class Captain_4_0 extends CaptainCard
 
     public function isExecutionPossible(): bool
     {
-        $playerId = \intval($this->game->GetActivePlayerId());
-
-        return count(BoardEvaluator::getPlayerPiecesAdjacentToOpponent($this->board, $playerId)) > 0;
+        return count($this->getPiecesThatCanPush()) > 0;
     }
 
     public static function staticId() : string
