@@ -30,7 +30,7 @@ class Captain_21_2 extends CaptainCard
 
     public function isExecutionPossible(): bool
     {
-        return count($this->getPiecesThatCanDoAction()) > 0;
+        return count($this->getAdjacentPiecesThatCanDoAction()) > 0;
     }
 
     public static function staticId() : string
@@ -61,11 +61,11 @@ class Captain_21_2 extends CaptainCard
     private function enforceAdjacentPiecesThatCanDoAnAction() : ExecutionResult
     {
         $pieceSelectionContext = new PieceSelectionContext();
-        $pieceSelectionContext->storeSelectablePieces($this->getPiecesThatCanDoAction());
+        $pieceSelectionContext->storeSelectablePieces($this->getAdjacentPiecesThatCanDoAction());
         return new ExecutionResult(ExecutionAction::Continue);
     }
 
-    private function getPiecesThatCanDoAction() : array
+    private function getAdjacentPiecesThatCanDoAction() : array
     {
         $res = [];
 
