@@ -5,6 +5,8 @@ define([
 ], function (GameEventProcessor, Board, BgaDice) {
 
     const DISPLAY_TIME = 5 * 1000;
+    const PRELOAD_GREEN = 2;
+    const PRELOAD_WHITE = 16;
 
     return {
         construct: function (root) {
@@ -23,6 +25,17 @@ define([
                     element.classList.add(die.type);
                 }
             });
+
+            document.body.insertAdjacentHTML(
+                'beforeend',
+                `<div id="dicePoolArea" style="position:absolute; left:0; top:0; width:0; height:0; overflow:hidden; opacity:0; pointer-events:none;"></div>`
+            );
+            this._poolEl = document.getElementById('dicePoolArea');
+            this._poolStock = new BgaDice.LineStock(this._diceManager, this._poolEl, { direction: 'row' });
+            this._free = { 'die-green': [], 'die-white': [] };
+            this._poolCount = 0;
+
+            this._preloadPromise = this._preloadDice();
         },
 
         // ------------------------------------------------------------------
@@ -37,6 +50,8 @@ define([
             if (this._active) {
                 this.dismiss();
             }
+
+            await this._preloadPromise;
 
             const { rollResults, attacker, requiredPower, blockingPieces, distance, actionName, passDest = null } = params;
 
@@ -72,21 +87,22 @@ define([
                 const line = this._createRollLineElement(areaEl, i, result);
                 const stock = new BgaDice.LineStock(this._diceManager, line, { direction: 'row', gap: '8px' });
 
-                const greenDie = { id: `green-${result.playerId}`, face: result.greenDie, type: 'die-green' };
-                const whiteDice = result.whiteDice.map((value, j) => ({
-                    id: `white-${result.playerId}-${j}`,
-                    face: value + 2,
-                    type: 'die-white',
-                }));
+                const greenDie = await this._acquireDie('die-green', result.greenDie);
+                const whiteDice = [];
+                for (const value of result.whiteDice) {
+                    whiteDice.push(await this._acquireDie('die-white', value + 2));
+                }
                 const allDice = [greenDie, ...whiteDice];
 
                 if (immediate) {
-                    await stock.addDice(allDice);
+                    for (const die of allDice) {
+                        await this._moveDie(die, stock, line, false);
+                    }
                 } else {
                     for (const die of allDice) {
                         const finalFace = die.face;
                         die.face = Math.floor(Math.random() * 6) + 1;
-                        await stock.addDice([die]);
+                        await this._moveDie(die, stock, line, true);
                         die.face = finalFace;
                     }
                 }
@@ -151,9 +167,15 @@ define([
             if (!this._active) {
                 return;
             }
-            this._active.resizeObserver.disconnect();
-            this._active.areaEl.remove();
+            const { areaEl, players, resizeObserver } = this._active;
             this._active = null;
+            resizeObserver.disconnect();
+
+            // Dice elements are re-parented synchronously, so removing the area right after is safe.
+            for (const player of players) {
+                this._releaseDice(player.allDice);
+            }
+            areaEl.remove();
         },
 
         clearRollVisuals: function () {
@@ -245,6 +267,65 @@ define([
         // ------------------------------------------------------------------
         // Internals
         // ------------------------------------------------------------------
+
+        // Enough for two rolling players; the pool grows on demand beyond this.
+        _preloadDice: async function () {
+            const dice = [];
+            for (let i = 0; i < PRELOAD_GREEN; ++i) {
+                dice.push(this._newPooledDie('die-green'));
+            }
+            for (let i = 0; i < PRELOAD_WHITE; ++i) {
+                dice.push(this._newPooledDie('die-white'));
+            }
+            await this._poolStock.addDice(dice);
+            for (const die of dice) {
+                this._free[die.type].push(die);
+            }
+        },
+
+        _newPooledDie: function (type) {
+            return { id: `pool-${type}-${this._poolCount++}`, face: 1, type, owner: this._poolStock };
+        },
+
+        _acquireDie: async function (type, face) {
+            let die = this._free[type].pop();
+            if (!die) {
+                die = this._newPooledDie(type);
+                await this._poolStock.addDie(die);
+            }
+            die.face = face;
+            return die;
+        },
+
+        // Pooled dice are only re-parented, never passed through addDie: the library animates that for a frame.
+        // die.owner stays the stock the library still lists the die in, and is the source of the next move.
+        _releaseDice: function (dice) {
+            for (const die of dice) {
+                const el = die.owner.getDieElement(die);
+                if (el) {
+                    el.style.visibility = 'hidden';
+                    this._poolEl.appendChild(el);
+                }
+                this._free[die.type].push(die);
+            }
+        },
+
+        // The element is re-parented before the stock move so the library has nothing to slide.
+        _moveDie: async function (die, toStock, toEl, fade) {
+            const fromStock = die.owner;
+            const el = fromStock.getDieElement(die);
+            if (el) {
+                el.style.transition = '';
+                el.style.opacity = '';
+                el.style.visibility = '';
+                toEl.appendChild(el);
+                if (fade) {
+                    this._fadeInElement(el);
+                }
+            }
+            die.owner = toStock;
+            await toStock.addDie(die, { fromStock });
+        },
 
         _computeTotal: function (result, { attacker, distance, blockingPieces }) {
             let total = result.greenDie + result.assignedMorale + result.captainStars;
@@ -429,6 +510,11 @@ define([
 
         _root: null,
         _diceManager: null,
+        _poolEl: null,
+        _poolStock: null,
+        _free: null,
+        _poolCount: 0,
+        _preloadPromise: null,
         _active: null,
         _passDestShown: false,
     };
