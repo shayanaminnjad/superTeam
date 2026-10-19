@@ -64,7 +64,7 @@ class ShootPerform extends GameState
 
             $cardActionDriver = new CardActionDriver($activePlayerId, $this->game);
 
-            if ($cardActionDriver->isCardInProgress())
+            if ($cardActionDriver->isCardInProgress()) //this can only happen if we shoot and score from a captain card.
             {
                 $stateToReturnTo = $cardActionDriver->progress();
                 assert($stateToReturnTo == BeforeCardSelectionReset::class);
