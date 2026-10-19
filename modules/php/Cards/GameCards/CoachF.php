@@ -32,7 +32,7 @@ class CoachF extends Card
     {
         $playerHand = $this->game->getPlayerHand(intval($this->game->getActivePlayerId()));
 
-        return $playerHand->getCardsInHand() >= 2; //2 since the coach is still in our hand, so we should have at least 1 card more.
+        return $playerHand->CountCardsInHand() >= 2; //2 since the coach is still in our hand, so we should have at least 1 card more.
     }
 
     public static function staticId() : string
