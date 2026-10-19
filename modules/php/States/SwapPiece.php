@@ -12,8 +12,7 @@ use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\NotificationAdapter;
-use http\Client;
-use http\Exception\RuntimeException;
+use RuntimeException;
 
 class SwapPiece extends PlayerBaseState
 {
