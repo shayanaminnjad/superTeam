@@ -63,7 +63,7 @@ class CardSelection extends PlayerBaseState
         }
 
         $cardsPlayedThisTurn = self::getCardsPlayedThisTurn($this->game);
-        $canPass =  $cardsPlayedThisTurn > 0;
+        $canPass = self::canPass($this->game, $activePlayer);
         $canPlayCard = $cardsPlayedThisTurn < 3;
 
         return [
@@ -87,6 +87,20 @@ class CardSelection extends PlayerBaseState
 
         $playerHand = $this->game->getPlayerHand($activePlayer);
 
+        if (!$playerHand->isCardInHand($cardId))
+            throw new \BgaUserException(\clienttranslate("That card is not in your hand!"));
+
+        $board = $this->game->getBoard();
+        $goalieHasBall = BoardEvaluator::doesPlayerGoalieHasBall($board, $activePlayer);
+
+        // checked before the discard: some cards count the rest of the hand
+        if (!$asBasic && !$goalieHasBall)
+        {
+            $tactic = $this->game->getCardFactory()->getCard($playerHand->getCard($cardId)['type']);
+            if (!$tactic->isExecutionPossible())
+                throw new \BgaUserException(\clienttranslate("Invalid card selected for execution, execution impossible"));
+        }
+
         $playerHand->discardCard($cardId);
 
         $playedCardType = $playerHand->getCard($cardId)['type'];
@@ -103,9 +117,6 @@ class CardSelection extends PlayerBaseState
             ]);
 
         self::increaseCardsPlayedThisTurnByOne($this->game);
-
-        $board = $this->game->getBoard();
-        $goalieHasBall = BoardEvaluator::doesPlayerGoalieHasBall($board, $activePlayer);
 
         GameStats::recordCardPlayed($this->game, $activePlayer, $playedCardType, $asBasic || $goalieHasBall);
 
@@ -129,11 +140,6 @@ class CardSelection extends PlayerBaseState
 
             $cardDef = $playerHand->getCard($cardId);
 
-            $cardFactory = $this->game->getCardFactory();
-            $card = $cardFactory->getCard($cardDef["type"]);
-            if (!$card->isExecutionPossible())
-                throw new \BgaUserException(\clienttranslate("Invalid card selected for execution, execution impossible"));
-
             $tacticContext->setTacticInPlay($cardDef['type']);
             $tacticContext->setTacticProgress(0);
             $tacticContext->setRewardUsed(CardReward::empty());
@@ -155,7 +161,16 @@ class CardSelection extends PlayerBaseState
     #[PossibleAction]
     public function actPass(): string
     {
+        if (!self::canPass($this->game, \intval($this->game->getActivePlayerId())))
+            throw new \BgaUserException(\clienttranslate("You must play at least one card before passing!"));
+
         return PassTurn::class;
+    }
+
+    // an empty hand can never play a card, so passing must stay possible
+    private static function canPass(Game $game, int $playerId): bool
+    {
+        return self::getCardsPlayedThisTurn($game) > 0 || empty($game->getPlayerHand($playerId)->getCardsInHand());
     }
 
     function zombie(int $playerId): string
