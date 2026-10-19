@@ -39,6 +39,20 @@ class PlayerHand
         return $this->cards->getCardsInLocation('hand', $this->ownerId);
     }
 
+    public function isCardInHand(int $cardId) : bool
+    {
+        return array_any($this->getCardsInHand(), fn($card) => intval($card['id']) === $cardId);
+    }
+
+    /** True only when every id is a distinct card currently in this hand. */
+    public function areAllCardsInHand(array $cardIds) : bool
+    {
+        if (count($cardIds) !== count(array_unique($cardIds)))
+            return false;
+
+        return array_all($cardIds, fn($cardId) => $this->isCardInHand(intval($cardId)));
+    }
+
     public function getDiscardedCards() : array
     {
         return $this->cards->getCardsInLocation($this->discardName);
