@@ -113,6 +113,13 @@ class SwapPiece extends PlayerBaseState
 
     function zombie(int $playerId): string
     {
-        return $this->actForfeit($playerId);
+        $hexes = $this->getArgs()["piecesToSwap"];
+
+        if (empty($hexes))
+            return DBAdapter::getInstance()->getPlayerActionReturnState($playerId);
+
+        $hex = $this->getRandomZombieChoice($hexes);
+
+        return $this->actPieceSelected($hex['hex_column'], $hex['hex_row']);
     }
 }
