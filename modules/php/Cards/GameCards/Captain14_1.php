@@ -62,6 +62,9 @@ class Captain14_1 extends CaptainCard
         $passActionContext = new PassActionContext($playerId);
 
         $piecesPassedIds = $passActionContext->getPiecesPassedIds();
+        if (empty($piecesPassedIds))
+            return new ExecutionResult(ExecutionAction::Continue);
+
         assert(count($piecesPassedIds) == 1);
 
         $pieceSelectionContext = new PieceSelectionContext();
