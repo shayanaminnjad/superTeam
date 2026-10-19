@@ -5,7 +5,7 @@ namespace Bga\Games\SuperTeam\Cards\Moves;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\PlayerPiece;
-use http\Exception\RuntimeException;
+use RuntimeException;
 
 //(sha) consider whether caching is required at all.
 class MoveActionContext
