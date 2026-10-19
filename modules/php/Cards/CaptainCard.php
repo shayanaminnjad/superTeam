@@ -229,7 +229,7 @@ abstract class CaptainCard extends Card
         return $result;
     }
 
-    protected function getPiecesNotAdjacentToOpponents() : array
+    protected function getMoveablePiecesNotAdjacentToOpponents() : array
     {
         $playerId = \intval($this->game->GetActivePlayerId());
         return MovePieceSelectionLogic::extractMoveableNotAdjacentToOpponentPieces($this->board, $playerId);
