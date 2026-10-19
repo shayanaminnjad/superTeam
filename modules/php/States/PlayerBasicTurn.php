@@ -17,7 +17,7 @@ use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
-use http\Exception\RuntimeException;
+use RuntimeException;
 use function count;
 
 class PlayerBasicTurn extends PlayerBaseState
@@ -71,6 +71,8 @@ class PlayerBasicTurn extends PlayerBaseState
         if (!BasicTurnLogic::getMoveAvailabilityInBasic())
             throw new \BgaUserException(clienttranslate("Movement not allowed now"));
 
+        $this->assertActionAvailable(ActionTypes::Move);
+
         $pieceSelectionContext = new PieceSelectionContext();
         $selectablePiecesIds = $pieceSelectionContext->getSelectablePieceIds();
 
@@ -88,12 +90,16 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actPassBall() : string
     {
+        $this->assertActionAvailable(ActionTypes::PassBall, ActionTypes::GoaliePass);
+
         return PassDestSelection::class;
     }
-    
+
     #[PossibleAction]
     public function actShootBall() : string
     {
+        $this->assertActionAvailable(ActionTypes::Shoot);
+
         $this->game->giveExtraTime($this->game->getInactivePlayerId());
 
         ShootTargetSelection::resetTargets($this->game);
@@ -104,12 +110,16 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actDribble() : string
     {
+        $this->assertActionAvailable(ActionTypes::Dribble);
+
         return DribbleTargetSelection::class;
     }
 
     #[PossibleAction]
     public function actBypass() : string
     {
+        $this->assertActionAvailable(ActionTypes::Bypass);
+
         BypassLogic::setBypassRollRequirement(true);
         return BypassTargetSelection::class;
     }
@@ -117,6 +127,8 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actTackle() : string
     {
+        $this->assertActionAvailable(ActionTypes::Tackle);
+
         return TacklePerformerSelection::class;
     }
 
@@ -157,6 +169,12 @@ class PlayerBasicTurn extends PlayerBaseState
     function zombie(int $playerId): string
     {
         return DBAdapter::getInstance()->getPlayerActionReturnState($playerId);
+    }
+
+    private function assertActionAvailable(ActionTypes ...$allowed) : void
+    {
+        if (!array_any($this->getActionsAvailable(), fn(ActionTypes $action) => in_array($action, $allowed, true)))
+            throw new \BgaUserException(\clienttranslate("This action is not available now!"));
     }
 
     private function getActionsAvailable() : array
