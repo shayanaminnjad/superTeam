@@ -4,8 +4,6 @@ namespace Bga\Games\SuperTeam;
 
 use Bga\Games\SuperTeam\HexLib\HexLib;
 use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
-use Bga\Games\SuperTeam\Utility\Logger;
-use Couchbase\Role;
 use function count;
 
 final class BoardSpatial
