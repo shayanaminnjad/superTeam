@@ -95,7 +95,7 @@ final class MovePieceSelectionLogic
 
         foreach ($moveablePieces as $piece)
         {
-            if (!BoardEvaluator::hasAdjacentOpponentPieces($board, $piece->getPosition(), $playerId, false))
+            if (!BoardEvaluator::hasAdjacentOpponentPieces($board, $piece->getPosition(), $playerId, true))
                 $res[] = $piece;
         }
 
