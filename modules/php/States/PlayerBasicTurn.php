@@ -44,27 +44,12 @@ class PlayerBasicTurn extends PlayerBaseState
     {
         $activePlayer = \intval($this->game->getActivePlayerId());
 
-        $pieceSelectionContext = new PieceSelectionContext();
-        $selectablePiecesIds = $pieceSelectionContext->getSelectablePieceIds();
-
         if (DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
         {
             $this->addClientButton(\clienttranslate("Forfeit"), [$this, "actForfeit"], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
 
-        $actionsAvailable = [];
-        $board = $this->game->getBoard();
-        $inactivePlayerId =  $this->game->getInactivePlayerId();
-        if (count($selectablePiecesIds) == 0)
-        {
-            $actionsAvailable = BasicTurnLogic::getActionsDoableByAllPieces($board, $activePlayer, $inactivePlayerId);
-        }
-        else
-        {
-            $actionsAvailable = BasicTurnLogic::getActionsDoableByPiece($board, $board->getPiece($selectablePiecesIds[0]), $activePlayer, $inactivePlayerId); //this only happens in captain actions
-        }
-
-        $this->addActionsAvailableButtons($actionsAvailable);
+        $this->addActionsAvailableButtons($this->getActionsAvailable());
 
         if (count($this->getClientButtons()) == 0)
         {
@@ -138,6 +123,9 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actPass(int $activePlayerId) : string
     {
+        if (count($this->getActionsAvailable()) > 0)
+            throw new \BgaUserException(\clienttranslate("You can't pass while an action is available!"));
+
         return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 
@@ -168,7 +156,23 @@ class PlayerBasicTurn extends PlayerBaseState
 
     function zombie(int $playerId): string
     {
-        return $this->actPass($playerId);
+        return DBAdapter::getInstance()->getPlayerActionReturnState($playerId);
+    }
+
+    private function getActionsAvailable() : array
+    {
+        $activePlayer = \intval($this->game->getActivePlayerId());
+
+        $pieceSelectionContext = new PieceSelectionContext();
+        $selectablePiecesIds = $pieceSelectionContext->getSelectablePieceIds();
+
+        $board = $this->game->getBoard();
+        $inactivePlayerId = $this->game->getInactivePlayerId();
+        if (count($selectablePiecesIds) == 0)
+            return BasicTurnLogic::getActionsDoableByAllPieces($board, $activePlayer, $inactivePlayerId);
+
+        //this only happens in captain actions
+        return BasicTurnLogic::getActionsDoableByPiece($board, $board->getPiece($selectablePiecesIds[0]), $activePlayer, $inactivePlayerId);
     }
 
     private function addActionsAvailableButtons(array $actions) : void
