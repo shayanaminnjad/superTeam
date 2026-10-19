@@ -146,12 +146,6 @@ class PassDestSelection extends PlayerBaseState
     }
 
     #[PossibleAction]
-    public function actCancel(int $activePlayerId) : string
-    {
-        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
-    }
-
-    #[PossibleAction]
     public function actUndo(int $activePlayerId) : string
     {
         $activePlayer = \intval($this->game->getActivePlayerId());
@@ -172,6 +166,6 @@ class PassDestSelection extends PlayerBaseState
 
     function zombie(int $playerId): string
     {
-        return $this->actCancel($playerId);
+        return DBAdapter::getInstance()->getPlayerActionReturnState($playerId);
     }
 }
