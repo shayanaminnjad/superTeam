@@ -5,13 +5,12 @@ define([
     return {
 
         //Public Functions
-        construct: function (root, timeIndex, orangeGoals, blueGoals, isFinalTurn, isAdvancedMode) {
+        construct: function (root, timeIndex, orangeGoals, blueGoals, isFinalTurn) {
             this._root = root;
             this._initTrackerBoard();
             this._initSupplyPile();
             this._initGoalTracker(orangeGoals, blueGoals);
             this._initLastTurnBanner();
-            this._initGameModeBadge(isAdvancedMode);
             this.setTrackerTo(timeIndex);
             this.setFinalTurnBannerVisible(isFinalTurn);
         },
@@ -145,16 +144,6 @@ define([
             this._lastTurnEl.style.display = 'none';
 
             this._trackerBoard.appendChild(this._lastTurnEl);
-        },
-
-        _initGameModeBadge: function(isAdvancedMode)
-        {
-            const badgeEl = document.createElement('div');
-            badgeEl.id = 'gameModeBadge';
-            badgeEl.classList.toggle('advanced', isAdvancedMode);
-            badgeEl.textContent = isAdvancedMode ? _('Advanced mode: team and captain powers in play') : _('Basic mode: no team or captain powers');
-
-            this._trackerBoard.appendChild(badgeEl);
         },
 
         _root: null,

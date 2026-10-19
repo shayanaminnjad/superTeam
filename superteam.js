@@ -81,7 +81,7 @@ define([
                     blueGoals = temp;
                 }
 
-                TrackerBoard.construct(this, gamedatas.time_index, orangeGoals, blueGoals, gamedatas.is_final_turn, gamedatas.is_advanced_mode);
+                TrackerBoard.construct(this, gamedatas.time_index, orangeGoals, blueGoals, gamedatas.is_final_turn);
 
                 this.pieceManager = PieceManager.getPieceManager();
                 this.pieceManager.construct(this);

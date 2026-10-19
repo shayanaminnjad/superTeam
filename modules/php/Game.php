@@ -209,7 +209,6 @@ class Game extends \Bga\GameFramework\Table
         $otherHand = $this->getPlayerHand($opponent_player_id);
 
         $result['viewer_id'] = $viewer_id;
-        $result['is_advanced_mode'] = $this->isAdvancedMode();
         $result['other_deck_count'] = $otherHand->CountCardsInDeck();
         $result['other_discard'] = $otherHand->getDiscardedCards();
         $result['player_deck'] = $isSpectator ? [] : $playerHand->GetCardsInDeckSecret();
