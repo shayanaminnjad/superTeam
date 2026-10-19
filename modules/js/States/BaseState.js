@@ -31,7 +31,7 @@ define(["dojo/_base/declare", "dojo/topic"], function (declare, topic) {
 
         onHexClicked: async function (evt) {
             try {
-                this._selfOnHexClicked(evt);
+                await this._selfOnHexClicked(evt);
             }
             catch (error) {
                 console.error("click action failed, exception caught:", error);

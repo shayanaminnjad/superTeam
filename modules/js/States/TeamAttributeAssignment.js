@@ -56,7 +56,7 @@ define(["dojo/_base/declare",
                 this._updateButtons();
             },
 
-            onSkillSelected: function (evt, skillSlot) {
+            onSkillSelected: async function (evt, skillSlot) {
                 evt.preventDefault();
                 evt.stopPropagation();
 
@@ -64,7 +64,7 @@ define(["dojo/_base/declare",
                 myCoachBoard.makeAllNonSelectable();
 
                 try {
-                    this._root.performServerAction("actPlacedAttrCube", { attributeId: skillSlot.skillIndex });
+                    await this._root.performServerAction("actPlacedAttrCube", { attributeId: skillSlot.skillIndex });
                 }
                 catch (e) {
                     myCoachBoard.makeAvailableBoxesSelectable(this._args.IsGKAssignable);
