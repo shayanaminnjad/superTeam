@@ -9,9 +9,12 @@ use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\UndoPlayedCard;
 
 class PushingPieceSelection extends PlayerBaseState
 {
+    use UndoPlayedCard;
+
     function __construct(
         protected Game $game,
     ) {
@@ -44,6 +47,8 @@ class PushingPieceSelection extends PlayerBaseState
     public function selfGetArgs(): array
     {
         $piecesHexArray = $this->getPiecesThatCanPush();
+
+        $this->addUndoButtonIfPlayedCardUndoable();
 
         return ["pieces" => $piecesHexArray];
     }
