@@ -43,6 +43,8 @@ class Captain_A_1 extends CaptainCard
     protected function getCommands(): array
     {
         return [
+            $this->enforceBallHolderAsPerformer(...),
+            $this->goToCaptainCardPerformerSelectionState(...),
             $this->giveMorale(...),
             $this->goToShootState(...),
             $this->giveMoraleIfWasCaptain(...)
