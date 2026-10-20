@@ -8,9 +8,12 @@ use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\UndoPlayedCard;
 
 class MakeExhaustedReady extends PlayerBaseState
 {
+    use UndoPlayedCard;
+
     function __construct(
         protected Game $game,
     ) {
@@ -41,6 +44,8 @@ class MakeExhaustedReady extends PlayerBaseState
         {
             $pieceLocations[] = $piece->getPosition()->convertToArray();
         }
+
+        $this->addUndoButtonIfPlayedCardUndoable();
 
         return ['exhaustedPieces' => $pieceLocations];
     }
