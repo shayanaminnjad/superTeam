@@ -31,6 +31,8 @@ define(["dojo/_base/declare",
 
             _onCardClick: function (card) {
                 this._updateButtons();
+                // removeActionButtons also dropped the server buttons, such as undo
+                this._root.configureClientButtons(this._args.clientButtons);
             },
 
             _updateButtons: function () {

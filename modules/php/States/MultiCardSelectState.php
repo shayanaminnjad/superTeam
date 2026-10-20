@@ -9,9 +9,12 @@ use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MultiCardSelectionContext;
 use Bga\Games\SuperTeam\States\PlayerBaseState;
+use Bga\Games\SuperTeam\UndoPlayedCard;
 
 class MultiCardSelectState extends PlayerBaseState
 {
+    use UndoPlayedCard;
+
     function __construct(
         protected Game $game,
     ) {
@@ -40,6 +43,8 @@ class MultiCardSelectState extends PlayerBaseState
         if ($title === '')
             $title = clienttranslate('select cards');
 
+        $this->addUndoButtonIfPlayedCardUndoable();
+
         return [
             'minCards' => $range[0],
             'maxCards' => $range[1],
@@ -51,8 +56,9 @@ class MultiCardSelectState extends PlayerBaseState
     #[PossibleAction]
     public function actCardsSelected(#[IntArrayParam()] array $cardsSelectedIds) : string
     {
-        $minCards = $this->selfGetArgs()['minCards'];
-        $maxCards = $this->selfGetArgs()['maxCards'];
+        $args = $this->selfGetArgs();
+        $minCards = $args['minCards'];
+        $maxCards = $args['maxCards'];
 
         $cardsSelectedCount = count($cardsSelectedIds);
 
