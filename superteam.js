@@ -421,7 +421,7 @@ define([
                 }
             },
 
-            playSound: function(soundName){
+            playBgaSound: function(soundName){
                 this.bga.gameui.disableNextMoveSound();
                 this.bga.sounds.play(soundName);
             },
@@ -616,12 +616,12 @@ define([
             },
 
             notif_successfulPass: function (notifData) {
-                this.playSound('kick');
+                this.playBgaSound('kick');
                 Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
             notif_failedPass: function (notifData) {
-                this.playSound('kick');
+                this.playBgaSound('kick');
                 Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
@@ -636,12 +636,12 @@ define([
             },
 
             notif_shootFailed: async function (notifData) {
-                this.playSound('kick');
+                this.playBgaSound('kick');
                 return Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
             notif_goalScored: async function (notifData) {
-                this.playSound('stadium_cheer');
+                this.playBgaSound('stadium_cheer');
                 this.bga.playerPanels.getScoreCounter(notifData.playerId).toValue(notifData.score);
 
                 if (notifData.playerId === this.userInLeftId) {
