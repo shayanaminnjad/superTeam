@@ -81,11 +81,16 @@ class TacklePerformerSelection extends GameState
         if (!array_any($hexes, fn($v) => $selectedHex->equals($v)))
             throw new \BgaUserException(\clienttranslate("selected invalid piece id for tackling"));
 
+        return self::startTackle($this->game, $selectedHex);
+    }
+
+    public static function startTackle(Game $game, HexID $selectedHex): string
+    {
         DBAdapter::getInstance()->storeSelectedHex($selectedHex);
         $moraleAssignContext = new MoraleAssignContext();
         $moraleAssignContext->storeMoraleStateData(DiceRoll::class, true);
 
-        $board = $this->game->getBoard();
+        $board = $game->getBoard();
         $attacker = $board->getAttacker();
         $defender = $board->getDefender();
 
@@ -95,7 +100,7 @@ class TacklePerformerSelection extends GameState
         $board->tryGetPlayerPieceInHex($selectedHex, $tacklingPiece);
         $moraleAssignContext->storeMoraleAssignPieceIds([[$attacker, $pieceWithBall->getId()],[$defender, $tacklingPiece->getId()]]);
 
-        DiceRollServices::storeRollInput(\clienttranslate("Tackle"), \intval($this->game->getActivePlayerId()), new RequiredPower(0, []), PerformTackle::class, TeamAttribute::Tackle, TeamAttribute::Dribble, true,
+        DiceRollServices::storeRollInput(\clienttranslate("Tackle"), \intval($game->getActivePlayerId()), new RequiredPower(0, []), PerformTackle::class, TeamAttribute::Tackle, TeamAttribute::Dribble, true,
             [$attacker => $pieceWithBall->getId(), $defender => $tacklingPiece->getId()]);
 
         return ActiveNextGoMorale::class;
