@@ -115,6 +115,13 @@ class GameStats
         $game->playerStats->inc('bypasses', 1, $playerId);
     }
 
+    // an undone card leaves the morale stats as if the paid or gained morale never moved
+    public static function undoMoraleChange(Game $game, int $playerId, int $amount): void
+    {
+        $game->playerStats->inc('morale_gained', -$amount, $playerId);
+        $game->playerStats->inc('morale_spent', -$amount, $playerId);
+    }
+
     public static function recordMoraleChange(int $playerId, int $delta): void
     {
         if ($delta === 0)
