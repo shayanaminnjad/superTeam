@@ -221,6 +221,7 @@ class Game extends \Bga\GameFramework\Table
         $result['user_in_right_id'] = $this->getGameStateValue('user_in_right_id');
         $result['user_in_left_id'] = $this->getGameStateValue('user_in_left_id');
         $result['attacker'] = $this->getGameStateValue('attacker');
+        $result['first_starter_player'] = $this->getPlayerStartedFirstHalf();
         $result['time_index'] = TimeTrack::GetTimeTrackPosition();
         $result['is_final_turn'] = (int) $this->getGameStateValue('isFinalTurn') === 1;
         $result['card_definitions'] = $this->getCardDefinitionsForClient();

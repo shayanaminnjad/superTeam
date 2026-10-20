@@ -116,6 +116,14 @@ define([], function () {
                 playerResources.appendChild(tacticalEl);
 
                 this._tacticalStateElMap[playerId] = tacticalEl;
+
+                if (parseInt(playerId) === parseInt(gamedatas.first_starter_player)) {
+                    playerResources.insertAdjacentHTML('beforeend', `
+                        <div class="resource starterResource">
+                        <span id="starterBadge${playerId}" class="starterBadge">${_("1st")}</span></div>`);
+
+                    this._root.addTooltipHtml(`starterBadge${playerId}`, _("This player started the game."));
+                }
             }
 
             this.setAttacker(parseInt(gamedatas.attacker));
