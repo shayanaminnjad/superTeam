@@ -62,6 +62,17 @@ abstract class CaptainCard extends Card
         return new ExecutionResult(ExecutionAction::Success);
     }
 
+    // Shooting has no piece selection of its own; this gives shoot cards a first step the player can still undo.
+    protected function enforceBallHolderAsPerformer() : ExecutionResult
+    {
+        $ballHolder = null;
+        $this->board->tryGetPlayerPieceInHex($this->board->getBallHex(), $ballHolder);
+
+        (new PieceSelectionContext())->storeSelectablePiecesIds([$ballHolder->getId()]);
+
+        return new ExecutionResult(ExecutionAction::Continue);
+    }
+
     protected function goToShootState() : ExecutionResult
     {
         ShootTargetSelection::resetTargets($this->game);
