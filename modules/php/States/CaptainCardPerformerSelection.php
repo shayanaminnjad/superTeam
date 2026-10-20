@@ -6,9 +6,12 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\UndoPlayedCard;
 
 class CaptainCardPerformerSelection extends PlayerBaseState
 {
+    use UndoPlayedCard;
+
     function __construct(
         protected Game $game,
     ) {
@@ -31,6 +34,8 @@ class CaptainCardPerformerSelection extends PlayerBaseState
     {
         $pieceSelectionContext = new PieceSelectionContext();
         $selectablePieces = $pieceSelectionContext->getSelectablePieceIds();
+
+        $this->addUndoButtonIfPlayedCardUndoable();
 
         return ["piecesToSelect" => $selectablePieces];
     }
