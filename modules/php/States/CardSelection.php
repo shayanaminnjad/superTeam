@@ -10,6 +10,7 @@ use Bga\Games\SuperTeam\BasicTurnLogic;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\CardReward;
+use Bga\Games\SuperTeam\Cards\CardType;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
@@ -118,6 +119,8 @@ class CardSelection extends PlayerBaseState
 
         self::increaseCardsPlayedThisTurnByOne($this->game);
 
+        DBAdapter::getInstance()->storeGlobalInt('morale_before_card_play', (new PlayerResources($activePlayer))->getMorale());
+
         GameStats::recordCardPlayed($this->game, $activePlayer, $playedCardType, $asBasic || $goalieHasBall);
 
         $dbAdapter = DBAdapter::getInstance();
@@ -209,6 +212,51 @@ class CardSelection extends PlayerBaseState
         ]);
 
         self::setWasLastActionUndone(true);
+    }
+
+    // captain and coach cards can be taken back until their first piece or card selection is made
+    public static function isPlayedCardUndoable(Game $game, int $playerId): bool
+    {
+        if ((new TacticContext())->GetTacticCommited())
+            return false;
+
+        if (DBAdapter::getInstance()->getPlayerActionReturnState($playerId) !== TacticalTurnStateManager::class)
+            return false;
+
+        $cardType = self::getCardInPlayType($game);
+
+        return $cardType === CardType::Captain || $cardType === CardType::Coach;
+    }
+
+    private static function getCardInPlayType(Game $game): ?CardType
+    {
+        $cardInPlay = (new TacticContext())->getTacticInPlay();
+
+        return empty($cardInPlay) ? null : $game->getCardFactory()->getCard($cardInPlay)->getDefinition()->type;
+    }
+
+    public static function undoPlayedCard(Game $game, int $playerId): string
+    {
+        if (!self::isPlayedCardUndoable($game, $playerId))
+            throw new \BgaUserException(\clienttranslate("You cannot undo this action!"));
+
+        self::undoLastCardPlayed($playerId, $game);
+        self::restoreMoraleBeforeCardPlay($game, $playerId);
+
+        return BeforeCardSelectionReset::class;
+    }
+
+    // the card may have been paid for or rewarded with morale before the first selection
+    private static function restoreMoraleBeforeCardPlay(Game $game, int $playerId): void
+    {
+        $playerResources = new PlayerResources($playerId);
+        $difference = DBAdapter::getInstance()->getGlobalInt('morale_before_card_play') - $playerResources->getMorale();
+
+        if ($difference === 0)
+            return;
+
+        $playerResources->addMorale($difference, true);
+        GameStats::undoMoraleChange($game, $playerId, abs($difference));
     }
 
     private static function increaseCardsPlayedThisTurnByOne(Game $game): void
