@@ -113,6 +113,8 @@ define([
             onEnteringState: function (stateName, args) {
                 console.log('Entering state: ' + stateName, args);
 
+                this._unlockInput();
+
                 this.currentStateData = args;
                 this.currentState = this.statesRegistry.getState(stateName, this, args);
 
@@ -127,6 +129,9 @@ define([
 
             onUpdateActionButtons: function (stateName, args) {
                 console.log('onUpdateActionButtons: ' + stateName, args);
+
+                // a multiactive player who finished gets no new state, only this update
+                this._unlockInput();
                 console.log("active players are " + this.getActivePlayers());
 
                 if (this.gameDatas.gamestate.type === 'multipleactiveplayer' && !this.getActivePlayers().includes(this.player_id)) {
@@ -290,25 +295,41 @@ define([
                 }
             },
 
-            performServerAction: async function (name, args) {
+            // A successful action keeps input locked until the next state arrives, so the old
+            // state's selectables never flash back on. Pass releaseOnAck for actions that stay in the same state.
+            performServerAction: async function (name, args, options = {}) {
                 this.assert(this.serverCallInProgress === false, 'user must not be able to call server action while another is in progress!');
 
-                try {
-                    this.serverCallInProgress = true;
-                    //TODO: this is not efficient, however it works perfectly for now.
-                    document.querySelectorAll('.selectable, .availableToPlacePiece').forEach((div) => div.classList.add('inputBlocked'));
+                this._lockInput();
 
+                try {
                     await this.bgaPerformAction(name, args);
                 }
                 catch (error) {
                     console.error("Server action failed, exception caught:", error);
+                    this._unlockInput();
                     throw error;
                 }
-                finally {
-                    this.serverCallInProgress = false;
-                    //TODO: this is not efficient, however it works perfectly for now.
-                    document.querySelectorAll('.inputBlocked').forEach((div) => div.classList.remove('inputBlocked'));
-                }
+
+                if (options.releaseOnAck)
+                    this._unlockInput();
+            },
+
+            _lockInput: function () {
+                this.serverCallInProgress = true;
+                //TODO: this is not efficient, however it works perfectly for now.
+                document.querySelectorAll('.selectable, .availableToPlacePiece').forEach((div) => div.classList.add('inputBlocked'));
+
+                // safety net for a successful action that never brings a new state
+                clearTimeout(this._inputLockTimeout);
+                this._inputLockTimeout = setTimeout(() => this._unlockInput(), this._inputLockFallbackMs);
+            },
+
+            _unlockInput: function () {
+                clearTimeout(this._inputLockTimeout);
+                this.serverCallInProgress = false;
+                //TODO: this is not efficient, however it works perfectly for now.
+                document.querySelectorAll('.inputBlocked').forEach((div) => div.classList.remove('inputBlocked'));
             },
 
             onPieceClicked: async function (evt) {
@@ -806,6 +827,10 @@ define([
             coachDefinitions: null,
 
             serverCallInProgress: false,
+
+            _inputLockTimeout: null,
+
+            _inputLockFallbackMs: 5000,
 
             _runningDojoAnimations: 0,
 

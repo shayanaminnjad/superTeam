@@ -64,7 +64,7 @@ define(["dojo/_base/declare",
                 myCoachBoard.makeAllNonSelectable();
 
                 try {
-                    await this._root.performServerAction("actPlacedAttrCube", { attributeId: skillSlot.skillIndex });
+                    await this._root.performServerAction("actPlacedAttrCube", { attributeId: skillSlot.skillIndex }, { releaseOnAck: true });
                 }
                 catch (e) {
                     myCoachBoard.makeAvailableBoxesSelectable(this._args.IsGKAssignable);
@@ -81,7 +81,7 @@ define(["dojo/_base/declare",
                 this._root.statusBar.removeActionButtons();
 
                 this._root.statusBar.addActionButton(_('Restart'), () => {
-                    this._root.performServerAction("actRestart", {})
+                    this._root.performServerAction("actRestart", {}, { releaseOnAck: true })
                 }, {id: 'restart', color: 'alert', disabled: this._getAssignedCubes() === 0});
             },
 

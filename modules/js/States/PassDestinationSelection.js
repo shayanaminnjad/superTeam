@@ -31,19 +31,10 @@ define(["dojo/_base/declare",
 
                     var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
 
-                    this._makeDestinationsUnSelectable();
-
-                    try {
-                        await this._root.performServerAction("actDestSelected", {
-                            hexColumn: offsetCoord.c,
-                            hexRow: offsetCoord.r
-                        });
-                    }
-                    catch(e)
-                    {
-                        console.log('Sending destination failed with error: ', e);
-                        this._makeDestinationsSelectable();
-                    }
+                    await this._root.performServerAction("actDestSelected", {
+                        hexColumn: offsetCoord.c,
+                        hexRow: offsetCoord.r
+                    });
                 }
             },
 
