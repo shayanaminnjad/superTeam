@@ -84,6 +84,12 @@ class PlayerBasicTurn extends PlayerBaseState
         $moveActionContext = new MoveActionContext();
         $moveActionContext->setCurrentMoveType(MoveTypes::FREE);
 
+        if ($this->isSecondCaptainAction($selectablePiecesIds))
+        {
+            $moveActionContext->setSelectedPieceData($this->game->getBoard()->getPlayerPieceData($selectablePiecesIds[0]));
+            return MoveAction::class;
+        }
+
         return MovePieceSelection::class;
     }
 
@@ -129,6 +135,13 @@ class PlayerBasicTurn extends PlayerBaseState
     {
         $this->assertActionAvailable(ActionTypes::Tackle);
 
+        $selectablePiecesIds = (new PieceSelectionContext())->getSelectablePieceIds();
+        if ($this->isSecondCaptainAction($selectablePiecesIds))
+        {
+            $position = $this->game->getBoard()->getPiece($selectablePiecesIds[0])->getPosition();
+            return TacklePerformerSelection::startTackle($this->game, $position);
+        }
+
         return TacklePerformerSelection::class;
     }
 
@@ -169,6 +182,12 @@ class PlayerBasicTurn extends PlayerBaseState
     function zombie(int $playerId): string
     {
         return DBAdapter::getInstance()->getPlayerActionReturnState($playerId);
+    }
+
+    // the second part of a captain card is done by the piece that did the first part
+    private function isSecondCaptainAction(array $selectablePiecesIds) : bool
+    {
+        return count($selectablePiecesIds) === 1 && DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action');
     }
 
     private function assertActionAvailable(ActionTypes ...$allowed) : void
