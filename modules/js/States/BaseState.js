@@ -59,6 +59,13 @@ define(["dojo/_base/declare", "dojo/topic"], function (declare, topic) {
         onMultiActiveStateFinished: function() {
         },
 
+        // Mobile mode: an input was marked and waits for confirmation, or no input is waiting any more.
+        onInputHeld: function(element) {
+        },
+
+        onInputReleased: function() {
+        },
+
         getName: function () {
             throw new Error("getName() not implemented!");
         },

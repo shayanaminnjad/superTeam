@@ -124,12 +124,30 @@ define([], function () {
 
                     this._root.addTooltipHtml(`starterBadge${playerId}`, _("This player started the game."));
                 }
+
+                if (parseInt(playerId) === this._root.viewerId && !this._root.isSpectator)
+                    this._addMobileModeToggle(playerId);
             }
 
             this.setAttacker(parseInt(gamedatas.attacker));
 
             this.setPlayerCards(this._root.opponentId, gamedatas.other_deck_count);
             this.setPlayerCards(this._root.viewerId, gamedatas.player_deck_count);
+        },
+
+        _addMobileModeToggle: function (playerId) {
+            const inputConfirmation = this._root.inputConfirmation;
+
+            this._root.getPlayerPanelElement(playerId).insertAdjacentHTML('beforeend', `
+                <label id="mobileModeLabel" class="mobileModeToggle">
+                <input type="checkbox" id="mobileModeCheckbox" ${inputConfirmation.isEnabled() ? 'checked' : ''}>
+                <span>${_("Mobile mode")}</span></label>`);
+
+            document.getElementById('mobileModeCheckbox').addEventListener('change',
+                (e) => inputConfirmation.setEnabled(e.target.checked));
+
+            this._root.addTooltipHtml('mobileModeLabel',
+                _("Ask for a confirmation before a selection on the board is sent. Helps against wrong taps on small screens. Saved on this device."));
         },
 
         _animateMoraleChange: function (playerId, targetMorale, targetEl, isIncrease = true) {

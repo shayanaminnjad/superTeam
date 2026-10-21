@@ -309,6 +309,25 @@ body::before {
     margin-left: auto;
 }
 
+.mobileModeToggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    cursor: pointer;
+}
+
+.hex.selectable.pendingConfirm:not(.inputBlocked),
+.hex.availableToPlacePiece.pendingConfirm:not(.inputBlocked) {
+    background-color: gold;
+    opacity: 0.85;
+}
+
+.piece.clickable.pendingConfirm {
+    filter: drop-shadow(0 0 6px gold) drop-shadow(0 0 3px gold);
+    transform: scale(1.1);
+}
+
 .starterBadge {
     padding: 1px 6px;
     border: 1px solid #E5DFCB;

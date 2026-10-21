@@ -28,11 +28,12 @@ define([
     g_gamethemeurl + "modules/js/STCardsManager.js",
     g_gamethemeurl + "modules/js/TrackerBoard.js",
     g_gamethemeurl + "modules/js/GameEventProcessor.js",
+    g_gamethemeurl + "modules/js/InputConfirmation.js",
     getLibUrl('bga-animations', '1.x'),
     "ebg/core/gamegui",
     "ebg/counter"
 ],
-    function (dojo, declare, topic, STHexLib, PieceManager, STHUIHelpers, Board, DiceUI, PlayerPanelManager, StatesRegistry, PlayerArea, STCardsManager, TrackerBoard, GameEventProcessor, BgaAnimations) {
+    function (dojo, declare, topic, STHexLib, PieceManager, STHUIHelpers, Board, DiceUI, PlayerPanelManager, StatesRegistry, PlayerArea, STCardsManager, TrackerBoard, GameEventProcessor, InputConfirmation, BgaAnimations) {
         return declare("bgagame.superteam", ebg.core.gamegui, {
             constructor: function () {
                 console.log('superteam constructor');
@@ -69,6 +70,9 @@ define([
                 this.userInRightId = parseInt(gamedatas['user_in_right_id']);
 
                 this.initAnimationsManager();
+
+                this.inputConfirmation = InputConfirmation;
+                this.inputConfirmation.construct(this);
 
                 PlayerPanelManager.construct(this, gamedatas);
 
@@ -114,6 +118,7 @@ define([
                 console.log('Entering state: ' + stateName, args);
 
                 this._unlockInput();
+                this.inputConfirmation.clear();
 
                 this.currentStateData = args;
                 this.currentState = this.statesRegistry.getState(stateName, this, args);
@@ -124,6 +129,7 @@ define([
             onLeavingState: function (stateName) {
                 console.log('Leaving state: ' + stateName);
 
+                this.inputConfirmation.clear();
                 this.currentState.onLeave();
             },
 
@@ -242,6 +248,13 @@ define([
                     return;
                 }
 
+                const hexEl = evt.currentTarget;
+                const replayClick = () => this.currentState.onHexClicked(
+                    { currentTarget: hexEl, target: hexEl, preventDefault() { }, stopPropagation() { } });
+
+                if (this.inputConfirmation.holdIfNeeded(hexEl, replayClick))
+                    return;
+
                 await this.currentState.onHexClicked(evt);
             },
 
@@ -341,7 +354,12 @@ define([
                         let pieceDOMId = evt.currentTarget.id;
                         let numericId = parseInt(pieceDOMId.replace("piece_", ""));
 
-                        await this.performServerAction("actPieceSelected", { pieceId: numericId });
+                        const selectPiece = () => this.performServerAction("actPieceSelected", { pieceId: numericId });
+
+                        if (this.inputConfirmation.holdIfNeeded(evt.currentTarget, selectPiece))
+                            return;
+
+                        await selectPiece();
                     }
                 }
             },
