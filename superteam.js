@@ -627,7 +627,7 @@ define([
 
                 if (notifData.amount > playerMorale)
                 {
-                    const startEl = notifData.playerId === this.opponentId ? document.getElementById('opponentDiscard') : document.getElementById('myDiscard');
+                    const startEl = document.getElementById('moraleSupply');
                     return this.bgaPlayDojoAnimation(PlayerPanelManager.increasePlayerMoraleAnimated(notifData.playerId, notifData.amount, startEl));
                 }
                 else {

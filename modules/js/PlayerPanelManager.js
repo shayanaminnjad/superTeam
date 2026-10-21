@@ -1,5 +1,8 @@
 define([], function () {
 
+    const MORALE_SUPPLY_SCALE = 2.5; // matches the token size printed on the tracker board
+    const MORALE_SHRINK_MS = 250;
+
     return {
         //Public Functions
         construct: function (root, gamedatas) {
@@ -111,7 +114,7 @@ define([], function () {
                 const tacticalEl = document.createElement('div');
                 tacticalEl.classList = 'readonlyText';
                 tacticalEl.style.setProperty('--color', `#FFFFFF`);
-                tacticalEl.style.setProperty('--size', '16px');
+                tacticalEl.style.setProperty('--size', '22px');
 
                 playerResources.appendChild(tacticalEl);
 
@@ -175,6 +178,15 @@ define([], function () {
                 this._root.placeOnObject(moraleEl, startEl);
 
                 let slideAnim = this._root.slideToObject(moraleEl, endEl);
+
+                if (isIncrease) {
+                    moraleEl.style.transform = `scale(${MORALE_SUPPLY_SCALE})`;
+                    dojo.connect(slideAnim, "onBegin", () => {
+                        moraleEl.animate(
+                            [{ transform: `scale(${MORALE_SUPPLY_SCALE})` }, { transform: 'scale(1)' }],
+                            { duration: MORALE_SHRINK_MS, easing: 'ease-out', fill: 'forwards' });
+                    });
+                }
 
                 if (i > 0) {
                     let delayAnim = dojo.animateProperty({

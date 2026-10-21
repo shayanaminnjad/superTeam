@@ -9,6 +9,7 @@ define([
             this._root = root;
             this._initTrackerBoard();
             this._initSupplyPile();
+            this._initMoraleSupply();
             this._initGoalTracker(orangeGoals, blueGoals);
             this._initLastTurnBanner();
             this.setTrackerTo(timeIndex);
@@ -107,6 +108,16 @@ define([
             supplyDeck.style.scale = "60%";
             supplyDeck.style.transform= "translateY(-48%) translateX(-10%) rotate(90deg)";
             this._trackerBoard.appendChild(supplyDeck);
+        },
+
+        _initMoraleSupply: function() {
+            const anchor = document.createElement('div');
+            anchor.id = 'moraleSupply';
+            anchor.style.position = 'absolute';
+            anchor.style.left = `${UIConstants.TRACKER_MORALE_SUPPLY_FROM_LEFT_PERCENT * this._computedBoardWidth}px`;
+            anchor.style.top = `${UIConstants.TRACKER_MORALE_SUPPLY_FROM_TOP_PERCENT * this._computedBoardHeight}px`;
+            anchor.style.pointerEvents = 'none';
+            this._trackerBoard.appendChild(anchor);
         },
 
         _initGoalTracker: function(orangeGoals, blueGoals)
