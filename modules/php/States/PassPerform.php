@@ -11,6 +11,7 @@ use Bga\Games\SuperTeam\BoardInfo;
 use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\GameStats;
+use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\StatAction;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\NotificationAdapter;
@@ -88,6 +89,8 @@ class PassPerform extends GameState
 
             $passActionContext->invalidateLastPassReceiverPieceData();
         }
+
+        RequiredPower::setSkipEnabled(false);
 
         return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
