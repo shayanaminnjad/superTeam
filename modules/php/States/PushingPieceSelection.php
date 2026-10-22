@@ -5,14 +5,16 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\StateType;
 use Bga\Games\SuperTeam\BoardEvaluator;
-use Bga\Games\SuperTeam\BoardSpatial;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\UndoPlayedCard;
 
 class PushingPieceSelection extends PlayerBaseState
 {
+    use UndoPlayedCard;
+
     function __construct(
         protected Game $game,
     ) {
@@ -45,6 +47,8 @@ class PushingPieceSelection extends PlayerBaseState
     public function selfGetArgs(): array
     {
         $piecesHexArray = $this->getPiecesThatCanPush();
+
+        $this->addUndoButtonIfPlayedCardUndoable();
 
         return ["pieces" => $piecesHexArray];
     }
@@ -99,9 +103,7 @@ class PushingPieceSelection extends PlayerBaseState
         {
             if (empty($selectablePieces) || array_any($selectablePieces, fn($piece) => $piece === $playerPiece->getId()))
             {
-                $adjacentPieces = BoardEvaluator::getAdjacentOpponentPieces($board, $playerPiece->getPosition(), $activePlayer, false);
-
-                if (array_any($adjacentPieces, fn($opponentPiece) => count(BoardSpatial::findImmediateMoveableNeighbours($board, $opponentPiece)) > 0))
+                if (count(BoardEvaluator::getPushableOpponentPieces($board, $playerPiece, $activePlayer)) > 0)
                 {
                     $piecesHexArray[] = $playerPiece->getPosition()->convertToArray();
                 }

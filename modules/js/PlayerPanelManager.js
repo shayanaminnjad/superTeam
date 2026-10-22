@@ -1,5 +1,8 @@
 define([], function () {
 
+    const MORALE_SUPPLY_SCALE = 2.5; // matches the token size printed on the tracker board
+    const MORALE_SHRINK_MS = 250;
+
     return {
         //Public Functions
         construct: function (root, gamedatas) {
@@ -111,17 +114,43 @@ define([], function () {
                 const tacticalEl = document.createElement('div');
                 tacticalEl.classList = 'readonlyText';
                 tacticalEl.style.setProperty('--color', `#FFFFFF`);
-                tacticalEl.style.setProperty('--size', '16px');
+                tacticalEl.style.setProperty('--size', '22px');
 
                 playerResources.appendChild(tacticalEl);
 
                 this._tacticalStateElMap[playerId] = tacticalEl;
+
+                if (parseInt(playerId) === parseInt(gamedatas.first_starter_player)) {
+                    playerResources.insertAdjacentHTML('beforeend', `
+                        <div class="resource starterResource">
+                        <span id="starterBadge${playerId}" class="starterBadge">${_("1st")}</span></div>`);
+
+                    this._root.addTooltipHtml(`starterBadge${playerId}`, _("This player started the game."));
+                }
+
+                if (parseInt(playerId) === this._root.viewerId && !this._root.isSpectator)
+                    this._addMobileModeToggle(playerId);
             }
 
             this.setAttacker(parseInt(gamedatas.attacker));
 
             this.setPlayerCards(this._root.opponentId, gamedatas.other_deck_count);
             this.setPlayerCards(this._root.viewerId, gamedatas.player_deck_count);
+        },
+
+        _addMobileModeToggle: function (playerId) {
+            const inputConfirmation = this._root.inputConfirmation;
+
+            this._root.getPlayerPanelElement(playerId).insertAdjacentHTML('beforeend', `
+                <label id="mobileModeLabel" class="mobileModeToggle">
+                <input type="checkbox" id="mobileModeCheckbox" ${inputConfirmation.isEnabled() ? 'checked' : ''}>
+                <span>${_("Mobile mode")}</span></label>`);
+
+            document.getElementById('mobileModeCheckbox').addEventListener('change',
+                (e) => inputConfirmation.setEnabled(e.target.checked));
+
+            this._root.addTooltipHtml('mobileModeLabel',
+                _("Ask for a confirmation before a selection on the board is sent. Helps against wrong taps on small screens. Saved on this device."));
         },
 
         _animateMoraleChange: function (playerId, targetMorale, targetEl, isIncrease = true) {
@@ -149,6 +178,15 @@ define([], function () {
                 this._root.placeOnObject(moraleEl, startEl);
 
                 let slideAnim = this._root.slideToObject(moraleEl, endEl);
+
+                if (isIncrease) {
+                    moraleEl.style.transform = `scale(${MORALE_SUPPLY_SCALE})`;
+                    dojo.connect(slideAnim, "onBegin", () => {
+                        moraleEl.animate(
+                            [{ transform: `scale(${MORALE_SUPPLY_SCALE})` }, { transform: 'scale(1)' }],
+                            { duration: MORALE_SHRINK_MS, easing: 'ease-out', fill: 'forwards' });
+                    });
+                }
 
                 if (i > 0) {
                     let delayAnim = dojo.animateProperty({

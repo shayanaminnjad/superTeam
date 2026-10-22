@@ -28,8 +28,8 @@ class MoraleAssignment extends GameState
             type: StateType::ACTIVE_PLAYER,
 
             // optional
-            description: clienttranslate('${actplayer} is assigning morale for ${actionName}'),
-            descriptionMyTurn: clienttranslate('${you} must assign morale for ${actionName} (Max ${maxMoraleAssignable})'),
+            description: clienttranslate('${actplayer} is assigning ${moraleIcon} for ${actionName}'),
+            descriptionMyTurn: clienttranslate('${you} must assign ${moraleIcon} for ${actionName} (Max ${maxMoraleAssignable})'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,
@@ -58,6 +58,7 @@ class MoraleAssignment extends GameState
         return [
             'actionName' => DiceRollServices::getCurrentActionName(),
             'i18n' => ['actionName'],
+            'moraleIcon' => 'morale',
             'maxMoraleAssignable' => $maxMoraleAssignable,
             'requiredPower' => $requiredPower,
             'attacker' => $attacker,

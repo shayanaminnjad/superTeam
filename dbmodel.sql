@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS `st_globals` (
     `move_selected_piece_data` TEXT,
     `ball_before_tactic_location` TEXT,
     `morale_before_tactic` INT DEFAULT -1,
+    `morale_before_card_play` INT DEFAULT -1,
     `is_restart_after_goal` INT DEFAULT 0,
     `is_skip_enabled` INT DEFAULT 0,
     `morale_player_to_piece_map` TEXT,
@@ -103,6 +104,7 @@ CREATE TABLE IF NOT EXISTS `player_temp_data` (
     `multicard_selection_next_state` TEXT,
     `selectable_cards_in_multicard_range` TEXT,
     `cards_selected_in_multicard_state` TEXT,
+    `multicard_selection_title` TEXT,
     `draft_captain_offer` TEXT,
     `draft_coach_offer` TEXT
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

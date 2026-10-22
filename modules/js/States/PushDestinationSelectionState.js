@@ -37,8 +37,8 @@ define(["dojo/_base/declare",
                         await this._root.performServerAction("actTargetSelected", { hexColumn: offsetCoord.c, hexRow: offsetCoord.r });
                     }
                     catch (error) {
+                        console.error("Sending push destination failed:", error);
                         this._makeHexesAvailable();
-                        throw error;
                     }
                 }
             },

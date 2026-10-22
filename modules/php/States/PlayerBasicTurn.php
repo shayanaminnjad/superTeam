@@ -17,7 +17,7 @@ use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
-use http\Exception\RuntimeException;
+use RuntimeException;
 use function count;
 
 class PlayerBasicTurn extends PlayerBaseState
@@ -44,27 +44,12 @@ class PlayerBasicTurn extends PlayerBaseState
     {
         $activePlayer = \intval($this->game->getActivePlayerId());
 
-        $pieceSelectionContext = new PieceSelectionContext();
-        $selectablePiecesIds = $pieceSelectionContext->getSelectablePieceIds();
-
         if (DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
         {
             $this->addClientButton(\clienttranslate("Forfeit"), [$this, "actForfeit"], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
 
-        $actionsAvailable = [];
-        $board = $this->game->getBoard();
-        $inactivePlayerId =  $this->game->getInactivePlayerId();
-        if (count($selectablePiecesIds) == 0)
-        {
-            $actionsAvailable = BasicTurnLogic::getActionsDoableByAllPieces($board, $activePlayer, $inactivePlayerId);
-        }
-        else
-        {
-            $actionsAvailable = BasicTurnLogic::getActionsDoableByPiece($board, $board->getPiece($selectablePiecesIds[0]), $activePlayer, $inactivePlayerId); //this only happens in captain actions
-        }
-
-        $this->addActionsAvailableButtons($actionsAvailable);
+        $this->addActionsAvailableButtons($this->getActionsAvailable());
 
         if (count($this->getClientButtons()) == 0)
         {
@@ -86,6 +71,8 @@ class PlayerBasicTurn extends PlayerBaseState
         if (!BasicTurnLogic::getMoveAvailabilityInBasic())
             throw new \BgaUserException(clienttranslate("Movement not allowed now"));
 
+        $this->assertActionAvailable(ActionTypes::Move);
+
         $pieceSelectionContext = new PieceSelectionContext();
         $selectablePiecesIds = $pieceSelectionContext->getSelectablePieceIds();
 
@@ -97,18 +84,28 @@ class PlayerBasicTurn extends PlayerBaseState
         $moveActionContext = new MoveActionContext();
         $moveActionContext->setCurrentMoveType(MoveTypes::FREE);
 
+        if ($this->isSecondCaptainAction($selectablePiecesIds))
+        {
+            $moveActionContext->setSelectedPieceData($this->game->getBoard()->getPlayerPieceData($selectablePiecesIds[0]));
+            return MoveAction::class;
+        }
+
         return MovePieceSelection::class;
     }
 
     #[PossibleAction]
     public function actPassBall() : string
     {
+        $this->assertActionAvailable(ActionTypes::PassBall, ActionTypes::GoaliePass);
+
         return PassDestSelection::class;
     }
-    
+
     #[PossibleAction]
     public function actShootBall() : string
     {
+        $this->assertActionAvailable(ActionTypes::Shoot);
+
         $this->game->giveExtraTime($this->game->getInactivePlayerId());
 
         ShootTargetSelection::resetTargets($this->game);
@@ -119,12 +116,16 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actDribble() : string
     {
+        $this->assertActionAvailable(ActionTypes::Dribble);
+
         return DribbleTargetSelection::class;
     }
 
     #[PossibleAction]
     public function actBypass() : string
     {
+        $this->assertActionAvailable(ActionTypes::Bypass);
+
         BypassLogic::setBypassRollRequirement(true);
         return BypassTargetSelection::class;
     }
@@ -132,12 +133,24 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actTackle() : string
     {
+        $this->assertActionAvailable(ActionTypes::Tackle);
+
+        $selectablePiecesIds = (new PieceSelectionContext())->getSelectablePieceIds();
+        if ($this->isSecondCaptainAction($selectablePiecesIds))
+        {
+            $position = $this->game->getBoard()->getPiece($selectablePiecesIds[0])->getPosition();
+            return TacklePerformerSelection::startTackle($this->game, $position);
+        }
+
         return TacklePerformerSelection::class;
     }
 
     #[PossibleAction]
     public function actPass(int $activePlayerId) : string
     {
+        if (count($this->getActionsAvailable()) > 0)
+            throw new \BgaUserException(\clienttranslate("You can't pass while an action is available!"));
+
         return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 
@@ -168,7 +181,35 @@ class PlayerBasicTurn extends PlayerBaseState
 
     function zombie(int $playerId): string
     {
-        return $this->actPass($playerId);
+        return DBAdapter::getInstance()->getPlayerActionReturnState($playerId);
+    }
+
+    // the second part of a captain card is done by the piece that did the first part
+    private function isSecondCaptainAction(array $selectablePiecesIds) : bool
+    {
+        return count($selectablePiecesIds) === 1 && DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action');
+    }
+
+    private function assertActionAvailable(ActionTypes ...$allowed) : void
+    {
+        if (!array_any($this->getActionsAvailable(), fn(ActionTypes $action) => in_array($action, $allowed, true)))
+            throw new \BgaUserException(\clienttranslate("This action is not available now!"));
+    }
+
+    private function getActionsAvailable() : array
+    {
+        $activePlayer = \intval($this->game->getActivePlayerId());
+
+        $pieceSelectionContext = new PieceSelectionContext();
+        $selectablePiecesIds = $pieceSelectionContext->getSelectablePieceIds();
+
+        $board = $this->game->getBoard();
+        $inactivePlayerId = $this->game->getInactivePlayerId();
+        if (count($selectablePiecesIds) == 0)
+            return BasicTurnLogic::getActionsDoableByAllPieces($board, $activePlayer, $inactivePlayerId);
+
+        //this only happens in captain actions
+        return BasicTurnLogic::getActionsDoableByPiece($board, $board->getPiece($selectablePiecesIds[0]), $activePlayer, $inactivePlayerId);
     }
 
     private function addActionsAvailableButtons(array $actions) : void

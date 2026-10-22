@@ -28,11 +28,12 @@ define([
     g_gamethemeurl + "modules/js/STCardsManager.js",
     g_gamethemeurl + "modules/js/TrackerBoard.js",
     g_gamethemeurl + "modules/js/GameEventProcessor.js",
+    g_gamethemeurl + "modules/js/InputConfirmation.js",
     getLibUrl('bga-animations', '1.x'),
     "ebg/core/gamegui",
     "ebg/counter"
 ],
-    function (dojo, declare, topic, STHexLib, PieceManager, STHUIHelpers, Board, DiceUI, PlayerPanelManager, StatesRegistry, PlayerArea, STCardsManager, TrackerBoard, GameEventProcessor, BgaAnimations) {
+    function (dojo, declare, topic, STHexLib, PieceManager, STHUIHelpers, Board, DiceUI, PlayerPanelManager, StatesRegistry, PlayerArea, STCardsManager, TrackerBoard, GameEventProcessor, InputConfirmation, BgaAnimations) {
         return declare("bgagame.superteam", ebg.core.gamegui, {
             constructor: function () {
                 console.log('superteam constructor');
@@ -70,6 +71,9 @@ define([
 
                 this.initAnimationsManager();
 
+                this.inputConfirmation = InputConfirmation;
+                this.inputConfirmation.construct(this);
+
                 PlayerPanelManager.construct(this, gamedatas);
 
                 let orangeGoals = gamedatas.players[this.viewerId].score;
@@ -81,7 +85,7 @@ define([
                     blueGoals = temp;
                 }
 
-                TrackerBoard.construct(this, gamedatas.time_index, orangeGoals, blueGoals);
+                TrackerBoard.construct(this, gamedatas.time_index, orangeGoals, blueGoals, gamedatas.is_final_turn);
 
                 this.pieceManager = PieceManager.getPieceManager();
                 this.pieceManager.construct(this);
@@ -113,6 +117,9 @@ define([
             onEnteringState: function (stateName, args) {
                 console.log('Entering state: ' + stateName, args);
 
+                this._unlockInput();
+                this.inputConfirmation.clear();
+
                 this.currentStateData = args;
                 this.currentState = this.statesRegistry.getState(stateName, this, args);
 
@@ -122,11 +129,15 @@ define([
             onLeavingState: function (stateName) {
                 console.log('Leaving state: ' + stateName);
 
+                this.inputConfirmation.clear();
                 this.currentState.onLeave();
             },
 
             onUpdateActionButtons: function (stateName, args) {
                 console.log('onUpdateActionButtons: ' + stateName, args);
+
+                // a multiactive player who finished gets no new state, only this update
+                this._unlockInput();
                 console.log("active players are " + this.getActivePlayers());
 
                 if (this.gameDatas.gamestate.type === 'multipleactiveplayer' && !this.getActivePlayers().includes(this.player_id)) {
@@ -232,7 +243,16 @@ define([
             },
 
             onHexClicked: async function (evt) {
-                if (this.serverCallInProgress)
+                if (this.serverCallInProgress) {
+                    console.warn('hex click ignored, a server call is still in progress');
+                    return;
+                }
+
+                const hexEl = evt.currentTarget;
+                const replayClick = () => this.currentState.onHexClicked(
+                    { currentTarget: hexEl, target: hexEl, preventDefault() { }, stopPropagation() { } });
+
+                if (this.inputConfirmation.holdIfNeeded(hexEl, replayClick))
                     return;
 
                 await this.currentState.onHexClicked(evt);
@@ -256,29 +276,12 @@ define([
                 if (!clientButtons)
                     return;
 
-                const iconMap = {
-                    forward: '<div class="moveForward buttonIcon"></div>',
-                    backward: '<div class="moveBackward buttonIcon"></div>',
-                    forwardNearOpponent: '<div class="moveForwardNearOpponent buttonIcon"></div>',
-                    backwardNearOpponent: '<div class="moveBackNearOpponent buttonIcon"></div>',
-                    free: '<div class="moveFree buttonIcon"></div>',
-                    action: '<div class="action buttonIcon"></div>',
-                    move: '<div class="move buttonIcon"></div>',
-                    morale: '<div class="resourceIcon moraleIcon buttonIcon"></div>'
-                };
-
-                const parseIcons = (text) => {
-                    return text.replace(/\[([^\]]+)\]/g, (match, key) => {
-                        return iconMap[key] ?? match;
-                    });
-                };
-
                 for (let i = 0; i < clientButtons.length; i++) {
                     const clientButton = clientButtons[i];
                     const params = clientButton['buttonParams'] || {};
 
                     let label = params['label'] ?? clientButton['name'];
-                    label = parseIcons(label);
+                    label = STHUIHelpers.parseIcons(label);
 
                     const buttonOptions = {
                         color: params['color'] ?? 'primary',
@@ -305,25 +308,41 @@ define([
                 }
             },
 
-            performServerAction: async function (name, args) {
+            // A successful action keeps input locked until the next state arrives, so the old
+            // state's selectables never flash back on. Pass releaseOnAck for actions that stay in the same state.
+            performServerAction: async function (name, args, options = {}) {
                 this.assert(this.serverCallInProgress === false, 'user must not be able to call server action while another is in progress!');
 
-                try {
-                    this.serverCallInProgress = true;
-                    //TODO: this is not efficient, however it works perfectly for now.
-                    document.querySelectorAll('.selectable, .availableToPlacePiece').forEach((div) => div.classList.add('inputBlocked'));
+                this._lockInput();
 
+                try {
                     await this.bgaPerformAction(name, args);
                 }
                 catch (error) {
                     console.error("Server action failed, exception caught:", error);
+                    this._unlockInput();
                     throw error;
                 }
-                finally {
-                    this.serverCallInProgress = false;
-                    //TODO: this is not efficient, however it works perfectly for now.
-                    document.querySelectorAll('.inputBlocked').forEach((div) => div.classList.remove('inputBlocked'));
-                }
+
+                if (options.releaseOnAck)
+                    this._unlockInput();
+            },
+
+            _lockInput: function () {
+                this.serverCallInProgress = true;
+                //TODO: this is not efficient, however it works perfectly for now.
+                document.querySelectorAll('.selectable, .availableToPlacePiece').forEach((div) => div.classList.add('inputBlocked'));
+
+                // safety net for a successful action that never brings a new state
+                clearTimeout(this._inputLockTimeout);
+                this._inputLockTimeout = setTimeout(() => this._unlockInput(), this._inputLockFallbackMs);
+            },
+
+            _unlockInput: function () {
+                clearTimeout(this._inputLockTimeout);
+                this.serverCallInProgress = false;
+                //TODO: this is not efficient, however it works perfectly for now.
+                document.querySelectorAll('.inputBlocked').forEach((div) => div.classList.remove('inputBlocked'));
             },
 
             onPieceClicked: async function (evt) {
@@ -335,7 +354,12 @@ define([
                         let pieceDOMId = evt.currentTarget.id;
                         let numericId = parseInt(pieceDOMId.replace("piece_", ""));
 
-                        await this.performServerAction("actPieceSelected", { pieceId: numericId });
+                        const selectPiece = () => this.performServerAction("actPieceSelected", { pieceId: numericId });
+
+                        if (this.inputConfirmation.holdIfNeeded(evt.currentTarget, selectPiece))
+                            return;
+
+                        await selectPiece();
                     }
                 }
             },
@@ -436,7 +460,7 @@ define([
                 }
             },
 
-            playSound: function(soundName){
+            playBgaSound: function(soundName){
                 this.bga.gameui.disableNextMoveSound();
                 this.bga.sounds.play(soundName);
             },
@@ -444,6 +468,10 @@ define([
             bgaFormatText: function (log, args) {
                 if (log && args && !args.processed) {
                     args.processed = true;
+
+                    if (args.moraleIcon !== undefined) {
+                        args.moraleIcon = STHUIHelpers.iconMap.morale;
+                    }
 
                     if (args.cardType !== undefined && args.cardLog !== undefined) {
                         args.cardLog = STCardsManager.getCardLogHtml(args.cardType, this.cardDefinitions);
@@ -599,7 +627,7 @@ define([
 
                 if (notifData.amount > playerMorale)
                 {
-                    const startEl = notifData.playerId === this.opponentId ? document.getElementById('opponentDiscard') : document.getElementById('myDiscard');
+                    const startEl = document.getElementById('moraleSupply');
                     return this.bgaPlayDojoAnimation(PlayerPanelManager.increasePlayerMoraleAnimated(notifData.playerId, notifData.amount, startEl));
                 }
                 else {
@@ -627,12 +655,12 @@ define([
             },
 
             notif_successfulPass: function (notifData) {
-                this.playSound('kick');
+                this.playBgaSound('kick');
                 Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
             notif_failedPass: function (notifData) {
-                this.playSound('kick');
+                this.playBgaSound('kick');
                 Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
@@ -647,12 +675,12 @@ define([
             },
 
             notif_shootFailed: async function (notifData) {
-                this.playSound('kick');
+                this.playBgaSound('kick');
                 return Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
             notif_goalScored: async function (notifData) {
-                this.playSound('stadium_cheer');
+                this.playBgaSound('stadium_cheer');
                 this.bga.playerPanels.getScoreCounter(notifData.playerId).toValue(notifData.score);
 
                 if (notifData.playerId === this.userInLeftId) {
@@ -731,6 +759,10 @@ define([
                     this.showBannerText(notifData.minute, 'timeAdvanceText');
 
                 return TrackerBoard.animateTrackerTo(notifData.currentPosition);
+            },
+
+            notif_finalTurnStarted: async function(notifData) {
+                TrackerBoard.setFinalTurnBannerVisible(true);
             },
 
             notif_cardReset: async function(notifData) {
@@ -813,6 +845,10 @@ define([
             coachDefinitions: null,
 
             serverCallInProgress: false,
+
+            _inputLockTimeout: null,
+
+            _inputLockFallbackMs: 5000,
 
             _runningDojoAnimations: 0,
 

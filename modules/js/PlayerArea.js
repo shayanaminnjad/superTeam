@@ -36,7 +36,7 @@ define([
                 playerName.innerHTML = `${this._ownerData.name}`;
                 playerName.classList = 'readonlyText';
                 playerName.style.setProperty('--color', `#${this._ownerData.color}`);
-                playerName.style.setProperty('--size', 'large');
+                playerName.style.setProperty('--size', '28px');
                 this._areaEl.appendChild(playerName);
 
                 //---------------

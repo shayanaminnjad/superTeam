@@ -156,6 +156,27 @@ body::before {
     user-select: none;
 }
 
+#lastTurnBanner {
+    position: absolute;
+    left: 50%;
+    bottom: -12px;
+    transform: translateX(-50%);
+    padding: 3px 14px;
+
+    background-color: #c0392b;
+    border: 2px solid white;
+    border-radius: 12px;
+
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    white-space: nowrap;
+
+    z-index: 5;
+    user-select: none;
+}
+
 .hex_debug {
     position: absolute;
     background-color: red;
@@ -284,6 +305,41 @@ body::before {
     display: inline-block;
 }
 
+.starterResource {
+    margin-left: auto;
+}
+
+.mobileModeToggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    cursor: pointer;
+}
+
+.hex.selectable.pendingConfirm:not(.inputBlocked),
+.hex.availableToPlacePiece.pendingConfirm:not(.inputBlocked) {
+    background-color: gold;
+    opacity: 0.85;
+}
+
+.piece.clickable.pendingConfirm {
+    filter: drop-shadow(0 0 6px gold) drop-shadow(0 0 3px gold);
+    transform: scale(1.1);
+}
+
+.starterBadge {
+    padding: 1px 6px;
+    border: 1px solid #E5DFCB;
+    border-radius: 9px;
+    background: #2b2b2b;
+    color: #E5DFCB;
+    font-family: 'bebas neue', Impact, sans-serif;
+    font-size: 12px;
+    line-height: 1.2;
+    cursor: help;
+}
+
 .resources .label{
     line-height: 1;
 }
@@ -363,7 +419,7 @@ body::before {
     color: red;
     font-weight: 900;
     -webkit-text-stroke: 4px black;
-    font-family: Impact, sans-serif;
+    font-family: 'bebas neue', Impact, sans-serif;
     paint-order: stroke fill;
 }
 
@@ -396,7 +452,7 @@ body::before {
     color: #E5DFCB;
     font-size: 24px;
     font-weight: 400;
-    font-family: Impact, sans-serif;
+    font-family: 'bebas neue', Impact, sans-serif;
     text-transform: uppercase;
     -webkit-text-stroke: 4px black;
     paint-order: stroke fill;
@@ -607,7 +663,7 @@ body.drafting .resource:has(.cardIcon) {
     color: #E5DFCB;
     -webkit-text-stroke: 3px black;
     paint-order: stroke fill;
-    font-family: Impact, sans-serif;
+    font-family: 'bebas neue', Impact, sans-serif;
     text-align: center;
     margin-bottom: 8px;
 }
@@ -668,7 +724,7 @@ body.drafting .resource:has(.cardIcon) {
     color: var(--color);
     -webkit-text-stroke: 3px black;
     paint-order: stroke fill;
-    font-family: Impact, sans-serif;
+    font-family: 'bebas neue', Impact, sans-serif;
 
     margin-left: 10px;
     pointer-events: none;
@@ -841,15 +897,18 @@ body.drafting .resource:has(.cardIcon) {
     display: flex;
     align-items: flex-start;
     gap: 15px;
-    max-width: 480px;
+    max-width: min(90vw, 760px);
     text-align: left;
 }
 
-/* Reuses .st-card-front's atlas image/sizing, only the element's own box is smaller. */
+/* Reuses .st-card-front's atlas image/sizing, only the element's own box is smaller.
+   Art text is baked into the atlas, so the image grows with the viewport to stay readable. */
 .cardTooltipImage {
+    --tip-width: clamp(135px, 10.5vw, 210px);
+
     flex: 0 0 auto;
-    width: 135px;
-    height: 189px;
+    width: var(--tip-width);
+    height: calc(var(--tip-width) * 1.4);
     border-radius: 7px;
 }
 
@@ -859,8 +918,9 @@ body.drafting .resource:has(.cardIcon) {
 }
 
 .coachTooltipImage {
-    width: 200px;
-    height: 120px;
+    --tip-width: clamp(200px, 17.5vw, 315px);
+
+    height: calc(var(--tip-width) * 0.6);
     background-image: url("img/coachBoardsAtlas.jpg");
     background-size: 300% 200%;
 }

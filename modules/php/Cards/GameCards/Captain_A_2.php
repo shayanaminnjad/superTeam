@@ -41,9 +41,7 @@ class Captain_A_2 extends CaptainCard
 
     public function isExecutionPossible(): bool
     {
-        $candidates = $this->getMoveableNotAdjacentToOpponentPieces();
-
-        return count($candidates) > 0;
+        return count($this->getMoveablePiecesNotAdjacentToOpponents()) > 0;
     }
 
     protected function getCommands(): array
@@ -63,25 +61,9 @@ class Captain_A_2 extends CaptainCard
 
     private function enforceNotAdjacentPieces() : ExecutionResult
     {
-        $candidates = $this->getMoveableNotAdjacentToOpponentPieces();
-
-        MovePieceSelectionLogic::storeMoveablePiecesIds($candidates);
+        MovePieceSelectionLogic::storeMoveablePiecesIds($this->getMoveablePiecesNotAdjacentToOpponents());
 
         return new ExecutionResult(ExecutionAction::Continue);
-    }
-
-
-    /**
-     * @return PlayerPiece[]
-     */
-    private function getMoveableNotAdjacentToOpponentPieces(): array
-    {
-        $playerId = intval($this->game->getActivePlayerId());
-
-        $freeMoveablePieces = MovePieceSelectionLogic::extractFreeMoveMoveablePieces($this->board, $playerId);
-        $playerPiecesNotAdjacent = BoardEvaluator::getPlayerPiecesNotAdjacentToOpponent($this->board, $playerId);
-
-        return array_uintersect($freeMoveablePieces, $playerPiecesNotAdjacent, fn ($a, $b) => $a->getId() <=> $b->getId());
     }
 
     private function goToSwapStateIfPossible() : ExecutionResult

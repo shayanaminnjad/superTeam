@@ -19,6 +19,9 @@ class BypassLogic
 
         foreach($ownerPieces as $piece)
         {
+            if ($piece->getRole() === PlayerRole::GoalKeeper->value)
+                continue;
+
             if (count(self::getBypassTargets($board, $ownerPlayer, $piece->getPosition())) > 0)
                 $res[] = $piece;
         }
@@ -51,7 +54,7 @@ class BypassLogic
         if (!HexLib::getOffsetExtent()->isInsideExtent($destination))
             return false;
 
-        return !$board->hasPlayerInHex($destination);
+        return BoardSpatial::isHexMoveable($board, $destination);
     }
 
     public static function getByPassDest(PlayerPiece $opponent, HexID $myLocation) : HexID

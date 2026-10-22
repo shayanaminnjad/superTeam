@@ -236,6 +236,17 @@ class BoardEvaluator
         return false;
     }
 
+    /**
+     * @return PlayerPiece[]
+     */
+    public static function getPushableOpponentPieces(Board $board, PlayerPiece $pusher, int $playerId): array
+    {
+        $adjacentOpponents = self::getAdjacentOpponentPieces($board, $pusher->getPosition(), $playerId, false);
+
+        return array_values(array_filter($adjacentOpponents,
+            fn($opponent) => \count(BoardSpatial::findImmediateMoveableNeighbours($board, $opponent)) > 0));
+    }
+
     public static function doesOpponentExistInNeighbours(Board $board, HexID $reference, int $currentPlayer, bool $includeGoalie): bool
     {
         return \count(self::getAdjacentOpponentPieces($board, $reference, $currentPlayer, $includeGoalie)) > 0;

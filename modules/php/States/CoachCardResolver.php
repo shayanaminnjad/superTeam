@@ -9,9 +9,12 @@ use Bga\Games\SuperTeam\ClientButtonColor;
 use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\States\PlayerBaseState;
+use Bga\Games\SuperTeam\UndoPlayedCard;
 
 class CoachCardResolver extends PlayerBaseState
 {
+    use UndoPlayedCard;
+
     function __construct(
         Game $game,
     ) {
@@ -35,6 +38,7 @@ class CoachCardResolver extends PlayerBaseState
         $this->addClientButton(\clienttranslate("Do one [move]"), [$this, "actMove"]);
         $this->addClientButton(\clienttranslate("Pass"), [$this, "actPass"], [],
             new ClientButtonParams(ClientButtonColor::ALERT));
+        $this->addUndoButtonIfPlayedCardUndoable();
 
         return [];
     }

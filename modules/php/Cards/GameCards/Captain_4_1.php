@@ -31,7 +31,7 @@ class Captain_4_1 extends CaptainCard
     }
     public function isExecutionPossible(): bool
     {
-        return count($this->getPiecesNotAdjacentToOpponents()) > 0;
+        return count($this->getMoveablePiecesNotAdjacentToOpponents()) > 0;
     }
 
 
@@ -64,7 +64,7 @@ class Captain_4_1 extends CaptainCard
         $playerId = intval($this->game->GetActivePlayerId());
         DBAdapter::getInstance()->storeActionReturnState($playerId, TacticalTurnStateManager::class);
 
-        MovePieceSelectionLogic::storeMoveablePiecesIds($this->getPiecesNotAdjacentToOpponents());
+        MovePieceSelectionLogic::storeMoveablePiecesIds($this->getMoveablePiecesNotAdjacentToOpponents());
 
         $moveActionContext = new MoveActionContext();
         $moveActionContext->setCurrentMoveType(MoveTypes::FREE);

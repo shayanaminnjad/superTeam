@@ -47,6 +47,9 @@ abstract class CaptainCard extends Card
         $passActionContext = new PassActionContext($playerId);
 
         $piecesPassedIds = $passActionContext->getPiecesPassedIds();
+        if (empty($piecesPassedIds))
+            return new ExecutionResult(ExecutionAction::Success);
+
         assert(count($piecesPassedIds) ==1);
 
         if ($this->board->getPiece($piecesPassedIds[0])->getRole() == PlayerRole::Captain->value)
@@ -57,6 +60,17 @@ abstract class CaptainCard extends Card
         }
 
         return new ExecutionResult(ExecutionAction::Success);
+    }
+
+    // Shooting has no piece selection of its own; this gives shoot cards a first step the player can still undo.
+    protected function enforceBallHolderAsPerformer() : ExecutionResult
+    {
+        $ballHolder = null;
+        $this->board->tryGetPlayerPieceInHex($this->board->getBallHex(), $ballHolder);
+
+        (new PieceSelectionContext())->storeSelectablePiecesIds([$ballHolder->getId()]);
+
+        return new ExecutionResult(ExecutionAction::Continue);
     }
 
     protected function goToShootState() : ExecutionResult
@@ -77,7 +91,13 @@ abstract class CaptainCard extends Card
     // Second part move: the performer is already known, so piece selection is skipped.
     protected function goToFreeMoveWithSelectedPiece() : ExecutionResult
     {
+        if (DBAdapter::getInstance()->getGlobalInt('is_restart_after_goal') == 1)
+            return new ExecutionResult(ExecutionAction::Continue);
+
         $selectablePieces = (new PieceSelectionContext())->getSelectablePieceIds();
+
+        if (empty($selectablePieces))
+            return new ExecutionResult(ExecutionAction::Continue);
 
         if (count($selectablePieces) != 1)
             return $this->goToFreeMoveState();
@@ -229,19 +249,42 @@ abstract class CaptainCard extends Card
         return $result;
     }
 
-    protected function getPiecesNotAdjacentToOpponents() : array
+    protected function getMoveablePiecesNotAdjacentToOpponents() : array
     {
         $playerId = \intval($this->game->GetActivePlayerId());
         return MovePieceSelectionLogic::extractMoveableNotAdjacentToOpponentPieces($this->board, $playerId);
     }
 
-    protected function enforceAdjacentPieces() : ExecutionResult
+    /**
+     * @return PlayerPiece[]
+     */
+    protected function getPiecesThatCanSwap() : array
     {
         $playerId = \intval($this->game->GetActivePlayerId());
-        $adjacentPieces = BoardEvaluator::getPlayerPiecesAdjacentToOpponent($this->board, $playerId);
 
+        return array_values(array_filter(
+            $this->board->getPlayerPiecesByOwner($playerId),
+            fn(PlayerPiece $piece) => $piece->getRole() !== PlayerRole::GoalKeeper->value
+                && BoardEvaluator::hasAdjacentOpponentPieces($this->board, $piece->getPosition(), $playerId, false)));
+    }
+
+    /**
+     * @return PlayerPiece[]
+     */
+    protected function getPiecesThatCanPush() : array
+    {
+        $playerId = \intval($this->game->GetActivePlayerId());
+
+        return array_values(array_filter(
+            $this->board->getPlayerPiecesByOwner($playerId),
+            fn(PlayerPiece $piece) => $piece->getRole() !== PlayerRole::GoalKeeper->value
+                && count(BoardEvaluator::getPushableOpponentPieces($this->board, $piece, $playerId)) > 0));
+    }
+
+    protected function enforcePiecesThatCanSwap() : ExecutionResult
+    {
         $pieceSelectionContext = new PieceSelectionContext();
-        $pieceSelectionContext->storeSelectablePieces($adjacentPieces);
+        $pieceSelectionContext->storeSelectablePieces($this->getPiecesThatCanSwap());
 
         return new ExecutionResult(ExecutionAction::Continue);
     }

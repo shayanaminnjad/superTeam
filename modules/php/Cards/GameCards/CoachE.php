@@ -48,8 +48,18 @@ class CoachE extends Card
     protected function getCommands(): array
     {
         return [
+            $this->spendOneMorale(...),
             $this->enableExtraDieForWholeTurn(...)
         ];
+    }
+
+    private function spendOneMorale() : ExecutionResult
+    {
+        $playerId = intval($this->game->GetActivePlayerId());
+        $playerResources = new PlayerResources($playerId);
+        $playerResources->addMorale(-1, true);
+
+        return new ExecutionResult(ExecutionAction::Continue);
     }
 
     private function enableExtraDieForWholeTurn() : ExecutionResult

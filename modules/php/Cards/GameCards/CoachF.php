@@ -32,7 +32,7 @@ class CoachF extends Card
     {
         $playerHand = $this->game->getPlayerHand(intval($this->game->getActivePlayerId()));
 
-        return $playerHand->getCardsInHand() >= 2; //2 since the coach is still in our hand, so we should have at least 1 card more.
+        return $playerHand->CountCardsInHand() >= 2; //2 since the coach is still in our hand, so we should have at least 1 card more.
     }
 
     public static function staticId() : string
@@ -60,6 +60,7 @@ class CoachF extends Card
     {
         $multiCardSelectionContext = new MultiCardSelectionContext(intval($this->game->getActivePlayerId()));
         $multiCardSelectionContext->storeSelectableCardsRange(1, 3);
+        $multiCardSelectionContext->storeTitle(clienttranslate('discard 1 to 3 cards to draw the same amount'));
         return new ExecutionResult(ExecutionAction::GoToState, MultiCardSelectState::class);
     }
 

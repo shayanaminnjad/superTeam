@@ -98,6 +98,12 @@ class PassTurn extends GameState
                 return ST_END_GAME;
             } else
             {
+                if (TimeTrack::IsGameFinished($timeTrackPosition))
+                {
+                    $this->game->setGameStateValue("isFinalTurn", 1);
+                    $this->game->notify->all("finalTurnStarted", "", []);
+                }
+
                 if ($isRestartAfterGoal)
                 {
                     return BoardReset::class;

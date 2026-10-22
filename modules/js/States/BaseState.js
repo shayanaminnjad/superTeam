@@ -31,7 +31,7 @@ define(["dojo/_base/declare", "dojo/topic"], function (declare, topic) {
 
         onHexClicked: async function (evt) {
             try {
-                this._selfOnHexClicked(evt);
+                await this._selfOnHexClicked(evt);
             }
             catch (error) {
                 console.error("click action failed, exception caught:", error);
@@ -57,6 +57,13 @@ define(["dojo/_base/declare", "dojo/topic"], function (declare, topic) {
         },
 
         onMultiActiveStateFinished: function() {
+        },
+
+        // Mobile mode: an input was marked and waits for confirmation, or no input is waiting any more.
+        onInputHeld: function(element) {
+        },
+
+        onInputReleased: function() {
         },
 
         getName: function () {

@@ -5,12 +5,20 @@ define([
     return {
 
         //Public Functions
-        construct: function (root, timeIndex, orangeGoals, blueGoals) {
+        construct: function (root, timeIndex, orangeGoals, blueGoals, isFinalTurn) {
             this._root = root;
             this._initTrackerBoard();
             this._initSupplyPile();
+            this._initMoraleSupply();
             this._initGoalTracker(orangeGoals, blueGoals);
+            this._initLastTurnBanner();
             this.setTrackerTo(timeIndex);
+            this.setFinalTurnBannerVisible(isFinalTurn);
+        },
+
+        setFinalTurnBannerVisible: function(isVisible)
+        {
+            this._lastTurnEl.style.display = isVisible ? '' : 'none';
         },
 
         animateTrackerTo: function(timeIndex)
@@ -102,6 +110,16 @@ define([
             this._trackerBoard.appendChild(supplyDeck);
         },
 
+        _initMoraleSupply: function() {
+            const anchor = document.createElement('div');
+            anchor.id = 'moraleSupply';
+            anchor.style.position = 'absolute';
+            anchor.style.left = `${UIConstants.TRACKER_MORALE_SUPPLY_FROM_LEFT_PERCENT * this._computedBoardWidth}px`;
+            anchor.style.top = `${UIConstants.TRACKER_MORALE_SUPPLY_FROM_TOP_PERCENT * this._computedBoardHeight}px`;
+            anchor.style.pointerEvents = 'none';
+            this._trackerBoard.appendChild(anchor);
+        },
+
         _initGoalTracker: function(orangeGoals, blueGoals)
         {
             const top = `${0.307627118 * this._computedBoardHeight}px`;
@@ -129,7 +147,18 @@ define([
             this._trackerBoard.appendChild(blueEl);
         },
 
+        _initLastTurnBanner: function()
+        {
+            this._lastTurnEl = document.createElement('div');
+            this._lastTurnEl.id = 'lastTurnBanner';
+            this._lastTurnEl.textContent = _('LAST TURN');
+            this._lastTurnEl.style.display = 'none';
+
+            this._trackerBoard.appendChild(this._lastTurnEl);
+        },
+
         _root: null,
+        _lastTurnEl: null,
         _timeTrackCubeEl: null,
         _positions: [],
         _trackerBoard: null,

@@ -103,6 +103,9 @@ class TacticRewardResolve extends PlayerBaseState
         if ($rewardRemaining->action == 0)
             throw new \BgaUserException(\clienttranslate("Card has no more action rewards"));
 
+        if (!BasicTurnLogic::isAnyActionAvailable($this->game->getBoard(), $activePlayerId, $this->game->getInactivePlayerId()))
+            throw new \BgaUserException(\clienttranslate("No action is available now!"));
+
         $claimedReward->action += 1;
         $this->storeRewardClaimed($claimedReward);
 

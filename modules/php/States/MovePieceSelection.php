@@ -12,9 +12,12 @@ use Bga\Games\SuperTeam\ClientButtonColor;
 use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\UndoPlayedCard;
 
 class MovePieceSelection extends PlayerBaseState
 {
+    use UndoPlayedCard;
+
     function __construct(
         protected Game $game,
     ) {
@@ -57,6 +60,8 @@ class MovePieceSelection extends PlayerBaseState
         {
             $this->addClientButton(\clienttranslate("Forfeit"), [$this, "actForfeit"], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
+
+        $this->addUndoButtonIfPlayedCardUndoable();
 
         $moveActionContext = new MoveActionContext();
 

@@ -31,23 +31,26 @@ define(["dojo/_base/declare",
 
                     var offsetCoord = Board.convertHexIdToOffsetCoord(evt.currentTarget.id);
 
-                    this._makeDestinationsUnSelectable();
-
-                    try {
-                        await this._root.performServerAction("actDestSelected", {
-                            hexColumn: offsetCoord.c,
-                            hexRow: offsetCoord.r
-                        });
-                    }
-                    catch(e)
-                    {
-                        console.log('Sending destination failed with error: ', e);
-                        this._makeDestinationsSelectable();
-                    }
+                    await this._root.performServerAction("actDestSelected", {
+                        hexColumn: offsetCoord.c,
+                        hexRow: offsetCoord.r
+                    });
                 }
             },
 
+            // In mobile mode there is no hover: the ruler follows the marked hex instead.
+            onInputHeld: function (hexEl) {
+                this._showPassRuler(hexEl);
+            },
+
+            onInputReleased: function () {
+                Board.removeRequiredPowerVisualization();
+            },
+
             _selfOnHexEnter: async function (evt) {
+                if (this._root.inputConfirmation.isEnabled())
+                    return;
+
                 this._showPassRuler(evt.currentTarget);
             },
 
@@ -58,6 +61,9 @@ define(["dojo/_base/declare",
             },
 
             _selfOnHexLeave: async function(evt) {
+                if (this._root.inputConfirmation.isEnabled())
+                    return;
+
                 Board.removeRequiredPowerVisualization();
             },
 
@@ -90,7 +96,7 @@ define(["dojo/_base/declare",
 
                 const hoveredHex = Board.getHoveredHexElement();
 
-                if (hoveredHex)
+                if (hoveredHex && !this._root.inputConfirmation.isEnabled())
                     this._showPassRuler(hoveredHex);
             },
 

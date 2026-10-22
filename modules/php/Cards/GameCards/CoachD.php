@@ -30,7 +30,7 @@ class CoachD extends Card
     {
         $playerHand = $this->game->getPlayerHand(intval($this->game->getActivePlayerId()));
 
-        return $playerHand->getCardsInHand() >= 2; //2 since the coach is still in our hand, so we should have at least 1 card more.
+        return $playerHand->CountCardsInHand() >= 2; //2 since the coach is still in our hand, so we should have at least 1 card more.
     }
 
     public static function staticId() : string
@@ -58,6 +58,7 @@ class CoachD extends Card
     {
         $multiCardSelectionContext = new MultiCardSelectionContext(intval($this->game->getActivePlayerId()));
         $multiCardSelectionContext->storeSelectableCardsRange(1, 2);
+        $multiCardSelectionContext->storeTitle(clienttranslate('discard 1 or 2 cards to gain morale'));
         return new ExecutionResult(ExecutionAction::GoToState, MultiCardSelectState::class);
     }
 
@@ -75,11 +76,12 @@ class CoachD extends Card
         }
 
         NotificationAdapter::getInstance()->notifyAll("cardsDiscarded",
-            clienttranslate('${player_name} discarded ${cardsPlayed} card(s) to gain ${cardsPlayed} morale(s)'),
+            clienttranslate('${player_name} discarded ${cardsPlayed} card(s) to gain ${cardsPlayed} ${moraleIcon}'),
             [
                 'discards' => $playerHand->getDiscardedCards(),
                 'player_name' => NotificationAdapter::getInstance()->getPlayerNameById($activePlayer),
                 'cardsPlayed' => count($cardsSelected),
+                'moraleIcon' => 'morale',
             ]);
 
         $playerResources = new PlayerResources($activePlayer);

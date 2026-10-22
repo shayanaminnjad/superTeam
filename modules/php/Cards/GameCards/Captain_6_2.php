@@ -2,6 +2,7 @@
 
 namespace Bga\Games\SuperTeam\Cards\GameCards;
 
+use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\CaptainCard;
 use Bga\Games\SuperTeam\Cards\CardDefinition;
 use Bga\Games\SuperTeam\Cards\CardType;
@@ -26,16 +27,10 @@ class Captain_6_2 extends CaptainCard
     {
         $ballHex = $this->board->getBallHex();
 
-        $piece = null;
-        if ($this->board->tryGetPlayerPieceInHex($ballHex, $piece))
-        {
-            $activePlayerId = intval($this->game->getActivePlayerId());
+        $activePlayerId = intval($this->game->getActivePlayerId());
 
-            if ($piece->getOwner() === $activePlayerId)
-                return true;
-        }
-
-        return false;
+        return BoardEvaluator::doesPlayerHasTheBall($this->board, $activePlayerId)
+            && BoardEvaluator::isInsideOpponentPenaltyArea($activePlayerId, $ballHex);
     }
 
     public static function staticId() : string
@@ -54,6 +49,8 @@ class Captain_6_2 extends CaptainCard
     protected function getCommands(): array
     {
         return [
+            $this->enforceBallHolderAsPerformer(...),
+            $this->goToCaptainCardPerformerSelectionState(...),
             $this->enableSkip(...),
             $this->goToShootState(...),
             $this->giveMoraleIfCaptainShoot(...)

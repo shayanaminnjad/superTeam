@@ -10,6 +10,7 @@ use Bga\Games\SuperTeam\BasicTurnLogic;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\CardReward;
+use Bga\Games\SuperTeam\Cards\CardType;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
@@ -63,7 +64,7 @@ class CardSelection extends PlayerBaseState
         }
 
         $cardsPlayedThisTurn = self::getCardsPlayedThisTurn($this->game);
-        $canPass =  $cardsPlayedThisTurn > 0;
+        $canPass = self::canPass($this->game, $activePlayer);
         $canPlayCard = $cardsPlayedThisTurn < 3;
 
         return [
@@ -87,6 +88,20 @@ class CardSelection extends PlayerBaseState
 
         $playerHand = $this->game->getPlayerHand($activePlayer);
 
+        if (!$playerHand->isCardInHand($cardId))
+            throw new \BgaUserException(\clienttranslate("That card is not in your hand!"));
+
+        $board = $this->game->getBoard();
+        $goalieHasBall = BoardEvaluator::doesPlayerGoalieHasBall($board, $activePlayer);
+
+        // checked before the discard: some cards count the rest of the hand
+        if (!$asBasic && !$goalieHasBall)
+        {
+            $tactic = $this->game->getCardFactory()->getCard($playerHand->getCard($cardId)['type']);
+            if (!$tactic->isExecutionPossible())
+                throw new \BgaUserException(\clienttranslate("Invalid card selected for execution, execution impossible"));
+        }
+
         $playerHand->discardCard($cardId);
 
         $playedCardType = $playerHand->getCard($cardId)['type'];
@@ -104,8 +119,7 @@ class CardSelection extends PlayerBaseState
 
         self::increaseCardsPlayedThisTurnByOne($this->game);
 
-        $board = $this->game->getBoard();
-        $goalieHasBall = BoardEvaluator::doesPlayerGoalieHasBall($board, $activePlayer);
+        DBAdapter::getInstance()->storeGlobalInt('morale_before_card_play', (new PlayerResources($activePlayer))->getMorale());
 
         GameStats::recordCardPlayed($this->game, $activePlayer, $playedCardType, $asBasic || $goalieHasBall);
 
@@ -129,11 +143,6 @@ class CardSelection extends PlayerBaseState
 
             $cardDef = $playerHand->getCard($cardId);
 
-            $cardFactory = $this->game->getCardFactory();
-            $card = $cardFactory->getCard($cardDef["type"]);
-            if (!$card->isExecutionPossible())
-                throw new \BgaUserException(\clienttranslate("Invalid card selected for execution, execution impossible"));
-
             $tacticContext->setTacticInPlay($cardDef['type']);
             $tacticContext->setTacticProgress(0);
             $tacticContext->setRewardUsed(CardReward::empty());
@@ -155,7 +164,16 @@ class CardSelection extends PlayerBaseState
     #[PossibleAction]
     public function actPass(): string
     {
+        if (!self::canPass($this->game, \intval($this->game->getActivePlayerId())))
+            throw new \BgaUserException(\clienttranslate("You must play at least one card before passing!"));
+
         return PassTurn::class;
+    }
+
+    // an empty hand can never play a card, so passing must stay possible
+    private static function canPass(Game $game, int $playerId): bool
+    {
+        return self::getCardsPlayedThisTurn($game) > 0 || empty($game->getPlayerHand($playerId)->getCardsInHand());
     }
 
     function zombie(int $playerId): string
@@ -194,6 +212,51 @@ class CardSelection extends PlayerBaseState
         ]);
 
         self::setWasLastActionUndone(true);
+    }
+
+    // captain and coach cards can be taken back until their first piece or card selection is made
+    public static function isPlayedCardUndoable(Game $game, int $playerId): bool
+    {
+        if ((new TacticContext())->GetTacticCommited())
+            return false;
+
+        if (DBAdapter::getInstance()->getPlayerActionReturnState($playerId) !== TacticalTurnStateManager::class)
+            return false;
+
+        $cardType = self::getCardInPlayType($game);
+
+        return $cardType === CardType::Captain || $cardType === CardType::Coach;
+    }
+
+    private static function getCardInPlayType(Game $game): ?CardType
+    {
+        $cardInPlay = (new TacticContext())->getTacticInPlay();
+
+        return empty($cardInPlay) ? null : $game->getCardFactory()->getCard($cardInPlay)->getDefinition()->type;
+    }
+
+    public static function undoPlayedCard(Game $game, int $playerId): string
+    {
+        if (!self::isPlayedCardUndoable($game, $playerId))
+            throw new \BgaUserException(\clienttranslate("You cannot undo this action!"));
+
+        self::undoLastCardPlayed($playerId, $game);
+        self::restoreMoraleBeforeCardPlay($game, $playerId);
+
+        return BeforeCardSelectionReset::class;
+    }
+
+    // the card may have been paid for or rewarded with morale before the first selection
+    private static function restoreMoraleBeforeCardPlay(Game $game, int $playerId): void
+    {
+        $playerResources = new PlayerResources($playerId);
+        $difference = DBAdapter::getInstance()->getGlobalInt('morale_before_card_play') - $playerResources->getMorale();
+
+        if ($difference === 0)
+            return;
+
+        $playerResources->addMorale($difference, true);
+        GameStats::undoMoraleChange($game, $playerId, abs($difference));
     }
 
     private static function increaseCardsPlayedThisTurnByOne(Game $game): void

@@ -8,6 +8,8 @@ use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\BypassLogic;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
+use Bga\Games\SuperTeam\ClientButtonColor;
+use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
@@ -48,7 +50,23 @@ class BypassTargetSelection extends PlayerBaseState
             $bypassableOpponentsAsArray[] = $opponent->getPosition()->convertToArray();
         }
 
+        if (DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
+        {
+            $this->addClientButton(\clienttranslate("Forfeit"), [$this, "actForfeit"], [], new ClientButtonParams(ClientButtonColor::ALERT));
+        }
+
         return ["bypassableOpponents" => $bypassableOpponentsAsArray];
+    }
+
+    #[PossibleAction]
+    public function actForfeit(int $activePlayerId): string
+    {
+        if (!DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
+            throw new \BgaUserException(\clienttranslate("Forfeit is not possible!"));
+
+        BypassLogic::setBypassRollRequirement(false);
+
+        return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
 
     #[PossibleAction]

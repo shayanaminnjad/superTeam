@@ -9,9 +9,12 @@ use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MultiCardSelectionContext;
 use Bga\Games\SuperTeam\States\PlayerBaseState;
+use Bga\Games\SuperTeam\UndoPlayedCard;
 
 class MultiCardSelectState extends PlayerBaseState
 {
+    use UndoPlayedCard;
+
     function __construct(
         protected Game $game,
     ) {
@@ -22,8 +25,8 @@ class MultiCardSelectState extends PlayerBaseState
             type: StateType::ACTIVE_PLAYER,
 
             // optional
-            description: clienttranslate('${actplayer} must select up to ${maxCards} cards'),
-            descriptionMyTurn: clienttranslate('${you} must select up to ${maxCards} cards'),
+            description: clienttranslate('${actplayer} must ${selectionTitle}'),
+            descriptionMyTurn: clienttranslate('${you} must ${selectionTitle}'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,
@@ -36,17 +39,26 @@ class MultiCardSelectState extends PlayerBaseState
         $multicardSelectionContext = new MultiCardSelectionContext($activePlayerId);
         $range = $multicardSelectionContext->getSelectableCardsRange();
 
+        $title = $multicardSelectionContext->getTitle();
+        if ($title === '')
+            $title = clienttranslate('select cards');
+
+        $this->addUndoButtonIfPlayedCardUndoable();
+
         return [
             'minCards' => $range[0],
-            'maxCards' => $range[1]
+            'maxCards' => $range[1],
+            'selectionTitle' => $title,
+            'i18n' => ['selectionTitle'],
         ];
     }
 
     #[PossibleAction]
     public function actCardsSelected(#[IntArrayParam()] array $cardsSelectedIds) : string
     {
-        $minCards = $this->selfGetArgs()['minCards'];
-        $maxCards = $this->selfGetArgs()['maxCards'];
+        $args = $this->selfGetArgs();
+        $minCards = $args['minCards'];
+        $maxCards = $args['maxCards'];
 
         $cardsSelectedCount = count($cardsSelectedIds);
 
@@ -54,9 +66,13 @@ class MultiCardSelectState extends PlayerBaseState
             throw new \BgaUserException(clienttranslate('You have to select [$(minCards), $(maxCards)] cards!'));
 
         $activePlayerId = intval($this->game->getActivePlayerId());
+
+        if (!$this->game->getPlayerHand($activePlayerId)->areAllCardsInHand($cardsSelectedIds))
+            throw new \BgaUserException(clienttranslate('You must select different cards from your hand!'));
+
         $multicardSelectionContext = new MultiCardSelectionContext($activePlayerId);
 
-        $multicardSelectionContext->storeCardsSelected($cardsSelectedIds);
+        $multicardSelectionContext->storeCardsSelected(array_map('intval', $cardsSelectedIds));
         $nextState = $multicardSelectionContext->getNextState();
         if (empty($nextState))
         {
