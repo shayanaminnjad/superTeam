@@ -38,10 +38,12 @@ class ShootTargetReveal extends GameState
         
         $attacker = $board->getAttacker();
         $attackerTarget = ShootTargetSelection::getPlayerShootTarget($attacker);
-        
+
+        $shouldIncludeGoalieAsBlocking = $attackerTarget->equals($defenderTarget);
+
         $dummyinlineHexes = [];
         $dummyblockingHexes = [];
-        $requiredPower = $board->getRequiredPower($board->getBallHex(), $attackerTarget, $board->getDefender(), $dummyinlineHexes, $dummyblockingHexes);
+        $requiredPower = $board->getRequiredPower($board->getBallHex(), $attackerTarget, $board->getDefender(), $dummyinlineHexes, $dummyblockingHexes, $shouldIncludeGoalieAsBlocking);
         
         $pieceWithBall = null;
         $board->tryGetPlayerPieceInHex($board->getBallHex(), $pieceWithBall);

@@ -265,13 +265,16 @@ class Board
         return $res;
     }
 
-    public function getRequiredPower(HexID $start, HexID $end, int $opponentId, array &$outLineHexes, array &$outBlockingHexes): RequiredPower
+    public function getRequiredPower(HexID $start, HexID $end, int $opponentId, array &$outLineHexes, array &$outBlockingHexes, bool $includeGoalieAsBlocking = true): RequiredPower
     {
         $distance = HexLib::getOffsetDistance($start, $end);
         $opponentPieces = $this->getPlayerPiecesByOwner($opponentId);
         $opponentPieceLocations = [];
 
         for ($i = 0; $i < \count($opponentPieces); $i++) {
+            if ($opponentPieces[$i]->getRole() === PlayerRole::GoalKeeper->value && !$includeGoalieAsBlocking)
+                continue;
+
             $opponentPieceLocations[] = $opponentPieces[$i]->getPosition();
         }
 
