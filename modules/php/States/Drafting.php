@@ -29,7 +29,7 @@ class Drafting extends PlayerBaseState
             id: ST_DRAFTING,
             name: "drafting",
             type: StateType::MULTIPLE_ACTIVE_PLAYER,
-            description: clienttranslate('Players must choose a captain power and a coach board'),
+            description: clienttranslate('${actplayer} must choose a captain power and a coach board'),
             descriptionMyTurn: clienttranslate('${you} must choose a captain power and a coach board'),
             transitions: [],
             updateGameProgression: false,
@@ -63,6 +63,8 @@ class Drafting extends PlayerBaseState
     public function actConfirmDraft(int $captainId, int $coachId): void
     {
         $playerId = \intval($this->game->getCurrentPlayerId());
+
+        $this->game->giveExtraTime($playerId);
 
         if (!in_array($captainId, $this->getOffer($playerId, self::CAPTAIN_OFFER), true))
             throw new BgaUserException(\clienttranslate('This captain power was not offered to you!'));
