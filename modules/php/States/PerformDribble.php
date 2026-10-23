@@ -47,7 +47,7 @@ class PerformDribble extends GameState
             $selectedHex = DBAdapter::getInstance()->getSelectedHexAsHexID();
 
             $playerPiece = null;
-            $board->tryGetPlayerPieceInHex($selectedHex, $playerPiece);
+            $board->tryGetPlayerPieceInHex($board->getBallHex(), $playerPiece);
             if (PlayerPowers::forPlayer($activePlayerId)->moraleForSuccessfulDribble($playerPiece))
             {
                 $playerResources = new PlayerResources($activePlayerId);
