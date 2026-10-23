@@ -74,9 +74,9 @@ final class PlayerPowers
 
             if ($this->team == TeamId::MoveThreeAlongSideRows && !empty($movesSoFar) && $enforcedMaxMoves <= 0)
             {
-                $isOnTopRow = fn(HexID $hex) => $hex->getRow() == 0;
+                $isOnTopRow = fn(HexID $hex) => $hex->getRow() == 0 || $hex->getRow() == 1;
                 // odd columns have one row less
-                $isOnBottomRow = fn(HexID $hex) => $hex->getRow() == ($hex->getColumn() % 2 == 0 ? 10 : 9);
+                $isOnBottomRow = fn(HexID $hex) => $hex->getRow() == ($hex->getColumn() % 2 == 0 ? 10 : 9) || $hex->getRow() == ($hex->getColumn() % 2 == 0 ? 9 : 8);
 
                 if (array_all($movesSoFar, $isOnTopRow) || array_all($movesSoFar, $isOnBottomRow))
                     $pieceMaxDistance = 3;
