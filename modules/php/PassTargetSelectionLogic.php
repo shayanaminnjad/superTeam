@@ -138,12 +138,8 @@ class PassTargetSelectionLogic
             }
         }
 
-        $playerGoaliePos = $board->getPlayerGoalie($currentPlayer)->getPosition();
-
         foreach (BoardInfo::$GOALIE_SPECIFIC_LOCATIONS as $goalieLocation) {
-            if (!$goalieLocation->equals($playerGoaliePos)) {
                 $blockedSpaces[] = $goalieLocation->convertToArray();
-            }
         }
 
         $hexWithBall = $board->getBallHex();
