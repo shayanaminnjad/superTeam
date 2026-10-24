@@ -11,6 +11,7 @@ use Bga\Games\SuperTeam\BoardInfo;
 use Bga\Games\SuperTeam\Cards\BallPass\PassActionContext;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\GameStats;
+use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\StatAction;
 use Bga\Games\SuperTeam\DBAdapter;
@@ -91,6 +92,10 @@ class PassPerform extends GameState
         }
 
         RequiredPower::setSkipEnabled(false);
+
+        $opponent_player_id = (int) $this->game->getPlayerAfter($activePlayerId);
+        $moraleAssignContext = new MoraleAssignContext();
+        $moraleAssignContext->reset([$activePlayerId, $opponent_player_id]);
 
         return DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
     }
