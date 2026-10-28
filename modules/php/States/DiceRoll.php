@@ -71,7 +71,11 @@ class DiceRoll extends GameState
         $blockingPieces = $rollData->blockingPieces;
         $inactivePlayerPowers = PlayerPowers::forPlayer($this->game->getInactivePlayerId());
         if ($blockingPieces > 0 && $inactivePlayerPowers->extraPowerOnBlocksForOpponent())
+        {
             $blockingPieces += 1;
+            $rollData->requiredPower += 1;
+            DiceRollServices::storeDiceRollData($activePlayerId, $rollData);
+        }
 
         $blockingPieces = Math::clamp($rollData->skipEnabled ? $blockingPieces - 1 : $blockingPieces, 0, $blockingPieces);
 
@@ -224,11 +228,16 @@ class DiceRollServices
     {
         $rollData = new DiceRollData($actionName, $requiredPower->getTotal(), $finishTransition, $requiredPower->distance, \count($requiredPower->blockingHexes), RequiredPower::isSkipEnabled(), $selfAttribute, $otherAttribute, $rollingPieceIds, $bothPlayers);
 
-        $dbAdapter = DBAdapter::getInstance();
-        $dbAdapter->setGameStateValue('required_power', $requiredPower->getTotal());
+        self::storeDiceRollData($playerId, $rollData);
         // global, because the opponent may be the active player during morale assignment
-        $dbAdapter->storeGlobalString('roll_action_name', addslashes($actionName));
-        $dbAdapter->storePlayerTempStr($playerId, "dice_roll_input", $rollData->toJson());
+        DBAdapter::getInstance()->storeGlobalString('roll_action_name', addslashes($actionName));
+    }
+
+    public static function storeDiceRollData(int $playerId, DiceRollData $diceRollData) : void
+    {
+        $dbAdapter = DBAdapter::getInstance();
+        $dbAdapter->setGameStateValue('required_power', $diceRollData->requiredPower);
+        $dbAdapter->storePlayerTempStr($playerId, "dice_roll_input", $diceRollData->toJson());
     }
 
     public static function getCurrentActionName(): string
