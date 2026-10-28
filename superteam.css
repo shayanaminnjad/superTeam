@@ -24,8 +24,8 @@
 html {
     background-color: #101c1d;
     background-image:
-        radial-gradient(ellipse at 50% 0%, rgba(143, 181, 203, 0.18), transparent 60%),
-        url('img/pageBackground.jpg');
+            radial-gradient(ellipse at 50% 0%, rgba(143, 181, 203, 0.18), transparent 60%),
+            url('img/pageBackground.jpg');
     background-repeat: no-repeat, repeat;
     background-attachment: fixed, scroll;
 }
@@ -40,8 +40,8 @@ body::before {
     overflow: hidden;
     visibility: hidden;
     background-image:
-        url('img/piecesAtlas.png'),
-        url('img/iconsAtlas.png');
+            url('img/piecesAtlas.png'),
+            url('img/iconsAtlas.png');
 }
 
 #trackerBoard {
@@ -192,7 +192,7 @@ body::before {
     overflow: visible;
     white-space: pre-wrap;
     clip-path: polygon(23% 0%, 76% 0%, 100% 50%,
-            76% 100%, 23% 100%, 0% 50%);
+    76% 100%, 23% 100%, 0% 50%);
 }
 
 /* Portrait hexes have their width and height swapped (see _projectHex in
@@ -200,7 +200,7 @@ body::before {
    otherwise the same polygon gets stretched into the wrong shape. */
 #mainBoard.portrait .hex {
     clip-path: polygon(0% 23%, 0% 76%, 50% 100%,
-            100% 76%, 100% 23%, 50% 0%);
+    100% 76%, 100% 23%, 50% 0%);
 }
 
 .piece{
@@ -428,14 +428,14 @@ body::before {
     width: calc(var(--main-bg-ratio-x) * var(--main-bg-scale) * 0.35) ;
     height: calc(var(--main-bg-ratio-y) * var(--main-bg-scale) * 0.25) ;
     background:
-        radial-gradient(ellipse at 50% 0%, rgba(143, 181, 203, 0.3), transparent 70%),
-        rgba(44, 66, 72, 0.82);
+            radial-gradient(ellipse at 50% 0%, rgba(143, 181, 203, 0.3), transparent 70%),
+            rgba(44, 66, 72, 0.82);
     border: 2px solid rgba(214, 232, 242, 0.85);
     border-radius: 16px;
     box-shadow:
-        0 0 0 1px rgba(0, 0, 0, 0.6),
-        0 0 18px rgba(143, 181, 203, 0.55),
-        inset 0 0 20px rgba(143, 181, 203, 0.22);
+            0 0 0 1px rgba(0, 0, 0, 0.6),
+            0 0 18px rgba(143, 181, 203, 0.55),
+            inset 0 0 20px rgba(143, 181, 203, 0.22);
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -538,7 +538,7 @@ body::before {
 }
 
 .moraleSpent:first-child {
-  margin-left: -4px;
+    margin-left: -4px;
 }
 
 .captainStarColumn {
@@ -800,9 +800,9 @@ body.drafting .resource:has(.cardIcon) {
     display: grid;
     grid-template-columns: repeat(var(--columns), 1fr);
     grid-template-rows: repeat(var(--rows), auto);
-    
-    column-gap: var(--columns-gap); 
-    row-gap: var(--rows-gap);     
+
+    column-gap: var(--columns-gap);
+    row-gap: var(--rows-gap);
 }
 
 .skillBox {
@@ -893,22 +893,51 @@ body.drafting .resource:has(.cardIcon) {
     font-weight: bold;
 }
 
+/* ---------------------------------------------------------------------------
+   Tooltips
+   Every tooltip gets the same width (--tooltip-width), capped to the screen.
+   The image keeps its size, the text sits beside it when there is room and
+   wraps below it when there isn't. If the content is still too tall it scrolls.
+   --------------------------------------------------------------------------- */
 .cardTooltip {
+    --tooltip-width: 520px;      /* the one number that controls every tooltip */
+    --tooltip-gutter: 80px;      /* container padding + border + screen margin */
+
     display: flex;
+    flex-wrap: wrap;             /* text drops under the image when it can't fit beside it */
     align-items: flex-start;
-    gap: 15px;
-    max-width: min(90vw, 760px);
+    gap: 8px 15px;               /* row-gap, column-gap */
+    box-sizing: border-box;
     text-align: left;
+
+    /* fixed width, but never wider than the screen */
+    width: min(var(--tooltip-width), calc(100vw - var(--tooltip-gutter)));
+    max-width: 100%;
+
+    /* if the content is still too tall, scroll instead of running off screen */
+    max-height: calc(100vh - 48px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+/* every child may shrink below its content size and never exceed the box */
+.cardTooltip > * {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* Reuses .st-card-front's atlas image/sizing, only the element's own box is smaller.
    Art text is baked into the atlas, so the image grows with the viewport to stay readable. */
 .cardTooltipImage {
     --tip-width: clamp(135px, 10.5vw, 210px);
+    --tip-ratio: 0.7143;         /* width / height (1 / 1.4) */
 
     flex: 0 0 auto;
-    width: var(--tip-width);
-    height: calc(var(--tip-width) * 1.4);
+    /* limited by the preferred size, the tooltip width, and 40% of the screen height */
+    width: min(var(--tip-width), 100%, calc(40vh * var(--tip-ratio)));
+    aspect-ratio: var(--tip-ratio);
     border-radius: 7px;
 }
 
@@ -919,15 +948,19 @@ body.drafting .resource:has(.cardIcon) {
 
 .coachTooltipImage {
     --tip-width: clamp(200px, 17.5vw, 315px);
+    --tip-ratio: 1.6667;         /* 1 / 0.6 */
 
-    height: calc(var(--tip-width) * 0.6);
     background-image: url("img/coachBoardsAtlas.jpg");
     background-size: 300% 200%;
 }
 
 .cardTooltipText {
-    flex: 1 1 auto;
-    min-width: 135px;
+    /* Prefer 135px beside the image; if there isn't room, wrap onto its own row
+       and fill the available width instead. */
+    flex: 1 1 135px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .cardTooltipName {
@@ -951,6 +984,32 @@ body.drafting .resource:has(.cardIcon) {
     border-top: 1px solid currentColor;
     opacity: 0.35;
     margin: 8px 0;
+}
+
+/* make the background box itself respect the screen too.
+   NOTE: .dijitTooltipContainer is what BGA's desktop tooltips use; if the mobile
+   layout draws the background with a different element, swap its class in here. */
+.dijitTooltipContainer:has(.cardTooltip) {
+    box-sizing: border-box;
+    max-width: calc(100vw - 16px);
+}
+
+/* phones: stack image above text and use the full row for text */
+@media (max-width: 520px) {
+    .cardTooltip {
+        --tooltip-gutter: 64px;
+    }
+
+    .cardTooltipText {
+        flex-basis: 100%;
+    }
+}
+
+/* short screens (phones in landscape): tighten the text so more fits */
+@media (max-height: 500px) {
+    .cardTooltipName { font-size: 12px; margin-bottom: 3px; }
+    .cardTooltipLine { font-size: 11px; line-height: 1.3; margin-bottom: 2px; }
+    .cardTooltipGap  { height: 3px; }
 }
 
 .diceLogAction {
