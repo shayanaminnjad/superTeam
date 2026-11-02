@@ -24,7 +24,7 @@ class TeamBTactic3 extends TacticCard
             \clienttranslate("Team C"),
             CardType::Team,
             \clienttranslate("**Offensive**
-**Backward & Forward Through Pass:** Pass the ball to a piece who is at least one row behind of the current ball carrier. Then pass the ball to a space 1 or 2 spaces ahead of another piece. 
+**Backward & Through Pass:** Pass the ball to a piece who is at least one row behind of the current ball carrier. Then pass the ball to a space 1 or 2 spaces ahead of another piece. 
 ---
 **Defensive**
 **Forward Move x2:** Move one of your pieces forward.
