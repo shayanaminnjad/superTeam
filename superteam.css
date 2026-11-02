@@ -156,7 +156,7 @@ body::before {
     user-select: none;
 }
 
-#lastTurnBanner {
+.trackerBanner {
     position: absolute;
     left: 50%;
     bottom: -12px;

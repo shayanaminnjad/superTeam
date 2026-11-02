@@ -85,7 +85,7 @@ define([
                     blueGoals = temp;
                 }
 
-                TrackerBoard.construct(this, gamedatas.time_index, orangeGoals, blueGoals, gamedatas.is_final_turn);
+                TrackerBoard.construct(this, gamedatas.time_index, orangeGoals, blueGoals, gamedatas.is_final_turn, gamedatas.is_half_time_next);
 
                 this.pieceManager = PieceManager.getPieceManager();
                 this.pieceManager.construct(this);
@@ -694,6 +694,7 @@ define([
             },
 
             notif_halfTime: async function () {
+                TrackerBoard.setHalfTimeBannerVisible(false);
                 return this.showBannerText(_('HALF TIME'), 'timeAdvanceText');
             },
 
@@ -763,6 +764,10 @@ define([
 
             notif_finalTurnStarted: async function(notifData) {
                 TrackerBoard.setFinalTurnBannerVisible(true);
+            },
+
+            notif_halfTimeNext: async function(notifData) {
+                TrackerBoard.setHalfTimeBannerVisible(true);
             },
 
             notif_cardReset: async function(notifData) {

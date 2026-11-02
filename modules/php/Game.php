@@ -224,6 +224,7 @@ class Game extends \Bga\GameFramework\Table
         $result['first_starter_player'] = $this->getPlayerStartedFirstHalf();
         $result['time_index'] = TimeTrack::GetTimeTrackPosition();
         $result['is_final_turn'] = (int) $this->getGameStateValue('isFinalTurn') === 1;
+        $result['is_half_time_next'] = TimeTrack::IsHalfTime(TimeTrack::GetTimeTrackPosition());
         $result['card_definitions'] = $this->getCardDefinitionsForClient();
         $result['captain_definitions'] = $this->getCaptainDefinitionsForClient();
         $result['coach_definitions'] = $this->getCoachDefinitionsForClient();

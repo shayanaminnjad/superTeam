@@ -5,20 +5,27 @@ define([
     return {
 
         //Public Functions
-        construct: function (root, timeIndex, orangeGoals, blueGoals, isFinalTurn) {
+        construct: function (root, timeIndex, orangeGoals, blueGoals, isFinalTurn, isHalfTimeNext) {
             this._root = root;
             this._initTrackerBoard();
             this._initSupplyPile();
             this._initMoraleSupply();
             this._initGoalTracker(orangeGoals, blueGoals);
             this._initLastTurnBanner();
+            this._initHalfTimeNextBanner();
             this.setTrackerTo(timeIndex);
             this.setFinalTurnBannerVisible(isFinalTurn);
+            this.setHalfTimeBannerVisible(isHalfTimeNext);
         },
 
         setFinalTurnBannerVisible: function(isVisible)
         {
             this._lastTurnEl.style.display = isVisible ? '' : 'none';
+        },
+
+        setHalfTimeBannerVisible: function(isVisible)
+        {
+            this._halfTimeNextEl.style.display = isVisible ? '' : 'none';
         },
 
         animateTrackerTo: function(timeIndex)
@@ -151,14 +158,27 @@ define([
         {
             this._lastTurnEl = document.createElement('div');
             this._lastTurnEl.id = 'lastTurnBanner';
+            this._lastTurnEl.className = 'trackerBanner';
             this._lastTurnEl.textContent = _('LAST TURN');
             this._lastTurnEl.style.display = 'none';
 
             this._trackerBoard.appendChild(this._lastTurnEl);
         },
 
+        _initHalfTimeNextBanner: function()
+        {
+            this._halfTimeNextEl = document.createElement('div');
+            this._halfTimeNextEl.id = 'halfTimeNextBanner';
+            this._halfTimeNextEl.className = 'trackerBanner';
+            this._halfTimeNextEl.textContent = _('HALF TIME');
+            this._halfTimeNextEl.style.display = 'none';
+
+            this._trackerBoard.appendChild(this._halfTimeNextEl);
+        },
+
         _root: null,
         _lastTurnEl: null,
+        _halfTimeNextEl: null,
         _timeTrackCubeEl: null,
         _positions: [],
         _trackerBoard: null,

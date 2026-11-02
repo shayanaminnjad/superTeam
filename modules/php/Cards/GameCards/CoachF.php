@@ -97,7 +97,7 @@ class CoachF extends Card
         {
             DBAdapter::getInstance()->storeGlobalBool("player_hand_shuffled_during_turn", true);
 
-            if (TimeTrack::GetCurrentMinute() != 90)
+            if (TimeTrack::GetCurrentMinute() != 90 && !TimeTrack::IsHalfTime(TimeTrack::GetTimeTrackPosition()))
                 TimeTrack::AdvanceTimeTrack(true);
         }
 

@@ -81,27 +81,30 @@ class PassTurn extends GameState
         DBAdapter::getInstance()->storeGlobalBool("player_hand_shuffled_during_turn", false);
         if ($wasDiscardShuffled || $wasPlayerHandShuffledDuringTurn)
         {
-            if (!$wasPlayerHandShuffledDuringTurn)
+            $timeTrackPosition = TimeTrack::GetTimeTrackPosition();
+            if (!$wasPlayerHandShuffledDuringTurn && !TimeTrack::IsHalfTime($timeTrackPosition))
             {
                 $timeTrackPosition = TimeTrack::AdvanceTimeTrack(true);
             }
-            else
-            {
-                $timeTrackPosition = TimeTrack::GetTimeTrackPosition();
-            }
 
-            if (TimeTrack::IsHalfTime($timeTrackPosition))
+            if ($this->isHalfTime($activePlayerId, $timeTrackPosition))
             {
                 return HalfTime::class;
-            } else if ($this->isLastTurn($activePlayerId, $timeTrackPosition))
+            }
+            else if ($this->isLastTurn($activePlayerId, $timeTrackPosition))
             {
                 return ST_END_GAME;
-            } else
+            }
+            else
             {
                 if (TimeTrack::IsGameFinished($timeTrackPosition))
                 {
                     $this->game->setGameStateValue("isFinalTurn", 1);
                     $this->game->notify->all("finalTurnStarted", "", []);
+                }
+                else if (TimeTrack::IsHalfTime($timeTrackPosition))
+                {
+                    $this->game->notify->all("halfTimeNext", "", []);
                 }
 
                 if ($isRestartAfterGoal)
@@ -114,10 +117,15 @@ class PassTurn extends GameState
             }
         } else
         {
-            if ($isRestartAfterGoal)
+            if ($this->isHalfTime($activePlayerId, TimeTrack::GetTimeTrackPosition()))
+            {
+                return HalfTime::class;
+            }
+            else if ($isRestartAfterGoal)
             {
                 return BoardReset::class;
-            } else
+            }
+            else
             {
                 return BeforeCardSelectionReset::class;
             }
@@ -133,6 +141,12 @@ class PassTurn extends GameState
         //(sha) we want to make sure that both players play the same amount of turns. Amir wanted the player who had started the first half, to be the one
         //who finished the game in his turn.
         return TimeTrack::IsGameFinished($timeTrackPos) && $activePlayerId === $this->game->getPlayerStartedFirstHalf();
+    }
+
+    public function isHalfTime(int $activePlayerId, int $timeTrackPos): bool
+    {
+        //(sha) we want to make sure that both players play the same amount of turns.
+        return TimeTrack::IsHalfTime($timeTrackPos) && $activePlayerId !== $this->game->getPlayerStartedFirstHalf();
     }
 }
  
