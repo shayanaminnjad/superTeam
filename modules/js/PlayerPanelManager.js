@@ -102,14 +102,18 @@ define([], function () {
                     <span id="playerMoraleIcon${playerId}" class = "moraleIcon resourceIcon"></span>
                     <span id="playerMorale${playerId}" class= "label">${currentMorale}</span></div>`);
 
+                this._root.addTooltipHtml(`playerMoraleIcon${playerId}`, _("Morale"));
+
                 this.setPlayerMorale(playerId, currentMorale);
 
                 let cards = gamedatas.players[playerId].cards;
 
                 playerResources.insertAdjacentHTML('beforeend', `
                     <div class ="resource">
-                    <span class = "cardIcon resourceIcon"></span>
+                    <span id="playerCardsIcon${playerId}" class = "cardIcon resourceIcon"></span>
                     <span id="playerCards${playerId}" class= "label">${cards}</span></div>`);
+
+                this._root.addTooltipHtml(`playerCardsIcon${playerId}`, _("Cards in deck"));
 
                 const tacticalEl = document.createElement('div');
                 tacticalEl.classList = 'readonlyText';

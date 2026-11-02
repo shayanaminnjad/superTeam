@@ -300,7 +300,6 @@ body::before {
 {
     width: 16px;
     height: 16px;
-    pointer-events: none;
     flex-shrink: 0;
     display: inline-block;
 }
