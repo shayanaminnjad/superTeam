@@ -70,7 +70,7 @@ define(["dojo/_base/declare",
                                 })
                             }, {id: 'cardAsBasicButton', color: 'primary', disabled: this._selectedCard === null});
 
-                            this._root.statusBar.addActionButton(_('Perform tactic'), () => {
+                            this._root.statusBar.addActionButton(_('Perform skill'), () => {
                                 this._root.performServerAction("actCardSelected", {
                                     cardId: this._selectedCard.id,
                                     asBasic: false
