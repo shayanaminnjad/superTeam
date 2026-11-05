@@ -30,6 +30,7 @@ class HalfTime extends GameState
 
     function onEnteringState(): string
     {
+        $this->game->setGameStateValue("isHalfTimeNext", 0);
         NotificationAdapter::getInstance()->notifyAll('halfTime', '', []);
 
         $this->game->getTeamBoard()->resetAllPlayersAttributes(TeamAttribute::GK, true);

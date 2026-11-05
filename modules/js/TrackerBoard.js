@@ -170,7 +170,7 @@ define([
             this._halfTimeNextEl = document.createElement('div');
             this._halfTimeNextEl.id = 'halfTimeNextBanner';
             this._halfTimeNextEl.className = 'trackerBanner';
-            this._halfTimeNextEl.textContent = _('HALF TIME');
+            this._halfTimeNextEl.textContent = _('LAST TURN OF HALF');
             this._halfTimeNextEl.style.display = 'none';
 
             this._trackerBoard.appendChild(this._halfTimeNextEl);

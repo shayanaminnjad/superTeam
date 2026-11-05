@@ -104,6 +104,7 @@ class PassTurn extends GameState
                 }
                 else if (TimeTrack::IsHalfTime($timeTrackPosition))
                 {
+                    $this->game->setGameStateValue("isHalfTimeNext", 1);
                     $this->game->notify->all("halfTimeNext", "", []);
                 }
 

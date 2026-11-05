@@ -84,6 +84,7 @@ class Game extends \Bga\GameFramework\Table
             "cardsPlayedThisTurn" => 20,
             "playerStartedFirstHalf" => 21,
             "isFinalTurn" => 22,
+            "isHalfTimeNext" => 23,
             "game_mode" => 100
         ]);
     }
@@ -224,7 +225,7 @@ class Game extends \Bga\GameFramework\Table
         $result['first_starter_player'] = $this->getPlayerStartedFirstHalf();
         $result['time_index'] = TimeTrack::GetTimeTrackPosition();
         $result['is_final_turn'] = (int) $this->getGameStateValue('isFinalTurn') === 1;
-        $result['is_half_time_next'] = TimeTrack::IsHalfTime(TimeTrack::GetTimeTrackPosition());
+        $result['is_half_time_next'] = (int) $this->getGameStateValue('isHalfTimeNext') === 1;
         $result['card_definitions'] = $this->getCardDefinitionsForClient();
         $result['captain_definitions'] = $this->getCaptainDefinitionsForClient();
         $result['coach_definitions'] = $this->getCoachDefinitionsForClient();
@@ -351,6 +352,7 @@ class Game extends \Bga\GameFramework\Table
         $this->setGameStateInitialValue("lastPassResult", 0);
         $this->setGameStateInitialValue("cardsPlayedThisTurn", 0);
         $this->setGameStateInitialValue("isFinalTurn", 0);
+        $this->setGameStateInitialValue("isHalfTimeNext", 0);
     }
 
     private function initBoard(array $players): void

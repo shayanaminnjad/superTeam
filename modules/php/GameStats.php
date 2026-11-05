@@ -58,7 +58,12 @@ class GameStats
 
     public static function recordGoal(Game $game, int $playerId): void
     {
-        $game->playerStats->inc(self::getGoalStat(TimeTrack::GetCurrentMinute()), 1, $playerId);
+        $position = TimeTrack::GetTimeTrackPosition();
+
+        // the extra turn at the end of the first half sits on 45' but is still first half play
+        $minute = TimeTrack::IsHalfTime($position) ? TimeTrack::GetMinute($position - 1) : TimeTrack::GetMinute($position);
+
+        $game->playerStats->inc(self::getGoalStat($minute), 1, $playerId);
     }
 
     // a goal belongs to the 15 minutes that start at the cube's minute; at 90' only the final turn is left
