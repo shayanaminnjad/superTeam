@@ -36,15 +36,10 @@ define([
     function (dojo, declare, topic, STHexLib, PieceManager, STHUIHelpers, Board, DiceUI, PlayerPanelManager, StatesRegistry, PlayerArea, STCardsManager, TrackerBoard, GameEventProcessor, InputConfirmation, BgaAnimations) {
         return declare("bgagame.superteam", ebg.core.gamegui, {
             constructor: function () {
-                console.log('superteam constructor');
-
                 this.statesRegistry = new StatesRegistry();
             },
 
             setup: function (gamedatas) {
-                console.log('begin setup');
-                console.log(gamedatas);
-
                 this.gameDatas = gamedatas;
 
                 this.trackDojoAnimations();
@@ -107,15 +102,13 @@ define([
                 this.cardsManager.setHandVisibility(this.cardsManager.getCardsInHand() > 0);
                 
                 this.setupNotifications();
-
-                console.log('end setup');
             },
 
             ///////////////////////////////////////////////////
             //// Game & client states
 
             onEnteringState: function (stateName, args) {
-                console.log('Entering state: ' + stateName, args);
+                //console.log('Entering state: ' + stateName, args);
 
                 this._unlockInput();
                 this.inputConfirmation.clear();
@@ -127,18 +120,17 @@ define([
             },
 
             onLeavingState: function (stateName) {
-                console.log('Leaving state: ' + stateName);
+                //console.log('Leaving state: ' + stateName);
 
                 this.inputConfirmation.clear();
                 this.currentState.onLeave();
             },
 
             onUpdateActionButtons: function (stateName, args) {
-                console.log('onUpdateActionButtons: ' + stateName, args);
+                //console.log('onUpdateActionButtons: ' + stateName, args);
 
                 // a multiactive player who finished gets no new state, only this update
                 this._unlockInput();
-                console.log("active players are " + this.getActivePlayers());
 
                 if (this.gameDatas.gamestate.type === 'multipleactiveplayer' && !this.getActivePlayers().includes(this.player_id)) {
                     if (this.currentState != null)
@@ -397,10 +389,6 @@ define([
             },
 
              initAnimationsManager: function () {
-                 console.log('bgaAnimations:', BgaAnimations);
-                 console.log('Manager:', BgaAnimations.Manager);
-                 console.log('Manager type:', typeof BgaAnimations.Manager);
-
                 this.animationManager = new BgaAnimations.Manager({
                     animationsActive: () => this.bga.gameui.bgaAnimationsActive(),
                 });

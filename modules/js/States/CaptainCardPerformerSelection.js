@@ -6,7 +6,6 @@ define(["dojo/_base/declare",
         const CaptainCardPerformerSelectionState = declare("st.CaptainCardPerformerSelectionState", BaseState, {
 
             constructor: function (root, stateData) {
-                console.log("Captain card selections state!")
             },
 
             _onActivePlayerEnter(args) {
