@@ -167,7 +167,13 @@ define(["dojo/_base/declare",
                 const name = definition ? _(definition.name) : card.type;
                 const description = definition && definition.toolTip ? _(definition.toolTip) : '';
 
-                return STUIHelpers.buildTooltipHtml('st-card-front', `${backXPos} ${backYPos}`, name, description);
+                if (card.location != "supply") {
+                    return STUIHelpers.buildTooltipHtml('st-card-front', `${backXPos} ${backYPos}`, name, description);
+                }
+                else
+                {
+                    return STUIHelpers.buildTooltipHtml('st-card-front', `${backXPos} ${backYPos}`, name, _("A Fatigue Card is added to your deck whenever you perform an Advanced Tactic(blue cards). Fatigue Cards can only be used for a single movement. At halftime, 2 Fatigue Cards are automatically removed from your deck."));
+                }
             },
 
             _getCardPositionInsideAtlas: function (card) {
