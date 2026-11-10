@@ -5,6 +5,7 @@ namespace Bga\Games\SuperTeam\Cards;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\GameStats;
+use Bga\Games\SuperTeam\NotificationAdapter;
 use Bga\Games\SuperTeam\States\BeforeCardSelectionReset;
 use Bga\Games\SuperTeam\States\BeforeRewardResolve;
 use Bga\Games\SuperTeam\States\CardSelection;
@@ -59,8 +60,12 @@ class CardActionDriver
                 if ($card->hasFatigue())
                 {
                     $playerHand = $this->game->getPlayerHand($this->activePlayerId);
-                    $playerHand->drawFatigue();
+                    $fatigueDrawn = $playerHand->drawFatigue();
                     $playerHand->notifyPlayerOfHandRefill();
+
+                    $inactivePlayerId = $this->game->getInactivePlayerId();
+                    NotificationAdapter::getInstance()->notifyPlayer($inactivePlayerId, "fatigueDraw", "",
+                        ["card" => $fatigueDrawn]);
                 }
 
                 return BeforeRewardResolve::class;

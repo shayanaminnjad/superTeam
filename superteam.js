@@ -542,6 +542,10 @@ define([
                 this.cardsManager.placeCards(Object.values(notifData.discards));
             },
 
+            notif_fatigueDraw: function(notifData){
+                this.cardsManager.removeCard(notifData.card);
+            },
+
             notif_cardUndo: function(notifData) {
                 const playerId = parseInt(notifData.player_id);
 

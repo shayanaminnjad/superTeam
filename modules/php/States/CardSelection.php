@@ -127,13 +127,13 @@ class CardSelection extends PlayerBaseState
 
         $message = "";
         if($goalieHasBall)
-            $message = \clienttranslate('${player_name} plays ${cardLog} as goalie pass.');
+            $message = \clienttranslate('${player_name} plays ${cardLog} as Goalie pass.');
         else if ($playedCardType === CardTypeHelper::getFatigueCardType())
             $message = \clienttranslate('${player_name} plays ${cardLog}');
         else if ($asBasic)
-            $message = \clienttranslate('${player_name} plays ${cardLog} as basic.');
+            $message = \clienttranslate('${player_name} plays ${cardLog} as Basic.');
         else
-            $message = \clienttranslate('${player_name} plays ${cardLog} as skill.');
+            $message = \clienttranslate('${player_name} plays ${cardLog} as Skill.');
 
         $this->game->notify->all("cardPlayed", $message, [
             'player_id' => $activePlayer,

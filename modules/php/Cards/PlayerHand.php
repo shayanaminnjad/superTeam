@@ -118,9 +118,9 @@ class PlayerHand
         return $this->wasShuffled;
     }
 
-    public function drawFatigue() : void
+    public function drawFatigue() : array
     {
-        $this->cards->pickCard(self::$supplyName, $this->ownerId);
+        return $this->cards->pickCard(self::$supplyName, $this->ownerId);
     }
 
     public function getCardsInSupply() : array
