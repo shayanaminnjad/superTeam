@@ -538,12 +538,12 @@ define([
                 return this.forwardNotification(this.notif_cardPlayed.name, notifData);
             },
 
-            notif_cardsDiscarded: function(notifData) {
-                this.cardsManager.placeCards(Object.values(notifData.discards));
+            notif_cardsDiscarded: async function(notifData) {
+                return this.cardsManager.placeCards(Object.values(notifData.discards));
             },
 
-            notif_fatigueDraw: function(notifData){
-                this.cardsManager.removeCard(notifData.card);
+            notif_fatigueDraw: async function(notifData){
+                return this.cardsManager.removeCard(notifData.card);
             },
 
             notif_cardUndo: function(notifData) {
@@ -564,15 +564,15 @@ define([
                 });
             },
 
-            notif_cardPutOnTopOfDeck: function(notifData) {
-                this.cardsManager.placeCardFromHandToDeck(notifData.movedCard);
+            notif_cardPutOnTopOfDeck: async function(notifData) {
+                return this.cardsManager.placeCardFromHandToDeck(notifData.movedCard);
             },
 
             notif_resetPlayerPieces: async function (notifData) {
                 return this.forwardNotification(this.notif_resetPlayerPieces.name, notifData);
             },
 
-            notif_handRefill: function (notifData) {
+            notif_handRefill: async function (notifData) {
                 if (this.isSpectator)
                     return;
 
@@ -585,7 +585,7 @@ define([
                 }
                 else
                 {
-                    this.cardsManager.placeCards(notifData.playerHand);
+                    return this.cardsManager.placeCards(notifData.playerHand);
                 }
 
             },
@@ -600,8 +600,8 @@ define([
                 }
             },
 
-            notif_fatigueRemoved: function(notifData) {
-                this.cardsManager.placeCards(Object.values(notifData.cardsInSupply));
+            notif_fatigueRemoved: async function(notifData) {
+                return this.cardsManager.placeCards(Object.values(notifData.cardsInSupply));
             },
 
             notif_pieceExhausted: function (notifData) {
