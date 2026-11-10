@@ -11,6 +11,7 @@ use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\CardReward;
 use Bga\Games\SuperTeam\Cards\CardType;
+use Bga\Games\SuperTeam\Cards\CardTypeHelper;
 use Bga\Games\SuperTeam\Cards\Moves\MoveActionContext;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
@@ -32,8 +33,8 @@ class CardSelection extends PlayerBaseState
             type: StateType::ACTIVE_PLAYER,
 
             // optional
-            description: clienttranslate('${actplayer} must play a card or pass'),
-            descriptionMyTurn: clienttranslate('${you} must play a card or pass'),
+            description: clienttranslate('${actplayer} must ${selectionTitle} ${cardCounter}'),
+            descriptionMyTurn: clienttranslate('${you} must ${selectionTitle} ${cardCounter}'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,
@@ -67,10 +68,29 @@ class CardSelection extends PlayerBaseState
         $canPass = self::canPass($this->game, $activePlayer);
         $canPlayCard = $cardsPlayedThisTurn < 3;
 
+        if ($canPlayCard && $canPass)
+        {
+            $title = clienttranslate('play a card or pass');
+            $counter = '(' . ($cardsPlayedThisTurn + 1) . '/3)';
+        }
+        else if ($canPlayCard && !$canPass)
+        {
+            $title = clienttranslate('play a card');
+            $counter = '(' . ($cardsPlayedThisTurn + 1) . '/3)';
+        }
+        else
+        {
+            $title = clienttranslate('pass');
+            $counter = '';
+        }
+
         return [
             'canPass' => $canPass,
             'canPlayCard' => $canPlayCard,
             'goalieHasBall' => $goalieHasBall,
+            'selectionTitle' => $title,
+            'cardCounter' => $counter,
+            'i18n' => ['selectionTitle'],
             // card types from the hand, so only the active player may receive them
             '_private' => [
                 $activePlayer => ['playableTactics' => $playableTactics],
@@ -103,10 +123,19 @@ class CardSelection extends PlayerBaseState
         }
 
         $playerHand->discardCard($cardId);
-
         $playedCardType = $playerHand->getCard($cardId)['type'];
 
-        $this->game->notify->all("cardPlayed", \clienttranslate('${player_name} plays ${cardLog}'), [
+        $message = "";
+        if($goalieHasBall)
+            $message = \clienttranslate('${player_name} plays ${cardLog} as goalie pass.');
+        else if ($playedCardType === CardTypeHelper::getFatigueCardType())
+            $message = \clienttranslate('${player_name} plays ${cardLog}');
+        else if ($asBasic)
+            $message = \clienttranslate('${player_name} plays ${cardLog} as basic.');
+        else
+            $message = \clienttranslate('${player_name} plays ${cardLog} as skill.');
+
+        $this->game->notify->all("cardPlayed", $message, [
             'player_id' => $activePlayer,
             'player_name' => $this->game->getPlayerNameById($activePlayer),
             'cardType' => $playedCardType,
@@ -141,9 +170,7 @@ class CardSelection extends PlayerBaseState
 
             $tacticContext = new TacticContext();
 
-            $cardDef = $playerHand->getCard($cardId);
-
-            $tacticContext->setTacticInPlay($cardDef['type']);
+            $tacticContext->setTacticInPlay($playedCardType);
             $tacticContext->setTacticProgress(0);
             $tacticContext->setRewardUsed(CardReward::empty());
             $tacticContext->setTacticType($isAttacker ? TacticType::Offensive : TacticType::Defensive);
