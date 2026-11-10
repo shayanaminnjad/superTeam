@@ -13,6 +13,7 @@ use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\UndoPlayedCard;
+use Bga\Games\SuperTeam\Utility\Logger;
 
 class MovePieceSelection extends PlayerBaseState
 {
@@ -70,6 +71,19 @@ class MovePieceSelection extends PlayerBaseState
             'selectableExhaustedPieces' => $exhaustedSelectablePieceIds,
             'showMorale' => $moveActionContext->doExhaustedNeedMoraleForMovement()
         ];
+    }
+
+    function onEnteringState(int $activePlayerId)
+    {
+        $pieceSelectionContext = new PieceSelectionContext();
+        $moveablePiecesIds = $pieceSelectionContext->getSelectablePieceIds();
+
+        if (count($moveablePiecesIds) == 0 && !DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
+        {
+            $returnState = DBAdapter::getInstance()->getPlayerActionReturnState($activePlayerId);
+            Logger::logError("Player ended up in move piece selection, while he didn't have any choice here! return state is " . $returnState);
+            return $returnState;
+        }
     }
 
     #[PossibleAction]
