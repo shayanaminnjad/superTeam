@@ -44,9 +44,14 @@ class TacticRewardResolve extends PlayerBaseState
     {
         $activePlayerId = intval($this->game->getActivePlayerId());
 
+        $board = $this->game->getBoard();
+        $hasPieceToMove = count(MovePieceSelectionLogic::extractFreeMoveMoveablePieces($board, $activePlayerId)) > 0;
+
         if ($this->isChoosingExtraReward())
         {
-            $this->addClientButton(\clienttranslate('[move]'), [$this, 'actExtraMove']);
+            $this->addClientButton(\clienttranslate('[move]'), [$this, 'actExtraMove'], [],
+                new ClientButtonParams(ClientButtonColor::PRIMARY, null, !$hasPieceToMove));
+
             $this->addClientButton(\clienttranslate('[morale]'), [$this, 'actGetOneMorale']);
             $this->addClientButton(\clienttranslate('Back'), [$this, 'actBack']);
         }
@@ -58,21 +63,23 @@ class TacticRewardResolve extends PlayerBaseState
             $remainingReward = $reward->diff($rewardClaimed);
 
             $inactivePlayerId = $this->game->getInactivePlayerId();
-            if ($remainingReward->action > 0 && BasicTurnLogic::isAnyActionAvailable($this->game->getBoard(), $activePlayerId, $inactivePlayerId))
+            $isAnyActionDoable = BasicTurnLogic::isAnyActionAvailable($this->game->getBoard(), $activePlayerId, $inactivePlayerId);
+            if ($remainingReward->action > 0)
             {
                 $this->addClientButton(
                     \sprintf(\clienttranslate('%d [action]'), $remainingReward->action),
-                    [$this, 'actDoOneAction']);
+                    [$this, 'actDoOneAction'], [],
+                    new ClientButtonParams(ClientButtonColor::PRIMARY, null, !$isAnyActionDoable));
             }
 
             if ($remainingReward->move > 0)
             {
                 $this->addClientButton(
                     \sprintf(\clienttranslate('%d [move]'), $remainingReward->move),
-                    [$this, 'actDoOneMove']);
+                    [$this, 'actDoOneMove'], [],
+                    new ClientButtonParams(ClientButtonColor::PRIMARY, null, !$hasPieceToMove));
             }
 
-            $board = $this->game->getBoard();
             $tacticContext = new TacticContext();
             if ($tacticContext->hasExtraReward($board, $activePlayerId) && !$tacticContext->isExtraRewardClaimed())
             {
@@ -127,6 +134,11 @@ class TacticRewardResolve extends PlayerBaseState
 
         if ($rewardRemaining->move == 0)
             throw new \BgaUserException(\clienttranslate("Card has no more move rewards"));
+
+        $board = $this->game->getBoard();
+        $hasPieceToMove = count(MovePieceSelectionLogic::extractFreeMoveMoveablePieces($board, $activePlayerId)) > 0;
+        if (!$hasPieceToMove)
+            throw new \BgaUserException(\clienttranslate("There are no pieces that can be moved"));
 
         $claimedReward->move += 1;
         $this->storeRewardClaimed($claimedReward);
@@ -186,6 +198,11 @@ class TacticRewardResolve extends PlayerBaseState
     public function actExtraMove(int $activePlayerId) : string
     {
         $board = $this->game->getBoard();
+
+        $board = $this->game->getBoard();
+        $hasPieceToMove = count(MovePieceSelectionLogic::extractFreeMoveMoveablePieces($board, $activePlayerId)) > 0;
+        if (!$hasPieceToMove)
+            throw new \BgaUserException(\clienttranslate("There are no pieces that can be moved"));
 
         $tacticContext = new TacticContext();
         if ($tacticContext->hasExtraReward($board, $activePlayerId) && !$tacticContext->isExtraRewardClaimed())
