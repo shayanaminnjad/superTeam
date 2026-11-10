@@ -8,6 +8,8 @@ use Bga\Games\SuperTeam\BasicTurnLogic;
 use Bga\Games\SuperTeam\Cards\CardReward;
 use Bga\Games\SuperTeam\Cards\TacticContext;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\MovePieceSelectionLogic;
+use Bga\Games\SuperTeam\NotificationAdapter;
 use Bga\Games\SuperTeam\PlayerPiecesDBManager;
 use Bga\Games\SuperTeam\PlayerResources;
 
@@ -38,10 +40,22 @@ class BeforeRewardResolve extends GameState
         $board = $this->game->getBoard();
         $extraRemaining = $tacticContext->hasExtraReward($board, $activePlayerId) && !$tacticContext->isExtraRewardClaimed();
         $inactivePlayerId = $this->game->getInactivePlayerId();
-        if (($reward->isEmpty() && !$extraRemaining) ||
-            ($this->rewardHasBeenClaimed($reward, $claimedReward) && !$extraRemaining) ||
-            ($this->isOnlyRewardRemainingAction($reward, $claimedReward, $extraRemaining) && !BasicTurnLogic::isAnyActionAvailable($board, $activePlayerId, $inactivePlayerId)))
+        $hasFreeMovablePieces = count(MovePieceSelectionLogic::extractFreeMoveMoveablePieces($board, $activePlayerId)) > 0;
+        $hasActionAvailable = BasicTurnLogic::isAnyActionAvailable($board, $activePlayerId, $inactivePlayerId);
+        if ($extraRemaining) //since gaining morale is always possible, then we should go to the state here.
         {
+            return TacticRewardResolve::class;
+        }
+        if (($reward->isEmpty()) || ($this->rewardHasBeenClaimed($reward, $claimedReward)))
+        {
+            return BeforeCardSelectionReset::class;
+        }
+        else if (
+            (!$hasFreeMovablePieces && !$hasActionAvailable) ||
+            ($this->isOnlyRewardRemainingAction($reward, $claimedReward, $extraRemaining) && !$hasActionAvailable) ||
+            ($this->isOnlyRewardRemainingMove($reward, $claimedReward, $extraRemaining) && !$hasFreeMovablePieces))
+        {
+            NotificationAdapter::getInstance()->notifyAll("rewardSkipped", clienttranslate("Reward skipped, no move or action can be done."), []);
             return BeforeCardSelectionReset::class;
         }
         else
@@ -71,5 +85,11 @@ class BeforeRewardResolve extends GameState
     {
         $remainingReward = $reward->diff($claimedReward);
         return $remainingReward->action > 0 && $remainingReward->move == 0 && $remainingReward->morale == 0 && !$extraRemaining;
+    }
+
+    private function isOnlyRewardRemainingMove(CardReward $reward, CardReward $claimedReward, bool $extraRemaining) : bool
+    {
+        $remainingReward = $reward->diff($claimedReward);
+        return $remainingReward->move > 0 && $remainingReward->action == 0 && $remainingReward->morale == 0 && !$extraRemaining;
     }
 }
