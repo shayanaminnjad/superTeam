@@ -57,6 +57,8 @@ class PushTargetSelection extends PlayerBaseState
     #[PossibleAction]
     public function actTargetSelected(int $hexColumn, int $hexRow): string
     {
+        $this->saveUndoCheckpoint();
+
         $board = $this->game->getBoard();
         $activePlayer = \intval($this->game->getActivePlayerId());
         $selectedHex = new HexID($hexColumn, $hexRow);
@@ -73,6 +75,8 @@ class PushTargetSelection extends PlayerBaseState
     #[PossibleAction]
     public function actForfeit(int $activePlayerId) : string
     {
+        $this->saveUndoCheckpoint();
+
         if (!DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
             throw new \BgaUserException(\clienttranslate("Forfeit is not possible!"));
 

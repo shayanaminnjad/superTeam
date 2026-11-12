@@ -17,6 +17,7 @@ use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
+use Bga\Games\SuperTeam\UndoStack;
 use RuntimeException;
 use function count;
 
@@ -57,7 +58,7 @@ class PlayerBasicTurn extends PlayerBaseState
         }
 
         $actionReturnState = DBAdapter::getInstance()->getPlayerActionReturnState($activePlayer);
-        if ($actionReturnState === BeforeCardSelectionReset::class)
+        if (!UndoStack::ENABLED && $actionReturnState === BeforeCardSelectionReset::class)
         {
             $this->addClientButton(\clienttranslate("Undo"), [$this, "actUndo"], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
@@ -68,6 +69,8 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actMove(int $activePlayerId): string
     {
+        $this->saveUndoCheckpoint();
+
         if (!BasicTurnLogic::getMoveAvailabilityInBasic())
             throw new \BgaUserException(clienttranslate("Movement not allowed now"));
 
@@ -96,6 +99,8 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actPassBall() : string
     {
+        $this->saveUndoCheckpoint();
+
         $this->assertActionAvailable(ActionTypes::PassBall, ActionTypes::GoaliePass);
 
         return PassDestSelection::class;
@@ -116,6 +121,8 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actDribble() : string
     {
+        $this->saveUndoCheckpoint();
+
         $this->assertActionAvailable(ActionTypes::Dribble);
 
         return DribbleTargetSelection::class;
@@ -124,6 +131,8 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actBypass() : string
     {
+        $this->saveUndoCheckpoint();
+
         $this->assertActionAvailable(ActionTypes::Bypass);
 
         BypassLogic::setBypassRollRequirement(true);
@@ -133,6 +142,8 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actTackle() : string
     {
+        $this->saveUndoCheckpoint();
+
         $this->assertActionAvailable(ActionTypes::Tackle);
 
         $selectablePiecesIds = (new PieceSelectionContext())->getSelectablePieceIds();
@@ -148,6 +159,8 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actPass(int $activePlayerId) : string
     {
+        $this->saveUndoCheckpoint();
+
         if (count($this->getActionsAvailable()) > 0)
             throw new \BgaUserException(\clienttranslate("You can't pass while an action is available!"));
 
@@ -173,6 +186,8 @@ class PlayerBasicTurn extends PlayerBaseState
     #[PossibleAction]
     public function actForfeit(int $activePlayerId): string
     {
+        $this->saveUndoCheckpoint();
+
         if (!DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
             throw new \BgaUserException(\clienttranslate("Forfeit is not possible!"));
 

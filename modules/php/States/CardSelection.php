@@ -101,6 +101,8 @@ class CardSelection extends PlayerBaseState
     #[PossibleAction]
     public function actCardSelected(int $cardId, bool $asBasic): string
     {
+        $this->saveUndoCheckpoint();
+
         $activePlayer = \intval($this->game->getActivePlayerId());
 
         if (self::getCardsPlayedThisTurn($this->game) >= 3)

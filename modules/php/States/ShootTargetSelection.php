@@ -9,6 +9,7 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\HexID;
+use Bga\Games\SuperTeam\UndoStack;
 use BgaUserException;
 
 class ShootTargetSelection extends PlayerBaseState
@@ -60,8 +61,11 @@ class ShootTargetSelection extends PlayerBaseState
         ];
     }
 
+    // every shot starts here, and the opponent takes part from now on
     public static function resetTargets(Game $game): void
     {
+        UndoStack::clear();
+
         $db = DBAdapter::getInstance();
         $invalid = HexID::GetInvalidId()->toJson();
         $db->storePlayerTempStr(\intval($game->getActivePlayerId()), 'shootTarget', $invalid);

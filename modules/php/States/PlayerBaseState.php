@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Bga\Games\SuperTeam\States;
 
+use Bga\Games\SuperTeam\ClientButtonColor;
 use Bga\Games\SuperTeam\ClientButtonParams;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\UndoStack;
+use Bga\Games\SuperTeam\UndoStepAction;
 use Bga\GameFramework\States\GameState;
+use Bga\GameFramework\StateType;
 use ReflectionMethod;
 
 readonly class ActionDescriptor
@@ -47,6 +51,8 @@ readonly class ActionDescriptor
 
 abstract class PlayerBaseState extends GameState
 {
+    use UndoStepAction;
+
     /** @var ActionDescriptor[] */
     private array $possibleActions = [];
 
@@ -80,12 +86,22 @@ abstract class PlayerBaseState extends GameState
 
         $res = $this->selfGetArgs();
 
+        // a multiactive state can have the other player acting, so it never offers undo
+        if ($this->type === StateType::ACTIVE_PLAYER && UndoStack::canUndo($this->game))
+            $this->addClientButton(\clienttranslate("Undo"), [$this, 'actUndoStep'], [], new ClientButtonParams(ClientButtonColor::ALERT));
+
         $res['clientButtons'] = $this->serializePossibleActions();
 
         return $res;
     }
 
     abstract public function selfGetArgs(): array;
+
+    // call first in every action that the player may take back
+    protected function saveUndoCheckpoint(): void
+    {
+        UndoStack::push($this->game, static::class);
+    }
 
     protected function addClientButton(string $name, array $func, array $paramsToSendBack = [], ClientButtonParams $buttonParams = new ClientButtonParams()): void
     {

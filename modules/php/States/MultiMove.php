@@ -20,6 +20,7 @@ use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\MovePieceSelectionLogic;
 use Bga\Games\SuperTeam\NotificationAdapter;
 use Bga\Games\SuperTeam\PlayerResources;
+use Bga\Games\SuperTeam\UndoStack;
 
 class MultiMove extends PlayerBaseState
 {
@@ -61,7 +62,7 @@ class MultiMove extends PlayerBaseState
             }
         }
 
-        if (!$this->hasPerformedAnyMoves($moveActionContext))
+        if (!UndoStack::ENABLED && !$this->hasPerformedAnyMoves($moveActionContext))
         {
             $this->addClientButton(\clienttranslate("Undo"), [$this, 'actUndo'], [], new ClientButtonParams(ClientButtonColor::ALERT));
         }
@@ -72,6 +73,8 @@ class MultiMove extends PlayerBaseState
     #[PossibleAction]
     public function actMoveChosen(string $key)
     {
+        $this->saveUndoCheckpoint();
+
         $moveType = MoveTypes::tryFrom($key);
         if ($moveType === null)
             throw new \BgaUserException(\clienttranslate('Invalid key sent: ${key}'), 100, ['key' => $key]);

@@ -2,6 +2,8 @@
 
 namespace Bga\Games\SuperTeam\Dice;
 
+use Bga\Games\SuperTeam\UndoStack;
+
 class Dice
 {
     private array $faces;
@@ -13,6 +15,8 @@ class Dice
 
     public function roll() : int
     {
+        UndoStack::clear();
+
         $faceRolled = bga_rand(0, count($this->faces) - 1);
 
         return $this->faces[$faceRolled];

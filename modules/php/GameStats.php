@@ -17,6 +17,11 @@ class GameStats
 
     public static function initAll(Game $game): void
     {
+        $game->playerStats->init(self::playerStatNames(), 0);
+    }
+
+    public static function playerStatNames(): array
+    {
         $names = ['dice_rolls', 'average_dice', 'cards_as_basic', 'cards_as_tactic', 'fatigues_played', 'tactics_successful', 'tactics_failed', 'pushes', 'bypasses', 'morale_gained', 'morale_spent'];
 
         foreach (StatAction::cases() as $action)
@@ -27,7 +32,7 @@ class GameStats
 
         array_push($names, ...array_unique(array_map(self::getGoalStat(...), TimeTrack::MINUTE_BY_POSITION)));
 
-        $game->playerStats->init($names, 0);
+        return $names;
     }
 
     public static function recordAction(Game $game, int $playerId, StatAction $action, bool $success): void

@@ -115,3 +115,11 @@ CREATE TABLE IF NOT EXISTS `logs` (
     `level` ENUM('INFO', 'WARN', 'ERROR') DEFAULT 'INFO',
     `message` TEXT DEFAULT null
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- keep in sync with the upgradeTableDb step in Game.php
+CREATE TABLE IF NOT EXISTS `undo_checkpoint` (
+    `id` INT PRIMARY KEY AUTO_INCREMENT,
+    `player_id` INT unsigned NOT NULL,
+    `state_class` VARCHAR(255) NOT NULL,
+    `data` MEDIUMTEXT NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

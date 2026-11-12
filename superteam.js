@@ -747,6 +747,74 @@ define([
                 await this.bgaPlayDojoAnimation(undoAnimation);
             },
 
+            // the server sends the whole restored board, so the UI does not need to know what was undone
+            notif_undoRestored: async function (notifData) {
+                let animations = [];
+
+                for (const pieceData of notifData.pieces) {
+                    const piece = this.pieceManager.getPiece(parseInt(pieceData.id));
+                    piece.setFreshness(parseInt(pieceData.is_fresh) === 1);
+
+                    const column = parseInt(pieceData.hex_column);
+                    const row = parseInt(pieceData.hex_row);
+
+                    if (column === -1 || row === -1) {
+                        piece.setPosition(null);
+                        continue;
+                    }
+
+                    const hex = STHexLib.createOffsetCoord(row, column);
+                    const currentHex = piece.getPosition();
+
+                    if (currentHex === null) {
+                        piece.setPosition(hex);
+                        this.pieceManager.animatePieceFromPlayerBoardToHex(piece.getId(), Board.convertOffsetCoordToHexId(hex));
+                    }
+                    else if (!currentHex.equals(hex)) {
+                        animations.push(GameEventProcessor.MovePieceWithAnimation(piece, hex, 0, 0));
+                    }
+                }
+
+                const ballHex = STHexLib.createOffsetCoord(parseInt(notifData.ball.hex_row), parseInt(notifData.ball.hex_column));
+                const currentBallHex = Board.getHexWithBall();
+
+                if (!currentBallHex || !currentBallHex.equals(ballHex)) {
+                    Board.setHexWithBall(ballHex);
+                    animations.push(Board.getMoveBallAnimation(Board.convertOffsetCoordToHexId(ballHex)));
+                }
+
+                for (const [playerId, morale] of Object.entries(notifData.morale)) {
+                    PlayerPanelManager.setPlayerMorale(parseInt(playerId), parseInt(morale));
+                }
+
+                for (const [playerId, deckCount] of Object.entries(notifData.deckCounts)) {
+                    PlayerPanelManager.setPlayerCards(parseInt(playerId), deckCount);
+                }
+
+                // a player's own cards that left the discard were already moved by undoRestoredCards
+                const removeMissingOfMine = this.isSpectator;
+                const cardPromises = [
+                    this.cardsManager.syncDiscard(notifData.discards[this.viewerId] || [], true, removeMissingOfMine),
+                    this.cardsManager.syncDiscard(notifData.discards[this.opponentId] || [], false, true),
+                    this.cardsManager.placeCards(notifData.supply),
+                ];
+
+                if (animations.length > 0) {
+                    await this.bgaPlayDojoAnimation(dojo.fx.combine(animations));
+                }
+
+                await Promise.all(cardPromises);
+            },
+
+            notif_undoRestoredCards: async function (notifData) {
+                if (this.isSpectator)
+                    return;
+
+                this.cardsManager.setHandVisibility(notifData.hand.length > 0);
+
+                return this.cardsManager.placeCardsOutsideDeck(notifData.hand, notifData.deck);
+            },
+
             notif_timeTrackAdvance: async function(notifData) {
                 if (parseInt(notifData.minute) !== 45)
                     this.showBannerText(notifData.minute, 'timeAdvanceText');

@@ -38,6 +38,24 @@ class Game extends \Bga\GameFramework\Table
     // Values must match option 100 in gameoptions.json.
     public const GAME_MODE_ADVANCED = 2;
 
+    public const array GAME_STATE_LABELS = [
+        "starter_player" => 10,
+        "user_in_left_id" => 11,
+        "user_in_right_id" => 12,
+        "number_of_moves" => 13,
+        "required_power" => 14,
+        "attacker" => 15,
+        "defender" => 16,
+        "moraleAssignRemaining" => 17,
+        "isAttributesAssignmentFinished" => 18,
+        "lastPassResult" => 19,
+        "cardsPlayedThisTurn" => 20,
+        "playerStartedFirstHalf" => 21,
+        "isFinalTurn" => 22,
+        "isHalfTimeNext" => 23,
+        "game_mode" => 100
+    ];
+
     private ?TeamBoard $teamBoard = null;
 
     private CardFactory $cardFactory;
@@ -70,23 +88,7 @@ class Game extends \Bga\GameFramework\Table
         $this->initCardFactory();
         
         $this->teamBoard = new TeamBoard(DBAdapter::getInstance());
-        $this->initGameStateLabels([
-            "starter_player" => 10,
-            "user_in_left_id" => 11,
-            "user_in_right_id" => 12,
-            "number_of_moves" => 13,
-            "required_power" => 14,
-            "attacker" => 15,
-            "defender" => 16,
-            "moraleAssignRemaining" => 17,
-            "isAttributesAssignmentFinished" => 18,
-            "lastPassResult" => 19,
-            "cardsPlayedThisTurn" => 20,
-            "playerStartedFirstHalf" => 21,
-            "isFinalTurn" => 22,
-            "isHalfTimeNext" => 23,
-            "game_mode" => 100
-        ]);
+        $this->initGameStateLabels(self::GAME_STATE_LABELS);
     }
 
     /**
@@ -127,6 +129,17 @@ class Game extends \Bga\GameFramework\Table
      */
     public function upgradeTableDb($from_version)
     {
+        // IF NOT EXISTS keeps this safe for games that already got the table from dbmodel.sql
+        if ($from_version <= 2611122359)
+        {
+            $this->applyDbUpgradeToAllDB("CREATE TABLE IF NOT EXISTS DBPREFIX_undo_checkpoint (
+                `id` INT PRIMARY KEY AUTO_INCREMENT,
+                `player_id` INT unsigned NOT NULL,
+                `state_class` VARCHAR(255) NOT NULL,
+                `data` MEDIUMTEXT NOT NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+        }
+
         //       if ($from_version <= 1404301345)
         //       {
         //            // ! important ! Use DBPREFIX_<table_name> for all tables
@@ -612,6 +625,33 @@ class Game extends \Bga\GameFramework\Table
             "ballMoved" => false,
             "spentMorale"=> 0
         ));
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+    // saves and restores the game, then compares. The exception at the end rolls everything back.
+    public function debug_undoRoundTrip() : void
+    {
+        $before = UndoStack::capture($this);
+        UndoStack::restore($this, json_decode(json_encode($before, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR));
+        $after = UndoStack::capture($this);
+
+        $differences = [];
+        foreach ($before as $section => $values)
+        {
+            $parts = $section === 'tables' ? $values : [$section => $values];
+
+            foreach ($parts as $name => $partBefore)
+            {
+                $partAfter = $section === 'tables' ? $after['tables'][$name] : $after[$section];
+
+                if (json_encode($partBefore) !== json_encode($partAfter))
+                    $differences[] = $name;
+            }
+        }
+
+        $result = empty($differences) ? "Undo round trip OK" : "Undo round trip differs in: " . implode(', ', $differences);
+
+        throw new \BgaUserException($result);
     }
 
     //---------------------------------------------------------------------------------------------------------

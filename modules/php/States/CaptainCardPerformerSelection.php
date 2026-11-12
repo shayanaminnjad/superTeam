@@ -43,6 +43,8 @@ class CaptainCardPerformerSelection extends PlayerBaseState
     #[PossibleAction]
     public function actPieceSelected(int $pieceId)
     {
+        $this->saveUndoCheckpoint();
+
         $pieceSelectionContext = new PieceSelectionContext();
         $selectablePieces = $pieceSelectionContext->getSelectablePieceIds();
 

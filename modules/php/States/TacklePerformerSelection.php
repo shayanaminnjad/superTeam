@@ -11,6 +11,8 @@ use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\Cards\PieceSelectionContext;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\UndoStack;
+use Bga\Games\SuperTeam\UndoStepAction;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\MoraleAssignContext;
@@ -19,6 +21,8 @@ use Bga\Games\SuperTeam\TeamAttribute;
 
 class TacklePerformerSelection extends GameState
 {
+    use UndoStepAction;
+
     function __construct(
         protected Game $game,
     ) {
@@ -61,13 +65,18 @@ class TacklePerformerSelection extends GameState
             $hexesWithTacklingPieces[] = $piece->getPosition()->convertToArray();
         }
 
-        return ["HexesWithTacklingPieces" => $hexesWithTacklingPieces];
+        return [
+            "HexesWithTacklingPieces" => $hexesWithTacklingPieces,
+            "clientButtons" => UndoStack::getClientButtons($this->game),
+        ];
     }
 
 
     #[PossibleAction]
     public function actPieceSelected(int $hexColumn, int $hexRow): string
     {
+        UndoStack::push($this->game, self::class);
+
         $hexesWithTacklingPiecesAsArray = self::getArgs()["HexesWithTacklingPieces"];
 
         $hexes = [];

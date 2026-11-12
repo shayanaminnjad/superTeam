@@ -68,6 +68,8 @@ class SwapPiece extends PlayerBaseState
     #[PossibleAction]
     public function actPieceSelected(int $hexColumn, int $hexRow): string
     {
+        $this->saveUndoCheckpoint();
+
         $hexesWithTacklingPiecesAsArray = self::getArgs()["piecesToSwap"];
 
         $hexes = [];
@@ -104,6 +106,8 @@ class SwapPiece extends PlayerBaseState
     #[PossibleAction]
     public function actForfeit(int $activePlayerId): string
     {
+        $this->saveUndoCheckpoint();
+
         if (!DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
             throw new \BgaUserException(\clienttranslate("Forfeit is not possible!"));
 

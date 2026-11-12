@@ -53,6 +53,8 @@ class MakeExhaustedReady extends PlayerBaseState
     #[PossibleAction]
     public function actTargetSelected(int $hexColumn, int $hexRow): string
     {
+        $this->saveUndoCheckpoint();
+
         $exhaustedPiecesPosition = $this->getArgs()["exhaustedPieces"];
 
         $selectedHex = new HexID($hexColumn, $hexRow);

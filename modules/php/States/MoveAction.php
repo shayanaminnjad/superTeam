@@ -89,6 +89,8 @@ class MoveAction extends PlayerBaseState
     #[PossibleAction]
     public function actPieceMoved(int $hexColumn, int $hexRow, int $activePlayerId) : string
     {
+        $this->saveUndoCheckpoint();
+
         $destination = new HexID($hexColumn, $hexRow);
         $moveActionContext = new MoveActionContext();
         $board = $this->game->getBoard();
@@ -176,6 +178,8 @@ class MoveAction extends PlayerBaseState
     #[PossibleAction]
     public function actFinishMove(int $activePlayerId): string
     {
+        $this->saveUndoCheckpoint();
+
         $board = $this->game->getBoard();
         $moveActionContext = new MoveActionContext();
         $movesTaken = intval($this->game->getGameStateValue('number_of_moves'));
@@ -188,6 +192,8 @@ class MoveAction extends PlayerBaseState
     #[PossibleAction]
     public function actForfeit(int $activePlayerId): string
     {
+        $this->saveUndoCheckpoint();
+
         if (!DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
             throw new \BgaUserException(\clienttranslate("Forfeit is not possible!"));
 

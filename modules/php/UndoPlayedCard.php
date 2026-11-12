@@ -10,6 +10,10 @@ trait UndoPlayedCard
 {
     protected function addUndoButtonIfPlayedCardUndoable(): void
     {
+        // the undo stack adds its own button
+        if (UndoStack::ENABLED)
+            return;
+
         if (CardSelection::isPlayedCardUndoable($this->game, \intval($this->game->getActivePlayerId())))
         {
             $this->addClientButton(\clienttranslate("Undo"), [$this, 'actUndo'], [], new ClientButtonParams(ClientButtonColor::ALERT));

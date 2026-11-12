@@ -6,6 +6,7 @@ use Bga\Games\SuperTeam\Game;
 use Bga\GameFramework\Components\Deck;
 use Bga\Games\SuperTeam\Cards\CardTypeHelper;
 use Bga\Games\SuperTeam\NotificationAdapter;
+use Bga\Games\SuperTeam\UndoStack;
 
 class PlayerHand
 {
@@ -108,6 +109,8 @@ class PlayerHand
 
     public function drawCards(int $count) : bool
     {
+        UndoStack::clear();
+
         $this->wasShuffled = false;
 
         $this->cards->autoreshuffle_custom = [$this->deckName => $this->discardName];
@@ -120,6 +123,8 @@ class PlayerHand
 
     public function drawFatigue() : array
     {
+        UndoStack::clear();
+
         return $this->cards->pickCard(self::$supplyName, $this->ownerId);
     }
 
@@ -218,8 +223,10 @@ class PlayerHand
         $this->cards->moveAllCardsInLocation(self::$handName, $this->deckName, $this->getOwner());
     }
 
-    public function shuffleDeck() 
+    public function shuffleDeck()
     {
+        UndoStack::clear();
+
         return $this->cards->shuffle($this->deckName);
     }
 

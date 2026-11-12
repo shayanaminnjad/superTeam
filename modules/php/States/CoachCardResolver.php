@@ -46,12 +46,16 @@ class CoachCardResolver extends PlayerBaseState
     #[PossibleAction]
     public function actMove(): string
     {
+        $this->saveUndoCheckpoint();
+
         return MovePieceSelection::class;
     }
 
     #[PossibleAction]
     public function actPass(): string
     {
+        $this->saveUndoCheckpoint();
+
         return BeforeCardSelectionReset::class;
     }
 
