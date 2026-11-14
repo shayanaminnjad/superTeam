@@ -70,7 +70,7 @@ class CardSelection extends PlayerBaseState
 
         if ($canPlayCard && $canPass)
         {
-            $title = clienttranslate('play a card or pass');
+            $title = clienttranslate('play a card or end turn');
             $counter = '(' . ($cardsPlayedThisTurn + 1) . '/3)';
         }
         else if ($canPlayCard && !$canPass)
@@ -80,7 +80,7 @@ class CardSelection extends PlayerBaseState
         }
         else
         {
-            $title = clienttranslate('pass');
+            $title = clienttranslate('end turn');
             $counter = '';
         }
 
