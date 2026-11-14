@@ -671,6 +671,10 @@ define([
                 return Board.passBall(STHexLib.createOffsetCoord(notifData.ballHex.hex_row, notifData.ballHex.hex_column));
             },
 
+            notif_shootSuccess: async function (notifData) {
+                return Board.moveBallToNet(notifData.activePlayerId === this.opponentId);
+            },
+
             notif_goalScored: async function (notifData) {
                 this.playBgaSound('stadium_cheer');
                 this.bga.playerPanels.getScoreCounter(notifData.playerId).toValue(notifData.score);

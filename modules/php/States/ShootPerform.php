@@ -53,6 +53,7 @@ class ShootPerform extends GameState
         if ($isShotSuccessful)
         {
             $this->notify->all('shootSuccess', \clienttranslate('${player_name} shoot successfully'), [
+                "activePlayerId" => $activePlayerId,
                 "player_name" => NotificationAdapter::getInstance()->getPlayerNameById($activePlayerId),
             ]);
 

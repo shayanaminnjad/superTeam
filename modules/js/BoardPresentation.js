@@ -102,6 +102,15 @@ define([
 
         //------------------------------------------------------------------------------------
 
+        moveBallToNet: async function(myNet) {
+          const TARGET_ID = myNet ? this._myNetEl.id : this._opponentNetEl.id;
+          const anim = this._root.slideToObject('ballParent', TARGET_ID);
+
+          await this._root.bgaPlayDojoAnimation(anim);
+        },
+
+        //------------------------------------------------------------------------------------
+
         getMoveBallAnimation: function (destHex) {
             return this._root.slideToObject('ballParent', destHex);
         },
@@ -185,6 +194,8 @@ define([
             this._resnapHexAnchoredElements();
 
             this._redrawRuler();
+
+            this._repositionNetPoints();
         },
 
         //------------------------------------------------------------------------------------
@@ -196,9 +207,9 @@ define([
 
             this._root.getGameAreaElement().insertAdjacentHTML('beforeend', `<div id="mainBoard"></div>`);
 
-            const MAIN_BOARD_EL = document.getElementById('mainBoard');
-            this._landscapeWidth = parseFloat(getComputedStyle(MAIN_BOARD_EL).width);
-            this._landscapeHeight = parseFloat(getComputedStyle(MAIN_BOARD_EL).height);
+            this._mainBoardEl = document.getElementById('mainBoard');
+            this._landscapeWidth = parseFloat(getComputedStyle(this._mainBoardEl).width);
+            this._landscapeHeight = parseFloat(getComputedStyle(this._mainBoardEl).height);
             this._rulerWidth = (this._landscapeWidth * UIConstants.HEX_WIDTH_PERCENT) * 0.5;
 
             this._hexInfo = HexLib.createHexInfo(
@@ -214,7 +225,7 @@ define([
                 for (let y = 0; y < hexInColumn; y++) {
                     let hexId = `hex_${y}_${x}`;
                     let rect = this._projectHex(y, x);
-                    MAIN_BOARD_EL.insertAdjacentHTML('afterbegin', `<div id='${hexId}' class="hex" style='left:${rect.left}px; top:${rect.top}px; width: ${rect.width}px; height: ${rect.height}px;'></div>`);
+                    this._mainBoardEl.insertAdjacentHTML('afterbegin', `<div id='${hexId}' class="hex" style='left:${rect.left}px; top:${rect.top}px; width: ${rect.width}px; height: ${rect.height}px;'></div>`);
 
                     const hexEl = document.getElementById(hexId);
                     hexEl.addEventListener('mouseenter', () => this._hoveredHexEl = hexEl);
@@ -225,9 +236,11 @@ define([
                 }
             }
 
-            MAIN_BOARD_EL.insertAdjacentHTML('beforeend', `<div id='pieces'></div>`);
+            this._createNetElements();
 
-            this._addSVGLayer(MAIN_BOARD_EL);
+            this._mainBoardEl.insertAdjacentHTML('beforeend', `<div id='pieces'></div>`);
+
+            this._addSVGLayer(this._mainBoardEl);
         },
 
         //------------------------------------------------------------------------------------
@@ -287,6 +300,8 @@ define([
             const projectedCol = this._flip ? (UIConstants.COLUMNS - 1 - col) : col;
 
             const LEFT_MARGIN = UIConstants.HORIZONTAL_MARGIN_PERCENT * BOARD_WIDTH;
+            this._landscapeLeftMargin = LEFT_MARGIN - 6;
+            this._landscapeRightMargin = BOARD_WIDTH - this._landscapeLeftMargin;
             const TOP_MARGIN_ODD = UIConstants.TOP_MARGIN_ODD_PERCENT * BOARD_HEIGHT;
             const TOP_MARGIN_EVEN = UIConstants.TOP_MARGIN_EVEN_PERCENT * BOARD_HEIGHT;
 
@@ -463,6 +478,41 @@ define([
                 rulerFront.remove();
         },
 
+        //------------------------------------------------------------------------------------
+
+        _createNetElements: function(){
+            this._myNetEl = document.createElement('myNet');
+            this._myNetEl.setAttribute('id', 'myNet');
+            this._myNetEl.style.position = 'absolute';
+            this._mainBoardEl.appendChild(this._myNetEl);
+
+            this._opponentNetEl = document.createElement('opponentNet');
+            this._opponentNetEl.setAttribute('id', 'opponentNet');
+            this._opponentNetEl.style.position = 'absolute';
+            this._mainBoardEl.appendChild(this._opponentNetEl);
+
+            this._repositionNetPoints();
+        },
+
+        //------------------------------------------------------------------------------------
+
+        _repositionNetPoints: function () {
+            if (this._orientation === 'landscape') {
+                this._myNetEl.style.left = `${this._landscapeRightMargin}px`;
+                this._myNetEl.style.top = `${this._landscapeHeight * 0.5}px`;
+                this._opponentNetEl.style.left = `${this._landscapeLeftMargin}px`;
+                this._opponentNetEl.style.top = `${this._landscapeHeight * 0.5}px`;
+            }
+            else {
+                this._myNetEl.style.left = `${(this._landscapeHeight * 0.5) - 10}px`;
+                this._myNetEl.style.top = `${this._landscapeWidth - this._landscapeLeftMargin}px`;
+                this._opponentNetEl.style.left = `${(this._landscapeHeight * 0.5) - 10}px`;
+                this._opponentNetEl.style.top = `${this._landscapeLeftMargin}px`;
+            }
+        },
+
+        //------------------------------------------------------------------------------------
+
         //Private Members
         _root: null,
         _hexWithBall: null,
@@ -474,6 +524,11 @@ define([
         _orientation: 'landscape',
         _landscapeWidth: null,
         _landscapeHeight: null,
+        _landscapeLeftMargin: null,
+        _landscapeRightMargin: null,
+        _mainBoardEl: null,
+        _myNetEl: null,
+        _opponentNetEl: null,
         _flip: false
     };
 });
