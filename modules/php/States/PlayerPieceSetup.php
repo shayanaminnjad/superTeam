@@ -25,7 +25,7 @@ class PlayerPieceSetup extends PlayerBaseState
             id: ST_PLAYER_PIECE_SETUP,
             name: "playerPieceSetup",
             type: StateType::ACTIVE_PLAYER,
-            description: clienttranslate('${actplayer} ${dynamicTitle}'),
+            description: clienttranslate('${actplayer} must place pieces'),
             descriptionMyTurn: clienttranslate('${you} ${dynamicTitle}'),
             transitions: [],
             updateGameProgression: false,
