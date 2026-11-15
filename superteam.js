@@ -400,9 +400,7 @@ define([
                     rollResults.push(DiceUI.createRollResult(parseInt(player), notifData["rollResult"][player]));
                 }
 
-                const passDest = notifData.passDest
-                    ? STHexLib.createOffsetCoord(notifData.passDest.hex_row, notifData.passDest.hex_column)
-                    : null;
+                const toOffsetCoord = (hex) => hex ? STHexLib.createOffsetCoord(hex.hex_row, hex.hex_column) : null;
 
                 return {
                     rollResults,
@@ -412,7 +410,8 @@ define([
                     distance: notifData.distance,
                     skipEnabledPlayerId: notifData.skipEnabledPlayerId,
                     actionName: notifData.actionName,
-                    passDest,
+                    passDest: toOffsetCoord(notifData.passDest),
+                    shootDest: toOffsetCoord(notifData.shootDest),
                 };
             },
 

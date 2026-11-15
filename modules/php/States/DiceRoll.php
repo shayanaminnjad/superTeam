@@ -89,9 +89,7 @@ class DiceRoll extends GameState
         $notifData["hasReroll"] = $hasReroll;
         $notifData["diceLog"] = "";
         $notifData["actionName"] = $rollData->actionName;
-        if ($rollData->selfAttribute == TeamAttribute::Pass) {
-            $notifData["passDest"] = DBAdapter::getInstance()->getSelectedHexAsHexID()->convertToArray();
-        }
+        DiceRollServices::addDestinationData($rollData, $notifData);
         $notifData["i18n"] = ["actionName"];
         //History logs (F5) drop every arg that is not in the message, so the client can rebuild ${diceLog}.
         $notifData["preserve"] = ["rollResult", "distance", "blockingPieces", "requiredPower", "actionName", "skipEnabledPlayerId"];
@@ -289,10 +287,19 @@ class DiceRollServices
             "rollingPieceIds"     => $rollData->rollingPieceIds,
         ];
 
+        self::addDestinationData($rollData, $data);
+
+        return $data;
+    }
+
+    // Morale assignment shows the ball path, but it is skipped when nobody has morale, so the roll shows it too.
+    public static function addDestinationData(DiceRollData $rollData, array &$data): void
+    {
         if ($rollData->selfAttribute == TeamAttribute::Pass) {
             $data["passDest"] = DBAdapter::getInstance()->getSelectedHexAsHexID()->convertToArray();
         }
-
-        return $data;
+        else if ($rollData->selfAttribute == TeamAttribute::Shoot) {
+            $data["shootDest"] = DBAdapter::getInstance()->getSelectedHexAsHexID()->convertToArray();
+        }
     }
 }
