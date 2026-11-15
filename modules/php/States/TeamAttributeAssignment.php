@@ -26,7 +26,7 @@ class TeamAttributeAssignment extends PlayerBaseState
 
             // optional
             description: clienttranslate('${actplayer} must assign coach markers'),
-            descriptionMyTurn: clienttranslate('${you} must assign your coach markers'),
+            descriptionMyTurn: clienttranslate('${you} must assign your coach markers (${markers_remained} left)'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,
@@ -40,7 +40,10 @@ class TeamAttributeAssignment extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
-        return ["IsGKAssignable" => $this->isGKAssignable()];
+        return [
+            "IsGKAssignable" => $this->isGKAssignable(),
+            "markers_remained" => '[markers_remained]'
+        ];
     }
 
     #[PossibleAction]
@@ -69,13 +72,22 @@ class TeamAttributeAssignment extends PlayerBaseState
         {
             throw new BgaUserException(\clienttranslate("You cannot assign more than two cubes to an attribute!"));
         }
+    }
 
-        $attributesRemaining = TeamBoard::MAX_ALLOWED_ATTRIBUTES - ($totalCubesAssigned + 1);
+    #[PossibleAction]
+    public function actConfirm() : void
+    {
+        $currentPlayer = \intval($this->game->getCurrentPlayerId());
+        $teamBoard = $this->game->getTeamBoard();
+        $totalCubesAssigned = $teamBoard->getTotalAttributesAssigned($currentPlayer);
+        $attributesRemaining = TeamBoard::MAX_ALLOWED_ATTRIBUTES - $totalCubesAssigned;
 
-        if ($attributesRemaining == 0) 
+        if ($attributesRemaining == 0)
         {
             $this->gamestate->setPlayerNonMultiactive($currentPlayer, TeamAttributesReveal::class);
         }
+        else
+            throw new BgaUserException(\clienttranslate("You haven't assigned all your cubes! You cannot confirm."));
     }
 
     #[PossibleAction]
