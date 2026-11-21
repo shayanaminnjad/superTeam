@@ -88,7 +88,7 @@ abstract class PlayerBaseState extends GameState
 
         // a multiactive state can have the other player acting, so it never offers undo
         if ($this->type === StateType::ACTIVE_PLAYER && UndoStack::canUndo($this->game))
-            $this->addClientButton(\clienttranslate("Undo"), [$this, 'actUndoStep'], [], new ClientButtonParams(ClientButtonColor::ALERT));
+            $this->addClientButton(\clienttranslate("Undo"), [$this, 'actUndoStep'], [], new ClientButtonParams(ClientButtonColor::SECONDARY));
 
         $res['clientButtons'] = $this->serializePossibleActions();
 

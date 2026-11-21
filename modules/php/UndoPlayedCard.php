@@ -16,7 +16,7 @@ trait UndoPlayedCard
 
         if (CardSelection::isPlayedCardUndoable($this->game, \intval($this->game->getActivePlayerId())))
         {
-            $this->addClientButton(\clienttranslate("Undo"), [$this, 'actUndo'], [], new ClientButtonParams(ClientButtonColor::ALERT));
+            $this->addClientButton(\clienttranslate("Undo"), [$this, 'actUndo'], [], new ClientButtonParams(ClientButtonColor::SECONDARY));
         }
     }
 
