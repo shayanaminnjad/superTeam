@@ -62,4 +62,6 @@ const ST_DRAFTING = 47;
 
 const ST_PUT_CARD_ON_TOP_OF_DECK_STATE = 48;
 
+const ST_UNDO_PERFORM_STATE = 98;
+
 const ST_END_GAME = 99;
