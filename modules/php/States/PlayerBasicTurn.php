@@ -60,7 +60,7 @@ class PlayerBasicTurn extends PlayerBaseState
         $actionReturnState = DBAdapter::getInstance()->getPlayerActionReturnState($activePlayer);
         if (!UndoStack::ENABLED && $actionReturnState === BeforeCardSelectionReset::class)
         {
-            $this->addClientButton(\clienttranslate("Undo"), [$this, "actUndo"], [], new ClientButtonParams(ClientButtonColor::ALERT));
+            $this->addClientButton(\clienttranslate("Undo"), [$this, "actUndo"], [], new ClientButtonParams(ClientButtonColor::SECONDARY));
         }
 
         return [];

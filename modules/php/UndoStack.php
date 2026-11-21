@@ -85,7 +85,7 @@ class UndoStack
             'name' => \clienttranslate("Undo"),
             'action' => 'actUndoStep',
             'paramsToSendBack' => [],
-            'buttonParams' => (new ClientButtonParams(ClientButtonColor::ALERT))->toArray(),
+            'buttonParams' => (new ClientButtonParams(ClientButtonColor::SECONDARY))->toArray(),
         ]];
     }
 
