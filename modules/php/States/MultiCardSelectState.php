@@ -56,6 +56,8 @@ class MultiCardSelectState extends PlayerBaseState
     #[PossibleAction]
     public function actCardsSelected(#[IntArrayParam()] array $cardsSelectedIds) : string
     {
+        $this->saveUndoCheckpoint();
+
         $args = $this->selfGetArgs();
         $minCards = $args['minCards'];
         $maxCards = $args['maxCards'];

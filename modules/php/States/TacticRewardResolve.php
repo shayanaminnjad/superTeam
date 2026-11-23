@@ -96,12 +96,16 @@ class TacticRewardResolve extends PlayerBaseState
     #[PossibleAction]
     public function actForfeitReward() : string
     {
+        $this->saveUndoCheckpoint();
+
         return BeforeCardSelectionReset::class;
     }
 
     #[PossibleAction]
     public function actDoOneAction(int $activePlayerId) : string
     {
+        $this->saveUndoCheckpoint();
+
         $cardReward = $this->getCardInPlayReward();
         $claimedReward = $this->getRewardClaimed();
 
@@ -127,6 +131,8 @@ class TacticRewardResolve extends PlayerBaseState
     #[PossibleAction]
     public function actDoOneMove(int $activePlayerId) : string
     {
+        $this->saveUndoCheckpoint();
+
         $cardReward = $this->getCardInPlayReward();
         $claimedReward = $this->getRewardClaimed();
 
@@ -156,6 +162,8 @@ class TacticRewardResolve extends PlayerBaseState
     #[PossibleAction]
     public function actBack() : string
     {
+        $this->saveUndoCheckpoint();
+
         $this->setIsChoosingExtraReward(false);
         return self::class;
     }
@@ -163,6 +171,8 @@ class TacticRewardResolve extends PlayerBaseState
     #[PossibleAction]
     public function actExtraRewardChoose(int $activePlayerId) : string
     {
+        $this->saveUndoCheckpoint();
+
         $board = $this->game->getBoard();
 
         $tacticContext = new TacticContext();
@@ -178,6 +188,8 @@ class TacticRewardResolve extends PlayerBaseState
     #[PossibleAction]
     public function actGetOneMorale(int $activePlayerId) : string
     {
+        $this->saveUndoCheckpoint();
+
         $board = $this->game->getBoard();
 
         $tacticContext = new TacticContext();
@@ -197,6 +209,8 @@ class TacticRewardResolve extends PlayerBaseState
     #[PossibleAction]
     public function actExtraMove(int $activePlayerId) : string
     {
+        $this->saveUndoCheckpoint();
+
         $board = $this->game->getBoard();
 
         $board = $this->game->getBoard();

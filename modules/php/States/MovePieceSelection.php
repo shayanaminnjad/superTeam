@@ -89,6 +89,8 @@ class MovePieceSelection extends PlayerBaseState
     #[PossibleAction]
     public function actPieceSelected(int $pieceId) : string
     {
+        $this->saveUndoCheckpoint();
+
         $pieceSelectionContext = new PieceSelectionContext();
         $moveablePiecesIds = $pieceSelectionContext->getSelectablePieceIds();
 
@@ -105,6 +107,8 @@ class MovePieceSelection extends PlayerBaseState
     #[PossibleAction]
     public function actForfeit(int $activePlayerId): string
     {
+        $this->saveUndoCheckpoint();
+
         if (!DBAdapter::getInstance()->getGlobalBool('forfeitable_captain_action'))
             throw new \BgaUserException(\clienttranslate("Forfeit is not possible!"));
 

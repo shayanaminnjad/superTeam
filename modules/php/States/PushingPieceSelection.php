@@ -56,6 +56,8 @@ class PushingPieceSelection extends PlayerBaseState
     #[PossibleAction]
     public function actTargetSelected(int $hexColumn, int $hexRow): string
     {
+        $this->saveUndoCheckpoint();
+
         $board = $this->game->getBoard();
         $selectedHex = new HexID($hexColumn, $hexRow);
 

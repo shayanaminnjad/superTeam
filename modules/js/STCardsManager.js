@@ -43,6 +43,30 @@ define(["dojo/_base/declare",
                 return this._cardsManager.removeCard(card);
             },
 
+            // removeMissing drops cards that are no longer in this discard and that this viewer cannot follow elsewhere
+            syncDiscard: function (cards, isMine, removeMissing) {
+                const stock = isMine ? this._discardStock : this._opponentDiscardStock;
+
+                if (removeMissing) {
+                    const keptIds = new Set(cards.map(card => String(card.id)));
+
+                    for (const card of stock.getCards()) {
+                        if (!keptIds.has(String(card.id)))
+                            stock.removeCard(card);
+                    }
+                }
+
+                return this._cardsManager.placeCards(cards);
+            },
+
+            // deck cards already in the deck stay as they are, so the deck does not animate for nothing
+            placeCardsOutsideDeck: function (handCards, deckCards) {
+                const idsInDeck = new Set(this._hiddenDeck.getCards().map(card => String(card.id)));
+                const deckCardsToMove = deckCards.filter(card => !idsInDeck.has(String(card.id)));
+
+                return this._cardsManager.placeCards(handCards.concat(deckCardsToMove));
+            },
+
             removeOpponentDiscard: function () {
                 this._opponentDiscardStock.removeAll();
             },

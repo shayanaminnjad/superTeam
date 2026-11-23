@@ -49,6 +49,8 @@ class BypassPerformerSelection extends PlayerBaseState
     #[PossibleAction]
     public function actPieceSelected(int $hexColumn, int $hexRow): string
     {
+        $this->saveUndoCheckpoint();
+
         $hexesWithBypassingPiecesAsArray = self::getArgs()["pieces"];
         $selectedHex = new HexID($hexColumn, $hexRow);
 

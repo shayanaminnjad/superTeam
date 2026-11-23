@@ -28,5 +28,6 @@ final class ClientButtonParams
 enum ClientButtonColor: string
 {
     case PRIMARY = 'primary';
+    case SECONDARY = 'secondary';
     case ALERT = 'alert';
 }

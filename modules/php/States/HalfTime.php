@@ -10,6 +10,7 @@ use Bga\Games\SuperTeam\Game;
 use Bga\Games\SuperTeam\NotificationAdapter;
 use Bga\Games\SuperTeam\TeamAttribute;
 use Bga\Games\SuperTeam\TimeTrack;
+use Bga\Games\SuperTeam\UndoStack;
 use Bga\Games\SuperTeam\Utility\Logger;
 
 class HalfTime extends GameState
@@ -30,6 +31,8 @@ class HalfTime extends GameState
 
     function onEnteringState(): string
     {
+        UndoStack::clear();
+
         $this->game->setGameStateValue("isHalfTimeNext", 0);
         NotificationAdapter::getInstance()->notifyAll('halfTime', '', []);
 

@@ -9,6 +9,8 @@ use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\Board;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\UndoStack;
+use Bga\Games\SuperTeam\UndoStepAction;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
@@ -18,6 +20,8 @@ use Bga\Games\SuperTeam\DBAdapter;
 
 class MoraleAssignment extends GameState
 {
+    use UndoStepAction;
+
     function __construct(
         protected Game $game,
     ) {
@@ -64,7 +68,8 @@ class MoraleAssignment extends GameState
             'attacker' => $attacker,
             'selectedDestination' => $selectedHex->convertToArray(),
             'isShooting' => $isShooting,
-            'moraleAssigned' => $moraleDataToSend
+            'moraleAssigned' => $moraleDataToSend,
+            'clientButtons' => UndoStack::getClientButtons($this->game),
         ];
     }
 

@@ -14,6 +14,7 @@ use Bga\Games\SuperTeam\NotificationAdapter;
 use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
 use Bga\Games\SuperTeam\PlayerPiecesDBManager;
 use Bga\Games\SuperTeam\TimeTrack;
+use Bga\Games\SuperTeam\UndoStack;
 
 class PassTurn extends GameState
 {
@@ -34,6 +35,8 @@ class PassTurn extends GameState
 
     function onEnteringState(int $activePlayerId)
     {
+        UndoStack::clear();
+
         //(sha) this happens if we have given the second player a final turn.
         if ($this->isLastTurn($activePlayerId, TimeTrack::GetTimeTrackPosition()))
             return ST_END_GAME;

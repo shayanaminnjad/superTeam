@@ -21,6 +21,7 @@ use Bga\Games\SuperTeam\PermanentPowers\PlayerPowers;
 use Bga\Games\SuperTeam\PlayerSide;
 use Bga\Games\SuperTeam\RequiredPower;
 use Bga\Games\SuperTeam\TeamAttribute;
+use Bga\Games\SuperTeam\UndoStack;
 use BgaUserException;
 
 class PassDestSelection extends PlayerBaseState
@@ -47,7 +48,7 @@ class PassDestSelection extends PlayerBaseState
     {
         $activePlayer = \intval($this->game->getActivePlayerId());
         $actionReturnState = DBAdapter::getInstance()->getPlayerActionReturnState($activePlayer);
-        if ($actionReturnState === TacticalTurnStateManager::class)
+        if (!UndoStack::ENABLED && $actionReturnState === TacticalTurnStateManager::class)
         {
             $tacticContext  = new TacticContext();
 
@@ -63,6 +64,8 @@ class PassDestSelection extends PlayerBaseState
     #[PossibleAction]
     public function actDestSelected(int $hexColumn, int $hexRow) : string
     {
+        $this->saveUndoCheckpoint();
+
         $board = $this->game->getBoard();
         $activePlayer = intval($this->game->getActivePlayerId());
         $selectedHex = new HexID($hexColumn, $hexRow);

@@ -36,7 +36,7 @@ class CoachCardResolver extends PlayerBaseState
     public function selfGetArgs(): array
     {
         $this->addClientButton(\clienttranslate("Do one [move]"), [$this, "actMove"]);
-        $this->addClientButton(\clienttranslate("Pass"), [$this, "actPass"], [],
+        $this->addClientButton(\clienttranslate("Forfeit"), [$this, "actPass"], [],
             new ClientButtonParams(ClientButtonColor::ALERT));
         $this->addUndoButtonIfPlayedCardUndoable();
 
@@ -46,12 +46,16 @@ class CoachCardResolver extends PlayerBaseState
     #[PossibleAction]
     public function actMove(): string
     {
+        $this->saveUndoCheckpoint();
+
         return MovePieceSelection::class;
     }
 
     #[PossibleAction]
     public function actPass(): string
     {
+        $this->saveUndoCheckpoint();
+
         return BeforeCardSelectionReset::class;
     }
 

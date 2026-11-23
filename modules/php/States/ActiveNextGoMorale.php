@@ -7,6 +7,7 @@ namespace Bga\Games\SuperTeam\States;
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\UndoStack;
 
 class ActiveNextGoMorale extends GameState
 {
@@ -25,6 +26,8 @@ class ActiveNextGoMorale extends GameState
 
     function onEnteringState(int $activePlayerId)
     {
+        UndoStack::clear();
+
         $playerId = intval($this->game->activeNextPlayer());
         $this->game->giveExtraTime($playerId);
 

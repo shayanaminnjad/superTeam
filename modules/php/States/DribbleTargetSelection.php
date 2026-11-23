@@ -10,6 +10,8 @@ use Bga\GameFramework\States\PossibleAction;
 use Bga\Games\SuperTeam\BoardEvaluator;
 use Bga\Games\SuperTeam\DBAdapter;
 use Bga\Games\SuperTeam\Game;
+use Bga\Games\SuperTeam\UndoStack;
+use Bga\Games\SuperTeam\UndoStepAction;
 use Bga\Games\SuperTeam\HexID;
 use Bga\Games\SuperTeam\MoraleAssignContext;
 use Bga\Games\SuperTeam\RequiredPower;
@@ -17,6 +19,8 @@ use Bga\Games\SuperTeam\TeamAttribute;
 
 class DribbleTargetSelection extends GameState
 {
+    use UndoStepAction;
+
     function __construct(
         protected Game $game,
     ) {
@@ -45,12 +49,17 @@ class DribbleTargetSelection extends GameState
             $adjacentOpponentsAsArray[] = $opponent->getPosition()->convertToArray();
         }
 
-        return ["adjacentOpponents" => $adjacentOpponentsAsArray];
+        return [
+            "adjacentOpponents" => $adjacentOpponentsAsArray,
+            "clientButtons" => UndoStack::getClientButtons($this->game),
+        ];
     }
 
     #[PossibleAction]
     public function actTargetSelected(int $hexColumn, int $hexRow): string
     {
+        UndoStack::push($this->game, self::class);
+
         $activePlayer = \intval($this->game->getActivePlayerId());
         $board = $this->game->getBoard();
         $adjacentOpponents = BoardEvaluator::getAdjacentOpponentPieces($board, $board->getBallHex(),$activePlayer, false);

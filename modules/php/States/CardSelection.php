@@ -70,7 +70,7 @@ class CardSelection extends PlayerBaseState
 
         if ($canPlayCard && $canPass)
         {
-            $title = clienttranslate('play a card or end turn');
+            $title = clienttranslate('play a card or end your turn');
             $counter = '(' . ($cardsPlayedThisTurn + 1) . '/3)';
         }
         else if ($canPlayCard && !$canPass)
@@ -80,7 +80,7 @@ class CardSelection extends PlayerBaseState
         }
         else
         {
-            $title = clienttranslate('end turn');
+            $title = clienttranslate('end your turn');
             $counter = '';
         }
 
@@ -101,6 +101,8 @@ class CardSelection extends PlayerBaseState
     #[PossibleAction]
     public function actCardSelected(int $cardId, bool $asBasic): string
     {
+        $this->saveUndoCheckpoint();
+
         $activePlayer = \intval($this->game->getActivePlayerId());
 
         if (self::getCardsPlayedThisTurn($this->game) >= 3)
