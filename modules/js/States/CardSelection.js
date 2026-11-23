@@ -98,7 +98,7 @@ define(["dojo/_base/declare",
                 }
 
                 if (this._args.canPass) {
-                    this._root.statusBar.addActionButton(_('Pass'), () => {
+                    this._root.statusBar.addActionButton(_('End turn'), () => {
                         this._root.performServerAction("actPass")
                     }, { color: 'alert' });
                 }

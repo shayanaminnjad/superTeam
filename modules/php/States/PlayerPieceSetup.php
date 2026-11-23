@@ -25,8 +25,8 @@ class PlayerPieceSetup extends PlayerBaseState
             id: ST_PLAYER_PIECE_SETUP,
             name: "playerPieceSetup",
             type: StateType::ACTIVE_PLAYER,
-            description: clienttranslate('${actplayer} must place his player pieces'),
-            descriptionMyTurn: clienttranslate('${you} must place the indicated piece [${pieceType}]'),
+            description: clienttranslate('${actplayer} must place pieces'),
+            descriptionMyTurn: clienttranslate('${you} ${dynamicTitle}'),
             transitions: [],
             updateGameProgression: false,
             initialPrivate: null,
@@ -35,11 +35,13 @@ class PlayerPieceSetup extends PlayerBaseState
 
     public function selfGetArgs(): array
     {
+        $activePlayerId = intval($this->game->getActivePlayerId());
         $setupLogic = new PlayerPieceSetupLogic($this->game->getBoard());
-        $notPlacedPieces = $setupLogic->getNotPlacedPieces(intval($this->game->getActivePlayerId()));
+        $notPlacedPieces = $setupLogic->getNotPlacedPieces($activePlayerId);
+        $piecesLeft = count($notPlacedPieces);
 
-        $pieceToPlaceId = 0;
-        if (count($notPlacedPieces) > 0)
+        $pieceToPlaceId = -1;
+        if ($piecesLeft > 0)
         {
             $pieceToPlaceId = $notPlacedPieces[0]->getId();
         }
@@ -47,20 +49,43 @@ class PlayerPieceSetup extends PlayerBaseState
         $playerSide = $this->game->getPlayerSide(intval($this->game->getActivePlayerId()));
         $isFirstPlayer = $this->game->isCurrentPlayerFirstPlayer();
 
-        $possibleLocations = $setupLogic->getAvailablePlacingPositions($playerSide, $isFirstPlayer, count($notPlacedPieces));
+        $possibleLocations =[];
+        if ($piecesLeft > 0)
+            $possibleLocations = $setupLogic->getAvailablePlacingPositions($playerSide, $isFirstPlayer, $piecesLeft);
 
-        if (count($notPlacedPieces) < (PlayerPieceSetupLogic::PIECES_PER_PLAYER - 1)) //minus goalkeeper
+        if ($piecesLeft < (PlayerPieceSetupLogic::PIECES_PER_PLAYER - 1)) //minus goalkeeper
         {
             $this->addClientButton('Restart', [$this, 'actRestart'], [],
                 new ClientButtonParams(ClientButtonColor::ALERT));
         }
 
-        $pieceType = $this->game->getBoard()->getPiece($pieceToPlaceId)->getRole() ===  PlayerRole::Captain->value ? "captain" : "regular";
+        $canConfirm = $this->game->getBoard()->doAllPiecesHaveValidPosition($activePlayerId);
+        $this->addClientButton('Confirm', [$this, 'actConfirm'], [],
+            new ClientButtonParams(ClientButtonColor::PRIMARY, '', !$canConfirm));
+
+        if ($pieceToPlaceId === -1)
+        {
+            $pieceType = "none";
+            $dynamicTitle = \clienttranslate('must confirm the piece placement');
+        }
+        else
+        {
+            $pieceType = $this->game->getBoard()->getPiece($pieceToPlaceId)->getRole() === PlayerRole::Captain->value
+                ? "captain"
+                : "regular";
+
+            $dynamicTitle = sprintf(
+                \clienttranslate('must place the [%1$s] piece (%2$d left)'),
+                $pieceType,
+                $piecesLeft
+            );
+        }
 
         return [
             "availableStartingPositions" => $possibleLocations,
-            "pieceToPlace"=> $pieceToPlaceId,
-            "pieceType" => $pieceType
+            "pieceToPlace"  => $pieceToPlaceId,
+            "pieceType"     => $pieceType,
+            "dynamicTitle"  => $dynamicTitle,
         ];
     }
 
@@ -84,7 +109,7 @@ class PlayerPieceSetup extends PlayerBaseState
             }
         }
 
-        if (!$isValidPosition) 
+        if (!$isValidPosition)
         {
             throw new BgaUserException(\clienttranslate('Invalid hex position for placing a piece! (${column}, ${row})'), 100, ['column' => $hexColumn, 'row' => $hexRow]);
         }
@@ -106,16 +131,17 @@ class PlayerPieceSetup extends PlayerBaseState
             "hex_row" => $hexRow,
         ]);
 
-        if (!$this->game->getBoard()->doAllPiecesHaveValidPosition($playerId))
-        {
-            return PlayerPieceSetup::class;
-        }
-        else
-        {
-            return SetupComplete::class;
-        }
+        return PlayerPieceSetup::class;
     }
 
+    #[PossibleAction]
+    public function actConfirm(int $activePlayerId): string
+    {
+        if (!$this->game->getBoard()->doAllPiecesHaveValidPosition($activePlayerId))
+            throw new BgaUserException(\clienttranslate('Confirm is not possible! there are pieces not placed.'));
+
+        return SetupComplete::class;
+    }
     #[PossibleAction]
     public function actRestart(int $activePlayerId) : string
     {
@@ -132,4 +158,3 @@ class PlayerPieceSetup extends PlayerBaseState
         return SetupComplete::class;
     }
 }
-

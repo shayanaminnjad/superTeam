@@ -53,11 +53,12 @@ define([
 
             await this._preloadPromise;
 
-            const { rollResults, attacker, requiredPower, blockingPieces, distance, actionName, passDest = null } = params;
+            const { rollResults, attacker, requiredPower, blockingPieces, distance, actionName, passDest = null, shootDest = null } = params;
 
-            if (passDest) {
-                Board.visualizePowerRequired(Board.getHexWithBall(), passDest, attacker !== this._root.viewerId);
-                this._passDestShown = true;
+            const dest = passDest ?? shootDest;
+            if (dest) {
+                Board.visualizePowerRequired(Board.getHexWithBall(), dest, parseInt(attacker) !== this._root.viewerId, !shootDest);
+                this._destShown = true;
             }
 
             Board.getMainBoardElement().insertAdjacentHTML('beforeend', `<div id="diceRollArea"></div>`);
@@ -181,9 +182,9 @@ define([
         clearRollVisuals: function () {
             GameEventProcessor.RemoveAssignedMorale();
 
-            if (this._passDestShown) {
+            if (this._destShown) {
                 Board.removeRequiredPowerVisualization();
-                this._passDestShown = false;
+                this._destShown = false;
             }
         },
 
@@ -516,6 +517,6 @@ define([
         _poolCount: 0,
         _preloadPromise: null,
         _active: null,
-        _passDestShown: false,
+        _destShown: false,
     };
 });
